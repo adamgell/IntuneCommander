@@ -19,29 +19,29 @@ jobs:
       shell: pwsh
       run: |
         $solutionExists = Test-Path "IntuneManager.sln"
-        echo "exists=$solutionExists" >> $env:GITHUB_OUTPUT
+        echo "exists=$($solutionExists.ToString().ToLower())" >> $env:GITHUB_OUTPUT
         if ($solutionExists) {
           Write-Host "✓ Solution file found - will build"
         } else {
-          Write-Host "⊘ No solution file - skipping build steps"
+          Write-Host "✗ No solution file - skipping build steps"
         }
       
     - name: Setup .NET 8
-      if: steps.check-solution.outputs.exists == 'True'
+      if: steps.check-solution.outputs.exists == 'true'
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
         
     - name: Restore dependencies
-      if: steps.check-solution.outputs.exists == 'True'
+      if: steps.check-solution.outputs.exists == 'true'
       run: dotnet restore IntuneManager.sln
       
     - name: Build solution
-      if: steps.check-solution.outputs.exists == 'True'
+      if: steps.check-solution.outputs.exists == 'true'
       run: dotnet build IntuneManager.sln --configuration Release --no-restore
       
     - name: Publish Windows x64 executable
-      if: steps.check-solution.outputs.exists == 'True'
+      if: steps.check-solution.outputs.exists == 'true'
       run: |
         dotnet publish src/IntuneManager.Desktop/IntuneManager.Desktop.csproj `
           --configuration Release `
@@ -52,7 +52,7 @@ jobs:
           -p:IncludeNativeLibrariesForSelfExtract=true
       
     - name: Upload artifact
-      if: steps.check-solution.outputs.exists == 'True'
+      if: steps.check-solution.outputs.exists == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: IntuneManager-win-x64
