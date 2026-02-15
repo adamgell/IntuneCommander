@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:IntuneManager.Desktop.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+             x:Class="IntuneManager.Desktop.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+
+    <Design.DataContext>
+        <vm:LoginViewModel />
+    </Design.DataContext>
+
+    <Border Padding="40" MaxWidth="450" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <StackPanel Spacing="16">
+            <TextBlock Text="IntuneManager"
+                       FontSize="28" FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,8" />
+
+            <TextBlock Text="Connect to your Intune tenant"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       Foreground="Gray"
+                       Margin="0,0,0,16" />
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Profile Name (optional)" FontSize="12" />
+                <TextBox Text="{Binding ProfileName}"
+                         Watermark="e.g. Contoso-Prod"
+                         IsEnabled="{Binding !IsBusy}" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Tenant ID" FontSize="12" />
+                <TextBox Text="{Binding TenantId}"
+                         Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                         IsEnabled="{Binding !IsBusy}" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Client ID (App Registration)" FontSize="12" />
+                <TextBox Text="{Binding ClientId}"
+                         Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                         IsEnabled="{Binding !IsBusy}" />
+            </StackPanel>
+
+            <Button Content="Connect"
+                    Command="{Binding LoginCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Classes="accent"
+                    Margin="0,8,0,0" />
+
+            <!-- Status -->
+            <TextBlock Text="{Binding StatusMessage}"
+                       HorizontalAlignment="Center"
+                       FontSize="12"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <!-- Loading indicator -->
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding IsBusy}"
+                         Margin="0,4,0,0" />
+
+            <!-- Error -->
+            <Border Background="#33FF0000" CornerRadius="4" Padding="8"
+                    IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="Red"
+                           TextWrapping="Wrap"
+                           FontSize="12" />
+            </Border>
+        </StackPanel>
+    </Border>
+</UserControl>

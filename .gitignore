@@ -1,3 +1,42 @@
+# Build results
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# Test results
+TestResults/
+*.trx
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Environment files
+appsettings.local.json
+appsettings.*.local.json
+
+# Logs
+logs/
+*.log
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -13,9 +52,13 @@ Desktop.ini
 *.swo
 *~
 .vscode/
-.idea/
 
 # Temporary files
 *.tmp
 *.temp
 *.bak
+
+# Sensitive data
+profiles.json
+*.pfx
+*.p12

@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-IntuneManager is a **greenfield .NET 8 / Avalonia UI** desktop application for managing Microsoft Intune configurations across multiple cloud environments (Commercial, GCC, GCC-High, DoD). It is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement) (PowerShell/WPF).
+IntuneManager is a **.NET 8 / Avalonia UI** desktop application for managing Microsoft Intune configurations across multiple cloud environments (Commercial, GCC, GCC-High, DoD). It is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement) (PowerShell/WPF).
 
-**Current Status:** Planning complete, pre-implementation. No source code exists yet — only planning documentation.
+**Current Status:** Phase 1 implemented. Core infrastructure (auth, Graph API services, export/import, basic UI) is in place.
 
 ## Repository Structure
 
@@ -12,31 +12,56 @@ IntuneManager is a **greenfield .NET 8 / Avalonia UI** desktop application for m
 IntuneGUI/
 ├── CLAUDE.md                  # This file
 ├── README.md                  # Project overview
-├── .gitignore                 # OS/editor exclusions
-└── docs/
-    ├── ARCHITECTURE.md        # Technical architecture & design decisions
-    ├── DECISIONS.md           # 15 recorded architectural decisions with rationale
-    ├── PLANNING.md            # 6-phase development plan with success criteria
-    └── NEXT-STEPS.md          # Pre-coding checklist, Phase 1 guide, resources
-```
-
-### Planned Source Structure (not yet created)
-
-```
-src/
-├── IntuneManager.Core/            # Shared business logic (.NET 8 class library)
-│   ├── Auth/                      # Authentication providers (Azure.Identity)
-│   ├── Services/                  # Graph API services
-│   ├── Models/                    # Data models, enums, DTOs
-│   └── Extensions/                # Utility extensions
-├── IntuneManager.Desktop/         # Avalonia UI application
-│   ├── Views/                     # XAML views (.axaml files)
-│   ├── ViewModels/                # MVVM view models
-│   └── App.axaml                  # Application entry point
-└── IntuneManager.Cli/             # CLI tool (Phase 6)
-
-tests/
-└── IntuneManager.Core.Tests/      # xUnit test project
+├── .gitignore                 # .NET / editor exclusions
+├── IntuneManager.sln          # Solution file
+├── docs/
+│   ├── ARCHITECTURE.md        # Technical architecture & design decisions
+│   ├── DECISIONS.md           # 15 recorded architectural decisions with rationale
+│   ├── PLANNING.md            # 6-phase development plan with success criteria
+│   └── NEXT-STEPS.md          # Pre-coding checklist, Phase 1 guide, resources
+├── src/
+│   ├── IntuneManager.Core/           # Shared business logic (.NET 8 class library)
+│   │   ├── Auth/                     # Authentication providers
+│   │   │   ├── IAuthenticationProvider.cs   # Auth provider interface
+│   │   │   ├── InteractiveBrowserAuthProvider.cs  # Azure.Identity interactive auth
+│   │   │   └── GraphClientFactory.cs        # IntuneGraphClientFactory
+│   │   ├── Services/                 # Graph API and business services
+│   │   │   ├── IIntuneService.cs     # Device Configuration CRUD interface
+│   │   │   ├── IntuneService.cs      # Graph API implementation
+│   │   │   ├── IExportService.cs     # Export interface
+│   │   │   ├── ExportService.cs      # JSON file export
+│   │   │   ├── IImportService.cs     # Import interface
+│   │   │   ├── ImportService.cs      # JSON file import + Graph API create
+│   │   │   └── ProfileService.cs     # Tenant profile CRUD and persistence
+│   │   ├── Models/                   # Data models and enums
+│   │   │   ├── CloudEnvironment.cs   # Commercial/GCC/GCCHigh/DoD enum
+│   │   │   ├── AuthMethod.cs         # Interactive/Certificate/ManagedIdentity enum
+│   │   │   ├── TenantProfile.cs      # Profile model
+│   │   │   ├── ProfileStore.cs       # Collection of profiles for serialization
+│   │   │   ├── CloudEndpoints.cs     # Graph endpoints & authority hosts per cloud
+│   │   │   ├── MigrationEntry.cs     # Single ID mapping entry
+│   │   │   └── MigrationTable.cs     # Collection of migration entries
+│   │   └── Extensions/
+│   │       └── ServiceCollectionExtensions.cs  # DI registration
+│   └── IntuneManager.Desktop/        # Avalonia UI application
+│       ├── App.axaml / App.axaml.cs  # App entry with DI setup
+│       ├── Program.cs                # Main entry point
+│       ├── ViewLocator.cs            # ViewModel-to-View resolution
+│       ├── Views/
+│       │   ├── MainWindow.axaml/.cs  # Main window with toolbar, list, detail pane
+│       │   └── LoginView.axaml/.cs   # Login form (tenant ID, client ID)
+│       └── ViewModels/
+│           ├── ViewModelBase.cs      # Base with IsBusy, ErrorMessage
+│           ├── LoginViewModel.cs     # Auth flow, profile creation
+│           └── MainWindowViewModel.cs # Config list, export/import, state mgmt
+└── tests/
+    └── IntuneManager.Core.Tests/     # xUnit tests (30 tests)
+        ├── Models/
+        │   ├── CloudEndpointsTests.cs
+        │   └── MigrationTableTests.cs
+        └── Services/
+            ├── ProfileServiceTests.cs
+            └── ExportServiceTests.cs
 ```
 
 ## Technology Stack
@@ -45,39 +70,43 @@ tests/
 |-----------|-----------|---------|
 | Runtime | .NET 8 (LTS) | 8.0.x |
 | Language | C# 12 | — |
-| UI Framework | Avalonia | 11.2.x |
-| MVVM Toolkit | CommunityToolkit.Mvvm | 8.3.x |
-| Authentication | Azure.Identity | 1.13.x |
-| Graph API | Microsoft.Graph SDK | 5.88.x |
-| JSON | System.Text.Json | 8.0.x |
-| DI | Microsoft.Extensions.DependencyInjection | 8.0.x |
-| Logging | Serilog (Phase 6) | 4.1.x |
-| Testing | xUnit | — |
+| UI Framework | Avalonia | 11.3.x |
+| MVVM Toolkit | CommunityToolkit.Mvvm | 8.2.x |
+| Authentication | Azure.Identity | 1.17.x |
+| Graph API | Microsoft.Graph SDK | 5.102.x |
+| DI | Microsoft.Extensions.DependencyInjection | 10.0.x |
+| Testing | xUnit | 2.5.x |
+
+## Build & Run
+
+```bash
+# Build all projects
+dotnet build
+
+# Run unit tests (30 tests)
+dotnet test
+
+# Run the desktop application
+dotnet run --project src/IntuneManager.Desktop
+```
 
 ## Development Phases
 
-The project follows a 6-phase iterative MVP approach:
-
-1. **Phase 1** — Foundation: Single tenant, Device Configurations CRUD, basic UI
+1. **Phase 1 (DONE)** — Foundation: Auth, Device Configurations CRUD, export/import, basic UI
 2. **Phase 2** — Multi-Cloud + Profile System: All gov clouds, saved profiles
 3. **Phase 3** — Expand Object Types: Compliance, Settings Catalog, Apps, CA
-4. **Phase 4** — Bulk Operations: Multi-select export/import, migration table, dependency handling
+4. **Phase 4** — Bulk Operations: Multi-select export/import, dependency handling
 5. **Phase 5** — Auth Expansion: Certificate auth, Managed Identity
 6. **Phase 6** — Polish & Docker: Logging, CLI mode, containerization
 
-See `docs/PLANNING.md` for full phase details and success criteria.
-
 ## Key Architecture Decisions
 
-These are documented in `docs/DECISIONS.md` and `docs/ARCHITECTURE.md`. The most important ones:
-
-- **Azure.Identity over MSAL** — Use `TokenCredential` abstraction, no direct MSAL dependency
+- **Azure.Identity over MSAL** — `TokenCredential` abstraction, no direct MSAL dependency
 - **Separate app registration per cloud** — GCC-High/DoD require isolated registrations
 - **Microsoft.Graph SDK models directly** — No custom model layer; custom DTOs only for export edge cases
-- **MVVM with CommunityToolkit.Mvvm** — Source generators, clean separation, testable ViewModels
-- **Read-only backward compatibility** — Can import PowerShell version JSON exports, but forward compat not required
-- **Windows-first** — Phases 1-5 target Windows; Linux Docker in Phase 6
-- **Central Package Management** — `Directory.Packages.props` for version pinning
+- **MVVM with CommunityToolkit.Mvvm** — Source generators, `[ObservableProperty]`, `[RelayCommand]`
+- **Read-only backward compatibility** — Can import PowerShell version JSON exports
+- **Class name: `IntuneGraphClientFactory`** — Renamed from `GraphClientFactory` to avoid collision with `Microsoft.Graph.GraphClientFactory`
 
 ## Coding Conventions
 
@@ -85,79 +114,40 @@ These are documented in `docs/DECISIONS.md` and `docs/ARCHITECTURE.md`. The most
 
 - Use C# 12 features: primary constructors, collection expressions, required members, file-scoped types
 - Async/await for all I/O operations
-- Nullable reference types enabled
-- Follow standard .NET naming conventions (PascalCase for public members, camelCase for private fields with `_` prefix)
+- Nullable reference types enabled (`<Nullable>enable</Nullable>`)
+- Follow .NET naming: PascalCase public, `_camelCase` private fields
 
 ### Naming Patterns
 
-- **Namespaces:** `IntuneManager.*` prefix
+- **Namespaces:** `IntuneManager.Core.*`, `IntuneManager.Desktop.*`
 - **Interfaces:** `I{Name}` (e.g., `IIntuneService`, `IAuthenticationProvider`)
 - **Services:** `I{Name}Service` / `{Name}Service`
-- **ViewModels:** `{ViewName}ViewModel`
+- **ViewModels:** `{ViewName}ViewModel` — must be `partial class` for source generators
 - **Views:** `{Name}View.axaml` or `{Name}Window.axaml`
+- **XAML DataType:** Always set `x:DataType` for compiled bindings
 
 ### DI Service Lifetimes
 
-- **Singleton:** `GraphClientFactory`, `ProfileManager`
-- **Scoped:** `IntuneService` (per active profile)
-- **Transient:** ViewModels
+- **Singleton:** `IntuneGraphClientFactory`, `ProfileService`, `IAuthenticationProvider`
+- **Transient:** `IExportService`, ViewModels
 
-### Error Handling
+### ViewModelBase Pattern
 
-- Translate Graph API errors to user-friendly messages
-- Retry with exponential backoff: 1s, 2s, 4s, 8s, 16s (max 5 retries)
-- Respect `Retry-After` headers from Graph API
-- Support cancellation tokens for long operations
-
-## Build & Run
-
-### Prerequisites
-
-- .NET 8 SDK
-- Visual Studio 2022 or JetBrains Rider
-
-### Commands (once source exists)
-
-```bash
-# Create solution structure
-dotnet new sln -n IntuneManager
-dotnet new classlib -n IntuneManager.Core -f net8.0
-dotnet new avalonia.app -n IntuneManager.Desktop -f net8.0
-dotnet new xunit -n IntuneManager.Core.Tests -f net8.0
-
-# Build
-dotnet build
-
-# Run tests
-dotnet test
-
-# Run desktop app
-dotnet run --project src/IntuneManager.Desktop
-```
-
-### Package Installation
-
-```bash
-# Core project
-dotnet add IntuneManager.Core package Azure.Identity
-dotnet add IntuneManager.Core package Microsoft.Graph
-dotnet add IntuneManager.Core package System.Text.Json
-dotnet add IntuneManager.Core package Microsoft.Extensions.DependencyInjection
-
-# Desktop project
-dotnet add IntuneManager.Desktop package CommunityToolkit.Mvvm
-dotnet add IntuneManager.Desktop package Microsoft.Extensions.DependencyInjection
-```
+All ViewModels inherit from `ViewModelBase` which provides:
+- `IsBusy` (bool) — for loading states
+- `ErrorMessage` (string?) — for error display
+- `ClearError()` / `SetError(message)` helpers
 
 ## Testing
 
-- **Framework:** xUnit
-- **Coverage target:** >70% for Core library
-- **Focus areas:** Service logic, auth provider selection, JSON serialization, migration table
-- **UI testing:** Manual (Avalonia UI test tooling is immature)
-- **Integration tests:** Deferred to Phase 6+ (requires test tenant)
+- **Framework:** xUnit (30 tests currently passing)
+- **Coverage areas:** CloudEndpoints, MigrationTable, ProfileService, ExportService
+- **Run:** `dotnet test`
+- **Convention:** Tests in `tests/IntuneManager.Core.Tests/` mirror source structure
 
 ## Multi-Cloud Configuration
+
+Defined in `CloudEndpoints.cs`:
 
 | Cloud | Graph Endpoint | Authority Host |
 |-------|---------------|----------------|
@@ -168,49 +158,21 @@ dotnet add IntuneManager.Desktop package Microsoft.Extensions.DependencyInjectio
 
 ## Export/Import Format
 
-Maintains read-only compatibility with the PowerShell version's JSON export format:
-
 ```
 ExportFolder/
 ├── DeviceConfigurations/
-│   ├── Policy1.json
-│   └── Policy2.json
-├── CompliancePolicies/
-│   └── Policy3.json
-├── Groups/
-│   └── Group1.json
-└── migration-table.json
+│   ├── PolicyName.json          # Serialized DeviceConfiguration
+│   └── ...
+└── migration-table.json         # ID mapping (originalId → newId)
 ```
-
-## Profile Storage
-
-- **Windows:** `%LOCALAPPDATA%\IntuneManager\profiles.json`
-- **Linux:** `~/.config/IntuneManager/profiles.json`
-- **macOS:** `~/Library/Application Support/IntuneManager/profiles.json`
-- Sensitive fields encrypted with platform-native encryption (DPAPI on Windows)
-
-## Security Considerations
-
-- Never log or store access tokens
-- Use platform-native credential storage (DPAPI / Keychain / libsecret)
-- Store certificate thumbprints only, never private keys
-- HTTPS only, certificate validation enabled
-- Profiles are per-user encrypted and not portable
-
-## Key Reference Documents
-
-- `docs/ARCHITECTURE.md` — Full technical architecture with implementation patterns
-- `docs/PLANNING.md` — Phase-by-phase plan with success criteria
-- `docs/DECISIONS.md` — 15 architectural decisions with rationale and alternatives considered
-- `docs/NEXT-STEPS.md` — Pre-coding checklist, Phase 1 implementation guide, validation checklist
 
 ## Important Context for AI Assistants
 
-- This is a **pre-implementation project**. No `.sln`, `.csproj`, or source files exist yet. All content is planning documentation.
-- When generating code, follow the planned structure in `docs/ARCHITECTURE.md` and `docs/NEXT-STEPS.md`.
-- The project targets **Avalonia UI** (not WPF). XAML files use the `.axaml` extension and Avalonia-specific namespaces.
+- The project targets **Avalonia UI** (not WPF). XAML files use `.axaml` extension.
+- Compiled bindings are enabled (`AvaloniaUseCompiledBindingsByDefault`). Always set `x:DataType`.
 - Use `Microsoft.Graph` SDK models directly — avoid creating redundant model classes.
+- The Graph client factory is named `IntuneGraphClientFactory` (not `GraphClientFactory`) to avoid namespace collision.
 - All Graph API calls must support multi-cloud endpoints configured per profile.
-- Export JSON format must be backward-compatible with the PowerShell version ([Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement)).
-- Use `Azure.Identity` credential types, not raw MSAL. The `TokenCredential` abstraction enables future auth method expansion.
+- Export JSON format should be backward-compatible with the PowerShell version.
+- Use `Azure.Identity` credential types, not raw MSAL.
 - The project is a hobby/personal project — keep solutions pragmatic and avoid over-engineering.
