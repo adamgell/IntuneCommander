@@ -11,12 +11,11 @@ This project is a ground-up remake of [Micke-K/IntuneManagement](https://github.
 - **Multi-cloud support:** Commercial, GCC, GCC-High, DoD tenants
 - **Multi-tenant:** Easy switching between tenant environments
 - **Native performance:** Compiled .NET code eliminates PowerShell threading issues
-- **Cross-platform:** Linux deployment with Docker support (Windows-first development)
+- **Cross-platform:** Linux and Macos support.
 - **Backward compatible:** Import/export compatible with PowerShell version JSON format
 
 ### Non-Goals (Removed from original)
 - ADMX import tooling
-- Web-based UI
 - Exact feature parity with PowerShell version
 
 ## Technology Stack

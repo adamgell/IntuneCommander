@@ -1,0 +1,12 @@
+using Microsoft.Graph.Models;
+
+namespace IntuneManager.Core.Services;
+
+public interface IIntuneService
+{
+    Task<List<DeviceConfiguration>> ListDeviceConfigurationsAsync(CancellationToken cancellationToken = default);
+    Task<DeviceConfiguration?> GetDeviceConfigurationAsync(string id, CancellationToken cancellationToken = default);
+    Task<DeviceConfiguration> CreateDeviceConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken = default);
+    Task<DeviceConfiguration> UpdateDeviceConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken = default);
+    Task DeleteDeviceConfigurationAsync(string id, CancellationToken cancellationToken = default);
+}
