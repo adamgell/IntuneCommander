@@ -21,18 +21,10 @@ public partial class LoginViewModel : ViewModelBase
     private string _clientId = string.Empty;
 
     [ObservableProperty]
-    private string _clientSecret = string.Empty;
-
-    [ObservableProperty]
-    private int _authMethodIndex = 0;
-
-    [ObservableProperty]
     private string _profileName = string.Empty;
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
-
-    public bool IsClientSecretMode => AuthMethodIndex == 1;
 
     public event EventHandler<TenantProfile>? LoginSucceeded;
 
@@ -51,16 +43,13 @@ public partial class LoginViewModel : ViewModelBase
 
         try
         {
-            var authMethod = AuthMethodIndex == 1 ? AuthMethod.ClientSecret : AuthMethod.Interactive;
-
             var profile = new TenantProfile
             {
                 Name = string.IsNullOrWhiteSpace(ProfileName) ? $"Tenant-{TenantId[..8]}" : ProfileName,
                 TenantId = TenantId.Trim(),
                 ClientId = ClientId.Trim(),
-                ClientSecret = authMethod == AuthMethod.ClientSecret ? ClientSecret.Trim() : null,
                 Cloud = CloudEnvironment.Commercial,
-                AuthMethod = authMethod
+                AuthMethod = AuthMethod.Interactive
             };
 
             // Test the connection by creating a client and making a request
@@ -89,25 +78,11 @@ public partial class LoginViewModel : ViewModelBase
 
     private bool CanLogin()
     {
-        var baseRequirements = !IsBusy
+        return !IsBusy
             && !string.IsNullOrWhiteSpace(TenantId)
             && !string.IsNullOrWhiteSpace(ClientId);
-
-        // If client secret mode, also require the secret
-        if (AuthMethodIndex == 1)
-        {
-            return baseRequirements && !string.IsNullOrWhiteSpace(ClientSecret);
-        }
-
-        return baseRequirements;
     }
 
     partial void OnTenantIdChanged(string value) => LoginCommand.NotifyCanExecuteChanged();
     partial void OnClientIdChanged(string value) => LoginCommand.NotifyCanExecuteChanged();
-    partial void OnClientSecretChanged(string value) => LoginCommand.NotifyCanExecuteChanged();
-    partial void OnAuthMethodIndexChanged(int value)
-    {
-        OnPropertyChanged(nameof(IsClientSecretMode));
-        LoginCommand.NotifyCanExecuteChanged();
-    }
 }

@@ -22,9 +22,6 @@ public class TenantProfile
     [JsonPropertyName("authMethod")]
     public AuthMethod AuthMethod { get; set; } = AuthMethod.Interactive;
 
-    [JsonPropertyName("clientSecret")]
-    public string? ClientSecret { get; set; }
-
     [JsonPropertyName("certificateThumbprint")]
     public string? CertificateThumbprint { get; set; }
 

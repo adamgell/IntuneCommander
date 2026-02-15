@@ -45,24 +45,6 @@
                          IsEnabled="{Binding !IsBusy}" />
             </StackPanel>
 
-            <StackPanel Spacing="4">
-                <TextBlock Text="Authentication Method" FontSize="12" />
-                <ComboBox SelectedIndex="{Binding AuthMethodIndex}"
-                          IsEnabled="{Binding !IsBusy}"
-                          HorizontalAlignment="Stretch">
-                    <ComboBoxItem Content="Interactive Browser (Delegated)" />
-                    <ComboBoxItem Content="Client Secret (Application)" />
-                </ComboBox>
-            </StackPanel>
-
-            <StackPanel Spacing="4" IsVisible="{Binding IsClientSecretMode}">
-                <TextBlock Text="Client Secret" FontSize="12" />
-                <TextBox Text="{Binding ClientSecret}"
-                         Watermark="Enter client secret from app registration"
-                         PasswordChar="●"
-                         IsEnabled="{Binding !IsBusy}" />
-            </StackPanel>
-
             <Button Content="Connect"
                     Command="{Binding LoginCommand}"
                     HorizontalAlignment="Stretch"
