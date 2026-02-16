@@ -578,7 +578,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 (IReadOnlyList<DeviceCompliancePolicy>)CompliancePolicies,
                 (IReadOnlyList<MobileApp>)Applications,
                 (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows);
-            Overview.IsLoading = false;
 
             StatusText = $"Loaded {rows.Count} application assignments row(s) from {total} apps";
         }
@@ -591,6 +590,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             IsBusy = false;
             IsLoadingDetails = false;
+            Overview.IsLoading = false;
         }
     }
 
