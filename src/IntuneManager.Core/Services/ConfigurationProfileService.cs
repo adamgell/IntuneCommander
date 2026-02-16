@@ -66,4 +66,12 @@ public class ConfigurationProfileService : IConfigurationProfileService
         await _graphClient.DeviceManagement.DeviceConfigurations[id]
             .DeleteAsync(cancellationToken: cancellationToken);
     }
+
+    public async Task<List<DeviceConfigurationAssignment>> GetAssignmentsAsync(string configId, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceManagement.DeviceConfigurations[configId]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
 }

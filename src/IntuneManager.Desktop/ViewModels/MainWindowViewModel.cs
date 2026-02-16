@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -73,6 +74,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private MobileApp? _selectedApplication;
 
+    // --- Detail pane ---
+    [ObservableProperty]
+    private ObservableCollection<AssignmentDisplayItem> _selectedItemAssignments = [];
+
+    [ObservableProperty]
+    private string _selectedItemTypeName = "";
+
+    [ObservableProperty]
+    private bool _isLoadingDetails;
+
     // --- Profile switcher ---
     [ObservableProperty]
     private TenantProfile? _selectedSwitchProfile;
@@ -137,9 +148,115 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedConfiguration = null;
         SelectedCompliancePolicy = null;
         SelectedApplication = null;
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "";
         OnPropertyChanged(nameof(IsDeviceConfigCategory));
         OnPropertyChanged(nameof(IsCompliancePolicyCategory));
         OnPropertyChanged(nameof(IsApplicationCategory));
+    }
+
+    // --- Selection-changed handlers (load detail + assignments) ---
+
+    partial void OnSelectedConfigurationChanged(DeviceConfiguration? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = FriendlyODataType(value?.OdataType);
+        if (value?.Id != null)
+            _ = LoadConfigAssignmentsAsync(value.Id);
+    }
+
+    partial void OnSelectedCompliancePolicyChanged(DeviceCompliancePolicy? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = FriendlyODataType(value?.OdataType);
+        if (value?.Id != null)
+            _ = LoadCompliancePolicyAssignmentsAsync(value.Id);
+    }
+
+    partial void OnSelectedApplicationChanged(MobileApp? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = FriendlyODataType(value?.OdataType);
+        if (value?.Id != null)
+            _ = LoadApplicationAssignmentsAsync(value.Id);
+    }
+
+    private async Task LoadConfigAssignmentsAsync(string configId)
+    {
+        if (_configProfileService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _configProfileService.GetAssignmentsAsync(configId);
+            SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(
+                assignments.Select(a => MapAssignment(a.Target)));
+        }
+        catch { /* swallow – non-critical */ }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadCompliancePolicyAssignmentsAsync(string policyId)
+    {
+        if (_compliancePolicyService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _compliancePolicyService.GetAssignmentsAsync(policyId);
+            SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(
+                assignments.Select(a => MapAssignment(a.Target)));
+        }
+        catch { /* swallow – non-critical */ }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadApplicationAssignmentsAsync(string appId)
+    {
+        if (_applicationService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _applicationService.GetAssignmentsAsync(appId);
+            SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(
+                assignments.Select(a =>
+                {
+                    var item = MapAssignment(a.Target);
+                    return new AssignmentDisplayItem
+                    {
+                        Target = item.Target,
+                        TargetKind = item.TargetKind,
+                        Intent = a.Intent?.ToString() ?? ""
+                    };
+                }));
+        }
+        catch { /* swallow – non-critical */ }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private static AssignmentDisplayItem MapAssignment(DeviceAndAppManagementAssignmentTarget? target)
+    {
+        return target switch
+        {
+            AllDevicesAssignmentTarget => new AssignmentDisplayItem
+                { Target = "All Devices", TargetKind = "Include" },
+            AllLicensedUsersAssignmentTarget => new AssignmentDisplayItem
+                { Target = "All Users", TargetKind = "Include" },
+            ExclusionGroupAssignmentTarget excl => new AssignmentDisplayItem
+                { Target = $"Group: {excl.GroupId}", TargetKind = "Exclude" },
+            GroupAssignmentTarget grp => new AssignmentDisplayItem
+                { Target = $"Group: {grp.GroupId}", TargetKind = "Include" },
+            _ => new AssignmentDisplayItem
+                { Target = "Unknown", TargetKind = "Include" }
+        };
+    }
+
+    private static string FriendlyODataType(string? odataType)
+    {
+        if (string.IsNullOrEmpty(odataType)) return "";
+        // OData type is like "#microsoft.graph.windows10GeneralConfiguration"
+        var name = odataType.Split('.').LastOrDefault() ?? odataType;
+        // Insert spaces before capitals: "windows10GeneralConfiguration" → "Windows10 General Configuration"
+        var spaced = System.Text.RegularExpressions.Regex.Replace(name, "(?<=[a-z])(?=[A-Z])", " ");
+        return char.ToUpper(spaced[0]) + spaced[1..];
     }
 
     // --- Connection ---
@@ -472,6 +589,8 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedCompliancePolicy = null;
         Applications.Clear();
         SelectedApplication = null;
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "";
         _graphClient = null;
         _configProfileService = null;
         _compliancePolicyService = null;

@@ -9,4 +9,5 @@ public interface IConfigurationProfileService
     Task<DeviceConfiguration> CreateDeviceConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken = default);
     Task<DeviceConfiguration> UpdateDeviceConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken = default);
     Task DeleteDeviceConfigurationAsync(string id, CancellationToken cancellationToken = default);
+    Task<List<DeviceConfigurationAssignment>> GetAssignmentsAsync(string configId, CancellationToken cancellationToken = default);
 }
