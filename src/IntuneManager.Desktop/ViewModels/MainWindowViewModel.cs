@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using IntuneManager.Core.Auth;
@@ -344,6 +345,10 @@ public partial class MainWindowViewModel : ViewModelBase
         // Lazy-load Application Assignments when navigating to that category
         if (value?.Name == "Application Assignments" && !_appAssignmentsLoaded)
             _ = LoadAppAssignmentRowsAsync();
+
+        // Lazy-load assignments for Overview tab if not already loaded
+        if (value?.Name == "Overview" && !_appAssignmentsLoaded)
+            _ = LoadAppAssignmentRowsAsync();
     }
 
     // --- Selection-changed handlers (load detail + assignments) ---
@@ -497,6 +502,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_applicationService == null || _graphClient == null) return;
         IsBusy = true;
         IsLoadingDetails = true;
+        Overview.IsLoading = true;
         StatusText = "Loading application assignments...";
 
         try
@@ -542,7 +548,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     // Update status on UI thread periodically
                     if (processed % 10 == 0 || processed == total)
                     {
-                        StatusText = $"Loading assignments... {processed}/{total} apps";
+                        Dispatcher.UIThread.Post(() =>
+                            StatusText = $"Loading assignments... {processed}/{total} apps");
                     }
                 }
                 finally
@@ -620,7 +627,7 @@ public partial class MainWindowViewModel : ViewModelBase
             MinimumMemoryMB = ExtractMinMemory(app),
             MinimumProcessors = ExtractMinProcessors(app),
             Categories = app.Categories != null
-                ? string.Join(", ", app.Categories.Select(c => c.DisplayName))
+                ? string.Join(", ", app.Categories.Select(c => c.DisplayName ?? ""))
                 : "",
             Notes = app.Notes ?? ""
         };
@@ -656,7 +663,7 @@ public partial class MainWindowViewModel : ViewModelBase
             MinimumMemoryMB = ExtractMinMemory(app),
             MinimumProcessors = ExtractMinProcessors(app),
             Categories = app.Categories != null
-                ? string.Join(", ", app.Categories.Select(c => c.DisplayName))
+                ? string.Join(", ", app.Categories.Select(c => c.DisplayName ?? ""))
                 : "",
             Notes = app.Notes ?? ""
         };
@@ -997,10 +1004,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
             ApplyFilter();
 
-            // Always load assignments so the dashboard has complete data
-            Overview.IsLoading = true;
+            // Reset assignment state; actual loading is triggered lazily when needed
             _appAssignmentsLoaded = false;
-            await LoadAppAssignmentRowsAsync();
         }
         catch (Exception ex)
         {

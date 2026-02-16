@@ -198,9 +198,6 @@ public partial class OverviewViewModel : ObservableObject
         foreach (var item in items.OrderByDescending(i => i.Modified).Take(10))
             RecentlyModified.Add(item);
     }
-
-    private static string TruncateLabel(string label, int max)
-        => label.Length <= max ? label : label[..(max - 1)] + "…";
 }
 
 /// <summary>
