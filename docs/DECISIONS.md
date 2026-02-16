@@ -431,3 +431,74 @@ These decisions are deferred to implementation phases:
 - **After Phase 6:** Review entire architecture before post-MVP features
 
 Decisions can be revisited if new information emerges or requirements change.
+
+---
+
+## Decision 010: Profile Encryption — ASP.NET DataProtection API
+
+**Date:** 2026-02-16
+**Status:** Approved
+**Context:** Phase 2 requires encrypting saved profile data at rest. Options: Windows DPAPI, ASP.NET DataProtection API, or skip.
+
+**Decision:** ASP.NET DataProtection API (`Microsoft.AspNetCore.DataProtection`)
+
+**Rationale:**
+- Cross-platform (Windows, macOS, Linux) — aligns with Avalonia's cross-platform story
+- Keys stored in `%LOCALAPPDATA%\IntuneManager\keys\`
+- Automatic key rotation and management built-in
+- Transparent migration from plaintext (existing profiles auto-encrypt on next save)
+- Graceful handling of corrupted/migrated data (falls back to empty store)
+
+**Consequences:**
+- Adds `Microsoft.AspNetCore.DataProtection` NuGet dependency to Core project
+- Profile file prefixed with `INTUNEMANAGER_ENC:` marker to distinguish encrypted from plaintext
+
+---
+
+## Decision 011: Profile Switch — Confirmation Dialog
+
+**Date:** 2026-02-16
+**Status:** Approved
+**Context:** Users need to switch between tenant profiles while connected. Options: auto-reconnect, confirm dialog, or manual disconnect-first.
+
+**Decision:** Confirm dialog before switching
+
+**Rationale:**
+- Prevents accidental disconnection from active tenant
+- Uses `MessageBox.Avalonia` for native-feeling dialog
+- ViewModel raises event, View handles dialog — clean MVVM separation
+
+**Consequences:**
+- Adds `MessageBox.Avalonia` NuGet dependency to Desktop project
+- Slightly more steps than auto-reconnect, but safer
+
+---
+
+## Decision 012: Profile Validation — Basic GUID Format Checks
+
+**Date:** 2026-02-16
+**Status:** Approved
+**Context:** Need input validation for tenant profiles. Options: minimal (non-empty), format checks (GUID validation), or format + live connection test.
+
+**Decision:** Basic format validation — GUID format for Tenant ID and Client ID, non-empty required fields
+
+**Rationale:**
+- Catches typos immediately without requiring network access
+- Inline error messages below each field
+- Validation state gates Save and Connect buttons via `CanExecute`
+- No live connection test — avoids delays and false negatives
+
+---
+
+## Decision 013: Secret Storage — Deferred
+
+**Date:** 2026-02-16
+**Status:** Deferred
+**Context:** `ClientSecret` is currently stored in profile JSON. Options: remove from storage, encrypt in file, or use OS credential store.
+
+**Decision:** Deferred — no changes to secret handling in Phase 2
+
+**Rationale:**
+- Profile file is now encrypted at rest via DataProtection, providing baseline protection
+- OS credential store integration (Windows Credential Manager, macOS Keychain) planned for a future phase
+- Current approach works for development; production hardening will follow

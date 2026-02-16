@@ -85,8 +85,11 @@
                          IsEnabled="{Binding !IsBusy}" />
             </StackPanel>
 
-            <!-- Save / Delete -->
+            <!-- Save / Delete / New -->
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <Button Content="New"
+                        Command="{Binding NewProfileCommand}"
+                        MinWidth="80" />
                 <Button Content="Save Profile"
                         Command="{Binding SaveProfileCommand}"
                         MinWidth="120" />

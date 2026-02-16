@@ -118,11 +118,20 @@ public partial class LoginViewModel : ViewModelBase
                 };
                 _profileService.AddProfile(profile);
                 SavedProfiles.Add(profile);
-                SelectedProfile = profile;
             }
 
             await _profileService.SaveAsync(cancellationToken);
             StatusMessage = "Profile saved";
+
+            // Clear form for next entry
+            SelectedProfile = null;
+            ProfileName = string.Empty;
+            TenantId = string.Empty;
+            ClientId = string.Empty;
+            ClientSecret = string.Empty;
+            SelectedCloud = CloudEnvironment.Commercial;
+            TenantIdError = null;
+            ClientIdError = null;
         }
         catch (Exception ex)
         {
@@ -136,6 +145,21 @@ public partial class LoginViewModel : ViewModelBase
             && !string.IsNullOrWhiteSpace(ClientId)
             && TenantIdError is null
             && ClientIdError is null;
+    }
+
+    [RelayCommand]
+    private void NewProfile()
+    {
+        SelectedProfile = null;
+        ProfileName = string.Empty;
+        TenantId = string.Empty;
+        ClientId = string.Empty;
+        ClientSecret = string.Empty;
+        SelectedCloud = CloudEnvironment.Commercial;
+        TenantIdError = null;
+        ClientIdError = null;
+        StatusMessage = string.Empty;
+        ClearError();
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteProfile))]
