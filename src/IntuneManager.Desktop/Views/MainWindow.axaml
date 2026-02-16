@@ -102,77 +102,25 @@
                     <!-- Item List (center) -->
                     <DockPanel Grid.Column="2" Margin="8">
 
-                        <!-- Device Configurations list -->
-                        <DockPanel IsVisible="{Binding IsDeviceConfigCategory}">
-                            <TextBlock DockPanel.Dock="Top" Text="Device Configurations"
-                                       FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" />
-                            <DataGrid ItemsSource="{Binding DeviceConfigurations}"
-                                      SelectedItem="{Binding SelectedConfiguration}"
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True"
-                                      CanUserResizeColumns="True"
-                                      GridLinesVisibility="Horizontal"
-                                      BorderThickness="1"
-                                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Display Name"
-                                                        Binding="{Binding DisplayName}"
-                                                        Width="*" />
-                                    <DataGridTextColumn Header="Last Modified"
-                                                        Binding="{Binding LastModifiedDateTime}"
-                                                        Width="150" />
-                                </DataGrid.Columns>
-                            </DataGrid>
+                        <!-- Category header with column chooser -->
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                            <Button DockPanel.Dock="Right" Content="⋮ Columns"
+                                    x:Name="ColumnChooserButton"
+                                    FontSize="12" Padding="8,4"
+                                    VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding SelectedCategory.Name, FallbackValue='Items'}"
+                                       FontSize="16" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
                         </DockPanel>
 
-                        <!-- Compliance Policies list -->
-                        <DockPanel IsVisible="{Binding IsCompliancePolicyCategory}">
-                            <TextBlock DockPanel.Dock="Top" Text="Compliance Policies"
-                                       FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" />
-                            <DataGrid ItemsSource="{Binding CompliancePolicies}"
-                                      SelectedItem="{Binding SelectedCompliancePolicy}"
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True"
-                                      CanUserResizeColumns="True"
-                                      GridLinesVisibility="Horizontal"
-                                      BorderThickness="1"
-                                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Display Name"
-                                                        Binding="{Binding DisplayName}"
-                                                        Width="*" />
-                                    <DataGridTextColumn Header="Last Modified"
-                                                        Binding="{Binding LastModifiedDateTime}"
-                                                        Width="150" />
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </DockPanel>
-
-                        <!-- Applications list -->
-                        <DockPanel IsVisible="{Binding IsApplicationCategory}">
-                            <TextBlock DockPanel.Dock="Top" Text="Applications"
-                                       FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" />
-                            <DataGrid ItemsSource="{Binding Applications}"
-                                      SelectedItem="{Binding SelectedApplication}"
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True"
-                                      CanUserResizeColumns="True"
-                                      GridLinesVisibility="Horizontal"
-                                      BorderThickness="1"
-                                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Display Name"
-                                                        Binding="{Binding DisplayName}"
-                                                        Width="*" />
-                                    <DataGridTextColumn Header="Publisher"
-                                                        Binding="{Binding Publisher}"
-                                                        Width="150" />
-                                    <DataGridTextColumn Header="Created"
-                                                        Binding="{Binding CreatedDateTime}"
-                                                        Width="150" />
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </DockPanel>
+                        <!-- Single dynamic DataGrid — columns built in code-behind -->
+                        <DataGrid x:Name="MainDataGrid"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserResizeColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="1"
+                                  BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
                     </DockPanel>
 
                     <!-- Splitter: Content | Details -->

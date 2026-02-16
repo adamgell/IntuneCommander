@@ -84,6 +84,67 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoadingDetails;
 
+    // --- Configurable columns per category ---
+    public ObservableCollection<DataGridColumnConfig> DeviceConfigColumns { get; } =
+    [
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+        new() { Header = "Description", BindingPath = "Description", Width = 200, IsVisible = false },
+        new() { Header = "Platform / Type", BindingPath = "Computed:ODataType", Width = 180, IsVisible = false },
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+        new() { Header = "Version", BindingPath = "Version", Width = 80, IsVisible = false }
+    ];
+
+    public ObservableCollection<DataGridColumnConfig> CompliancePolicyColumns { get; } =
+    [
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+        new() { Header = "Description", BindingPath = "Description", Width = 200, IsVisible = false },
+        new() { Header = "Platform / Type", BindingPath = "Computed:ODataType", Width = 180, IsVisible = false },
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+        new() { Header = "Version", BindingPath = "Version", Width = 80, IsVisible = false }
+    ];
+
+    public ObservableCollection<DataGridColumnConfig> ApplicationColumns { get; } =
+    [
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+        new() { Header = "App Type", BindingPath = "Computed:ODataType", Width = 180, IsVisible = true },
+        new() { Header = "Platform", BindingPath = "Computed:Platform", Width = 120, IsVisible = true },
+        new() { Header = "Publisher", BindingPath = "Publisher", Width = 150, IsVisible = true },
+        new() { Header = "Description", BindingPath = "Description", Width = 200, IsVisible = false },
+        new() { Header = "Owner", BindingPath = "Owner", Width = 120, IsVisible = false },
+        new() { Header = "Developer", BindingPath = "Developer", Width = 120, IsVisible = false },
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = false },
+        new() { Header = "Publishing State", BindingPath = "PublishingState", Width = 120, IsVisible = false }
+    ];
+
+    /// <summary>
+    /// Returns the column configs for the currently selected nav category.
+    /// </summary>
+    public ObservableCollection<DataGridColumnConfig>? ActiveColumns => SelectedCategory?.Name switch
+    {
+        "Device Configurations" => DeviceConfigColumns,
+        "Compliance Policies" => CompliancePolicyColumns,
+        "Applications" => ApplicationColumns,
+        _ => null
+    };
+
+    /// <summary>
+    /// Maps an OData type string to an inferred platform name.
+    /// </summary>
+    public static string InferPlatform(string? odataType)
+    {
+        if (string.IsNullOrEmpty(odataType)) return "";
+        var lower = odataType.ToLowerInvariant();
+        if (lower.Contains("windows") || lower.Contains("win32") || lower.Contains("msi")) return "Windows";
+        if (lower.Contains("ios") || lower.Contains("iphone")) return "iOS";
+        if (lower.Contains("macos") || lower.Contains("mac")) return "macOS";
+        if (lower.Contains("android")) return "Android";
+        if (lower.Contains("webapp") || lower.Contains("webapp")) return "Web";
+        return "Cross-platform";
+    }
+
     // --- Profile switcher ---
     [ObservableProperty]
     private TenantProfile? _selectedSwitchProfile;
@@ -153,6 +214,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDeviceConfigCategory));
         OnPropertyChanged(nameof(IsCompliancePolicyCategory));
         OnPropertyChanged(nameof(IsApplicationCategory));
+        OnPropertyChanged(nameof(ActiveColumns));
     }
 
     // --- Selection-changed handlers (load detail + assignments) ---
