@@ -6,7 +6,11 @@ namespace IntuneManager.Core.Services;
 public class ProfileService
 {
     private readonly string _profilePath;
+    private readonly IProfileEncryptionService? _encryption;
     private ProfileStore _store;
+
+    // Marker prefix to detect encrypted files
+    private const string EncryptedMarker = "INTUNEMANAGER_ENC:";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -14,9 +18,10 @@ public class ProfileService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public ProfileService(string? profilePath = null)
+    public ProfileService(string? profilePath = null, IProfileEncryptionService? encryption = null)
     {
         _profilePath = profilePath ?? GetDefaultProfilePath();
+        _encryption = encryption;
         _store = new ProfileStore();
     }
 
@@ -73,7 +78,34 @@ public class ProfileService
             return;
         }
 
-        var json = await File.ReadAllTextAsync(_profilePath, cancellationToken);
+        var raw = await File.ReadAllTextAsync(_profilePath, cancellationToken);
+
+        string json;
+        if (_encryption is not null && raw.StartsWith(EncryptedMarker))
+        {
+            // Encrypted file — decrypt the payload after the marker
+            try
+            {
+                json = _encryption.Decrypt(raw[EncryptedMarker.Length..]);
+            }
+            catch
+            {
+                // Decryption failed (keys rotated, corrupted, etc.)
+                // Fall back to empty store — caller can surface the error
+                _store = new ProfileStore();
+                return;
+            }
+        }
+        else if (_encryption is not null && !raw.StartsWith(EncryptedMarker))
+        {
+            // Plaintext file with encryption enabled — migrate on next save
+            json = raw;
+        }
+        else
+        {
+            json = raw;
+        }
+
         _store = JsonSerializer.Deserialize<ProfileStore>(json, JsonOptions) ?? new ProfileStore();
     }
 
@@ -84,7 +116,18 @@ public class ProfileService
             Directory.CreateDirectory(directory);
 
         var json = JsonSerializer.Serialize(_store, JsonOptions);
-        await File.WriteAllTextAsync(_profilePath, json, cancellationToken);
+
+        string output;
+        if (_encryption is not null)
+        {
+            output = EncryptedMarker + _encryption.Encrypt(json);
+        }
+        else
+        {
+            output = json;
+        }
+
+        await File.WriteAllTextAsync(_profilePath, output, cancellationToken);
     }
 
     private static string GetDefaultProfilePath()

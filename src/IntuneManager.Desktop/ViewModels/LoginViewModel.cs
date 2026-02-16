@@ -34,6 +34,18 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty]
     private TenantProfile? _selectedProfile;
 
+    [ObservableProperty]
+    private CloudEnvironment _selectedCloud = CloudEnvironment.Commercial;
+
+    [ObservableProperty]
+    private string? _tenantIdError;
+
+    [ObservableProperty]
+    private string? _clientIdError;
+
+    public static CloudEnvironment[] AvailableClouds { get; } =
+        Enum.GetValues<CloudEnvironment>();
+
     public ObservableCollection<TenantProfile> SavedProfiles { get; } = [];
 
     public event EventHandler<TenantProfile>? LoginSucceeded;
@@ -61,6 +73,11 @@ public partial class LoginViewModel : ViewModelBase
         TenantId = value.TenantId;
         ClientId = value.ClientId;
         ClientSecret = value.ClientSecret ?? string.Empty;
+        SelectedCloud = value.Cloud;
+
+        // Clear validation errors when loading a saved profile
+        TenantIdError = null;
+        ClientIdError = null;
 
         LoginCommand.NotifyCanExecuteChanged();
         SaveProfileCommand.NotifyCanExecuteChanged();
@@ -80,6 +97,7 @@ public partial class LoginViewModel : ViewModelBase
                 SelectedProfile.TenantId = TenantId.Trim();
                 SelectedProfile.ClientId = ClientId.Trim();
                 SelectedProfile.ClientSecret = ClientSecret.Trim();
+                SelectedProfile.Cloud = SelectedCloud;
                 SelectedProfile.AuthMethod = string.IsNullOrWhiteSpace(ClientSecret)
                     ? AuthMethod.Interactive
                     : AuthMethod.ClientSecret;
@@ -93,7 +111,7 @@ public partial class LoginViewModel : ViewModelBase
                     TenantId = TenantId.Trim(),
                     ClientId = ClientId.Trim(),
                     ClientSecret = ClientSecret.Trim(),
-                    Cloud = CloudEnvironment.Commercial,
+                    Cloud = SelectedCloud,
                     AuthMethod = string.IsNullOrWhiteSpace(ClientSecret)
                         ? AuthMethod.Interactive
                         : AuthMethod.ClientSecret
@@ -115,7 +133,9 @@ public partial class LoginViewModel : ViewModelBase
     private bool CanSaveProfile()
     {
         return !string.IsNullOrWhiteSpace(TenantId)
-            && !string.IsNullOrWhiteSpace(ClientId);
+            && !string.IsNullOrWhiteSpace(ClientId)
+            && TenantIdError is null
+            && ClientIdError is null;
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteProfile))]
@@ -186,17 +206,21 @@ public partial class LoginViewModel : ViewModelBase
     {
         return !IsBusy
             && !string.IsNullOrWhiteSpace(TenantId)
-            && !string.IsNullOrWhiteSpace(ClientId);
+            && !string.IsNullOrWhiteSpace(ClientId)
+            && TenantIdError is null
+            && ClientIdError is null;
     }
 
     partial void OnTenantIdChanged(string value)
     {
+        ValidateTenantId(value);
         LoginCommand.NotifyCanExecuteChanged();
         SaveProfileCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnClientIdChanged(string value)
     {
+        ValidateClientId(value);
         LoginCommand.NotifyCanExecuteChanged();
         SaveProfileCommand.NotifyCanExecuteChanged();
     }
@@ -205,5 +229,38 @@ public partial class LoginViewModel : ViewModelBase
     {
         LoginCommand.NotifyCanExecuteChanged();
         SaveProfileCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Pre-selects the last-active profile from the profile store.
+    /// Called after profiles are loaded asynchronously.
+    /// </summary>
+    public void SelectActiveProfile()
+    {
+        var activeId = _profileService.ActiveProfileId;
+        if (activeId is not null)
+        {
+            SelectedProfile = SavedProfiles.FirstOrDefault(p => p.Id == activeId);
+        }
+    }
+
+    private void ValidateTenantId(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            TenantIdError = null; // Don't show error for empty (not yet entered)
+        else if (!Guid.TryParse(value.Trim(), out _))
+            TenantIdError = "Tenant ID must be a valid GUID";
+        else
+            TenantIdError = null;
+    }
+
+    private void ValidateClientId(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            ClientIdError = null;
+        else if (!Guid.TryParse(value.Trim(), out _))
+            ClientIdError = "Client ID must be a valid GUID";
+        else
+            ClientIdError = null;
     }
 }

@@ -1,8 +1,12 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using IntuneManager.Core.Models;
 using IntuneManager.Desktop.ViewModels;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
 
 namespace IntuneManager.Desktop.Views;
 
@@ -22,6 +26,23 @@ public partial class MainWindow : Window
         {
             importButton.Click += OnImportClick;
         }
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SwitchProfileRequested += OnSwitchProfileRequested;
+        }
+    }
+
+    private async Task<bool> OnSwitchProfileRequested(TenantProfile target)
+    {
+        var box = MessageBoxManager.GetMessageBoxStandard(
+            "Switch Profile",
+            $"Switch to \"{target.Name}\"?\nYou will be disconnected from the current tenant.",
+            ButtonEnum.YesNo,
+            MsBox.Avalonia.Enums.Icon.Info);
+
+        var result = await box.ShowWindowDialogAsync(this);
+        return result == ButtonResult.Yes;
     }
 
     private async void OnImportClick(object? sender, RoutedEventArgs e)

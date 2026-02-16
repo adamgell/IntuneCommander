@@ -45,6 +45,20 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusText = "Not connected";
 
+    /// <summary>
+    /// Profile selected in the toolbar switcher. Triggers switch confirmation.
+    /// </summary>
+    [ObservableProperty]
+    private TenantProfile? _selectedSwitchProfile;
+
+    public ObservableCollection<TenantProfile> SwitcherProfiles { get; } = [];
+
+    /// <summary>
+    /// Raised when the user picks a different profile and we need a confirm dialog.
+    /// The view subscribes to this, shows the dialog, and calls ConfirmSwitchProfile / CancelSwitchProfile.
+    /// </summary>
+    public event Func<TenantProfile, Task<bool>>? SwitchProfileRequested;
+
     public LoginViewModel LoginViewModel { get; }
 
     public MainWindowViewModel(
@@ -71,6 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await _profileService.LoadAsync();
             LoginViewModel.PopulateSavedProfiles();
+            LoginViewModel.SelectActiveProfile();
         }
         catch (Exception ex)
         {
@@ -89,17 +104,79 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async void OnLoginSucceeded(object? sender, TenantProfile profile)
     {
-        ActiveProfile = profile;
-        IsConnected = true;
-        WindowTitle = $"IntuneManager - {profile.Name}";
-        StatusText = $"Connected to {profile.Name}";
-        CurrentView = null; // Show main content instead of login
+        await ConnectToProfile(profile);
+    }
 
-        _graphClient = await _graphClientFactory.CreateClientAsync(profile);
-        _intuneService = new IntuneService(_graphClient);
-        _importService = new ImportService(_intuneService);
+    private async Task ConnectToProfile(TenantProfile profile)
+    {
+        ClearError();
+        IsBusy = true;
+        StatusText = $"Connecting to {profile.Name}...";
 
-        await RefreshAsync(CancellationToken.None);
+        try
+        {
+            ActiveProfile = profile;
+            IsConnected = true;
+            WindowTitle = $"IntuneManager - {profile.Name}";
+            CurrentView = null; // Show main content instead of login
+
+            _graphClient = await _graphClientFactory.CreateClientAsync(profile);
+            _intuneService = new IntuneService(_graphClient);
+            _importService = new ImportService(_intuneService);
+
+            RefreshSwitcherProfiles();
+            SelectedSwitchProfile = profile;
+
+            StatusText = $"Connected to {profile.Name}";
+            await RefreshAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            SetError($"Connection failed: {ex.Message}");
+            StatusText = "Connection failed";
+            DisconnectInternal();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void RefreshSwitcherProfiles()
+    {
+        SwitcherProfiles.Clear();
+        foreach (var p in _profileService.Profiles)
+            SwitcherProfiles.Add(p);
+    }
+
+    partial void OnSelectedSwitchProfileChanged(TenantProfile? value)
+    {
+        // Only trigger switch if connected and user picked a *different* profile
+        if (value is null || !IsConnected || value.Id == ActiveProfile?.Id)
+            return;
+
+        _ = RequestSwitchAsync(value);
+    }
+
+    private async Task RequestSwitchAsync(TenantProfile target)
+    {
+        if (SwitchProfileRequested is not null)
+        {
+            var confirmed = await SwitchProfileRequested.Invoke(target);
+            if (confirmed)
+            {
+                DisconnectInternal();
+                await ConnectToProfile(target);
+                target.LastUsed = DateTime.UtcNow;
+                _profileService.SetActiveProfile(target.Id);
+                await _profileService.SaveAsync();
+            }
+            else
+            {
+                // Revert selection silently
+                SelectedSwitchProfile = ActiveProfile;
+            }
+        }
     }
 
     [RelayCommand]
@@ -236,6 +313,14 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void Disconnect()
     {
+        DisconnectInternal();
+        CurrentView = LoginViewModel;
+        LoginViewModel.PopulateSavedProfiles();
+        LoginViewModel.SelectActiveProfile();
+    }
+
+    private void DisconnectInternal()
+    {
         IsConnected = false;
         ActiveProfile = null;
         WindowTitle = "IntuneManager";
@@ -245,6 +330,5 @@ public partial class MainWindowViewModel : ViewModelBase
         _graphClient = null;
         _intuneService = null;
         _importService = null;
-        CurrentView = LoginViewModel;
     }
 }

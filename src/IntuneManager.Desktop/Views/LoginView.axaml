@@ -54,6 +54,17 @@
                 <TextBox Text="{Binding TenantId}"
                          Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                          IsEnabled="{Binding !IsBusy}" />
+                <TextBlock Text="{Binding TenantIdError}"
+                           Foreground="#E74C3C" FontSize="11"
+                           IsVisible="{Binding TenantIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Cloud Environment" FontSize="12" />
+                <ComboBox ItemsSource="{Binding AvailableClouds}"
+                          SelectedItem="{Binding SelectedCloud}"
+                          HorizontalAlignment="Stretch"
+                          IsEnabled="{Binding !IsBusy}" />
             </StackPanel>
 
             <StackPanel Spacing="4">
@@ -61,6 +72,9 @@
                 <TextBox Text="{Binding ClientId}"
                          Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                          IsEnabled="{Binding !IsBusy}" />
+                <TextBlock Text="{Binding ClientIdError}"
+                           Foreground="#E74C3C" FontSize="11"
+                           IsVisible="{Binding ClientIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
 
             <StackPanel Spacing="4">
