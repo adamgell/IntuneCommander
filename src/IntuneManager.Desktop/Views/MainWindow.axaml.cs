@@ -8,6 +8,7 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using IntuneManager.Core.Models;
 using IntuneManager.Desktop.Converters;
 using IntuneManager.Desktop.ViewModels;
@@ -20,6 +21,7 @@ public partial class MainWindow : Window
 {
     private DataGrid? _mainDataGrid;
     private MainWindowViewModel? _vm;
+    private bool _pendingGridRebuild;
 
     public MainWindow()
     {
@@ -60,8 +62,20 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.IsAssignedGroupsCategory)
             or nameof(MainWindowViewModel.IsOverviewCategory))
         {
-            RebuildDataGridColumns();
-            BindDataGridSource();
+            // Multiple category properties fire in sequence during a single
+            // category change.  Defer the rebuild to avoid repeated
+            // clear-and-bind cycles that can momentarily pair new data with
+            // old columns (or vice-versa), producing binding errors.
+            if (!_pendingGridRebuild)
+            {
+                _pendingGridRebuild = true;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    _pendingGridRebuild = false;
+                    RebuildDataGridColumns();
+                    BindDataGridSource();
+                }, DispatcherPriority.Render);
+            }
         }
         else if (e.PropertyName is nameof(MainWindowViewModel.FilteredDeviceConfigurations)
             or nameof(MainWindowViewModel.FilteredCompliancePolicies)
@@ -70,8 +84,30 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.FilteredDynamicGroupRows)
             or nameof(MainWindowViewModel.FilteredAssignedGroupRows))
         {
-            BindDataGridSource();
+            // Only rebind when the changed collection matches the active
+            // category so we never pair mismatched columns/data.
+            if (IsActiveFilteredCollection(e.PropertyName))
+                BindDataGridSource();
         }
+    }
+
+    /// <summary>
+    /// Returns true when the property name is the filtered collection that
+    /// the currently selected nav category actually displays.
+    /// </summary>
+    private bool IsActiveFilteredCollection(string? propertyName)
+    {
+        if (_vm == null) return false;
+        return propertyName switch
+        {
+            nameof(MainWindowViewModel.FilteredDeviceConfigurations) => _vm.IsDeviceConfigCategory,
+            nameof(MainWindowViewModel.FilteredCompliancePolicies)  => _vm.IsCompliancePolicyCategory,
+            nameof(MainWindowViewModel.FilteredApplications)        => _vm.IsApplicationCategory,
+            nameof(MainWindowViewModel.FilteredAppAssignmentRows)   => _vm.IsAppAssignmentsCategory,
+            nameof(MainWindowViewModel.FilteredDynamicGroupRows)    => _vm.IsDynamicGroupsCategory,
+            nameof(MainWindowViewModel.FilteredAssignedGroupRows)   => _vm.IsAssignedGroupsCategory,
+            _ => false
+        };
     }
 
     private void BindDataGridSource()

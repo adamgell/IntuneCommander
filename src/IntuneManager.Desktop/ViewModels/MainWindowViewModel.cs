@@ -573,7 +573,11 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemAssignments.Clear();
         SelectedItemTypeName = "";
         SelectedItemPlatform = "";
-        SearchText = "";
+
+        // Notify category/column changes BEFORE resetting SearchText.
+        // SearchText = "" triggers ApplyFilter → data rebinding, and columns
+        // must already reflect the new category to avoid binding mismatches
+        // (e.g. AppAssignmentColumns applied to MobileApp objects).
         OnPropertyChanged(nameof(IsOverviewCategory));
         OnPropertyChanged(nameof(IsDeviceConfigCategory));
         OnPropertyChanged(nameof(IsCompliancePolicyCategory));
@@ -582,6 +586,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDynamicGroupsCategory));
         OnPropertyChanged(nameof(IsAssignedGroupsCategory));
         OnPropertyChanged(nameof(ActiveColumns));
+
+        SearchText = "";
 
         // Lazy-load assignments when navigating to tabs that require them
         if ((value?.Name == "Application Assignments" || value?.Name == "Overview") && !_appAssignmentsLoaded)
