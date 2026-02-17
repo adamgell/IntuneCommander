@@ -1,3 +1,4 @@
+using IntuneManager.Core.Models;
 using Microsoft.Graph.Models;
 
 namespace IntuneManager.Core.Services;
@@ -18,6 +19,23 @@ public interface IGroupService
     /// Returns typed member counts for the specified group.
     /// </summary>
     Task<GroupMemberCounts> GetMemberCountsAsync(string groupId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Searches for groups by display name (startsWith) or exact GUID.
+    /// </summary>
+    Task<List<Group>> SearchGroupsAsync(string query, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Finds all Intune objects (device configs, compliance policies, apps, etc.)
+    /// assigned to the specified group.
+    /// </summary>
+    Task<List<GroupAssignedObject>> GetGroupAssignmentsAsync(
+        string groupId,
+        IConfigurationProfileService configService,
+        ICompliancePolicyService complianceService,
+        IApplicationService appService,
+        Action<string>? progressCallback = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

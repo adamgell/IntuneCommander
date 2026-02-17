@@ -21,7 +21,40 @@ Each Intune object type gets its own interface + implementation:
 - `ICompliancePolicyService` / `CompliancePolicyService` — Compliance Policies
 - `IApplicationService` / `ApplicationService` — Applications (read-only)
 
-All take `GraphServiceClient` in constructor, use `PageIterator` for Graph API pagination, accept `CancellationToken`, and return `List<T>`.
+All take `GraphServiceClient` in constructor, use manual `@odata.nextLink` pagination (see below), accept `CancellationToken`, and return `List<T>`.
+
+## Graph API Pagination — Manual `@odata.nextLink` (REQUIRED)
+**Do NOT use `PageIterator`** — it silently truncates results on some tenants. All Graph list operations must use manual `while` loop pagination following `OdataNextLink`:
+```csharp
+var response = await _graphClient.DeviceAppManagement.MobileApps
+    .GetAsync(req =>
+    {
+        req.QueryParameters.Top = 999;
+        // other query params...
+    }, cancellationToken);
+
+var result = new List<MobileApp>();
+while (response != null)
+{
+    if (response.Value != null)
+        result.AddRange(response.Value);
+
+    if (!string.IsNullOrEmpty(response.OdataNextLink))
+    {
+        response = await _graphClient.DeviceAppManagement.MobileApps
+            .WithUrl(response.OdataNextLink)
+            .GetAsync(cancellationToken: cancellationToken);
+    }
+    else
+    {
+        break;
+    }
+}
+```
+Key rules:
+- Always set `$top=999` on the initial request.
+- Use `.WithUrl(response.OdataNextLink)` (requires `using Microsoft.Kiota.Abstractions;`) to follow next pages.
+- Apply this pattern to **every** service method that lists Graph objects, including `GroupService`.
 
 ## Key Conventions
 - **Graph SDK models used directly** — no wrapper DTOs. Types like `DeviceConfiguration`, `MobileApp` come from `Microsoft.Graph.Models`.
@@ -41,7 +74,7 @@ Tests live in `tests/IntuneManager.Core.Tests/` — xUnit with `[Fact]`/`[Theory
 
 ## Adding a New Intune Object Type
 1. Create `I{Type}Service` interface in `Core/Services/` following the CRUD + `GetAssignmentsAsync` pattern.
-2. Create `{Type}Service` implementation taking `GraphServiceClient`, using `PageIterator` for listing.
+2. Create `{Type}Service` implementation taking `GraphServiceClient`, using manual `@odata.nextLink` pagination for listing (see pagination section above).
 3. If assignments are needed, create `{Type}Export` model in `Core/Models/` bundling object + assignments.
 4. Add export/import methods to `ExportService`/`ImportService`.
 5. Wire into `MainWindowViewModel`: add collection, selection property, column configs, nav category, and load logic.

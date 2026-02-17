@@ -38,6 +38,10 @@ public partial class MainWindow : Window
         if (importButton != null)
             importButton.Click += OnImportClick;
 
+        var groupLookupButton = this.FindControl<Button>("GroupLookupButton");
+        if (groupLookupButton != null)
+            groupLookupButton.Click += OnGroupLookupClick;
+
         var columnChooserButton = this.FindControl<Button>("ColumnChooserButton");
         if (columnChooserButton != null)
             columnChooserButton.Click += OnColumnChooserClick;
@@ -260,6 +264,20 @@ public partial class MainWindow : Window
                 panel.Children.Remove(popup);
             };
         }
+    }
+
+    private void OnGroupLookupClick(object? sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+
+        var lookupVm = _vm.CreateGroupLookupViewModel();
+        if (lookupVm == null) return;
+
+        var window = new GroupLookupWindow
+        {
+            DataContext = lookupVm
+        };
+        window.Show(this); // non-modal so the user can still browse
     }
 
     private async Task<bool> OnSwitchProfileRequested(TenantProfile target)

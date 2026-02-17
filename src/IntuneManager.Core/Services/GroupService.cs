@@ -1,5 +1,7 @@
+using IntuneManager.Core.Models;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
 
 namespace IntuneManager.Core.Services;
 
@@ -18,7 +20,6 @@ public class GroupService : IGroupService
 
         var response = await _graphClient.Groups.GetAsync(req =>
         {
-            // Dynamic groups have "DynamicMembership" in groupTypes
             req.QueryParameters.Filter = "groupTypes/any(g:g eq 'DynamicMembership')";
             req.QueryParameters.Select = new[]
             {
@@ -27,20 +28,26 @@ public class GroupService : IGroupService
                 "securityEnabled", "mailEnabled", "createdDateTime",
                 "mail"
             };
+            req.QueryParameters.Top = 999;
             req.Headers.Add("ConsistencyLevel", "eventual");
             req.QueryParameters.Count = true;
         }, cancellationToken);
 
-        if (response != null)
+        while (response != null)
         {
-            var pageIterator = PageIterator<Group, GroupCollectionResponse>
-                .CreatePageIterator(_graphClient, response, item =>
-                {
-                    result.Add(item);
-                    return true;
-                });
+            if (response.Value != null)
+                result.AddRange(response.Value);
 
-            await pageIterator.IterateAsync(cancellationToken);
+            if (!string.IsNullOrEmpty(response.OdataNextLink))
+            {
+                response = await _graphClient.Groups
+                    .WithUrl(response.OdataNextLink)
+                    .GetAsync(cancellationToken: cancellationToken);
+            }
+            else
+            {
+                break;
+            }
         }
 
         return result;
@@ -50,9 +57,6 @@ public class GroupService : IGroupService
     {
         var result = new List<Group>();
 
-        // Assigned groups: those that do NOT have DynamicMembership in groupTypes.
-        // OData 'not' filter with lambda on groupTypes is not supported for groups,
-        // so we fetch all groups and filter client-side.
         var response = await _graphClient.Groups.GetAsync(req =>
         {
             req.QueryParameters.Select = new[]
@@ -62,25 +66,35 @@ public class GroupService : IGroupService
                 "securityEnabled", "mailEnabled", "createdDateTime",
                 "mail"
             };
+            req.QueryParameters.Top = 999;
             req.Headers.Add("ConsistencyLevel", "eventual");
             req.QueryParameters.Count = true;
         }, cancellationToken);
 
-        if (response != null)
+        while (response != null)
         {
-            var pageIterator = PageIterator<Group, GroupCollectionResponse>
-                .CreatePageIterator(_graphClient, response, item =>
+            if (response.Value != null)
+            {
+                foreach (var item in response.Value)
                 {
-                    // Exclude groups that have "DynamicMembership" in groupTypes
                     if (item.GroupTypes == null ||
                         !item.GroupTypes.Contains("DynamicMembership", StringComparer.OrdinalIgnoreCase))
                     {
                         result.Add(item);
                     }
-                    return true;
-                });
+                }
+            }
 
-            await pageIterator.IterateAsync(cancellationToken);
+            if (!string.IsNullOrEmpty(response.OdataNextLink))
+            {
+                response = await _graphClient.Groups
+                    .WithUrl(response.OdataNextLink)
+                    .GetAsync(cancellationToken: cancellationToken);
+            }
+            else
+            {
+                break;
+            }
         }
 
         return result;
@@ -97,30 +111,34 @@ public class GroupService : IGroupService
                 req.QueryParameters.Top = 999;
             }, cancellationToken);
 
-        if (response?.Value != null)
+        while (response?.Value != null)
         {
-            var pageIterator = PageIterator<DirectoryObject, DirectoryObjectCollectionResponse>
-                .CreatePageIterator(_graphClient, response, member =>
+            foreach (var member in response.Value)
+            {
+                switch (member.OdataType)
                 {
-                    switch (member.OdataType)
-                    {
-                        case "#microsoft.graph.user":
-                            users++;
-                            break;
-                        case "#microsoft.graph.device":
-                            devices++;
-                            break;
-                        case "#microsoft.graph.group":
-                            nestedGroups++;
-                            break;
-                        default:
-                            // Service principals, contacts, etc. — count toward total only
-                            break;
-                    }
-                    return true;
-                });
+                    case "#microsoft.graph.user":
+                        users++;
+                        break;
+                    case "#microsoft.graph.device":
+                        devices++;
+                        break;
+                    case "#microsoft.graph.group":
+                        nestedGroups++;
+                        break;
+                }
+            }
 
-            await pageIterator.IterateAsync(cancellationToken);
+            if (!string.IsNullOrEmpty(response.OdataNextLink))
+            {
+                response = await _graphClient.Groups[groupId].Members
+                    .WithUrl(response.OdataNextLink)
+                    .GetAsync(cancellationToken: cancellationToken);
+            }
+            else
+            {
+                break;
+            }
         }
 
         return new GroupMemberCounts(users, devices, nestedGroups, users + devices + nestedGroups);
@@ -141,5 +159,252 @@ public class GroupService : IGroupService
             return "Distribution";
 
         return "Security";
+    }
+
+    public async Task<List<Group>> SearchGroupsAsync(string query, CancellationToken cancellationToken = default)
+    {
+        var result = new List<Group>();
+        if (string.IsNullOrWhiteSpace(query)) return result;
+
+        var trimmed = query.Trim();
+
+        // Check if query is a GUID — if so, fetch by ID directly
+        if (Guid.TryParse(trimmed, out _))
+        {
+            try
+            {
+                var group = await _graphClient.Groups[trimmed]
+                    .GetAsync(req =>
+                    {
+                        req.QueryParameters.Select = new[]
+                        {
+                            "id", "displayName", "description", "groupTypes",
+                            "membershipRule", "membershipRuleProcessingState",
+                            "securityEnabled", "mailEnabled", "createdDateTime"
+                        };
+                    }, cancellationToken);
+
+                if (group != null) result.Add(group);
+            }
+            catch
+            {
+                // Group not found — return empty
+            }
+            return result;
+        }
+
+        // Search by displayName startsWith
+        var escaped = trimmed.Replace("'", "''");
+        var response = await _graphClient.Groups.GetAsync(req =>
+        {
+            req.QueryParameters.Filter = $"startsWith(displayName, '{escaped}')";
+            req.QueryParameters.Select = new[]
+            {
+                "id", "displayName", "description", "groupTypes",
+                "membershipRule", "membershipRuleProcessingState",
+                "securityEnabled", "mailEnabled", "createdDateTime"
+            };
+            req.QueryParameters.Top = 50;
+            req.QueryParameters.Orderby = new[] { "displayName" };
+            req.Headers.Add("ConsistencyLevel", "eventual");
+            req.QueryParameters.Count = true;
+        }, cancellationToken);
+
+        if (response?.Value != null)
+            result.AddRange(response.Value);
+
+        return result;
+    }
+
+    public async Task<List<GroupAssignedObject>> GetGroupAssignmentsAsync(
+        string groupId,
+        IConfigurationProfileService configService,
+        ICompliancePolicyService complianceService,
+        IApplicationService appService,
+        Action<string>? progressCallback = null,
+        CancellationToken cancellationToken = default)
+    {
+        var results = new List<GroupAssignedObject>();
+
+        // --- Device Configurations ---
+        progressCallback?.Invoke("Scanning device configurations...");
+        var configs = await configService.ListDeviceConfigurationsAsync(cancellationToken);
+        var configTotal = configs.Count;
+        var configProcessed = 0;
+
+        using var configSemaphore = new SemaphoreSlim(5, 5);
+        var configTasks = configs.Select(async config =>
+        {
+            await configSemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                if (config.Id == null) return;
+                var assignments = await configService.GetAssignmentsAsync(config.Id, cancellationToken);
+                foreach (var a in assignments)
+                {
+                    if (MatchesGroup(a.Target, groupId, out var isExclusion))
+                    {
+                        lock (results)
+                        {
+                            results.Add(new GroupAssignedObject
+                            {
+                                ObjectId = config.Id,
+                                DisplayName = config.DisplayName ?? "",
+                                ObjectType = FriendlyTypeName(config.OdataType),
+                                Category = "Device Configuration",
+                                Platform = InferPlatform(config.OdataType),
+                                AssignmentIntent = isExclusion ? "Exclude" : "Include",
+                                IsExclusion = isExclusion
+                            });
+                        }
+                    }
+                }
+                var processed = Interlocked.Increment(ref configProcessed);
+                if (processed % 10 == 0 || processed == configTotal)
+                    progressCallback?.Invoke($"Scanning device configurations... {processed}/{configTotal}");
+            }
+            finally { configSemaphore.Release(); }
+        }).ToList();
+        await Task.WhenAll(configTasks);
+
+        // --- Compliance Policies ---
+        progressCallback?.Invoke("Scanning compliance policies...");
+        var policies = await complianceService.ListCompliancePoliciesAsync(cancellationToken);
+        var policyTotal = policies.Count;
+        var policyProcessed = 0;
+
+        using var policySemaphore = new SemaphoreSlim(5, 5);
+        var policyTasks = policies.Select(async policy =>
+        {
+            await policySemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                if (policy.Id == null) return;
+                var assignments = await complianceService.GetAssignmentsAsync(policy.Id, cancellationToken);
+                foreach (var a in assignments)
+                {
+                    if (MatchesGroup(a.Target, groupId, out var isExclusion))
+                    {
+                        lock (results)
+                        {
+                            results.Add(new GroupAssignedObject
+                            {
+                                ObjectId = policy.Id,
+                                DisplayName = policy.DisplayName ?? "",
+                                ObjectType = FriendlyTypeName(policy.OdataType),
+                                Category = "Compliance Policy",
+                                Platform = InferPlatform(policy.OdataType),
+                                AssignmentIntent = isExclusion ? "Exclude" : "Include",
+                                IsExclusion = isExclusion
+                            });
+                        }
+                    }
+                }
+                var processed = Interlocked.Increment(ref policyProcessed);
+                if (processed % 10 == 0 || processed == policyTotal)
+                    progressCallback?.Invoke($"Scanning compliance policies... {processed}/{policyTotal}");
+            }
+            finally { policySemaphore.Release(); }
+        }).ToList();
+        await Task.WhenAll(policyTasks);
+
+        // --- Applications ---
+        progressCallback?.Invoke("Scanning applications...");
+        var apps = await appService.ListApplicationsAsync(cancellationToken);
+        var appTotal = apps.Count;
+        var appProcessed = 0;
+
+        using var appSemaphore = new SemaphoreSlim(5, 5);
+        var appTasks = apps.Select(async app =>
+        {
+            await appSemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                if (app.Id == null) return;
+                var assignments = await appService.GetAssignmentsAsync(app.Id, cancellationToken);
+                foreach (var a in assignments)
+                {
+                    if (MatchesGroup(a.Target, groupId, out var isExclusion))
+                    {
+                        var intent = a.Intent?.ToString() ?? "";
+                        lock (results)
+                        {
+                            results.Add(new GroupAssignedObject
+                            {
+                                ObjectId = app.Id,
+                                DisplayName = app.DisplayName ?? "",
+                                ObjectType = FriendlyTypeName(app.OdataType),
+                                Category = "Application",
+                                Platform = InferPlatform(app.OdataType),
+                                AssignmentIntent = isExclusion ? "Exclude" : intent,
+                                IsExclusion = isExclusion
+                            });
+                        }
+                    }
+                }
+                var processed = Interlocked.Increment(ref appProcessed);
+                if (processed % 10 == 0 || processed == appTotal)
+                    progressCallback?.Invoke($"Scanning applications... {processed}/{appTotal}");
+            }
+            finally { appSemaphore.Release(); }
+        }).ToList();
+        await Task.WhenAll(appTasks);
+
+        // Sort by category then name
+        results.Sort((a, b) =>
+        {
+            var cmp = string.Compare(a.Category, b.Category, StringComparison.OrdinalIgnoreCase);
+            return cmp != 0 ? cmp : string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase);
+        });
+
+        progressCallback?.Invoke($"Found {results.Count} assignment(s)");
+        return results;
+    }
+
+    /// <summary>
+    /// Checks whether an assignment target references the specified group ID.
+    /// Also matches "All Users" and "All Devices" targets.
+    /// </summary>
+    private static bool MatchesGroup(DeviceAndAppManagementAssignmentTarget? target, string groupId, out bool isExclusion)
+    {
+        isExclusion = false;
+        if (target == null) return false;
+
+        switch (target)
+        {
+            case ExclusionGroupAssignmentTarget exclusionTarget:
+                isExclusion = true;
+                return string.Equals(exclusionTarget.GroupId, groupId, StringComparison.OrdinalIgnoreCase);
+
+            case GroupAssignmentTarget groupTarget:
+                return string.Equals(groupTarget.GroupId, groupId, StringComparison.OrdinalIgnoreCase);
+
+            // AllDevicesAssignmentTarget and AllLicensedUsersAssignmentTarget are
+            // not group-specific — they won't match a particular group ID.
+            default:
+                return false;
+        }
+    }
+
+    private static string InferPlatform(string? odataType)
+    {
+        if (string.IsNullOrEmpty(odataType)) return "";
+        var lower = odataType.ToLowerInvariant();
+        if (lower.Contains("windows") || lower.Contains("win32") || lower.Contains("msi")) return "Windows";
+        if (lower.Contains("ios") || lower.Contains("iphone")) return "iOS";
+        if (lower.Contains("macos") || lower.Contains("mac")) return "macOS";
+        if (lower.Contains("android")) return "Android";
+        if (lower.Contains("webapp")) return "Web";
+        return "";
+    }
+
+    private static string FriendlyTypeName(string? odataType)
+    {
+        if (string.IsNullOrEmpty(odataType)) return "";
+        // "#microsoft.graph.windows10GeneralConfiguration" → "Windows10GeneralConfiguration"
+        var lastDot = odataType.LastIndexOf('.');
+        if (lastDot < 0) return odataType;
+        var name = odataType[(lastDot + 1)..];
+        return char.ToUpperInvariant(name[0]) + name[1..];
     }
 }

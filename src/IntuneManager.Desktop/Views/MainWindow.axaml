@@ -65,6 +65,9 @@
                         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="🔍 Group Lookup" x:Name="GroupLookupButton"
+                                    ToolTip.Tip="Find all Intune objects assigned to a group" />
+                            <Border Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="4,2" />
                             <Button Content="Refresh" Command="{Binding RefreshCommand}" />
                             <Button Content="Export Selected" Command="{Binding ExportSelectedCommand}" />
                             <Button Content="Export All" Command="{Binding ExportAllCommand}" />

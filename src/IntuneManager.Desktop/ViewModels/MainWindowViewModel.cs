@@ -130,6 +130,21 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     public event Action<string>? CopyDetailsRequested;
 
+    /// <summary>
+    /// Creates a <see cref="GroupLookupViewModel"/> wired to the current Graph services.
+    /// Returns null if not connected.
+    /// </summary>
+    public GroupLookupViewModel? CreateGroupLookupViewModel()
+    {
+        if (_groupService == null || _configProfileService == null ||
+            _compliancePolicyService == null || _applicationService == null)
+            return null;
+
+        return new GroupLookupViewModel(
+            _groupService, _configProfileService,
+            _compliancePolicyService, _applicationService);
+    }
+
     [RelayCommand]
     private void CopyDetailsToClipboard()
     {

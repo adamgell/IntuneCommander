@@ -1,5 +1,6 @@
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
 
 namespace IntuneManager.Core.Services;
 
@@ -17,19 +18,26 @@ public class ConfigurationProfileService : IConfigurationProfileService
         var result = new List<DeviceConfiguration>();
 
         var response = await _graphClient.DeviceManagement.DeviceConfigurations
-            .GetAsync(cancellationToken: cancellationToken);
+            .GetAsync(req =>
+            {
+                req.QueryParameters.Top = 999;
+            }, cancellationToken);
 
-        if (response != null)
+        while (response != null)
         {
-            // PageIterator handles first page + all subsequent pages.
-            var pageIterator = Microsoft.Graph.PageIterator<DeviceConfiguration, DeviceConfigurationCollectionResponse>
-                .CreatePageIterator(_graphClient, response, item =>
-                {
-                    result.Add(item);
-                    return true;
-                });
+            if (response.Value != null)
+                result.AddRange(response.Value);
 
-            await pageIterator.IterateAsync(cancellationToken);
+            if (!string.IsNullOrEmpty(response.OdataNextLink))
+            {
+                response = await _graphClient.DeviceManagement.DeviceConfigurations
+                    .WithUrl(response.OdataNextLink)
+                    .GetAsync(cancellationToken: cancellationToken);
+            }
+            else
+            {
+                break;
+            }
         }
 
         return result;

@@ -1,5 +1,6 @@
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
 
 namespace IntuneManager.Core.Services;
 
@@ -16,21 +17,29 @@ public class ApplicationService : IApplicationService
     {
         var result = new List<MobileApp>();
 
+        // Manual pagination — PageIterator can silently stop on some tenants.
         var response = await _graphClient.DeviceAppManagement.MobileApps
-            .GetAsync(cancellationToken: cancellationToken);
+            .GetAsync(req =>
+            {
+                req.QueryParameters.Top = 999;
+            }, cancellationToken);
 
-        if (response != null)
+        while (response != null)
         {
-            // PageIterator handles first page + all subsequent pages.
-            // Do NOT also AddRange(response.Value) — that would duplicate the first page.
-            var pageIterator = PageIterator<MobileApp, MobileAppCollectionResponse>
-                .CreatePageIterator(_graphClient, response, item =>
-                {
-                    result.Add(item);
-                    return true;
-                });
+            if (response.Value != null)
+                result.AddRange(response.Value);
 
-            await pageIterator.IterateAsync(cancellationToken);
+            // Follow @odata.nextLink if present
+            if (!string.IsNullOrEmpty(response.OdataNextLink))
+            {
+                response = await _graphClient.DeviceAppManagement.MobileApps
+                    .WithUrl(response.OdataNextLink)
+                    .GetAsync(cancellationToken: cancellationToken);
+            }
+            else
+            {
+                break;
+            }
         }
 
         // Ensure OdataType is populated — the Graph SDK sometimes deserializes into
