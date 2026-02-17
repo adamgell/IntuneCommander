@@ -7,6 +7,12 @@ A cross-platform Intune management tool built with .NET 8 and Avalonia UI, desig
 ### Origin
 This project is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement), a PowerShell/WPF-based Intune management tool.
 
+### Screenshots 
+
+![Main window - IntuneManager](docs/screenshot/app1.png)
+![Main window - IntuneManager](docs/screenshot/app2.png)
+
+
 ### Goals
 - **Multi-cloud support:** Commercial, GCC, GCC-High, DoD tenants
 - **Multi-tenant:** Easy switching between tenant environments with profile management
