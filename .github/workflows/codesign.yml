@@ -22,7 +22,7 @@ env:
 jobs:
   release:
     runs-on: windows-latest
-    environment: codesigning
+    environment: signing
 
     steps:
       - name: Checkout
