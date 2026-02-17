@@ -101,6 +101,126 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoadingDetails;
 
+    /// <summary>
+    /// Raised when the user clicks "Copy Details". The view handles clipboard access.
+    /// </summary>
+    public event Action<string>? CopyDetailsRequested;
+
+    [RelayCommand]
+    private void CopyDetailsToClipboard()
+    {
+        var text = GetDetailText();
+        if (!string.IsNullOrEmpty(text))
+            CopyDetailsRequested?.Invoke(text);
+    }
+
+    /// <summary>
+    /// Builds a plain-text representation of whichever item is currently selected in the detail pane.
+    /// </summary>
+    public string GetDetailText()
+    {
+        var sb = new StringBuilder();
+
+        if (SelectedConfiguration is { } cfg)
+        {
+            sb.AppendLine("=== Device Configuration ===");
+            Append(sb, "Name", cfg.DisplayName);
+            Append(sb, "Description", cfg.Description);
+            Append(sb, "Platform / Type", SelectedItemTypeName);
+            Append(sb, "ID", cfg.Id);
+            Append(sb, "Created", cfg.CreatedDateTime?.ToString("g"));
+            Append(sb, "Last Modified", cfg.LastModifiedDateTime?.ToString("g"));
+            Append(sb, "Version", cfg.Version?.ToString());
+            AppendAssignments(sb);
+        }
+        else if (SelectedCompliancePolicy is { } pol)
+        {
+            sb.AppendLine("=== Compliance Policy ===");
+            Append(sb, "Name", pol.DisplayName);
+            Append(sb, "Description", pol.Description);
+            Append(sb, "Platform / Type", SelectedItemTypeName);
+            Append(sb, "ID", pol.Id);
+            Append(sb, "Created", pol.CreatedDateTime?.ToString("g"));
+            Append(sb, "Last Modified", pol.LastModifiedDateTime?.ToString("g"));
+            Append(sb, "Version", pol.Version?.ToString());
+            AppendAssignments(sb);
+        }
+        else if (SelectedApplication is { } app)
+        {
+            sb.AppendLine("=== Application ===");
+            Append(sb, "Name", app.DisplayName);
+            Append(sb, "Description", app.Description);
+            Append(sb, "App Type", SelectedItemTypeName);
+            Append(sb, "ID", app.Id);
+            Append(sb, "Publisher", app.Publisher);
+            Append(sb, "Developer", app.Developer);
+            Append(sb, "Owner", app.Owner);
+            Append(sb, "Featured", app.IsFeatured?.ToString());
+            Append(sb, "Notes", app.Notes);
+            Append(sb, "Information URL", app.InformationUrl);
+            Append(sb, "Privacy URL", app.PrivacyInformationUrl);
+            Append(sb, "Created", app.CreatedDateTime?.ToString("g"));
+            Append(sb, "Last Modified", app.LastModifiedDateTime?.ToString("g"));
+            Append(sb, "Publishing State", app.PublishingState?.ToString());
+            AppendAssignments(sb);
+        }
+        else if (SelectedAppAssignmentRow is { } row)
+        {
+            sb.AppendLine("=== Application Assignment ===");
+            Append(sb, "App Name", row.AppName);
+            Append(sb, "App Type", row.AppType);
+            Append(sb, "Platform", row.Platform);
+            Append(sb, "Publisher", row.Publisher);
+            Append(sb, "Version", row.Version);
+            Append(sb, "Description", row.Description);
+            sb.AppendLine();
+            Append(sb, "Assignment Type", row.AssignmentType);
+            Append(sb, "Install Intent", row.InstallIntent);
+            Append(sb, "Target Name", row.TargetName);
+            Append(sb, "Target Group ID", row.TargetGroupId);
+            Append(sb, "Is Exclusion", row.IsExclusion);
+            Append(sb, "Is Featured", row.IsFeatured);
+            Append(sb, "Assignment Settings", row.AssignmentSettings);
+            sb.AppendLine();
+            Append(sb, "Bundle ID", row.BundleId);
+            Append(sb, "Package ID", row.PackageId);
+            Append(sb, "Min OS Version", row.MinimumOsVersion);
+            Append(sb, "Min Disk (MB)", row.MinimumFreeDiskSpaceMB);
+            Append(sb, "Min RAM (MB)", row.MinimumMemoryMB);
+            Append(sb, "Min CPUs", row.MinimumProcessors);
+            sb.AppendLine();
+            Append(sb, "Information URL", row.InformationUrl);
+            Append(sb, "Privacy URL", row.PrivacyUrl);
+            Append(sb, "App Store URL", row.AppStoreUrl);
+            Append(sb, "Created", row.CreatedDate);
+            Append(sb, "Last Modified", row.LastModified);
+            Append(sb, "Categories", row.Categories);
+            Append(sb, "Notes", row.Notes);
+        }
+
+        return sb.ToString();
+    }
+
+    private static void Append(StringBuilder sb, string label, string? value)
+    {
+        if (!string.IsNullOrEmpty(value))
+            sb.AppendLine($"{label}: {value}");
+    }
+
+    private void AppendAssignments(StringBuilder sb)
+    {
+        if (SelectedItemAssignments.Count == 0) return;
+        sb.AppendLine();
+        sb.AppendLine("Assignments:");
+        foreach (var a in SelectedItemAssignments)
+        {
+            var line = $"  [{a.TargetKind}] {a.Target}";
+            if (!string.IsNullOrEmpty(a.Intent)) line += $" ({a.Intent})";
+            if (!string.IsNullOrEmpty(a.GroupId)) line += $" [{a.GroupId}]";
+            sb.AppendLine(line);
+        }
+    }
+
     // --- Search / filter ---
     [ObservableProperty]
     private string _searchText = "";

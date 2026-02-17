@@ -44,6 +44,7 @@ public partial class MainWindow : Window
         {
             _vm = vm;
             vm.SwitchProfileRequested += OnSwitchProfileRequested;
+            vm.CopyDetailsRequested += OnCopyDetailsRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
         }
     }
@@ -238,5 +239,16 @@ public partial class MainWindow : Window
                 await vm.ImportFromFolderCommand.ExecuteAsync(folderPath);
             }
         }
+    }
+
+    private async void OnCopyDetailsRequested(string text)
+    {
+        try
+        {
+            var clipboard = GetTopLevel(this)?.Clipboard;
+            if (clipboard != null)
+                await clipboard.SetTextAsync(text);
+        }
+        catch { /* clipboard not available */ }
     }
 }

@@ -1,4 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:IntuneManager.Desktop.ViewModels"
         xmlns:views="using:IntuneManager.Desktop.Views"
@@ -170,8 +170,15 @@
                     <!-- Detail Pane (right) -->
                     <DockPanel Grid.Column="4" Margin="8"
                                IsVisible="{Binding !IsOverviewCategory}">
-                        <TextBlock DockPanel.Dock="Top" Text="Details"
-                                   FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" />
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                            <Button DockPanel.Dock="Right" Content="📋 Copy"
+                                    Command="{Binding CopyDetailsToClipboardCommand}"
+                                    FontSize="12" Padding="8,3"
+                                    VerticalAlignment="Center" />
+                            <TextBlock Text="Details"
+                                       FontSize="16" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
 
                         <!-- Loading indicator for detail fetch -->
                         <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True"
@@ -208,34 +215,34 @@
                                     <StackPanel Spacing="10" DataContext="{Binding SelectedConfiguration}">
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Name" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Platform / Type" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Created" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding CreatedDateTime}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Last Modified" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding LastModifiedDateTime}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Version" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Version}" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -259,13 +266,13 @@
                                                                     Background="{DynamicResource SystemAccentColor}"
                                                                     CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
                                                                     VerticalAlignment="Top">
-                                                                <TextBlock Text="{Binding TargetKind}"
+                                                                <SelectableTextBlock Text="{Binding TargetKind}"
                                                                            FontSize="10" Foreground="White" />
                                                             </Border>
                                                             <StackPanel Spacing="1">
-                                                                <TextBlock Text="{Binding Target}"
+                                                                <SelectableTextBlock Text="{Binding Target}"
                                                                            FontSize="12" TextWrapping="Wrap" />
-                                                                <TextBlock Text="{Binding GroupId}"
+                                                                <SelectableTextBlock Text="{Binding GroupId}"
                                                                            FontSize="10" Foreground="Gray" Opacity="0.7"
                                                                            IsVisible="{Binding GroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                                             </StackPanel>
@@ -295,34 +302,34 @@
                                     <StackPanel Spacing="10" DataContext="{Binding SelectedCompliancePolicy}">
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Name" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Platform / Type" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Created" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding CreatedDateTime}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Last Modified" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding LastModifiedDateTime}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Version" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Version}" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -346,13 +353,13 @@
                                                                     Background="{DynamicResource SystemAccentColor}"
                                                                     CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
                                                                     VerticalAlignment="Top">
-                                                                <TextBlock Text="{Binding TargetKind}"
+                                                                <SelectableTextBlock Text="{Binding TargetKind}"
                                                                            FontSize="10" Foreground="White" />
                                                             </Border>
                                                             <StackPanel Spacing="1">
-                                                                <TextBlock Text="{Binding Target}"
+                                                                <SelectableTextBlock Text="{Binding Target}"
                                                                            FontSize="12" TextWrapping="Wrap" />
-                                                                <TextBlock Text="{Binding GroupId}"
+                                                                <SelectableTextBlock Text="{Binding GroupId}"
                                                                            FontSize="10" Foreground="Gray" Opacity="0.7"
                                                                            IsVisible="{Binding GroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                                             </StackPanel>
@@ -382,66 +389,66 @@
                                     <StackPanel Spacing="10" DataContext="{Binding SelectedApplication}">
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Name" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="App Type" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Publisher" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding Publisher}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding Publisher}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Developer" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding Developer}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding Developer}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Owner" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding Owner}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding Owner}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Featured" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding IsFeatured}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding IsFeatured}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Notes" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding Notes}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Information URL" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding InformationUrl}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding InformationUrl}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Privacy URL" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding PrivacyInformationUrl}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding PrivacyInformationUrl}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Created" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding CreatedDateTime}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Last Modified" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding LastModifiedDateTime}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Publishing State" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding PublishingState}" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding PublishingState}" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -465,20 +472,20 @@
                                                                     Background="{DynamicResource SystemAccentColor}"
                                                                     CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
                                                                     VerticalAlignment="Top">
-                                                                <TextBlock Text="{Binding TargetKind}"
+                                                                <SelectableTextBlock Text="{Binding TargetKind}"
                                                                            FontSize="10" Foreground="White" />
                                                             </Border>
                                                             <StackPanel Spacing="1">
                                                                 <DockPanel>
-                                                                    <TextBlock Text="{Binding Intent}"
+                                                                    <SelectableTextBlock Text="{Binding Intent}"
                                                                                DockPanel.Dock="Right"
                                                                                FontSize="11" Foreground="Gray"
                                                                                Margin="6,0,0,0"
                                                                                VerticalAlignment="Center" />
-                                                                    <TextBlock Text="{Binding Target}"
+                                                                    <SelectableTextBlock Text="{Binding Target}"
                                                                                FontSize="12" TextWrapping="Wrap" />
                                                                 </DockPanel>
-                                                                <TextBlock Text="{Binding GroupId}"
+                                                                <SelectableTextBlock Text="{Binding GroupId}"
                                                                            FontSize="10" Foreground="Gray" Opacity="0.7"
                                                                            IsVisible="{Binding GroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                                             </StackPanel>
@@ -508,31 +515,31 @@
                                     <StackPanel Spacing="10">
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="App Name" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding AppName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding AppName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="App Type" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding AppType}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding AppType}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Platform" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding Platform}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding Platform}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Publisher" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding Publisher}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding Publisher}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Version" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding Version}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="12"
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="12"
                                                        MaxLines="5" TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </StackPanel>
@@ -548,35 +555,35 @@
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Assignment Type" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding AssignmentType}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding AssignmentType}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Install Intent" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding InstallIntent}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding InstallIntent}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Target Name" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding TargetName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding TargetName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Target Group ID" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding TargetGroupId}" FontSize="11" Opacity="0.8"
+                                            <SelectableTextBlock Text="{Binding TargetGroupId}" FontSize="11" Opacity="0.8"
                                                        IsVisible="{Binding TargetGroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Is Exclusion" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding IsExclusion}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding IsExclusion}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Is Featured" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding IsFeatured}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding IsFeatured}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Assignment Settings" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding AssignmentSettings}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding AssignmentSettings}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -591,29 +598,29 @@
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Bundle ID" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding BundleId}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding BundleId}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Package ID" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding PackageId}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding PackageId}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Minimum OS Version" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding MinimumOsVersion}" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding MinimumOsVersion}" FontSize="12" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Min Disk (MB)" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding MinimumFreeDiskSpaceMB}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding MinimumFreeDiskSpaceMB}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Min RAM (MB)" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding MinimumMemoryMB}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding MinimumMemoryMB}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Spacing="2">
                                                 <TextBlock Text="Min CPUs" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding MinimumProcessors}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding MinimumProcessors}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
@@ -628,33 +635,33 @@
                                     <StackPanel Spacing="10">
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Information URL" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding InformationUrl}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding InformationUrl}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Privacy URL" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding PrivacyUrl}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding PrivacyUrl}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="App Store URL" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding AppStoreUrl}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding AppStoreUrl}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Created" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding CreatedDate}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding CreatedDate}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Last Modified" FontSize="11" Foreground="Gray" />
-                                                <TextBlock Text="{Binding LastModified}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding LastModified}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Categories" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Categories}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding Categories}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Notes" FontSize="11" Foreground="Gray" />
-                                            <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" FontSize="12" />
+                                            <SelectableTextBlock Text="{Binding Notes}" TextWrapping="Wrap" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
