@@ -395,11 +395,18 @@
                                             <TextBlock Text="Description" FontSize="11" Foreground="Gray" />
                                             <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Text="App Type" FontSize="11" Foreground="Gray" />
-                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
-                                                       TextWrapping="Wrap" />
-                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="App Type" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTypeName}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Platform" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemPlatform}"
+                                                           FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="Gray" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />

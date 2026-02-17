@@ -99,6 +99,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _selectedItemTypeName = "";
 
     [ObservableProperty]
+    private string _selectedItemPlatform = "";
+
+    [ObservableProperty]
     private bool _isLoadingDetails;
 
     /// <summary>
@@ -151,6 +154,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "Name", app.DisplayName);
             Append(sb, "Description", app.Description);
             Append(sb, "App Type", SelectedItemTypeName);
+            Append(sb, "Platform", SelectedItemPlatform);
             Append(sb, "ID", app.Id);
             Append(sb, "Publisher", app.Publisher);
             Append(sb, "Developer", app.Developer);
@@ -454,6 +458,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedAppAssignmentRow = null;
         SelectedItemAssignments.Clear();
         SelectedItemTypeName = "";
+        SelectedItemPlatform = "";
         SearchText = "";
         OnPropertyChanged(nameof(IsOverviewCategory));
         OnPropertyChanged(nameof(IsDeviceConfigCategory));
@@ -488,7 +493,9 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnSelectedApplicationChanged(MobileApp? value)
     {
         SelectedItemAssignments.Clear();
-        SelectedItemTypeName = FriendlyODataType(value?.OdataType);
+        var odataType = value?.OdataType;
+        SelectedItemTypeName = FriendlyODataType(odataType);
+        SelectedItemPlatform = InferPlatform(odataType);
         if (value?.Id != null)
             _ = LoadApplicationAssignmentsAsync(value.Id);
     }

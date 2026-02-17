@@ -19,10 +19,9 @@ public class CompliancePolicyService : ICompliancePolicyService
         var response = await _graphClient.DeviceManagement.DeviceCompliancePolicies
             .GetAsync(cancellationToken: cancellationToken);
 
-        if (response?.Value != null)
+        if (response != null)
         {
-            result.AddRange(response.Value);
-
+            // PageIterator handles first page + all subsequent pages.
             var pageIterator = PageIterator<DeviceCompliancePolicy, DeviceCompliancePolicyCollectionResponse>
                 .CreatePageIterator(_graphClient, response, item =>
                 {

@@ -19,11 +19,9 @@ public class ConfigurationProfileService : IConfigurationProfileService
         var response = await _graphClient.DeviceManagement.DeviceConfigurations
             .GetAsync(cancellationToken: cancellationToken);
 
-        if (response?.Value != null)
+        if (response != null)
         {
-            result.AddRange(response.Value);
-
-            // Handle pagination
+            // PageIterator handles first page + all subsequent pages.
             var pageIterator = Microsoft.Graph.PageIterator<DeviceConfiguration, DeviceConfigurationCollectionResponse>
                 .CreatePageIterator(_graphClient, response, item =>
                 {
