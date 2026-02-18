@@ -1,0 +1,3 @@
+[submodule "IntuneManagement"]
+	path = IntuneManagement
+	url = https://github.com/Micke-K/IntuneManagement
