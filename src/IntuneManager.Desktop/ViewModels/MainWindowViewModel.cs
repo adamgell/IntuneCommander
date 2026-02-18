@@ -2236,8 +2236,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         ClearError();
         IsBusy = true;
-        DebugLog.Log("Graph", "Refreshing all data from Graph API...");
+        DebugLog.Log("Graph", "Refreshing data from Graph API...");
         var errors = new List<string>();
+        var loadConditionalAccess = IsConditionalAccessCategory;
+        var loadAssignmentFilters = IsAssignmentFiltersCategory;
+        var loadPolicySets = IsPolicySetsCategory;
 
         try
         {
@@ -2309,7 +2312,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
 
-            if (_conditionalAccessPolicyService != null)
+            if (_conditionalAccessPolicyService != null && loadConditionalAccess)
             {
                 try
                 {
@@ -2327,8 +2330,12 @@ public partial class MainWindowViewModel : ViewModelBase
                     errors.Add($"Conditional Access: {detail}");
                 }
             }
+            else if (_conditionalAccessPolicyService != null)
+            {
+                DebugLog.Log("Graph", "Skipping conditional access refresh (lazy-load when tab selected)");
+            }
 
-            if (_assignmentFilterService != null)
+            if (_assignmentFilterService != null && loadAssignmentFilters)
             {
                 try
                 {
@@ -2346,8 +2353,12 @@ public partial class MainWindowViewModel : ViewModelBase
                     errors.Add($"Assignment Filters: {detail}");
                 }
             }
+            else if (_assignmentFilterService != null)
+            {
+                DebugLog.Log("Graph", "Skipping assignment filter refresh (lazy-load when tab selected)");
+            }
 
-            if (_policySetService != null)
+            if (_policySetService != null && loadPolicySets)
             {
                 try
                 {
@@ -2364,6 +2375,10 @@ public partial class MainWindowViewModel : ViewModelBase
                     DebugLog.LogError($"Failed to load policy sets: {detail}", ex);
                     errors.Add($"Policy Sets: {detail}");
                 }
+            }
+            else if (_policySetService != null)
+            {
+                DebugLog.Log("Graph", "Skipping policy sets refresh (lazy-load when tab selected)");
             }
 
             var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count;
