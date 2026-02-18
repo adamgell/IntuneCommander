@@ -672,6 +672,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDynamicGroupsCategory));
         OnPropertyChanged(nameof(IsAssignedGroupsCategory));
         OnPropertyChanged(nameof(ActiveColumns));
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         SearchText = "";
 
