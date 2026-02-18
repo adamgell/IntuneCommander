@@ -61,7 +61,7 @@ public static class CategoryLoadHelper
         }
         catch (Exception ex)
         {
-            ctx.SetError($"Failed to load {loader.CategoryName}: {ex.Message}");
+            ctx.SetError($"Failed to load {loader.CategoryName}: {ctx.FormatError(ex)}");
             ctx.SetStatus($"Error loading {loader.CategoryName}");
             return null;
         }

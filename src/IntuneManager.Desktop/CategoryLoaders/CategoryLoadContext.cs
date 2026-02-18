@@ -10,6 +10,7 @@ namespace IntuneManager.Desktop.CategoryLoaders;
 ///   <item>set busy / status / error state on the VM</item>
 ///   <item>write to the cache after network fetch</item>
 ///   <item>trigger the active filter after loading</item>
+///   <item>format exceptions for display, with special handling for ODataError</item>
 /// </list>
 /// Cache reads are NOT handled by the helper — they occur separately via
 /// <c>TryLoadLazyCacheEntry</c> in the <c>SelectedNavCategory</c> setter.
@@ -20,10 +21,15 @@ namespace IntuneManager.Desktop.CategoryLoaders;
 /// <param name="SetError">Calls <c>SetError(message)</c> on the VM.</param>
 /// <param name="ApplyFilter">Triggers the VM's active search/filter after data loads.</param>
 /// <param name="SetBusy">Toggles <c>IsBusy</c> on the VM.</param>
+/// <param name="FormatError">
+/// Formats exceptions for display. Implementations should provide special handling for
+/// <c>ODataError</c> to extract HTTP status codes, error codes, and structured messages.
+/// </param>
 public sealed record CategoryLoadContext(
     ICacheService CacheService,
     string? TenantId,
     Action<string> SetStatus,
     Action<string> SetError,
     Action ApplyFilter,
-    Action<bool> SetBusy);
+    Action<bool> SetBusy,
+    Func<Exception, string> FormatError);
