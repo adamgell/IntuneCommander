@@ -245,7 +245,7 @@ Consider creating these GitHub labels:
 
 The repository uses Wave tracking for service implementation:
 - **Wave 1-5** documents in `docs/issues/`
-- **Wave 1** (Issue #13) - Completed (Endpoint Security, Admin Templates, Enrollment)
+- **Wave 1** (Issue #13) - Not yet started (Endpoint Security, Admin Templates, Enrollment)
 - **Waves 2-5** - Not yet started
 
 Open PRs are independent of Wave implementation and should be resolved first to provide clean baseline for future Wave work.
