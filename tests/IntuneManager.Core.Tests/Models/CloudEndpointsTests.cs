@@ -84,4 +84,10 @@ public class CloudEndpointsTests
         Assert.Single(scopes);
         Assert.Equal("https://dod-graph.microsoft.us/.default", scopes[0]);
     }
+
+    [Fact]
+    public void GetEndpoints_InvalidEnum_ThrowsArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => CloudEndpoints.GetEndpoints((CloudEnvironment)999));
+    }
 }

@@ -810,6 +810,189 @@ public class ImportServiceTests : IDisposable
         Assert.Equal("new-tou", table.Entries[0].NewId);
     }
 
+    [Fact]
+    public async Task ReadDeviceConfigurationAsync_MalformedJson_ThrowsJsonException()
+    {
+        var file = Path.Combine(_tempDir, "bad.json");
+        await File.WriteAllTextAsync(file, "{ this is not valid json }}}");
+
+        var sut = new ImportService(new StubConfigurationService());
+
+        await Assert.ThrowsAsync<JsonException>(() => sut.ReadDeviceConfigurationAsync(file));
+    }
+
+    [Fact]
+    public async Task ImportDeviceHealthScriptAsync_UpdatesMigration()
+    {
+        var healthScriptService = new StubDeviceHealthScriptService
+        {
+            CreateResult = new DeviceHealthScript { Id = "new-dhs", DisplayName = "Created Script" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, deviceHealthScriptService: healthScriptService);
+        var table = new MigrationTable();
+
+        var script = new DeviceHealthScript
+        {
+            Id = "old-dhs",
+            DisplayName = "Source Script",
+            CreatedDateTime = DateTimeOffset.UtcNow,
+            LastModifiedDateTime = DateTimeOffset.UtcNow
+        };
+
+        var created = await sut.ImportDeviceHealthScriptAsync(script, table);
+
+        Assert.Equal("new-dhs", created.Id);
+        Assert.NotNull(healthScriptService.LastCreatedScript);
+        Assert.Null(healthScriptService.LastCreatedScript!.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("DeviceHealthScript", table.Entries[0].ObjectType);
+        Assert.Equal("old-dhs", table.Entries[0].OriginalId);
+        Assert.Equal("new-dhs", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportMacCustomAttributeAsync_UpdatesMigration()
+    {
+        var macAttributeService = new StubMacCustomAttributeService
+        {
+            CreateResult = new DeviceCustomAttributeShellScript { Id = "new-mac", DisplayName = "Created Attr" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, macCustomAttributeService: macAttributeService);
+        var table = new MigrationTable();
+
+        var script = new DeviceCustomAttributeShellScript
+        {
+            Id = "old-mac",
+            DisplayName = "Source Attr",
+            CreatedDateTime = DateTimeOffset.UtcNow,
+            LastModifiedDateTime = DateTimeOffset.UtcNow
+        };
+
+        var created = await sut.ImportMacCustomAttributeAsync(script, table);
+
+        Assert.Equal("new-mac", created.Id);
+        Assert.NotNull(macAttributeService.LastCreatedScript);
+        Assert.Null(macAttributeService.LastCreatedScript!.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("MacCustomAttribute", table.Entries[0].ObjectType);
+        Assert.Equal("old-mac", table.Entries[0].OriginalId);
+        Assert.Equal("new-mac", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportFeatureUpdateProfileAsync_UpdatesMigration()
+    {
+        var featureUpdateService = new StubFeatureUpdateProfileService
+        {
+            CreateResult = new WindowsFeatureUpdateProfile { Id = "new-fup", DisplayName = "Created Feature Update" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, featureUpdateProfileService: featureUpdateService);
+        var table = new MigrationTable();
+
+        var profile = new WindowsFeatureUpdateProfile
+        {
+            Id = "old-fup",
+            DisplayName = "Source Feature Update",
+            CreatedDateTime = DateTimeOffset.UtcNow,
+            LastModifiedDateTime = DateTimeOffset.UtcNow
+        };
+
+        var created = await sut.ImportFeatureUpdateProfileAsync(profile, table);
+
+        Assert.Equal("new-fup", created.Id);
+        Assert.NotNull(featureUpdateService.LastCreatedProfile);
+        Assert.Null(featureUpdateService.LastCreatedProfile!.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("FeatureUpdateProfile", table.Entries[0].ObjectType);
+        Assert.Equal("old-fup", table.Entries[0].OriginalId);
+        Assert.Equal("new-fup", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportNamedLocationAsync_UpdatesMigration()
+    {
+        var namedLocationService = new StubNamedLocationService
+        {
+            CreateResult = new NamedLocation
+            {
+                Id = "new-nl",
+                AdditionalData = new Dictionary<string, object> { ["displayName"] = "Created Location" }
+            }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, namedLocationService: namedLocationService);
+        var table = new MigrationTable();
+
+        var namedLocation = new NamedLocation
+        {
+            Id = "old-nl",
+            AdditionalData = new Dictionary<string, object> { ["displayName"] = "Source Location" }
+        };
+
+        var created = await sut.ImportNamedLocationAsync(namedLocation, table);
+
+        Assert.Equal("new-nl", created.Id);
+        Assert.NotNull(namedLocationService.LastCreatedNamedLocation);
+        Assert.Null(namedLocationService.LastCreatedNamedLocation!.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("NamedLocation", table.Entries[0].ObjectType);
+        Assert.Equal("old-nl", table.Entries[0].OriginalId);
+        Assert.Equal("new-nl", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportAuthenticationStrengthPolicyAsync_UpdatesMigration()
+    {
+        var authStrengthService = new StubAuthenticationStrengthService
+        {
+            CreateResult = new AuthenticationStrengthPolicy { Id = "new-asp", DisplayName = "Created Strength" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, authenticationStrengthService: authStrengthService);
+        var table = new MigrationTable();
+
+        var policy = new AuthenticationStrengthPolicy
+        {
+            Id = "old-asp",
+            DisplayName = "Source Strength"
+        };
+
+        var created = await sut.ImportAuthenticationStrengthPolicyAsync(policy, table);
+
+        Assert.Equal("new-asp", created.Id);
+        Assert.NotNull(authStrengthService.LastCreatedPolicy);
+        Assert.Null(authStrengthService.LastCreatedPolicy!.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("AuthenticationStrengthPolicy", table.Entries[0].ObjectType);
+        Assert.Equal("old-asp", table.Entries[0].OriginalId);
+        Assert.Equal("new-asp", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportAuthenticationContextAsync_UpdatesMigration()
+    {
+        var authContextService = new StubAuthenticationContextService
+        {
+            CreateResult = new AuthenticationContextClassReference { Id = "new-ctx", DisplayName = "Created Context" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, authenticationContextService: authContextService);
+        var table = new MigrationTable();
+
+        var context = new AuthenticationContextClassReference
+        {
+            Id = "old-ctx",
+            DisplayName = "Source Context"
+        };
+
+        var created = await sut.ImportAuthenticationContextAsync(context, table);
+
+        Assert.Equal("new-ctx", created.Id);
+        Assert.NotNull(authContextService.LastCreatedContext);
+        Assert.Null(authContextService.LastCreatedContext!.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("AuthenticationContext", table.Entries[0].ObjectType);
+        Assert.Equal("old-ctx", table.Entries[0].OriginalId);
+        Assert.Equal("new-ctx", table.Entries[0].NewId);
+    }
+
     private sealed class StubConfigurationService : IConfigurationProfileService
     {
         public DeviceConfiguration? LastCreatedConfig { get; private set; }
@@ -1220,6 +1403,150 @@ public class ImportServiceTests : IDisposable
             => Task.FromResult(agreement);
 
         public Task DeleteTermsOfUseAgreementAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubDeviceHealthScriptService : IDeviceHealthScriptService
+    {
+        public DeviceHealthScript? LastCreatedScript { get; private set; }
+        public DeviceHealthScript CreateResult { get; set; } = new() { Id = "created-dhs", DisplayName = "Created" };
+
+        public Task<List<DeviceHealthScript>> ListDeviceHealthScriptsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceHealthScript>());
+
+        public Task<DeviceHealthScript?> GetDeviceHealthScriptAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<DeviceHealthScript?>(null);
+
+        public Task<DeviceHealthScript> CreateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default)
+        {
+            LastCreatedScript = script;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<DeviceHealthScript> UpdateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default)
+            => Task.FromResult(script);
+
+        public Task DeleteDeviceHealthScriptAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubMacCustomAttributeService : IMacCustomAttributeService
+    {
+        public DeviceCustomAttributeShellScript? LastCreatedScript { get; private set; }
+        public DeviceCustomAttributeShellScript CreateResult { get; set; } = new() { Id = "created-mac", DisplayName = "Created" };
+
+        public Task<List<DeviceCustomAttributeShellScript>> ListMacCustomAttributesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceCustomAttributeShellScript>());
+
+        public Task<DeviceCustomAttributeShellScript?> GetMacCustomAttributeAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<DeviceCustomAttributeShellScript?>(null);
+
+        public Task<DeviceCustomAttributeShellScript> CreateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default)
+        {
+            LastCreatedScript = script;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<DeviceCustomAttributeShellScript> UpdateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default)
+            => Task.FromResult(script);
+
+        public Task DeleteMacCustomAttributeAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubFeatureUpdateProfileService : IFeatureUpdateProfileService
+    {
+        public WindowsFeatureUpdateProfile? LastCreatedProfile { get; private set; }
+        public WindowsFeatureUpdateProfile CreateResult { get; set; } = new() { Id = "created-fup", DisplayName = "Created" };
+
+        public Task<List<WindowsFeatureUpdateProfile>> ListFeatureUpdateProfilesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<WindowsFeatureUpdateProfile>());
+
+        public Task<WindowsFeatureUpdateProfile?> GetFeatureUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<WindowsFeatureUpdateProfile?>(null);
+
+        public Task<WindowsFeatureUpdateProfile> CreateFeatureUpdateProfileAsync(WindowsFeatureUpdateProfile profile, CancellationToken cancellationToken = default)
+        {
+            LastCreatedProfile = profile;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<WindowsFeatureUpdateProfile> UpdateFeatureUpdateProfileAsync(WindowsFeatureUpdateProfile profile, CancellationToken cancellationToken = default)
+            => Task.FromResult(profile);
+
+        public Task DeleteFeatureUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubNamedLocationService : INamedLocationService
+    {
+        public NamedLocation? LastCreatedNamedLocation { get; private set; }
+        public NamedLocation CreateResult { get; set; } = new() { Id = "created-nl", AdditionalData = new Dictionary<string, object> { ["displayName"] = "Created" } };
+
+        public Task<List<NamedLocation>> ListNamedLocationsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<NamedLocation>());
+
+        public Task<NamedLocation?> GetNamedLocationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<NamedLocation?>(null);
+
+        public Task<NamedLocation> CreateNamedLocationAsync(NamedLocation namedLocation, CancellationToken cancellationToken = default)
+        {
+            LastCreatedNamedLocation = namedLocation;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<NamedLocation> UpdateNamedLocationAsync(NamedLocation namedLocation, CancellationToken cancellationToken = default)
+            => Task.FromResult(namedLocation);
+
+        public Task DeleteNamedLocationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubAuthenticationStrengthService : IAuthenticationStrengthService
+    {
+        public AuthenticationStrengthPolicy? LastCreatedPolicy { get; private set; }
+        public AuthenticationStrengthPolicy CreateResult { get; set; } = new() { Id = "created-asp", DisplayName = "Created" };
+
+        public Task<List<AuthenticationStrengthPolicy>> ListAuthenticationStrengthPoliciesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<AuthenticationStrengthPolicy>());
+
+        public Task<AuthenticationStrengthPolicy?> GetAuthenticationStrengthPolicyAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<AuthenticationStrengthPolicy?>(null);
+
+        public Task<AuthenticationStrengthPolicy> CreateAuthenticationStrengthPolicyAsync(AuthenticationStrengthPolicy policy, CancellationToken cancellationToken = default)
+        {
+            LastCreatedPolicy = policy;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<AuthenticationStrengthPolicy> UpdateAuthenticationStrengthPolicyAsync(AuthenticationStrengthPolicy policy, CancellationToken cancellationToken = default)
+            => Task.FromResult(policy);
+
+        public Task DeleteAuthenticationStrengthPolicyAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubAuthenticationContextService : IAuthenticationContextService
+    {
+        public AuthenticationContextClassReference? LastCreatedContext { get; private set; }
+        public AuthenticationContextClassReference CreateResult { get; set; } = new() { Id = "created-ctx", DisplayName = "Created" };
+
+        public Task<List<AuthenticationContextClassReference>> ListAuthenticationContextsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<AuthenticationContextClassReference>());
+
+        public Task<AuthenticationContextClassReference?> GetAuthenticationContextAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<AuthenticationContextClassReference?>(null);
+
+        public Task<AuthenticationContextClassReference> CreateAuthenticationContextAsync(AuthenticationContextClassReference contextClassReference, CancellationToken cancellationToken = default)
+        {
+            LastCreatedContext = contextClassReference;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<AuthenticationContextClassReference> UpdateAuthenticationContextAsync(AuthenticationContextClassReference contextClassReference, CancellationToken cancellationToken = default)
+            => Task.FromResult(contextClassReference);
+
+        public Task DeleteAuthenticationContextAsync(string id, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }
 }

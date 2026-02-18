@@ -726,4 +726,157 @@ public class ExportServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(_tempDir, "TermsOfUse", "Employee Terms.json")));
         Assert.Contains(table.Entries, e => e.ObjectType == "TermsOfUseAgreement" && e.OriginalId == "tou-id");
     }
+
+    [Fact]
+    public async Task ExportAutopilotProfiles_ExportsMultipleAndWritesMigrationTable()
+    {
+        var profiles = new[]
+        {
+            new WindowsAutopilotDeploymentProfile { Id = "ap-1", DisplayName = "Autopilot One" },
+            new WindowsAutopilotDeploymentProfile { Id = "ap-2", DisplayName = "Autopilot Two" }
+        };
+
+        await _service.ExportAutopilotProfilesAsync(profiles, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "AutopilotProfiles");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportDeviceHealthScripts_ExportsMultipleAndWritesMigrationTable()
+    {
+        var scripts = new[]
+        {
+            new DeviceHealthScript { Id = "dhs-1", DisplayName = "Script One" },
+            new DeviceHealthScript { Id = "dhs-2", DisplayName = "Script Two" }
+        };
+
+        await _service.ExportDeviceHealthScriptsAsync(scripts, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "DeviceHealthScripts");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportMacCustomAttributes_ExportsMultipleAndWritesMigrationTable()
+    {
+        var scripts = new[]
+        {
+            new DeviceCustomAttributeShellScript { Id = "mac-1", DisplayName = "Attr One" },
+            new DeviceCustomAttributeShellScript { Id = "mac-2", DisplayName = "Attr Two" }
+        };
+
+        await _service.ExportMacCustomAttributesAsync(scripts, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "MacCustomAttributes");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportFeatureUpdateProfiles_ExportsMultipleAndWritesMigrationTable()
+    {
+        var profiles = new[]
+        {
+            new WindowsFeatureUpdateProfile { Id = "fup-1", DisplayName = "Feature One" },
+            new WindowsFeatureUpdateProfile { Id = "fup-2", DisplayName = "Feature Two" }
+        };
+
+        await _service.ExportFeatureUpdateProfilesAsync(profiles, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "FeatureUpdates");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportNamedLocations_ExportsMultipleAndWritesMigrationTable()
+    {
+        var namedLocations = new[]
+        {
+            new NamedLocation { Id = "nl-1", AdditionalData = new Dictionary<string, object> { ["displayName"] = "Location One" } },
+            new NamedLocation { Id = "nl-2", AdditionalData = new Dictionary<string, object> { ["displayName"] = "Location Two" } }
+        };
+
+        await _service.ExportNamedLocationsAsync(namedLocations, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "NamedLocations");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportAuthenticationStrengthPolicies_ExportsMultipleAndWritesMigrationTable()
+    {
+        var policies = new[]
+        {
+            new AuthenticationStrengthPolicy { Id = "asp-1", DisplayName = "Strength One" },
+            new AuthenticationStrengthPolicy { Id = "asp-2", DisplayName = "Strength Two" }
+        };
+
+        await _service.ExportAuthenticationStrengthPoliciesAsync(policies, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "AuthenticationStrengths");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportAuthenticationContexts_ExportsMultipleAndWritesMigrationTable()
+    {
+        var contexts = new[]
+        {
+            new AuthenticationContextClassReference { Id = "ctx-1", DisplayName = "Context One" },
+            new AuthenticationContextClassReference { Id = "ctx-2", DisplayName = "Context Two" }
+        };
+
+        await _service.ExportAuthenticationContextsAsync(contexts, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "AuthenticationContexts");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportTermsOfUseAgreements_ExportsMultipleAndWritesMigrationTable()
+    {
+        var agreements = new[]
+        {
+            new Agreement { Id = "tou-1", DisplayName = "Terms One" },
+            new Agreement { Id = "tou-2", DisplayName = "Terms Two" }
+        };
+
+        await _service.ExportTermsOfUseAgreementsAsync(agreements, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "TermsOfUse");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportDeviceConfiguration_NullDisplayName_FallsBackToId()
+    {
+        var config = new DeviceConfiguration { Id = "fallback-id", DisplayName = null };
+        var table = new MigrationTable();
+
+        await _service.ExportDeviceConfigurationAsync(config, _tempDir, table);
+
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        var files = Directory.GetFiles(folder, "*.json");
+        Assert.Single(files);
+        Assert.Contains("fallback-id", files[0]);
+    }
+
+    [Fact]
+    public async Task ExportDeviceConfiguration_NullId_SkipsMigrationTableEntry()
+    {
+        var config = new DeviceConfiguration { Id = null, DisplayName = "No Id Config" };
+        var table = new MigrationTable();
+
+        await _service.ExportDeviceConfigurationAsync(config, _tempDir, table);
+
+        Assert.Empty(table.Entries);
+    }
 }

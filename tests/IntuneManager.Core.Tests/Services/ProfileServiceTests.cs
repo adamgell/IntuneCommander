@@ -87,6 +87,19 @@ public class ProfileServiceTests : IDisposable
     }
 
     [Fact]
+    public void SetActiveProfile_SetsLastUsed()
+    {
+        var before = DateTime.UtcNow.AddSeconds(-1);
+        var p1 = _service.AddProfile(CreateTestProfile("One"));
+
+        _service.SetActiveProfile(p1.Id);
+
+        Assert.NotNull(p1.LastUsed);
+        Assert.True(p1.LastUsed >= before);
+        Assert.True(p1.LastUsed <= DateTime.UtcNow.AddSeconds(1));
+    }
+
+    [Fact]
     public void GetActiveProfile_NoProfiles_ReturnsNull()
     {
         Assert.Null(_service.GetActiveProfile());
