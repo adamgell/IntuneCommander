@@ -11,6 +11,9 @@ public class ImportService : IImportService
     private readonly IEndpointSecurityService? _endpointSecurityService;
     private readonly IAdministrativeTemplateService? _administrativeTemplateService;
     private readonly IEnrollmentConfigurationService? _enrollmentConfigurationService;
+    private readonly IAppProtectionPolicyService? _appProtectionPolicyService;
+    private readonly IManagedAppConfigurationService? _managedAppConfigurationService;
+    private readonly ITermsAndConditionsService? _termsAndConditionsService;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -22,13 +25,19 @@ public class ImportService : IImportService
         ICompliancePolicyService? compliancePolicyService = null,
         IEndpointSecurityService? endpointSecurityService = null,
         IAdministrativeTemplateService? administrativeTemplateService = null,
-        IEnrollmentConfigurationService? enrollmentConfigurationService = null)
+        IEnrollmentConfigurationService? enrollmentConfigurationService = null,
+        IAppProtectionPolicyService? appProtectionPolicyService = null,
+        IManagedAppConfigurationService? managedAppConfigurationService = null,
+        ITermsAndConditionsService? termsAndConditionsService = null)
     {
         _configProfileService = configProfileService;
         _compliancePolicyService = compliancePolicyService;
         _endpointSecurityService = endpointSecurityService;
         _administrativeTemplateService = administrativeTemplateService;
         _enrollmentConfigurationService = enrollmentConfigurationService;
+        _appProtectionPolicyService = appProtectionPolicyService;
+        _managedAppConfigurationService = managedAppConfigurationService;
+        _termsAndConditionsService = termsAndConditionsService;
     }
 
     public async Task<DeviceConfiguration?> ReadDeviceConfigurationAsync(string filePath, CancellationToken cancellationToken = default)
@@ -340,6 +349,223 @@ public class ImportService : IImportService
             migrationTable.AddOrUpdate(new MigrationEntry
             {
                 ObjectType = "EnrollmentConfiguration",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<ManagedAppPolicy?> ReadAppProtectionPolicyAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<ManagedAppPolicy>(json, JsonOptions);
+    }
+
+    public async Task<List<ManagedAppPolicy>> ReadAppProtectionPoliciesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<ManagedAppPolicy>();
+        var policiesFolder = Path.Combine(folderPath, "AppProtectionPolicies");
+
+        if (!Directory.Exists(policiesFolder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(policiesFolder, "*.json"))
+        {
+            var policy = await ReadAppProtectionPolicyAsync(file, cancellationToken);
+            if (policy != null)
+                results.Add(policy);
+        }
+
+        return results;
+    }
+
+    public async Task<ManagedAppPolicy> ImportAppProtectionPolicyAsync(
+        ManagedAppPolicy policy,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_appProtectionPolicyService == null)
+            throw new InvalidOperationException("App protection policy service is not available");
+
+        var originalId = policy.Id;
+
+        policy.Id = null;
+
+        var created = await _appProtectionPolicyService.CreateAppProtectionPolicyAsync(policy, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "AppProtectionPolicy",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<ManagedDeviceMobileAppConfiguration?> ReadManagedDeviceAppConfigurationAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<ManagedDeviceMobileAppConfiguration>(json, JsonOptions);
+    }
+
+    public async Task<List<ManagedDeviceMobileAppConfiguration>> ReadManagedDeviceAppConfigurationsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<ManagedDeviceMobileAppConfiguration>();
+        var configsFolder = Path.Combine(folderPath, "ManagedDeviceAppConfigurations");
+
+        if (!Directory.Exists(configsFolder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(configsFolder, "*.json"))
+        {
+            var configuration = await ReadManagedDeviceAppConfigurationAsync(file, cancellationToken);
+            if (configuration != null)
+                results.Add(configuration);
+        }
+
+        return results;
+    }
+
+    public async Task<ManagedDeviceMobileAppConfiguration> ImportManagedDeviceAppConfigurationAsync(
+        ManagedDeviceMobileAppConfiguration configuration,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_managedAppConfigurationService == null)
+            throw new InvalidOperationException("Managed app configuration service is not available");
+
+        var originalId = configuration.Id;
+
+        configuration.Id = null;
+        configuration.CreatedDateTime = null;
+        configuration.LastModifiedDateTime = null;
+        configuration.Version = null;
+
+        var created = await _managedAppConfigurationService.CreateManagedDeviceAppConfigurationAsync(configuration, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "ManagedDeviceAppConfiguration",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<TargetedManagedAppConfiguration?> ReadTargetedManagedAppConfigurationAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<TargetedManagedAppConfiguration>(json, JsonOptions);
+    }
+
+    public async Task<List<TargetedManagedAppConfiguration>> ReadTargetedManagedAppConfigurationsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<TargetedManagedAppConfiguration>();
+        var configsFolder = Path.Combine(folderPath, "TargetedManagedAppConfigurations");
+
+        if (!Directory.Exists(configsFolder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(configsFolder, "*.json"))
+        {
+            var configuration = await ReadTargetedManagedAppConfigurationAsync(file, cancellationToken);
+            if (configuration != null)
+                results.Add(configuration);
+        }
+
+        return results;
+    }
+
+    public async Task<TargetedManagedAppConfiguration> ImportTargetedManagedAppConfigurationAsync(
+        TargetedManagedAppConfiguration configuration,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_managedAppConfigurationService == null)
+            throw new InvalidOperationException("Managed app configuration service is not available");
+
+        var originalId = configuration.Id;
+
+        configuration.Id = null;
+        configuration.CreatedDateTime = null;
+        configuration.LastModifiedDateTime = null;
+        configuration.Version = null;
+
+        var created = await _managedAppConfigurationService.CreateTargetedManagedAppConfigurationAsync(configuration, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "TargetedManagedAppConfiguration",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<TermsAndConditions?> ReadTermsAndConditionsAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<TermsAndConditions>(json, JsonOptions);
+    }
+
+    public async Task<List<TermsAndConditions>> ReadTermsAndConditionsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<TermsAndConditions>();
+        var termsFolder = Path.Combine(folderPath, "TermsAndConditions");
+
+        if (!Directory.Exists(termsFolder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(termsFolder, "*.json"))
+        {
+            var termsAndConditions = await ReadTermsAndConditionsAsync(file, cancellationToken);
+            if (termsAndConditions != null)
+                results.Add(termsAndConditions);
+        }
+
+        return results;
+    }
+
+    public async Task<TermsAndConditions> ImportTermsAndConditionsAsync(
+        TermsAndConditions termsAndConditions,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_termsAndConditionsService == null)
+            throw new InvalidOperationException("Terms and conditions service is not available");
+
+        var originalId = termsAndConditions.Id;
+
+        termsAndConditions.Id = null;
+        termsAndConditions.CreatedDateTime = null;
+        termsAndConditions.LastModifiedDateTime = null;
+        termsAndConditions.Version = null;
+
+        var created = await _termsAndConditionsService.CreateTermsAndConditionsAsync(termsAndConditions, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "TermsAndConditions",
                 OriginalId = originalId,
                 NewId = created.Id,
                 Name = created.DisplayName ?? "Unknown"

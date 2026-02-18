@@ -333,6 +333,132 @@ public class ImportServiceTests : IDisposable
         Assert.Equal("new-enroll", table.Entries[0].NewId);
     }
 
+    [Fact]
+    public async Task ImportAppProtectionPolicyAsync_UpdatesMigration()
+    {
+        var appProtectionService = new StubAppProtectionPolicyService
+        {
+            CreateResult = new AndroidManagedAppProtection { Id = "new-app-protect", DisplayName = "Created App Protection" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, appProtectionPolicyService: appProtectionService);
+        var table = new MigrationTable();
+
+        var policy = new AndroidManagedAppProtection
+        {
+            Id = "old-app-protect",
+            DisplayName = "Source App Protection"
+        };
+
+        var created = await sut.ImportAppProtectionPolicyAsync(policy, table);
+
+        Assert.Equal("new-app-protect", created.Id);
+        Assert.NotNull(appProtectionService.LastCreatedPolicy);
+        Assert.Null(appProtectionService.LastCreatedPolicy!.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("AppProtectionPolicy", table.Entries[0].ObjectType);
+        Assert.Equal("old-app-protect", table.Entries[0].OriginalId);
+        Assert.Equal("new-app-protect", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportManagedDeviceAppConfigurationAsync_UpdatesMigration()
+    {
+        var managedConfigService = new StubManagedAppConfigurationService
+        {
+            CreateManagedDeviceResult = new ManagedDeviceMobileAppConfiguration { Id = "new-mdac", DisplayName = "Created MDAC" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, managedAppConfigurationService: managedConfigService);
+        var table = new MigrationTable();
+
+        var configuration = new ManagedDeviceMobileAppConfiguration
+        {
+            Id = "old-mdac",
+            DisplayName = "Source MDAC",
+            CreatedDateTime = DateTimeOffset.UtcNow,
+            LastModifiedDateTime = DateTimeOffset.UtcNow,
+            Version = 5
+        };
+
+        var created = await sut.ImportManagedDeviceAppConfigurationAsync(configuration, table);
+
+        Assert.Equal("new-mdac", created.Id);
+        Assert.NotNull(managedConfigService.LastCreatedManagedDeviceConfiguration);
+        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration!.Id);
+        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration.CreatedDateTime);
+        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration.LastModifiedDateTime);
+        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration.Version);
+        Assert.Single(table.Entries);
+        Assert.Equal("ManagedDeviceAppConfiguration", table.Entries[0].ObjectType);
+        Assert.Equal("old-mdac", table.Entries[0].OriginalId);
+        Assert.Equal("new-mdac", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportTargetedManagedAppConfigurationAsync_UpdatesMigration()
+    {
+        var managedConfigService = new StubManagedAppConfigurationService
+        {
+            CreateTargetedResult = new TargetedManagedAppConfiguration { Id = "new-tmac", DisplayName = "Created TMAC" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, managedAppConfigurationService: managedConfigService);
+        var table = new MigrationTable();
+
+        var configuration = new TargetedManagedAppConfiguration
+        {
+            Id = "old-tmac",
+            DisplayName = "Source TMAC",
+            CreatedDateTime = DateTimeOffset.UtcNow,
+            LastModifiedDateTime = DateTimeOffset.UtcNow,
+            Version = "7"
+        };
+
+        var created = await sut.ImportTargetedManagedAppConfigurationAsync(configuration, table);
+
+        Assert.Equal("new-tmac", created.Id);
+        Assert.NotNull(managedConfigService.LastCreatedTargetedConfiguration);
+        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration!.Id);
+        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration.CreatedDateTime);
+        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration.LastModifiedDateTime);
+        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration.Version);
+        Assert.Single(table.Entries);
+        Assert.Equal("TargetedManagedAppConfiguration", table.Entries[0].ObjectType);
+        Assert.Equal("old-tmac", table.Entries[0].OriginalId);
+        Assert.Equal("new-tmac", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportTermsAndConditionsAsync_UpdatesMigration()
+    {
+        var termsService = new StubTermsAndConditionsService
+        {
+            CreateResult = new TermsAndConditions { Id = "new-terms", DisplayName = "Created Terms" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, termsAndConditionsService: termsService);
+        var table = new MigrationTable();
+
+        var termsAndConditions = new TermsAndConditions
+        {
+            Id = "old-terms",
+            DisplayName = "Source Terms",
+            CreatedDateTime = DateTimeOffset.UtcNow,
+            LastModifiedDateTime = DateTimeOffset.UtcNow,
+            Version = 2
+        };
+
+        var created = await sut.ImportTermsAndConditionsAsync(termsAndConditions, table);
+
+        Assert.Equal("new-terms", created.Id);
+        Assert.NotNull(termsService.LastCreatedTerms);
+        Assert.Null(termsService.LastCreatedTerms!.Id);
+        Assert.Null(termsService.LastCreatedTerms.CreatedDateTime);
+        Assert.Null(termsService.LastCreatedTerms.LastModifiedDateTime);
+        Assert.Null(termsService.LastCreatedTerms.Version);
+        Assert.Single(table.Entries);
+        Assert.Equal("TermsAndConditions", table.Entries[0].ObjectType);
+        Assert.Equal("old-terms", table.Entries[0].OriginalId);
+        Assert.Equal("new-terms", table.Entries[0].NewId);
+    }
+
     private sealed class StubConfigurationService : IConfigurationProfileService
     {
         public DeviceConfiguration? LastCreatedConfig { get; private set; }
@@ -507,6 +633,98 @@ public class ImportServiceTests : IDisposable
             => Task.FromResult(configuration);
 
         public Task DeleteEnrollmentConfigurationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubAppProtectionPolicyService : IAppProtectionPolicyService
+    {
+        public ManagedAppPolicy? LastCreatedPolicy { get; private set; }
+        public ManagedAppPolicy CreateResult { get; set; } = new AndroidManagedAppProtection { Id = "created-app-protect", DisplayName = "Created" };
+
+        public Task<List<ManagedAppPolicy>> ListAppProtectionPoliciesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<ManagedAppPolicy>());
+
+        public Task<ManagedAppPolicy?> GetAppProtectionPolicyAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<ManagedAppPolicy?>(null);
+
+        public Task<ManagedAppPolicy> CreateAppProtectionPolicyAsync(ManagedAppPolicy policy, CancellationToken cancellationToken = default)
+        {
+            LastCreatedPolicy = policy;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<ManagedAppPolicy> UpdateAppProtectionPolicyAsync(ManagedAppPolicy policy, CancellationToken cancellationToken = default)
+            => Task.FromResult(policy);
+
+        public Task DeleteAppProtectionPolicyAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubManagedAppConfigurationService : IManagedAppConfigurationService
+    {
+        public ManagedDeviceMobileAppConfiguration? LastCreatedManagedDeviceConfiguration { get; private set; }
+        public TargetedManagedAppConfiguration? LastCreatedTargetedConfiguration { get; private set; }
+        public ManagedDeviceMobileAppConfiguration CreateManagedDeviceResult { get; set; } = new() { Id = "created-mdac", DisplayName = "Created" };
+        public TargetedManagedAppConfiguration CreateTargetedResult { get; set; } = new() { Id = "created-tmac", DisplayName = "Created" };
+
+        public Task<List<ManagedDeviceMobileAppConfiguration>> ListManagedDeviceAppConfigurationsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<ManagedDeviceMobileAppConfiguration>());
+
+        public Task<ManagedDeviceMobileAppConfiguration?> GetManagedDeviceAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<ManagedDeviceMobileAppConfiguration?>(null);
+
+        public Task<ManagedDeviceMobileAppConfiguration> CreateManagedDeviceAppConfigurationAsync(ManagedDeviceMobileAppConfiguration configuration, CancellationToken cancellationToken = default)
+        {
+            LastCreatedManagedDeviceConfiguration = configuration;
+            return Task.FromResult(CreateManagedDeviceResult);
+        }
+
+        public Task<ManagedDeviceMobileAppConfiguration> UpdateManagedDeviceAppConfigurationAsync(ManagedDeviceMobileAppConfiguration configuration, CancellationToken cancellationToken = default)
+            => Task.FromResult(configuration);
+
+        public Task DeleteManagedDeviceAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task<List<TargetedManagedAppConfiguration>> ListTargetedManagedAppConfigurationsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<TargetedManagedAppConfiguration>());
+
+        public Task<TargetedManagedAppConfiguration?> GetTargetedManagedAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<TargetedManagedAppConfiguration?>(null);
+
+        public Task<TargetedManagedAppConfiguration> CreateTargetedManagedAppConfigurationAsync(TargetedManagedAppConfiguration configuration, CancellationToken cancellationToken = default)
+        {
+            LastCreatedTargetedConfiguration = configuration;
+            return Task.FromResult(CreateTargetedResult);
+        }
+
+        public Task<TargetedManagedAppConfiguration> UpdateTargetedManagedAppConfigurationAsync(TargetedManagedAppConfiguration configuration, CancellationToken cancellationToken = default)
+            => Task.FromResult(configuration);
+
+        public Task DeleteTargetedManagedAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubTermsAndConditionsService : ITermsAndConditionsService
+    {
+        public TermsAndConditions? LastCreatedTerms { get; private set; }
+        public TermsAndConditions CreateResult { get; set; } = new() { Id = "created-terms", DisplayName = "Created" };
+
+        public Task<List<TermsAndConditions>> ListTermsAndConditionsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<TermsAndConditions>());
+
+        public Task<TermsAndConditions?> GetTermsAndConditionsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<TermsAndConditions?>(null);
+
+        public Task<TermsAndConditions> CreateTermsAndConditionsAsync(TermsAndConditions termsAndConditions, CancellationToken cancellationToken = default)
+        {
+            LastCreatedTerms = termsAndConditions;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<TermsAndConditions> UpdateTermsAndConditionsAsync(TermsAndConditions termsAndConditions, CancellationToken cancellationToken = default)
+            => Task.FromResult(termsAndConditions);
+
+        public Task DeleteTermsAndConditionsAsync(string id, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }
 }

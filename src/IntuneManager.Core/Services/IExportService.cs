@@ -23,5 +23,17 @@ public interface IExportService
     Task ExportEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
     Task ExportEnrollmentConfigurationsAsync(IEnumerable<DeviceEnrollmentConfiguration> configurations, string outputPath, CancellationToken cancellationToken = default);
 
+    Task ExportAppProtectionPolicyAsync(ManagedAppPolicy policy, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportAppProtectionPoliciesAsync(IEnumerable<ManagedAppPolicy> policies, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportManagedDeviceAppConfigurationAsync(ManagedDeviceMobileAppConfiguration configuration, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportManagedDeviceAppConfigurationsAsync(IEnumerable<ManagedDeviceMobileAppConfiguration> configurations, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportTargetedManagedAppConfigurationAsync(TargetedManagedAppConfiguration configuration, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportTargetedManagedAppConfigurationsAsync(IEnumerable<TargetedManagedAppConfiguration> configurations, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportTermsAndConditionsAsync(TermsAndConditions termsAndConditions, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportTermsAndConditionsCollectionAsync(IEnumerable<TermsAndConditions> termsCollection, string outputPath, CancellationToken cancellationToken = default);
+
     Task SaveMigrationTableAsync(MigrationTable table, string outputPath, CancellationToken cancellationToken = default);
 }

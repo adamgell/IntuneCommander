@@ -300,4 +300,168 @@ public class ExportService : IExportService
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
     }
+
+    public async Task ExportAppProtectionPolicyAsync(
+        ManagedAppPolicy policy,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "AppProtectionPolicies");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(policy.DisplayName ?? policy.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(policy, policy.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (policy.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "AppProtectionPolicy",
+                OriginalId = policy.Id,
+                Name = policy.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportAppProtectionPoliciesAsync(
+        IEnumerable<ManagedAppPolicy> policies,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var policy in policies)
+        {
+            await ExportAppProtectionPolicyAsync(policy, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportManagedDeviceAppConfigurationAsync(
+        ManagedDeviceMobileAppConfiguration configuration,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "ManagedDeviceAppConfigurations");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(configuration.DisplayName ?? configuration.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(configuration, configuration.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (configuration.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "ManagedDeviceAppConfiguration",
+                OriginalId = configuration.Id,
+                Name = configuration.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportManagedDeviceAppConfigurationsAsync(
+        IEnumerable<ManagedDeviceMobileAppConfiguration> configurations,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var configuration in configurations)
+        {
+            await ExportManagedDeviceAppConfigurationAsync(configuration, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportTargetedManagedAppConfigurationAsync(
+        TargetedManagedAppConfiguration configuration,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "TargetedManagedAppConfigurations");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(configuration.DisplayName ?? configuration.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(configuration, configuration.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (configuration.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "TargetedManagedAppConfiguration",
+                OriginalId = configuration.Id,
+                Name = configuration.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportTargetedManagedAppConfigurationsAsync(
+        IEnumerable<TargetedManagedAppConfiguration> configurations,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var configuration in configurations)
+        {
+            await ExportTargetedManagedAppConfigurationAsync(configuration, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportTermsAndConditionsAsync(
+        TermsAndConditions termsAndConditions,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "TermsAndConditions");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(termsAndConditions.DisplayName ?? termsAndConditions.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(termsAndConditions, termsAndConditions.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (termsAndConditions.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "TermsAndConditions",
+                OriginalId = termsAndConditions.Id,
+                Name = termsAndConditions.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportTermsAndConditionsCollectionAsync(
+        IEnumerable<TermsAndConditions> termsCollection,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var termsAndConditions in termsCollection)
+        {
+            await ExportTermsAndConditionsAsync(termsAndConditions, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
 }

@@ -315,4 +315,72 @@ public class ExportServiceTests : IDisposable
         Assert.True(File.Exists(expectedPath));
         Assert.Contains(table.Entries, e => e.ObjectType == "EnrollmentConfiguration" && e.OriginalId == "enroll-id");
     }
+
+    [Fact]
+    public async Task ExportAppProtectionPolicy_CreatesJsonFile()
+    {
+        var policy = new AndroidManagedAppProtection
+        {
+            Id = "app-protect-id",
+            DisplayName = "Android App Protection"
+        };
+        var table = new MigrationTable();
+
+        await _service.ExportAppProtectionPolicyAsync(policy, _tempDir, table);
+
+        var expectedPath = Path.Combine(_tempDir, "AppProtectionPolicies", "Android App Protection.json");
+        Assert.True(File.Exists(expectedPath));
+        Assert.Contains(table.Entries, e => e.ObjectType == "AppProtectionPolicy" && e.OriginalId == "app-protect-id");
+    }
+
+    [Fact]
+    public async Task ExportManagedDeviceAppConfiguration_CreatesJsonFile()
+    {
+        var configuration = new ManagedDeviceMobileAppConfiguration
+        {
+            Id = "mdac-id",
+            DisplayName = "Managed Device Config"
+        };
+        var table = new MigrationTable();
+
+        await _service.ExportManagedDeviceAppConfigurationAsync(configuration, _tempDir, table);
+
+        var expectedPath = Path.Combine(_tempDir, "ManagedDeviceAppConfigurations", "Managed Device Config.json");
+        Assert.True(File.Exists(expectedPath));
+        Assert.Contains(table.Entries, e => e.ObjectType == "ManagedDeviceAppConfiguration" && e.OriginalId == "mdac-id");
+    }
+
+    [Fact]
+    public async Task ExportTargetedManagedAppConfiguration_CreatesJsonFile()
+    {
+        var configuration = new TargetedManagedAppConfiguration
+        {
+            Id = "tmac-id",
+            DisplayName = "Targeted App Config"
+        };
+        var table = new MigrationTable();
+
+        await _service.ExportTargetedManagedAppConfigurationAsync(configuration, _tempDir, table);
+
+        var expectedPath = Path.Combine(_tempDir, "TargetedManagedAppConfigurations", "Targeted App Config.json");
+        Assert.True(File.Exists(expectedPath));
+        Assert.Contains(table.Entries, e => e.ObjectType == "TargetedManagedAppConfiguration" && e.OriginalId == "tmac-id");
+    }
+
+    [Fact]
+    public async Task ExportTermsAndConditions_CreatesJsonFile()
+    {
+        var termsAndConditions = new TermsAndConditions
+        {
+            Id = "terms-id",
+            DisplayName = "Tenant Terms"
+        };
+        var table = new MigrationTable();
+
+        await _service.ExportTermsAndConditionsAsync(termsAndConditions, _tempDir, table);
+
+        var expectedPath = Path.Combine(_tempDir, "TermsAndConditions", "Tenant Terms.json");
+        Assert.True(File.Exists(expectedPath));
+        Assert.Contains(table.Entries, e => e.ObjectType == "TermsAndConditions" && e.OriginalId == "terms-id");
+    }
 }
