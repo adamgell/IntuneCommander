@@ -28,7 +28,7 @@
             <MenuItem Header="_Help">
                 <MenuItem Header="Check for _Updates..." x:Name="MenuCheckUpdates" Click="OnCheckForUpdatesClick" />
                 <Separator />
-                <MenuItem Header="_About IntuneManager" x:Name="MenuAbout" Click="OnAboutClick" />
+                <MenuItem Header="_About Intune Commander" x:Name="MenuAbout" Click="OnAboutClick" />
             </MenuItem>
         </Menu>
 

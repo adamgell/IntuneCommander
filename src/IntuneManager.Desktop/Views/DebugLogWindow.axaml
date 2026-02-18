@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
         x:Class="IntuneManager.Desktop.Views.DebugLogWindow"
         x:DataType="vm:DebugLogViewModel"
-        Title="IntuneManager — Debug Log"
+        Title="Intune Commander — Debug Log"
         Width="800" Height="500"
         MinWidth="400" MinHeight="250">
 

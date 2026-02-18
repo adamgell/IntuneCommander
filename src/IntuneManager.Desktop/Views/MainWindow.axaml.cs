@@ -375,8 +375,8 @@ public partial class MainWindow : Window
         var versionText = version != null ? $"v{version.Major}.{version.Minor}.{version.Build}" : "dev";
 
         var box = MessageBoxManager.GetMessageBoxStandard(
-            "About IntuneManager",
-            $"IntuneManager {versionText}\n\n" +
+            "About Intune Commander",
+            $"Intune Commander {versionText}\n\n" +
             "A .NET 8 / Avalonia desktop app for managing\n" +
             "Microsoft Intune configurations across clouds.\n\n" +
             "https://github.com/adamgell/IntuneGUI",

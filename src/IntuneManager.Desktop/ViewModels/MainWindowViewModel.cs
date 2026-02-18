@@ -48,7 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private ViewModelBase? _currentView;
 
     [ObservableProperty]
-    private string _windowTitle = "IntuneManager";
+    private string _windowTitle = "Intune Commander";
 
     [ObservableProperty]
     private TenantProfile? _activeProfile;
@@ -649,7 +649,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         CurrentView = LoginViewModel;
 
-        DebugLog.Log("App", "IntuneManager started");
+        DebugLog.Log("App", "Intune Commander started");
 
         // Load profiles asynchronously — never block the UI thread
         _ = LoadProfilesAsync();
@@ -1763,7 +1763,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             ActiveProfile = profile;
             IsConnected = true;
-            WindowTitle = $"IntuneManager - {profile.Name}";
+            WindowTitle = $"Intune Commander - {profile.Name}";
             CurrentView = null;
 
             _graphClient = await _graphClientFactory.CreateClientAsync(profile);
@@ -2359,7 +2359,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsConnected = false;
         ActiveProfile = null;
-        WindowTitle = "IntuneManager";
+        WindowTitle = "Intune Commander";
         StatusText = "Not connected";
         SelectedCategory = null;
         DeviceConfigurations.Clear();

@@ -1,4 +1,4 @@
-# IntuneManager - .NET Remake
+# Intune Commander - .NET Remake
 
 A cross-platform Intune management tool built with .NET 8 and Avalonia UI, designed to overcome PowerShell WPF limitations in threading, UI refresh, and data caching.
 
@@ -9,8 +9,8 @@ This project is a ground-up remake of [Micke-K/IntuneManagement](https://github.
 
 ### Screenshots 
 
-![Main window - IntuneManager](docs/screenshot/app1.png)
-![Main window - IntuneManager](docs/screenshot/app2.png)
+![Main window - Intune Commander](docs/screenshot/app1.png)
+![Main window - Intune Commander](docs/screenshot/app2.png)
 
 
 ### Goals

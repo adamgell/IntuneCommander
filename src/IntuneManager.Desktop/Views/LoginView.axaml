@@ -13,7 +13,7 @@
 
     <Border Padding="40" MaxWidth="450" VerticalAlignment="Center" HorizontalAlignment="Center">
         <StackPanel Spacing="16">
-            <TextBlock Text="IntuneManager"
+            <TextBlock Text="Intune Commander"
                        FontSize="28" FontWeight="Bold"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,8" />

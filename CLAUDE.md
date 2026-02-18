@@ -1,8 +1,8 @@
-# CLAUDE.md - AI Assistant Guide for IntuneManager
+# CLAUDE.md - AI Assistant Guide for Intune Commander
 
 ## Project Overview
 
-IntuneManager is a **.NET 8 / Avalonia UI** desktop application for managing Microsoft Intune configurations across multiple cloud environments (Commercial, GCC, GCC-High, DoD). It is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement) (PowerShell/WPF).
+Intune Commander is a **.NET 8 / Avalonia UI** desktop application for managing Microsoft Intune configurations across multiple cloud environments (Commercial, GCC, GCC-High, DoD). It is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement) (PowerShell/WPF).
 
 **Current Status:** Phase 1 implemented. Core infrastructure (auth, Graph API services, export/import, basic UI) is in place.
 

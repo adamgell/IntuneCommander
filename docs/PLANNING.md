@@ -1,4 +1,4 @@
-# Project Planning - IntuneManager .NET Remake
+# Project Planning - Intune Commander .NET Remake
 
 ## Development Approach
 
