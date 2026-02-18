@@ -7,7 +7,7 @@ namespace IntuneManager.Desktop.CategoryLoaders;
 
 /// <summary>
 /// Executes any <see cref="ICategoryLoader{T}"/> with standard boilerplate:
-/// busy state, status messages, cache read/write, error reporting, and filter refresh.
+/// busy state, status messages, cache read/write, error reporting (via FormatError), and filter refresh.
 ///
 /// Usage in MainWindowViewModel:
 /// <code>
@@ -61,7 +61,7 @@ public static class CategoryLoadHelper
         }
         catch (Exception ex)
         {
-            ctx.SetError($"Failed to load {loader.CategoryName}: {ex.Message}");
+            ctx.SetError($"Failed to load {loader.CategoryName}: {ctx.FormatError(ex)}");
             ctx.SetStatus($"Error loading {loader.CategoryName}");
             return null;
         }
