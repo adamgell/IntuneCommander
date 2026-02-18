@@ -4,17 +4,46 @@ namespace IntuneManager.Core.Tests.Models;
 
 public class ValidationTests
 {
-    [Theory]
-    [InlineData("12345678-1234-1234-1234-123456789abc", true)]
-    [InlineData("12345678123412341234123456789abc", true)] // No hyphens — Guid.TryParse accepts this
-    [InlineData("not-a-guid", false)]
-    [InlineData("", false)]
-    [InlineData("12345678-1234-1234-1234", false)]
-    [InlineData("12345678-1234-1234-1234-123456789xyz", false)]
-    public void GuidTryParse_ValidatesCorrectly(string input, bool expected)
+    [Fact]
+    public void GuidTryParse_ValidGuidWithHyphens_ReturnsTrue()
     {
-        var result = Guid.TryParse(input, out _);
-        Assert.Equal(expected, result);
+        var result = Guid.TryParse("12345678-1234-1234-1234-123456789abc", out _);
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void GuidTryParse_ValidGuidWithoutHyphens_ReturnsTrue()
+    {
+        var result = Guid.TryParse("12345678123412341234123456789abc", out _);
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void GuidTryParse_NonGuidString_ReturnsFalse()
+    {
+        var result = Guid.TryParse("not-a-guid", out _);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void GuidTryParse_EmptyString_ReturnsFalse()
+    {
+        var result = Guid.TryParse("", out _);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void GuidTryParse_ShortGuid_ReturnsFalse()
+    {
+        var result = Guid.TryParse("12345678-1234-1234-1234", out _);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void GuidTryParse_InvalidHexCharacters_ReturnsFalse()
+    {
+        var result = Guid.TryParse("12345678-1234-1234-1234-123456789xyz", out _);
+        Assert.False(result);
     }
 
     [Fact]

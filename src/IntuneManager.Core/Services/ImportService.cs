@@ -1,6 +1,6 @@
 using System.Text.Json;
 using IntuneManager.Core.Models;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta.Models;
 
 namespace IntuneManager.Core.Services;
 

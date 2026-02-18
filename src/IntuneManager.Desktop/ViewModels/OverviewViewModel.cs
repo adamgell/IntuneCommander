@@ -8,7 +8,7 @@ using LiveChartsCore;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta.Models;
 using SkiaSharp;
 
 namespace IntuneManager.Desktop.ViewModels;

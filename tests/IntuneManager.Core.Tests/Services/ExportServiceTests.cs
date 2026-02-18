@@ -1,6 +1,6 @@
 using IntuneManager.Core.Models;
 using IntuneManager.Core.Services;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta.Models;
 
 namespace IntuneManager.Core.Tests.Services;
 

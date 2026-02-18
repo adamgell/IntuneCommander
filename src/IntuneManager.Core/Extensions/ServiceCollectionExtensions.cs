@@ -29,6 +29,10 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IExportService, ExportService>();
 
+        // Cache — singleton LiteDB-backed cache with encrypted storage
+        services.AddSingleton<ICacheService>(sp =>
+            new CacheService(sp.GetRequiredService<IDataProtectionProvider>()));
+
         return services;
     }
 }

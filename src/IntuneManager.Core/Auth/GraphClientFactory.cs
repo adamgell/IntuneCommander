@@ -1,6 +1,6 @@
 using Azure.Core;
 using IntuneManager.Core.Models;
-using Microsoft.Graph;
+using Microsoft.Graph.Beta;
 
 namespace IntuneManager.Core.Auth;
 

@@ -1,10 +1,14 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
@@ -22,6 +26,7 @@ public partial class MainWindow : Window
     private DataGrid? _mainDataGrid;
     private MainWindowViewModel? _vm;
     private bool _pendingGridRebuild;
+    private DebugLogWindow? _debugLogWindow;
 
     public MainWindow()
     {
@@ -51,6 +56,7 @@ public partial class MainWindow : Window
             _vm = vm;
             vm.SwitchProfileRequested += OnSwitchProfileRequested;
             vm.CopyDetailsRequested += OnCopyDetailsRequested;
+            vm.ViewRawJsonRequested += OnViewRawJsonRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
         }
     }
@@ -62,6 +68,7 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.IsCompliancePolicyCategory)
             or nameof(MainWindowViewModel.IsApplicationCategory)
             or nameof(MainWindowViewModel.IsAppAssignmentsCategory)
+            or nameof(MainWindowViewModel.IsSettingsCatalogCategory)
             or nameof(MainWindowViewModel.IsDynamicGroupsCategory)
             or nameof(MainWindowViewModel.IsAssignedGroupsCategory)
             or nameof(MainWindowViewModel.IsOverviewCategory))
@@ -85,6 +92,7 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.FilteredCompliancePolicies)
             or nameof(MainWindowViewModel.FilteredApplications)
             or nameof(MainWindowViewModel.FilteredAppAssignmentRows)
+            or nameof(MainWindowViewModel.FilteredSettingsCatalogPolicies)
             or nameof(MainWindowViewModel.FilteredDynamicGroupRows)
             or nameof(MainWindowViewModel.FilteredAssignedGroupRows))
         {
@@ -108,6 +116,7 @@ public partial class MainWindow : Window
             nameof(MainWindowViewModel.FilteredCompliancePolicies)  => _vm.IsCompliancePolicyCategory,
             nameof(MainWindowViewModel.FilteredApplications)        => _vm.IsApplicationCategory,
             nameof(MainWindowViewModel.FilteredAppAssignmentRows)   => _vm.IsAppAssignmentsCategory,
+            nameof(MainWindowViewModel.FilteredSettingsCatalogPolicies) => _vm.IsSettingsCatalogCategory,
             nameof(MainWindowViewModel.FilteredDynamicGroupRows)    => _vm.IsDynamicGroupsCategory,
             nameof(MainWindowViewModel.FilteredAssignedGroupRows)   => _vm.IsAssignedGroupsCategory,
             _ => false
@@ -150,6 +159,13 @@ public partial class MainWindow : Window
             _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
                 new Binding(nameof(_vm.SelectedAppAssignmentRow)) { Source = _vm, Mode = BindingMode.TwoWay });
         }
+        else if (_vm.IsSettingsCatalogCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredSettingsCatalogPolicies)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedSettingsCatalogPolicy)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
         else if (_vm.IsDynamicGroupsCategory)
         {
             _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
@@ -191,6 +207,10 @@ public partial class MainWindow : Window
             else if (col.BindingPath == "Computed:Platform")
             {
                 binding = new Binding("OdataType") { Converter = PlatformConverter.Instance };
+            }
+            else if (col.BindingPath == "Computed:RoleScopeTags")
+            {
+                binding = new Binding("RoleScopeTagIds") { Converter = StringListConverter.Instance };
             }
             else
             {
@@ -322,5 +342,61 @@ public partial class MainWindow : Window
                 await clipboard.SetTextAsync(text);
         }
         catch { /* clipboard not available */ }
+    }
+
+    private void OnViewRawJsonRequested(string title, string json)
+    {
+        var window = new RawJsonWindow(title, json);
+        window.Show(this);
+    }
+
+    private void OnDebugLogLinkPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_debugLogWindow == null || !_debugLogWindow.IsVisible)
+        {
+            _debugLogWindow = new DebugLogWindow();
+            _debugLogWindow.Closed += (_, _) => _debugLogWindow = null;
+            _debugLogWindow.Show();
+        }
+        else
+        {
+            _debugLogWindow.Activate();
+        }
+    }
+
+    private void OnCheckForUpdatesClick(object? sender, RoutedEventArgs e)
+    {
+        OpenUrl("https://github.com/adamgell/IntuneGUI/releases");
+    }
+
+    private async void OnAboutClick(object? sender, RoutedEventArgs e)
+    {
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        var versionText = version != null ? $"v{version.Major}.{version.Minor}.{version.Build}" : "dev";
+
+        var box = MessageBoxManager.GetMessageBoxStandard(
+            "About IntuneManager",
+            $"IntuneManager {versionText}\n\n" +
+            "A .NET 8 / Avalonia desktop app for managing\n" +
+            "Microsoft Intune configurations across clouds.\n\n" +
+            "https://github.com/adamgell/IntuneGUI",
+            ButtonEnum.Ok,
+            MsBox.Avalonia.Enums.Icon.Info);
+
+        await box.ShowAsPopupAsync(this);
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                Process.Start("open", url);
+            else
+                Process.Start("xdg-open", url);
+        }
+        catch { /* best effort */ }
     }
 }

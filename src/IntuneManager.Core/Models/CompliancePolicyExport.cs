@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta.Models;
 
 namespace IntuneManager.Core.Models;
 

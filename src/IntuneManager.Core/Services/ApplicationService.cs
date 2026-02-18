@@ -1,5 +1,5 @@
-using Microsoft.Graph;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta;
+using Microsoft.Graph.Beta.Models;
 using Microsoft.Kiota.Abstractions;
 
 namespace IntuneManager.Core.Services;

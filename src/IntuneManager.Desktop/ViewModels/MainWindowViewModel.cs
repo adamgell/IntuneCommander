@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -13,8 +14,9 @@ using CommunityToolkit.Mvvm.Input;
 using IntuneManager.Core.Auth;
 using IntuneManager.Core.Models;
 using IntuneManager.Core.Services;
-using Microsoft.Graph;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta;
+using Microsoft.Graph.Beta.Models;
+using Microsoft.Graph.Beta.Models.ODataErrors;
 
 namespace IntuneManager.Desktop.ViewModels;
 
@@ -23,6 +25,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ProfileService _profileService;
     private readonly IntuneGraphClientFactory _graphClientFactory;
     private readonly IExportService _exportService;
+    private readonly ICacheService _cacheService;
+
+    // Cache data-type keys
+    private const string CacheKeyDeviceConfigs = "DeviceConfigurations";
+    private const string CacheKeyCompliancePolicies = "CompliancePolicies";
+    private const string CacheKeyApplications = "Applications";
+    private const string CacheKeySettingsCatalog = "SettingsCatalog";
+    private const string CacheKeyAppAssignments = "AppAssignments";
+    private const string CacheKeyDynamicGroups = "DynamicGroups";
+    private const string CacheKeyAssignedGroups = "AssignedGroups";
 
     private GraphServiceClient? _graphClient;
     private IConfigurationProfileService? _configProfileService;
@@ -30,6 +42,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private ICompliancePolicyService? _compliancePolicyService;
     private IApplicationService? _applicationService;
     private IGroupService? _groupService;
+    private ISettingsCatalogService? _settingsCatalogService;
 
     [ObservableProperty]
     private ViewModelBase? _currentView;
@@ -46,6 +59,14 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusText = "Not connected";
 
+    [ObservableProperty]
+    private string _cacheStatusText = "";
+
+    partial void OnStatusTextChanged(string value)
+    {
+        DebugLog.Log("Status", value);
+    }
+
     // --- Navigation ---
     [ObservableProperty]
     private NavCategory? _selectedCategory;
@@ -57,6 +78,7 @@ public partial class MainWindowViewModel : ViewModelBase
         new NavCategory { Name = "Compliance Policies", Icon = "✓" },
         new NavCategory { Name = "Applications", Icon = "📦" },
         new NavCategory { Name = "Application Assignments", Icon = "📋" },
+        new NavCategory { Name = "Settings Catalog", Icon = "⚙" },
         new NavCategory { Name = "Dynamic Groups", Icon = "🔄" },
         new NavCategory { Name = "Assigned Groups", Icon = "👥" }
     ];
@@ -84,6 +106,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private MobileApp? _selectedApplication;
+
+    // --- Settings Catalog ---
+    [ObservableProperty]
+    private ObservableCollection<DeviceManagementConfigurationPolicy> _settingsCatalogPolicies = [];
+
+    [ObservableProperty]
+    private DeviceManagementConfigurationPolicy? _selectedSettingsCatalogPolicy;
 
     // --- Application Assignments (flattened view) ---
     [ObservableProperty]
@@ -117,6 +146,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private ObservableCollection<AssignmentDisplayItem> _selectedItemAssignments = [];
 
     [ObservableProperty]
+    private ObservableCollection<GroupMemberItem> _selectedGroupMembers = [];
+
+    [ObservableProperty]
+    private bool _isLoadingGroupMembers;
+
+    [ObservableProperty]
     private string _selectedItemTypeName = "";
 
     [ObservableProperty]
@@ -129,6 +164,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Raised when the user clicks "Copy Details". The view handles clipboard access.
     /// </summary>
     public event Action<string>? CopyDetailsRequested;
+    public event Action<string, string>? ViewRawJsonRequested;
 
     /// <summary>
     /// Creates a <see cref="GroupLookupViewModel"/> wired to the current Graph services.
@@ -151,6 +187,41 @@ public partial class MainWindowViewModel : ViewModelBase
         var text = GetDetailText();
         if (!string.IsNullOrEmpty(text))
             CopyDetailsRequested?.Invoke(text);
+    }
+
+    [RelayCommand]
+    private void ViewRawJson()
+    {
+        object? item = SelectedConfiguration as object
+            ?? SelectedCompliancePolicy as object
+            ?? SelectedSettingsCatalogPolicy as object
+            ?? SelectedApplication as object;
+
+        if (item == null) return;
+
+        var title = item switch
+        {
+            DeviceConfiguration cfg => cfg.DisplayName ?? "Device Configuration",
+            DeviceCompliancePolicy pol => pol.DisplayName ?? "Compliance Policy",
+            DeviceManagementConfigurationPolicy sc => sc.Name ?? "Settings Catalog Policy",
+            MobileApp app => app.DisplayName ?? "Application",
+            _ => "Item"
+        };
+
+        try
+        {
+            var json = JsonSerializer.Serialize(item, item.GetType(), new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+            ViewRawJsonRequested?.Invoke(title, json);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to serialize item to JSON: {ex.Message}", ex);
+            SetError("Failed to serialize item to JSON");
+        }
     }
 
     /// <summary>
@@ -182,6 +253,20 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "Created", pol.CreatedDateTime?.ToString("g"));
             Append(sb, "Last Modified", pol.LastModifiedDateTime?.ToString("g"));
             Append(sb, "Version", pol.Version?.ToString());
+            AppendAssignments(sb);
+        }
+        else if (SelectedSettingsCatalogPolicy is { } sc)
+        {
+            sb.AppendLine("=== Settings Catalog Policy ===");
+            Append(sb, "Name", sc.Name);
+            Append(sb, "Description", sc.Description);
+            Append(sb, "Platforms", sc.Platforms?.ToString());
+            Append(sb, "Technologies", sc.Technologies?.ToString());
+            Append(sb, "ID", sc.Id);
+            Append(sb, "Is Assigned", sc.IsAssigned?.ToString());
+            Append(sb, "Role Scope Tags", sc.RoleScopeTagIds != null ? string.Join(", ", sc.RoleScopeTagIds) : "");
+            Append(sb, "Created", sc.CreatedDateTime?.ToString("g"));
+            Append(sb, "Last Modified", sc.LastModifiedDateTime?.ToString("g"));
             AppendAssignments(sb);
         }
         else if (SelectedApplication is { } app)
@@ -324,6 +409,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<GroupRow> _filteredAssignedGroupRows = [];
 
+    [ObservableProperty]
+    private ObservableCollection<DeviceManagementConfigurationPolicy> _filteredSettingsCatalogPolicies = [];
+
     private void ApplyFilter()
     {
         var q = SearchText.Trim();
@@ -336,6 +424,7 @@ public partial class MainWindowViewModel : ViewModelBase
             FilteredAppAssignmentRows = new ObservableCollection<AppAssignmentRow>(AppAssignmentRows);
             FilteredDynamicGroupRows = new ObservableCollection<GroupRow>(DynamicGroupRows);
             FilteredAssignedGroupRows = new ObservableCollection<GroupRow>(AssignedGroupRows);
+            FilteredSettingsCatalogPolicies = new ObservableCollection<DeviceManagementConfigurationPolicy>(SettingsCatalogPolicies);
             return;
         }
 
@@ -381,6 +470,13 @@ public partial class MainWindowViewModel : ViewModelBase
                 Contains(g.Description, q) ||
                 Contains(g.GroupType, q) ||
                 Contains(g.GroupId, q)));
+
+        FilteredSettingsCatalogPolicies = new ObservableCollection<DeviceManagementConfigurationPolicy>(
+            SettingsCatalogPolicies.Where(p =>
+                Contains(p.Name, q) ||
+                Contains(p.Description, q) ||
+                Contains(p.Platforms?.ToString(), q) ||
+                Contains(p.Technologies?.ToString(), q)));
     }
 
     private static bool Contains(string? source, string search)
@@ -421,6 +517,18 @@ public partial class MainWindowViewModel : ViewModelBase
         new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
         new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = false },
         new() { Header = "Publishing State", BindingPath = "PublishingState", Width = 120, IsVisible = false }
+    ];
+
+    public ObservableCollection<DataGridColumnConfig> SettingsCatalogColumns { get; } =
+    [
+        new() { Header = "Name", BindingPath = "Name", IsStar = true, IsVisible = true },
+        new() { Header = "Platforms", BindingPath = "Platforms", Width = 120, IsVisible = true },
+        new() { Header = "Technologies", BindingPath = "Technologies", Width = 140, IsVisible = true },
+        new() { Header = "Description", BindingPath = "Description", Width = 200, IsVisible = false },
+        new() { Header = "Is Assigned", BindingPath = "IsAssigned", Width = 90, IsVisible = true },
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+        new() { Header = "Role Scope Tags", BindingPath = "Computed:RoleScopeTags", Width = 120, IsVisible = false }
     ];
 
     public ObservableCollection<DataGridColumnConfig> DynamicGroupColumns { get; } =
@@ -494,6 +602,7 @@ public partial class MainWindowViewModel : ViewModelBase
         "Compliance Policies" => CompliancePolicyColumns,
         "Applications" => ApplicationColumns,
         "Application Assignments" => AppAssignmentColumns,
+        "Settings Catalog" => SettingsCatalogColumns,
         "Dynamic Groups" => DynamicGroupColumns,
         "Assigned Groups" => AssignedGroupColumns,
         _ => null
@@ -510,7 +619,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (lower.Contains("ios") || lower.Contains("iphone")) return "iOS";
         if (lower.Contains("macos") || lower.Contains("mac")) return "macOS";
         if (lower.Contains("android")) return "Android";
-        if (lower.Contains("webapp") || lower.Contains("webapp")) return "Web";
+        if (lower.Contains("webapp")) return "Web";
         return "Cross-platform";
     }
 
@@ -527,16 +636,20 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         ProfileService profileService,
         IntuneGraphClientFactory graphClientFactory,
-        IExportService exportService)
+        IExportService exportService,
+        ICacheService cacheService)
     {
         _profileService = profileService;
         _graphClientFactory = graphClientFactory;
         _exportService = exportService;
+        _cacheService = cacheService;
 
         LoginViewModel = new LoginViewModel(profileService, graphClientFactory);
         LoginViewModel.LoginSucceeded += OnLoginSucceeded;
 
         CurrentView = LoginViewModel;
+
+        DebugLog.Log("App", "IntuneManager started");
 
         // Load profiles asynchronously — never block the UI thread
         _ = LoadProfilesAsync();
@@ -562,6 +675,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _profileService = null!;
         _graphClientFactory = null!;
         _exportService = null!;
+        _cacheService = null!;
         LoginViewModel = null!;
     }
 
@@ -573,6 +687,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsCompliancePolicyCategory => SelectedCategory?.Name == "Compliance Policies";
     public bool IsApplicationCategory => SelectedCategory?.Name == "Applications";
     public bool IsAppAssignmentsCategory => SelectedCategory?.Name == "Application Assignments";
+    public bool IsSettingsCatalogCategory => SelectedCategory?.Name == "Settings Catalog";
     public bool IsDynamicGroupsCategory => SelectedCategory?.Name == "Dynamic Groups";
     public bool IsAssignedGroupsCategory => SelectedCategory?.Name == "Assigned Groups";
 
@@ -583,9 +698,11 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedCompliancePolicy = null;
         SelectedApplication = null;
         SelectedAppAssignmentRow = null;
+        SelectedSettingsCatalogPolicy = null;
         SelectedDynamicGroupRow = null;
         SelectedAssignedGroupRow = null;
         SelectedItemAssignments.Clear();
+        SelectedGroupMembers.Clear();
         SelectedItemTypeName = "";
         SelectedItemPlatform = "";
 
@@ -598,22 +715,155 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsCompliancePolicyCategory));
         OnPropertyChanged(nameof(IsApplicationCategory));
         OnPropertyChanged(nameof(IsAppAssignmentsCategory));
+        OnPropertyChanged(nameof(IsSettingsCatalogCategory));
         OnPropertyChanged(nameof(IsDynamicGroupsCategory));
         OnPropertyChanged(nameof(IsAssignedGroupsCategory));
         OnPropertyChanged(nameof(ActiveColumns));
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         SearchText = "";
 
         // Lazy-load assignments when navigating to tabs that require them
         if ((value?.Name == "Application Assignments" || value?.Name == "Overview") && !_appAssignmentsLoaded)
-            _ = LoadAppAssignmentRowsAsync();
+        {
+            if (!TryLoadLazyCacheEntry<AppAssignmentRow>(CacheKeyAppAssignments, rows =>
+            {
+                AppAssignmentRows = new ObservableCollection<AppAssignmentRow>(rows);
+                _appAssignmentsLoaded = true;
+                ApplyFilter();
+                StatusText = $"Loaded {rows.Count} app assignment(s) from cache";
+
+                // Update Overview dashboard when assignments loaded from cache
+                Overview.Update(
+                    ActiveProfile,
+                    (IReadOnlyList<DeviceConfiguration>)DeviceConfigurations,
+                    (IReadOnlyList<DeviceCompliancePolicy>)CompliancePolicies,
+                    (IReadOnlyList<MobileApp>)Applications,
+                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows);
+            }))
+            {
+                _ = LoadAppAssignmentRowsAsync();
+            }
+        }
 
         // Lazy-load group views
         if (value?.Name == "Dynamic Groups" && !_dynamicGroupsLoaded)
-            _ = LoadDynamicGroupRowsAsync();
+        {
+            if (!TryLoadLazyCacheEntry<GroupRow>(CacheKeyDynamicGroups, rows =>
+            {
+                DynamicGroupRows = new ObservableCollection<GroupRow>(rows);
+                _dynamicGroupsLoaded = true;
+                ApplyFilter();
+                StatusText = $"Loaded {rows.Count} dynamic group(s) from cache";
+            }))
+            {
+                _ = LoadDynamicGroupRowsAsync();
+            }
+        }
         if (value?.Name == "Assigned Groups" && !_assignedGroupsLoaded)
-            _ = LoadAssignedGroupRowsAsync();
+        {
+            if (!TryLoadLazyCacheEntry<GroupRow>(CacheKeyAssignedGroups, rows =>
+            {
+                AssignedGroupRows = new ObservableCollection<GroupRow>(rows);
+                _assignedGroupsLoaded = true;
+                ApplyFilter();
+                StatusText = $"Loaded {rows.Count} assigned group(s) from cache";
+            }))
+            {
+                _ = LoadAssignedGroupRowsAsync();
+            }
+        }
     }
+
+    // --- Refresh single item from Graph ---
+
+    [RelayCommand]
+    private async Task RefreshSelectedItemAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (IsDeviceConfigCategory && SelectedConfiguration?.Id != null && _configProfileService != null)
+            {
+                StatusText = $"Refreshing {SelectedConfiguration.DisplayName}...";
+                var updated = await _configProfileService.GetDeviceConfigurationAsync(SelectedConfiguration.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = DeviceConfigurations.IndexOf(SelectedConfiguration);
+                    if (idx >= 0)
+                    {
+                        DeviceConfigurations[idx] = updated;
+                        SelectedConfiguration = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed device configuration: {updated.DisplayName}");
+                }
+            }
+            else if (IsCompliancePolicyCategory && SelectedCompliancePolicy?.Id != null && _compliancePolicyService != null)
+            {
+                StatusText = $"Refreshing {SelectedCompliancePolicy.DisplayName}...";
+                var updated = await _compliancePolicyService.GetCompliancePolicyAsync(SelectedCompliancePolicy.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = CompliancePolicies.IndexOf(SelectedCompliancePolicy);
+                    if (idx >= 0)
+                    {
+                        CompliancePolicies[idx] = updated;
+                        SelectedCompliancePolicy = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed compliance policy: {updated.DisplayName}");
+                }
+            }
+            else if (IsApplicationCategory && SelectedApplication?.Id != null && _applicationService != null)
+            {
+                StatusText = $"Refreshing {SelectedApplication.DisplayName}...";
+                var updated = await _applicationService.GetApplicationAsync(SelectedApplication.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = Applications.IndexOf(SelectedApplication);
+                    if (idx >= 0)
+                    {
+                        Applications[idx] = updated;
+                        SelectedApplication = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed application: {updated.DisplayName}");
+                }
+            }
+            else if (IsSettingsCatalogCategory && SelectedSettingsCatalogPolicy?.Id != null && _settingsCatalogService != null)
+            {
+                StatusText = $"Refreshing {SelectedSettingsCatalogPolicy.Name}...";
+                var updated = await _settingsCatalogService.GetSettingsCatalogPolicyAsync(SelectedSettingsCatalogPolicy.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = SettingsCatalogPolicies.IndexOf(SelectedSettingsCatalogPolicy);
+                    if (idx >= 0)
+                    {
+                        SettingsCatalogPolicies[idx] = updated;
+                        SelectedSettingsCatalogPolicy = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed settings catalog policy: {updated.Name}");
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            StatusText = "Item refreshed";
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to refresh item: {FormatGraphError(ex)}", ex);
+            SetError($"Refresh failed: {FormatGraphError(ex)}");
+        }
+    }
+
+    /// <summary>
+    /// Whether a single item is currently selected and can be refreshed.
+    /// </summary>
+    public bool CanRefreshSelectedItem =>
+        (IsDeviceConfigCategory && SelectedConfiguration != null) ||
+        (IsCompliancePolicyCategory && SelectedCompliancePolicy != null) ||
+        (IsApplicationCategory && SelectedApplication != null) ||
+        (IsSettingsCatalogCategory && SelectedSettingsCatalogPolicy != null);
 
     // --- Selection-changed handlers (load detail + assignments) ---
 
@@ -621,6 +871,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         SelectedItemAssignments.Clear();
         SelectedItemTypeName = FriendlyODataType(value?.OdataType);
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
         if (value?.Id != null)
             _ = LoadConfigAssignmentsAsync(value.Id);
     }
@@ -629,8 +880,18 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         SelectedItemAssignments.Clear();
         SelectedItemTypeName = FriendlyODataType(value?.OdataType);
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
         if (value?.Id != null)
             _ = LoadCompliancePolicyAssignmentsAsync(value.Id);
+    }
+
+    partial void OnSelectedSettingsCatalogPolicyChanged(DeviceManagementConfigurationPolicy? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = value?.Platforms?.ToString() ?? "";
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+        if (value?.Id != null)
+            _ = LoadSettingsCatalogAssignmentsAsync(value.Id);
     }
 
     partial void OnSelectedApplicationChanged(MobileApp? value)
@@ -639,8 +900,49 @@ public partial class MainWindowViewModel : ViewModelBase
         var odataType = value?.OdataType;
         SelectedItemTypeName = FriendlyODataType(odataType);
         SelectedItemPlatform = InferPlatform(odataType);
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
         if (value?.Id != null)
             _ = LoadApplicationAssignmentsAsync(value.Id);
+    }
+
+    partial void OnSelectedDynamicGroupRowChanged(GroupRow? value)
+    {
+        SelectedGroupMembers.Clear();
+        if (value?.GroupId != null && !string.IsNullOrEmpty(value.GroupId))
+            _ = LoadGroupMembersAsync(value.GroupId);
+    }
+
+    partial void OnSelectedAssignedGroupRowChanged(GroupRow? value)
+    {
+        SelectedGroupMembers.Clear();
+        if (value?.GroupId != null && !string.IsNullOrEmpty(value.GroupId))
+            _ = LoadGroupMembersAsync(value.GroupId);
+    }
+
+    private async Task LoadGroupMembersAsync(string groupId)
+    {
+        if (_groupService == null) return;
+        IsLoadingGroupMembers = true;
+        try
+        {
+            var members = await _groupService.ListGroupMembersAsync(groupId);
+            var items = members.Select(m => new GroupMemberItem
+            {
+                MemberType = m.MemberType,
+                DisplayName = m.DisplayName,
+                SecondaryInfo = m.SecondaryInfo,
+                TertiaryInfo = m.TertiaryInfo,
+                Status = m.Status,
+                Id = m.Id
+            }).ToList();
+            SelectedGroupMembers = new ObservableCollection<GroupMemberItem>(items);
+            DebugLog.Log("Graph", $"Loaded {items.Count} member(s) for group {groupId}");
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load group members: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingGroupMembers = false; }
     }
 
     private async Task LoadConfigAssignmentsAsync(string configId)
@@ -655,7 +957,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 items.Add(await MapAssignmentAsync(a.Target));
             SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
         }
-        catch { /* swallow – non-critical */ }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load configuration assignments: {FormatGraphError(ex)}", ex);
+        }
         finally { IsLoadingDetails = false; }
     }
 
@@ -671,7 +976,29 @@ public partial class MainWindowViewModel : ViewModelBase
                 items.Add(await MapAssignmentAsync(a.Target));
             SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
         }
-        catch { /* swallow – non-critical */ }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load compliance policy assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadSettingsCatalogAssignmentsAsync(string policyId)
+    {
+        if (_settingsCatalogService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _settingsCatalogService.GetAssignmentsAsync(policyId);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load settings catalog assignments: {FormatGraphError(ex)}", ex);
+        }
         finally { IsLoadingDetails = false; }
     }
 
@@ -696,7 +1023,10 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
         }
-        catch { /* swallow – non-critical */ }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load application assignments: {FormatGraphError(ex)}", ex);
+        }
         finally { IsLoadingDetails = false; }
     }
 
@@ -732,20 +1062,31 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task<string> ResolveGroupNameAsync(string? groupId)
     {
         if (string.IsNullOrEmpty(groupId)) return "Unknown Group";
+        if (!Guid.TryParse(groupId, out _)) return groupId; // Not a valid GUID — skip Graph call
         if (_groupNameCache.TryGetValue(groupId, out var cached)) return cached;
 
         try
         {
             if (_graphClient != null)
             {
-                var group = await _graphClient.Groups[groupId].GetAsync(cfg =>
-                    cfg.QueryParameters.Select = ["displayName"]);
+                // Use $filter to avoid 404 ODataError for deleted/inaccessible groups
+                var response = await _graphClient.Groups
+                    .GetAsync(req =>
+                    {
+                        req.QueryParameters.Filter = $"id eq '{groupId}'";
+                        req.QueryParameters.Select = new[] { "displayName" };
+                        req.QueryParameters.Top = 1;
+                    });
+                var group = response?.Value?.FirstOrDefault();
                 var name = group?.DisplayName ?? groupId;
                 _groupNameCache[groupId] = name;
                 return name;
             }
         }
-        catch { /* fall back to GUID */ }
+        catch (Exception ex)
+        {
+            DebugLog.Log("Graph", $"Could not resolve group {groupId}: {FormatGraphError(ex)}");
+        }
 
         _groupNameCache[groupId] = groupId;
         return groupId;
@@ -806,16 +1147,15 @@ public partial class MainWindowViewModel : ViewModelBase
                         appRows.Add(BuildAppRowNoAssignment(app));
                     }
 
+                    var currentProcessed = Interlocked.Increment(ref processed);
                     lock (rows)
                     {
                         rows.AddRange(appRows);
-                        processed++;
                     }
 
                     // Update status on UI thread periodically
-                    if (processed % 10 == 0 || processed == total)
+                    if (currentProcessed % 10 == 0 || currentProcessed == total)
                     {
-                        var currentProcessed = processed;
                         var currentTotal = total;
                         Dispatcher.UIThread.Post(() =>
                             StatusText = $"Loading assignments... {currentProcessed}/{currentTotal} apps");
@@ -840,6 +1180,13 @@ public partial class MainWindowViewModel : ViewModelBase
             _appAssignmentsLoaded = true;
             ApplyFilter();
 
+            // Save to cache
+            if (ActiveProfile?.TenantId != null)
+            {
+                _cacheService.Set(ActiveProfile.TenantId, CacheKeyAppAssignments, rows);
+                DebugLog.Log("Cache", $"Saved {rows.Count} app assignment row(s) to cache");
+            }
+
             // Update Overview dashboard now that all data is ready
             Overview.Update(
                 ActiveProfile,
@@ -852,7 +1199,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            SetError($"Failed to load Application Assignments: {ex.Message}");
+            SetError($"Failed to load Application Assignments: {FormatGraphError(ex)}");
             StatusText = "Error loading Application Assignments";
         }
         finally
@@ -1264,17 +1611,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     var row = BuildGroupRow(group, counts);
 
+                    var currentProcessed = Interlocked.Increment(ref processed);
                     lock (rows)
                     {
                         rows.Add(row);
-                        processed++;
                     }
 
-                    if (processed % 10 == 0 || processed == total)
+                    if (currentProcessed % 10 == 0 || currentProcessed == total)
                     {
-                        var p = processed;
                         Dispatcher.UIThread.Post(() =>
-                            StatusText = $"Loading dynamic groups... {p}/{total}");
+                            StatusText = $"Loading dynamic groups... {currentProcessed}/{total}");
                     }
                 }
                 finally { semaphore.Release(); }
@@ -1287,11 +1633,19 @@ public partial class MainWindowViewModel : ViewModelBase
             DynamicGroupRows = new ObservableCollection<GroupRow>(rows);
             _dynamicGroupsLoaded = true;
             ApplyFilter();
+
+            // Save to cache
+            if (ActiveProfile?.TenantId != null)
+            {
+                _cacheService.Set(ActiveProfile.TenantId, CacheKeyDynamicGroups, rows);
+                DebugLog.Log("Cache", $"Saved {rows.Count} dynamic group row(s) to cache");
+            }
+
             StatusText = $"Loaded {rows.Count} dynamic group(s)";
         }
         catch (Exception ex)
         {
-            SetError($"Failed to load dynamic groups: {ex.Message}");
+            SetError($"Failed to load dynamic groups: {FormatGraphError(ex)}");
             StatusText = "Error loading dynamic groups";
         }
         finally
@@ -1328,17 +1682,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     var row = BuildGroupRow(group, counts);
 
+                    var currentProcessed = Interlocked.Increment(ref processed);
                     lock (rows)
                     {
                         rows.Add(row);
-                        processed++;
                     }
 
-                    if (processed % 10 == 0 || processed == total)
+                    if (currentProcessed % 10 == 0 || currentProcessed == total)
                     {
-                        var p = processed;
                         Dispatcher.UIThread.Post(() =>
-                            StatusText = $"Loading assigned groups... {p}/{total}");
+                            StatusText = $"Loading assigned groups... {currentProcessed}/{total}");
                     }
                 }
                 finally { semaphore.Release(); }
@@ -1351,11 +1704,19 @@ public partial class MainWindowViewModel : ViewModelBase
             AssignedGroupRows = new ObservableCollection<GroupRow>(rows);
             _assignedGroupsLoaded = true;
             ApplyFilter();
+
+            // Save to cache
+            if (ActiveProfile?.TenantId != null)
+            {
+                _cacheService.Set(ActiveProfile.TenantId, CacheKeyAssignedGroups, rows);
+                DebugLog.Log("Cache", $"Saved {rows.Count} assigned group row(s) to cache");
+            }
+
             StatusText = $"Loaded {rows.Count} assigned group(s)";
         }
         catch (Exception ex)
         {
-            SetError($"Failed to load assigned groups: {ex.Message}");
+            SetError($"Failed to load assigned groups: {FormatGraphError(ex)}");
             StatusText = "Error loading assigned groups";
         }
         finally
@@ -1364,7 +1725,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private static GroupRow BuildGroupRow(Microsoft.Graph.Models.Group group, GroupMemberCounts counts)
+    private static GroupRow BuildGroupRow(Microsoft.Graph.Beta.Models.Group group, GroupMemberCounts counts)
     {
         return new GroupRow
         {
@@ -1396,6 +1757,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ClearError();
         IsBusy = true;
         StatusText = $"Connecting to {profile.Name}...";
+        DebugLog.Log("Auth", $"Authenticating to tenant {profile.TenantId} ({profile.Cloud}) as {profile.ClientId}");
 
         try
         {
@@ -1405,10 +1767,12 @@ public partial class MainWindowViewModel : ViewModelBase
             CurrentView = null;
 
             _graphClient = await _graphClientFactory.CreateClientAsync(profile);
+            DebugLog.Log("Auth", "Graph client created successfully");
             _configProfileService = new ConfigurationProfileService(_graphClient);
             _compliancePolicyService = new CompliancePolicyService(_graphClient);
             _applicationService = new ApplicationService(_graphClient);
             _groupService = new GroupService(_graphClient);
+            _settingsCatalogService = new SettingsCatalogService(_graphClient);
             _importService = new ImportService(_configProfileService, _compliancePolicyService);
 
             RefreshSwitcherProfiles();
@@ -1418,11 +1782,26 @@ public partial class MainWindowViewModel : ViewModelBase
             SelectedCategory = NavCategories.FirstOrDefault();
 
             StatusText = $"Connected to {profile.Name}";
-            await RefreshAsync(CancellationToken.None);
+            DebugLog.Log("Auth", $"Connected to {profile.Name}");
+
+            // Try loading cached data — if all 4 types are cached, skip Graph refresh
+            var cachedCount = TryLoadFromCache(profile.TenantId ?? "");
+            if (cachedCount >= 4)
+            {
+                DebugLog.Log("Cache", "All data loaded from cache — skipping Graph refresh");
+                IsBusy = false;
+            }
+            else
+            {
+                if (cachedCount > 0)
+                    DebugLog.Log("Cache", $"Partial cache hit ({cachedCount}/4) — refreshing from Graph");
+                await RefreshAsync(CancellationToken.None);
+            }
         }
         catch (Exception ex)
         {
-            SetError($"Connection failed: {ex.Message}");
+            DebugLog.LogError($"Connection to {profile.Name} failed: {FormatGraphError(ex)}", ex);
+            SetError($"Connection failed: {FormatGraphError(ex)}");
             StatusText = "Connection failed";
             DisconnectInternal();
         }
@@ -1469,37 +1848,125 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // --- Refresh (loads data for the selected category) ---
 
+    /// <summary>
+    /// Extracts a human-readable error message from an ODataError, including
+    /// the response status code, error code, and inner error details.
+    /// </summary>
+    private static string FormatODataError(ODataError odataError)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"HTTP {odataError.ResponseStatusCode}");
+
+        if (odataError.Error != null)
+        {
+            if (!string.IsNullOrEmpty(odataError.Error.Code))
+                sb.Append($" [{odataError.Error.Code}]");
+            if (!string.IsNullOrEmpty(odataError.Error.Message))
+                sb.Append($": {odataError.Error.Message}");
+        }
+        else if (!string.IsNullOrEmpty(odataError.Message))
+        {
+            sb.Append($": {odataError.Message}");
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Formats any exception for display, with special handling for ODataError.
+    /// </summary>
+    private static string FormatGraphError(Exception ex)
+    {
+        return ex is ODataError odata ? FormatODataError(odata) : ex.Message;
+    }
+
     [RelayCommand]
     private async Task RefreshAsync(CancellationToken cancellationToken)
     {
         ClearError();
         IsBusy = true;
+        DebugLog.Log("Graph", "Refreshing all data from Graph API...");
+        var errors = new List<string>();
 
         try
         {
             if (_configProfileService != null)
             {
-                StatusText = "Loading device configurations...";
-                var configs = await _configProfileService.ListDeviceConfigurationsAsync(cancellationToken);
-                DeviceConfigurations = new ObservableCollection<DeviceConfiguration>(configs);
+                try
+                {
+                    StatusText = "Loading device configurations...";
+                    var configs = await _configProfileService.ListDeviceConfigurationsAsync(cancellationToken);
+                    DeviceConfigurations = new ObservableCollection<DeviceConfiguration>(configs);
+                    DebugLog.Log("Graph", $"Loaded {configs.Count} device configuration(s)");
+                }
+                catch (Exception ex)
+                {
+                    var detail = FormatGraphError(ex);
+                    DebugLog.LogError($"Failed to load device configurations: {detail}", ex);
+                    errors.Add($"Device Configs: {detail}");
+                }
             }
 
             if (_compliancePolicyService != null)
             {
-                StatusText = "Loading compliance policies...";
-                var policies = await _compliancePolicyService.ListCompliancePoliciesAsync(cancellationToken);
-                CompliancePolicies = new ObservableCollection<DeviceCompliancePolicy>(policies);
+                try
+                {
+                    StatusText = "Loading compliance policies...";
+                    var policies = await _compliancePolicyService.ListCompliancePoliciesAsync(cancellationToken);
+                    CompliancePolicies = new ObservableCollection<DeviceCompliancePolicy>(policies);
+                    DebugLog.Log("Graph", $"Loaded {policies.Count} compliance policy(ies)");
+                }
+                catch (Exception ex)
+                {
+                    var detail = FormatGraphError(ex);
+                    DebugLog.LogError($"Failed to load compliance policies: {detail}", ex);
+                    errors.Add($"Compliance Policies: {detail}");
+                }
             }
 
             if (_applicationService != null)
             {
-                StatusText = "Loading applications...";
-                var apps = await _applicationService.ListApplicationsAsync(cancellationToken);
-                Applications = new ObservableCollection<MobileApp>(apps);
+                try
+                {
+                    StatusText = "Loading applications...";
+                    var apps = await _applicationService.ListApplicationsAsync(cancellationToken);
+                    Applications = new ObservableCollection<MobileApp>(apps);
+                    DebugLog.Log("Graph", $"Loaded {apps.Count} application(s)");
+                }
+                catch (Exception ex)
+                {
+                    var detail = FormatGraphError(ex);
+                    DebugLog.LogError($"Failed to load applications: {detail}", ex);
+                    errors.Add($"Applications: {detail}");
+                }
             }
 
-            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count;
-            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} policies, {Applications.Count} apps)";
+            if (_settingsCatalogService != null)
+            {
+                try
+                {
+                    StatusText = "Loading settings catalog policies...";
+                    var settingsPolicies = await _settingsCatalogService.ListSettingsCatalogPoliciesAsync(cancellationToken);
+                    SettingsCatalogPolicies = new ObservableCollection<DeviceManagementConfigurationPolicy>(settingsPolicies);
+                    DebugLog.Log("Graph", $"Loaded {settingsPolicies.Count} settings catalog policy(ies)");
+                }
+                catch (Exception ex)
+                {
+                    var detail = FormatGraphError(ex);
+                    DebugLog.LogError($"Failed to load settings catalog: {detail}", ex);
+                    errors.Add($"Settings Catalog: {detail}");
+                }
+            }
+
+            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count;
+            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} policies, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog)";
+
+            if (errors.Count > 0)
+                SetError($"Some data failed to load — {string.Join("; ", errors)}");
+
+            // Save successful loads to cache
+            if (ActiveProfile?.TenantId != null)
+                SaveToCache(ActiveProfile.TenantId);
 
             ApplyFilter();
 
@@ -1507,10 +1974,18 @@ public partial class MainWindowViewModel : ViewModelBase
             _appAssignmentsLoaded = false;
             _dynamicGroupsLoaded = false;
             _assignedGroupsLoaded = false;
+
+            // Invalidate lazy-load caches so they reload from Graph on next tab visit
+            if (ActiveProfile?.TenantId != null)
+            {
+                _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyAppAssignments);
+                _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyDynamicGroups);
+                _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyAssignedGroups);
+            }
         }
         catch (Exception ex)
         {
-            SetError($"Failed to load data: {ex.Message}");
+            SetError($"Failed to load data: {FormatGraphError(ex)}");
             StatusText = "Error loading data";
         }
         finally
@@ -1570,7 +2045,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            SetError($"Export failed: {ex.Message}");
+            SetError($"Export failed: {FormatGraphError(ex)}");
             StatusText = "Export failed";
         }
         finally
@@ -1638,7 +2113,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            SetError($"Export failed: {ex.Message}");
+            SetError($"Export failed: {FormatGraphError(ex)}");
             StatusText = "Export failed";
         }
         finally
@@ -1689,12 +2164,183 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            SetError($"Import failed: {ex.Message}");
+            SetError($"Import failed: {FormatGraphError(ex)}");
             StatusText = "Import failed";
         }
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    // --- Cache helpers ---
+
+    /// <summary>
+    /// Attempts to populate all collections from cached data.
+    /// Returns how many data types were loaded (0–4).
+    /// </summary>
+    private int TryLoadFromCache(string tenantId)
+    {
+        if (string.IsNullOrEmpty(tenantId)) return 0;
+
+        var typesLoaded = 0;
+        DateTime? oldestCacheTime = null;
+
+        try
+        {
+            var configs = _cacheService.Get<DeviceConfiguration>(tenantId, CacheKeyDeviceConfigs);
+            if (configs != null)
+            {
+                DeviceConfigurations = new ObservableCollection<DeviceConfiguration>(configs);
+                DebugLog.Log("Cache", $"Loaded {configs.Count} device configuration(s) from cache");
+                typesLoaded++;
+                UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeyDeviceConfigs);
+            }
+
+            var policies = _cacheService.Get<DeviceCompliancePolicy>(tenantId, CacheKeyCompliancePolicies);
+            if (policies != null)
+            {
+                CompliancePolicies = new ObservableCollection<DeviceCompliancePolicy>(policies);
+                DebugLog.Log("Cache", $"Loaded {policies.Count} compliance policy(ies) from cache");
+                typesLoaded++;
+                UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeyCompliancePolicies);
+            }
+
+            var apps = _cacheService.Get<MobileApp>(tenantId, CacheKeyApplications);
+            if (apps != null)
+            {
+                Applications = new ObservableCollection<MobileApp>(apps);
+                DebugLog.Log("Cache", $"Loaded {apps.Count} application(s) from cache");
+                typesLoaded++;
+                UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeyApplications);
+            }
+
+            var settingsPolicies = _cacheService.Get<DeviceManagementConfigurationPolicy>(tenantId, CacheKeySettingsCatalog);
+            if (settingsPolicies != null)
+            {
+                SettingsCatalogPolicies = new ObservableCollection<DeviceManagementConfigurationPolicy>(settingsPolicies);
+                DebugLog.Log("Cache", $"Loaded {settingsPolicies.Count} settings catalog policy(ies) from cache");
+                typesLoaded++;
+                UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeySettingsCatalog);
+            }
+
+            if (typesLoaded > 0)
+            {
+                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count;
+                var ageText = FormatCacheAge(oldestCacheTime);
+                CacheStatusText = oldestCacheTime.HasValue
+                    ? $"Cache: {oldestCacheTime.Value.ToLocalTime():MMM dd, h:mm tt}"
+                    : "";
+                StatusText = $"Loaded {totalItems} item(s) from cache ({ageText})";
+                ApplyFilter();
+            }
+            else
+            {
+                DebugLog.Log("Cache", "No cached data found");
+            }
+
+            // If all 4 primary types loaded, also populate Overview dashboard from cache
+            if (typesLoaded >= 4)
+            {
+                var cachedAssignments = _cacheService.Get<AppAssignmentRow>(tenantId, CacheKeyAppAssignments);
+                if (cachedAssignments != null && cachedAssignments.Count > 0)
+                {
+                    AppAssignmentRows = new ObservableCollection<AppAssignmentRow>(cachedAssignments);
+                    _appAssignmentsLoaded = true;
+                    DebugLog.Log("Cache", $"Loaded {cachedAssignments.Count} app assignment row(s) from cache for dashboard");
+                }
+
+                Overview.Update(
+                    ActiveProfile,
+                    (IReadOnlyList<DeviceConfiguration>)DeviceConfigurations,
+                    (IReadOnlyList<DeviceCompliancePolicy>)CompliancePolicies,
+                    (IReadOnlyList<MobileApp>)Applications,
+                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows);
+                DebugLog.Log("Cache", "Updated Overview dashboard from cache");
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load from cache: {ex.Message}", ex);
+        }
+
+        return typesLoaded;
+    }
+
+    private void UpdateOldestCacheTime(ref DateTime? oldest, string tenantId, string dataType)
+    {
+        var meta = _cacheService.GetMetadata(tenantId, dataType);
+        if (meta != null)
+        {
+            if (oldest == null || meta.Value.CachedAt < oldest.Value)
+                oldest = meta.Value.CachedAt;
+        }
+    }
+
+    private static string FormatCacheAge(DateTime? cachedAtUtc)
+    {
+        if (cachedAtUtc == null) return "unknown age";
+        var age = DateTime.UtcNow - cachedAtUtc.Value;
+        if (age.TotalMinutes < 1) return "just now";
+        if (age.TotalMinutes < 60) return $"{(int)age.TotalMinutes}m ago";
+        if (age.TotalHours < 24) return $"{(int)age.TotalHours}h {age.Minutes}m ago";
+        return $"{(int)age.TotalDays}d ago";
+    }
+
+    /// <summary>
+    /// Tries to load a lazy-loaded view (app assignments, groups) from cache.
+    /// Invokes the onLoaded callback with the data if found. Returns true if cache hit.
+    /// </summary>
+    private bool TryLoadLazyCacheEntry<T>(string cacheKey, Action<List<T>> onLoaded)
+    {
+        var tenantId = ActiveProfile?.TenantId;
+        if (string.IsNullOrEmpty(tenantId)) return false;
+
+        try
+        {
+            var cached = _cacheService.Get<T>(tenantId, cacheKey);
+            if (cached != null && cached.Count > 0)
+            {
+                DebugLog.Log("Cache", $"Loaded {cached.Count} {cacheKey} row(s) from cache");
+                onLoaded(cached);
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load {cacheKey} from cache: {ex.Message}", ex);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Saves all current collections to the cache.
+    /// </summary>
+    private void SaveToCache(string tenantId)
+    {
+        if (string.IsNullOrEmpty(tenantId)) return;
+
+        try
+        {
+            if (DeviceConfigurations.Count > 0)
+                _cacheService.Set(tenantId, CacheKeyDeviceConfigs, DeviceConfigurations.ToList());
+
+            if (CompliancePolicies.Count > 0)
+                _cacheService.Set(tenantId, CacheKeyCompliancePolicies, CompliancePolicies.ToList());
+
+            if (Applications.Count > 0)
+                _cacheService.Set(tenantId, CacheKeyApplications, Applications.ToList());
+
+            if (SettingsCatalogPolicies.Count > 0)
+                _cacheService.Set(tenantId, CacheKeySettingsCatalog, SettingsCatalogPolicies.ToList());
+
+            DebugLog.Log("Cache", "Saved data to disk cache");
+            CacheStatusText = $"Cache: {DateTime.Now:MMM dd, h:mm tt}";
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to save to cache: {ex.Message}", ex);
         }
     }
 
@@ -1725,6 +2371,8 @@ public partial class MainWindowViewModel : ViewModelBase
         AppAssignmentRows.Clear();
         SelectedAppAssignmentRow = null;
         _appAssignmentsLoaded = false;
+        SettingsCatalogPolicies.Clear();
+        SelectedSettingsCatalogPolicy = null;
         DynamicGroupRows.Clear();
         SelectedDynamicGroupRow = null;
         _dynamicGroupsLoaded = false;
@@ -1738,6 +2386,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _compliancePolicyService = null;
         _applicationService = null;
         _groupService = null;
+        _settingsCatalogService = null;
         _importService = null;
+        _groupNameCache.Clear();
+        CacheStatusText = "";
     }
 }

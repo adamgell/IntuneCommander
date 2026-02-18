@@ -44,3 +44,21 @@ public class PlatformConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => BindingOperations.DoNothing;
 }
+
+/// <summary>
+/// Converts a List&lt;string&gt; or IList&lt;string&gt; into a comma-separated string.
+/// </summary>
+public class StringListConverter : IValueConverter
+{
+    public static readonly StringListConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is System.Collections.Generic.IList<string> list && list.Count > 0)
+            return string.Join(", ", list);
+        return "";
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => BindingOperations.DoNothing;
+}

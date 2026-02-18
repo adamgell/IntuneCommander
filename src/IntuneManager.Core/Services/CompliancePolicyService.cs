@@ -1,5 +1,5 @@
-using Microsoft.Graph;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta;
+using Microsoft.Graph.Beta.Models;
 using Microsoft.Kiota.Abstractions;
 
 namespace IntuneManager.Core.Services;
@@ -86,7 +86,7 @@ public class CompliancePolicyService : ICompliancePolicyService
         // The Graph API uses the assign action to set assignments
         await _graphClient.DeviceManagement.DeviceCompliancePolicies[policyId]
             .Assign.PostAsAssignPostResponseAsync(
-                new Microsoft.Graph.DeviceManagement.DeviceCompliancePolicies.Item.Assign.AssignPostRequestBody
+                new Microsoft.Graph.Beta.DeviceManagement.DeviceCompliancePolicies.Item.Assign.AssignPostRequestBody
                 {
                     Assignments = assignments
                 },

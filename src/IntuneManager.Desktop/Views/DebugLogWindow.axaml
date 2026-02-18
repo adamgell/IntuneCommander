@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:IntuneManager.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+        x:Class="IntuneManager.Desktop.Views.DebugLogWindow"
+        x:DataType="vm:DebugLogViewModel"
+        Title="IntuneManager — Debug Log"
+        Width="800" Height="500"
+        MinWidth="400" MinHeight="250">
+
+    <Design.DataContext>
+        <vm:DebugLogViewModel />
+    </Design.DataContext>
+
+    <DockPanel>
+        <!-- Toolbar -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                Padding="8,6">
+            <DockPanel>
+                <TextBlock Text="Debug Log" FontSize="14" FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8"
+                            HorizontalAlignment="Right">
+                    <Button Content="Clear" Command="{Binding ClearLogCommand}"
+                            Padding="12,4" FontSize="12" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Log entries -->
+        <ListBox ItemsSource="{Binding LogEntries}"
+                 x:Name="LogListBox"
+                 Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                 Padding="4"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <SelectableTextBlock Text="{Binding}"
+                               FontFamily="Cascadia Code, Consolas, Courier New, monospace"
+                               FontSize="12"
+                               TextWrapping="NoWrap"
+                               Padding="2,1" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</Window>

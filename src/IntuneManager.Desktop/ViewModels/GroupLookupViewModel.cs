@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using IntuneManager.Core.Models;
 using IntuneManager.Core.Services;
-using Microsoft.Graph.Models;
+using Microsoft.Graph.Beta.Models;
 
 namespace IntuneManager.Desktop.ViewModels;
 

@@ -52,6 +52,24 @@ public class ProfileServiceTests : IDisposable
     }
 
     [Fact]
+    public void AddProfile_EmptyTenantId_Throws()
+    {
+        var profile = CreateTestProfile("NoTenant");
+        profile.TenantId = "";
+
+        Assert.Throws<ArgumentException>(() => _service.AddProfile(profile));
+    }
+
+    [Fact]
+    public void AddProfile_EmptyClientId_Throws()
+    {
+        var profile = CreateTestProfile("NoClient");
+        profile.ClientId = "";
+
+        Assert.Throws<ArgumentException>(() => _service.AddProfile(profile));
+    }
+
+    [Fact]
     public void SetActiveProfile_ValidId_SetsActive()
     {
         var p1 = _service.AddProfile(CreateTestProfile("One"));
@@ -85,6 +103,17 @@ public class ProfileServiceTests : IDisposable
     }
 
     [Fact]
+    public void RemoveProfile_NonExisting_DoesNothing()
+    {
+        var p1 = _service.AddProfile(CreateTestProfile("One"));
+
+        _service.RemoveProfile("does-not-exist");
+
+        Assert.Single(_service.Profiles);
+        Assert.Equal(p1.Id, _service.ActiveProfileId);
+    }
+
+    [Fact]
     public void RemoveProfile_ActiveProfile_SetsNewActive()
     {
         var p1 = _service.AddProfile(CreateTestProfile("One"));
@@ -115,6 +144,14 @@ public class ProfileServiceTests : IDisposable
     {
         await _service.LoadAsync();
         Assert.Empty(_service.Profiles);
+    }
+
+    [Fact]
+    public void Constructor_DefaultPath_HasNoProfiles()
+    {
+        var service = new ProfileService();
+
+        Assert.Empty(service.Profiles);
     }
 
     private static TenantProfile CreateTestProfile(string name) => new()

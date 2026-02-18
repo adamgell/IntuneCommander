@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:IntuneManager.Desktop.ViewModels"
         xmlns:views="using:IntuneManager.Desktop.Views"
+        xmlns:conv="using:IntuneManager.Desktop.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="750"
@@ -17,32 +18,71 @@
     </Design.DataContext>
 
     <DockPanel>
+        <!-- Menu Bar -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Refresh" Command="{Binding RefreshCommand}" InputGesture="F5" />
+                <Separator />
+                <MenuItem Header="_Disconnect" Command="{Binding DisconnectCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="Check for _Updates..." x:Name="MenuCheckUpdates" Click="OnCheckForUpdatesClick" />
+                <Separator />
+                <MenuItem Header="_About IntuneManager" x:Name="MenuAbout" Click="OnAboutClick" />
+            </MenuItem>
+        </Menu>
+
+        <!-- Cache date indicator (right-aligned over menu bar) -->
+        <Panel DockPanel.Dock="Top" Height="0" Margin="0,-26,12,0" ClipToBounds="False">
+            <TextBlock Text="{Binding CacheStatusText}"
+                       FontSize="11" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                       IsVisible="{Binding CacheStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </Panel>
+
         <!-- Status Bar -->
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                Padding="8,6">
+                Padding="8,6" MinHeight="36">
             <DockPanel>
-                <TextBlock Text="{Binding StatusText}" FontSize="12" VerticalAlignment="Center" />
-                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"
-                             Width="200" Height="12"
-                             Foreground="#00CC55" Background="#224400"
-                             HorizontalAlignment="Right" VerticalAlignment="Center"
-                             Margin="12,0,0,0"
-                             CornerRadius="6">
-                    <ProgressBar.Styles>
-                        <Style Selector="ProgressBar:indeterminate">
-                            <Style.Animations>
-                                <Animation Duration="0:0:0.8" IterationCount="INFINITE" PlaybackDirection="Alternate">
-                                    <KeyFrame Cue="0%">
-                                        <Setter Property="Opacity" Value="0.5" />
-                                    </KeyFrame>
-                                    <KeyFrame Cue="100%">
-                                        <Setter Property="Opacity" Value="1.0" />
-                                    </KeyFrame>
-                                </Animation>
-                            </Style.Animations>
-                        </Style>
-                    </ProgressBar.Styles>
-                </ProgressBar>
+                <!-- Right side: Debug Log link + progress bar -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12"
+                            VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"
+                                 Width="200" Height="12"
+                                 Foreground="#00CC55" Background="#224400"
+                                 VerticalAlignment="Center"
+                                 CornerRadius="6">
+                        <ProgressBar.Styles>
+                            <Style Selector="ProgressBar:indeterminate">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:0.8" IterationCount="INFINITE" PlaybackDirection="Alternate">
+                                        <KeyFrame Cue="0%">
+                                            <Setter Property="Opacity" Value="0.5" />
+                                        </KeyFrame>
+                                        <KeyFrame Cue="100%">
+                                            <Setter Property="Opacity" Value="1.0" />
+                                        </KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </ProgressBar.Styles>
+                    </ProgressBar>
+                    <Border Background="Transparent" Cursor="Hand" Padding="4,2"
+                            PointerPressed="OnDebugLogLinkPressed">
+                        <TextBlock Text="Debug Log" FontSize="12"
+                                   Foreground="{DynamicResource SystemAccentColor}"
+                                   TextDecorations="Underline"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                </StackPanel>
+
+                <!-- Left side: Status text + error text -->
+                <StackPanel Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StatusText}" FontSize="12" />
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#FF4444" FontSize="11"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
             </DockPanel>
         </Border>
 
@@ -104,6 +144,18 @@
                             <ListBox ItemsSource="{Binding NavCategories}"
                                      SelectedItem="{Binding SelectedCategory}"
                                      Padding="4">
+                                <ListBox.Styles>
+                                    <!-- Prevent ListBoxItem hover/press states from changing emoji foreground -->
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    </Style>
+                                    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    </Style>
+                                    <Style Selector="ListBoxItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    </Style>
+                                </ListBox.Styles>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="4,2">
@@ -168,7 +220,20 @@
                                   CanUserResizeColumns="True"
                                   GridLinesVisibility="Horizontal"
                                   BorderThickness="1"
-                                  BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
+                                  BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Refresh Item from Graph"
+                                              Command="{Binding RefreshSelectedItemCommand}"
+                                              IsEnabled="{Binding CanRefreshSelectedItem}" />
+                                    <Separator />
+                                    <MenuItem Header="Export Selected"
+                                              Command="{Binding ExportSelectedCommand}" />
+                                    <MenuItem Header="Copy Details to Clipboard"
+                                              Command="{Binding CopyDetailsToClipboardCommand}" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
                     </DockPanel>
 
                     <!-- Overview Dashboard (spans center + detail columns) -->
@@ -185,10 +250,24 @@
                     <DockPanel Grid.Column="4" Margin="8"
                                IsVisible="{Binding !IsOverviewCategory}">
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                            <Button DockPanel.Dock="Right" Content="📋 Copy"
-                                    Command="{Binding CopyDetailsToClipboardCommand}"
-                                    FontSize="12" Padding="8,3"
-                                    VerticalAlignment="Center" />
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                                <Button Content="🔄 Refresh"
+                                        Command="{Binding RefreshSelectedItemCommand}"
+                                        IsEnabled="{Binding CanRefreshSelectedItem}"
+                                        FontSize="12" Padding="8,3"
+                                        VerticalAlignment="Center"
+                                        ToolTip.Tip="Refresh this item from Graph" />
+                                <Button Content="📄 JSON"
+                                        Command="{Binding ViewRawJsonCommand}"
+                                        IsEnabled="{Binding CanRefreshSelectedItem}"
+                                        FontSize="12" Padding="8,3"
+                                        VerticalAlignment="Center"
+                                        ToolTip.Tip="View raw Graph JSON object" />
+                                <Button Content="📋 Copy"
+                                        Command="{Binding CopyDetailsToClipboardCommand}"
+                                        FontSize="12" Padding="8,3"
+                                        VerticalAlignment="Center" />
+                            </StackPanel>
                             <TextBlock Text="Details"
                                        FontSize="16" FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
@@ -208,6 +287,7 @@
                                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                                     <Binding Path="SelectedConfiguration" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedCompliancePolicy" Converter="{x:Static ObjectConverters.IsNull}" />
+                                    <Binding Path="SelectedSettingsCatalogPolicy" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedApplication" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedAppAssignmentRow" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedDynamicGroupRow" Converter="{x:Static ObjectConverters.IsNull}" />
@@ -347,6 +427,104 @@
                                             <TextBlock Text="Version" FontSize="11" Foreground="Gray" />
                                             <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
                                         </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Assignments -->
+                                <TextBlock Text="Assignments" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="No assignments"
+                                                   Foreground="Gray" FontSize="12"
+                                                   IsVisible="{Binding !SelectedItemAssignments.Count}" />
+                                        <ItemsControl ItemsSource="{Binding SelectedItemAssignments}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="4,3" Margin="0,0,0,4">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Left"
+                                                                    Background="{DynamicResource SystemAccentColor}"
+                                                                    CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
+                                                                    VerticalAlignment="Top">
+                                                                <SelectableTextBlock Text="{Binding TargetKind}"
+                                                                           FontSize="10" Foreground="White" />
+                                                            </Border>
+                                                            <StackPanel Spacing="1">
+                                                                <SelectableTextBlock Text="{Binding Target}"
+                                                                           FontSize="12" TextWrapping="Wrap" />
+                                                                <SelectableTextBlock Text="{Binding GroupId}"
+                                                                           FontSize="10" Foreground="Gray" Opacity="0.7"
+                                                                           IsVisible="{Binding GroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- Settings Catalog details                   -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <ScrollViewer IsVisible="{Binding SelectedSettingsCatalogPolicy, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="4">
+
+                                <!-- Section: Properties -->
+                                <TextBlock Text="Properties" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedSettingsCatalogPolicy}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Name" FontSize="11" Foreground="Gray" />
+                                            <SelectableTextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Description" FontSize="11" Foreground="Gray" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Platforms" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding Platforms}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Technologies" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding Technologies}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="ID" FontSize="11" Foreground="Gray" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Is Assigned" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding IsAssigned}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Role Scope Tags" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding RoleScopeTagIds, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Created" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Last Modified" FontSize="11" Foreground="Gray" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
                                     </StackPanel>
                                 </Border>
 
@@ -779,6 +957,55 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- Section: Members List -->
+                                <TextBlock Text="Members" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <ProgressBar IsIndeterminate="True"
+                                             IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).IsLoadingGroupMembers}"
+                                             Height="2" Margin="0,0,0,4" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="No members"
+                                                   Foreground="Gray" FontSize="12"
+                                                   IsVisible="{Binding !$parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedGroupMembers.Count}" />
+                                        <ItemsControl ItemsSource="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedGroupMembers}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="4,3" Margin="0,0,0,4">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Left"
+                                                                    Background="{DynamicResource SystemAccentColor}"
+                                                                    CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
+                                                                    VerticalAlignment="Top">
+                                                                <TextBlock Text="{Binding MemberType}"
+                                                                           FontSize="10" Foreground="White" />
+                                                            </Border>
+                                                            <TextBlock DockPanel.Dock="Right"
+                                                                       Text="{Binding Status}"
+                                                                       FontSize="11" Foreground="Gray"
+                                                                       Margin="6,0,0,0"
+                                                                       VerticalAlignment="Center"
+                                                                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            <StackPanel Spacing="1">
+                                                                <SelectableTextBlock Text="{Binding DisplayName}"
+                                                                           FontSize="12" TextWrapping="Wrap" />
+                                                                <SelectableTextBlock Text="{Binding SecondaryInfo}"
+                                                                           FontSize="11" Foreground="Gray" Opacity="0.8"
+                                                                           IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                                <SelectableTextBlock Text="{Binding TertiaryInfo}"
+                                                                           FontSize="10" Foreground="Gray" Opacity="0.6"
+                                                                           IsVisible="{Binding TertiaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
                             </StackPanel>
                         </ScrollViewer>
 
@@ -854,17 +1081,61 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- Section: Members List -->
+                                <TextBlock Text="Members" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <ProgressBar IsIndeterminate="True"
+                                             IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).IsLoadingGroupMembers}"
+                                             Height="2" Margin="0,0,0,4" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="No members"
+                                                   Foreground="Gray" FontSize="12"
+                                                   IsVisible="{Binding !$parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedGroupMembers.Count}" />
+                                        <ItemsControl ItemsSource="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedGroupMembers}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="4,3" Margin="0,0,0,4">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Left"
+                                                                    Background="{DynamicResource SystemAccentColor}"
+                                                                    CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
+                                                                    VerticalAlignment="Top">
+                                                                <TextBlock Text="{Binding MemberType}"
+                                                                           FontSize="10" Foreground="White" />
+                                                            </Border>
+                                                            <TextBlock DockPanel.Dock="Right"
+                                                                       Text="{Binding Status}"
+                                                                       FontSize="11" Foreground="Gray"
+                                                                       Margin="6,0,0,0"
+                                                                       VerticalAlignment="Center"
+                                                                       IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            <StackPanel Spacing="1">
+                                                                <SelectableTextBlock Text="{Binding DisplayName}"
+                                                                           FontSize="12" TextWrapping="Wrap" />
+                                                                <SelectableTextBlock Text="{Binding SecondaryInfo}"
+                                                                           FontSize="11" Foreground="Gray" Opacity="0.8"
+                                                                           IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                                <SelectableTextBlock Text="{Binding TertiaryInfo}"
+                                                                           FontSize="10" Foreground="Gray" Opacity="0.6"
+                                                                           IsVisible="{Binding TertiaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
                             </StackPanel>
                         </ScrollViewer>
                     </DockPanel>
                 </Grid>
             </DockPanel>
 
-            <!-- Error Banner -->
-            <Border Background="#33FF0000" Padding="8" VerticalAlignment="Top"
-                    IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" />
-            </Border>
         </Panel>
     </DockPanel>
 </Window>
