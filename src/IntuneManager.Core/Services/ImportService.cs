@@ -8,16 +8,27 @@ public class ImportService : IImportService
 {
     private readonly IConfigurationProfileService _configProfileService;
     private readonly ICompliancePolicyService? _compliancePolicyService;
+    private readonly IEndpointSecurityService? _endpointSecurityService;
+    private readonly IAdministrativeTemplateService? _administrativeTemplateService;
+    private readonly IEnrollmentConfigurationService? _enrollmentConfigurationService;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public ImportService(IConfigurationProfileService configProfileService, ICompliancePolicyService? compliancePolicyService = null)
+    public ImportService(
+        IConfigurationProfileService configProfileService,
+        ICompliancePolicyService? compliancePolicyService = null,
+        IEndpointSecurityService? endpointSecurityService = null,
+        IAdministrativeTemplateService? administrativeTemplateService = null,
+        IEnrollmentConfigurationService? enrollmentConfigurationService = null)
     {
         _configProfileService = configProfileService;
         _compliancePolicyService = compliancePolicyService;
+        _endpointSecurityService = endpointSecurityService;
+        _administrativeTemplateService = administrativeTemplateService;
+        _enrollmentConfigurationService = enrollmentConfigurationService;
     }
 
     public async Task<DeviceConfiguration?> ReadDeviceConfigurationAsync(string filePath, CancellationToken cancellationToken = default)
@@ -147,6 +158,188 @@ public class ImportService : IImportService
             migrationTable.AddOrUpdate(new MigrationEntry
             {
                 ObjectType = "CompliancePolicy",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<EndpointSecurityExport?> ReadEndpointSecurityIntentAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<EndpointSecurityExport>(json, JsonOptions);
+    }
+
+    public async Task<List<EndpointSecurityExport>> ReadEndpointSecurityIntentsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<EndpointSecurityExport>();
+        var intentsFolder = Path.Combine(folderPath, "EndpointSecurity");
+
+        if (!Directory.Exists(intentsFolder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(intentsFolder, "*.json"))
+        {
+            var export = await ReadEndpointSecurityIntentAsync(file, cancellationToken);
+            if (export != null)
+                results.Add(export);
+        }
+
+        return results;
+    }
+
+    public async Task<DeviceManagementIntent> ImportEndpointSecurityIntentAsync(
+        EndpointSecurityExport export,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_endpointSecurityService == null)
+            throw new InvalidOperationException("Endpoint security service is not available");
+
+        var intent = export.Intent;
+        var originalId = intent.Id;
+
+        intent.Id = null;
+
+        var created = await _endpointSecurityService.CreateEndpointSecurityIntentAsync(intent, cancellationToken);
+
+        if (export.Assignments.Count > 0 && created.Id != null)
+        {
+            foreach (var assignment in export.Assignments)
+            {
+                assignment.Id = null;
+            }
+
+            await _endpointSecurityService.AssignIntentAsync(created.Id, export.Assignments, cancellationToken);
+        }
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "EndpointSecurityIntent",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<AdministrativeTemplateExport?> ReadAdministrativeTemplateAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<AdministrativeTemplateExport>(json, JsonOptions);
+    }
+
+    public async Task<List<AdministrativeTemplateExport>> ReadAdministrativeTemplatesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<AdministrativeTemplateExport>();
+        var templatesFolder = Path.Combine(folderPath, "AdministrativeTemplates");
+
+        if (!Directory.Exists(templatesFolder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(templatesFolder, "*.json"))
+        {
+            var export = await ReadAdministrativeTemplateAsync(file, cancellationToken);
+            if (export != null)
+                results.Add(export);
+        }
+
+        return results;
+    }
+
+    public async Task<GroupPolicyConfiguration> ImportAdministrativeTemplateAsync(
+        AdministrativeTemplateExport export,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_administrativeTemplateService == null)
+            throw new InvalidOperationException("Administrative template service is not available");
+
+        var template = export.Template;
+        var originalId = template.Id;
+
+        template.Id = null;
+        template.CreatedDateTime = null;
+        template.LastModifiedDateTime = null;
+
+        var created = await _administrativeTemplateService.CreateAdministrativeTemplateAsync(template, cancellationToken);
+
+        if (export.Assignments.Count > 0 && created.Id != null)
+        {
+            foreach (var assignment in export.Assignments)
+            {
+                assignment.Id = null;
+            }
+
+            await _administrativeTemplateService.AssignAdministrativeTemplateAsync(created.Id, export.Assignments, cancellationToken);
+        }
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "AdministrativeTemplate",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<DeviceEnrollmentConfiguration?> ReadEnrollmentConfigurationAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<DeviceEnrollmentConfiguration>(json, JsonOptions);
+    }
+
+    public async Task<List<DeviceEnrollmentConfiguration>> ReadEnrollmentConfigurationsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<DeviceEnrollmentConfiguration>();
+        var configsFolder = Path.Combine(folderPath, "EnrollmentConfigurations");
+
+        if (!Directory.Exists(configsFolder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(configsFolder, "*.json"))
+        {
+            var config = await ReadEnrollmentConfigurationAsync(file, cancellationToken);
+            if (config != null)
+                results.Add(config);
+        }
+
+        return results;
+    }
+
+    public async Task<DeviceEnrollmentConfiguration> ImportEnrollmentConfigurationAsync(
+        DeviceEnrollmentConfiguration configuration,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_enrollmentConfigurationService == null)
+            throw new InvalidOperationException("Enrollment configuration service is not available");
+
+        var originalId = configuration.Id;
+
+        configuration.Id = null;
+        configuration.CreatedDateTime = null;
+        configuration.LastModifiedDateTime = null;
+
+        var created = await _enrollmentConfigurationService.CreateEnrollmentConfigurationAsync(configuration, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "EnrollmentConfiguration",
                 OriginalId = originalId,
                 NewId = created.Id,
                 Name = created.DisplayName ?? "Unknown"

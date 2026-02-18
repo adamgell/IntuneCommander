@@ -262,4 +262,57 @@ public class ExportServiceTests : IDisposable
         var folder = Path.Combine(_tempDir, "Applications");
         Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
     }
+
+    [Fact]
+    public async Task ExportEndpointSecurityIntent_CreatesJsonFile()
+    {
+        var intent = new DeviceManagementIntent
+        {
+            Id = "intent-id",
+            DisplayName = "Endpoint Intent"
+        };
+        var assignments = new List<DeviceManagementIntentAssignment>();
+        var table = new MigrationTable();
+
+        await _service.ExportEndpointSecurityIntentAsync(intent, assignments, _tempDir, table);
+
+        var expectedPath = Path.Combine(_tempDir, "EndpointSecurity", "Endpoint Intent.json");
+        Assert.True(File.Exists(expectedPath));
+        Assert.Contains(table.Entries, e => e.ObjectType == "EndpointSecurityIntent" && e.OriginalId == "intent-id");
+    }
+
+    [Fact]
+    public async Task ExportAdministrativeTemplate_CreatesJsonFile()
+    {
+        var template = new GroupPolicyConfiguration
+        {
+            Id = "template-id",
+            DisplayName = "Admin Template"
+        };
+        var assignments = new List<GroupPolicyConfigurationAssignment>();
+        var table = new MigrationTable();
+
+        await _service.ExportAdministrativeTemplateAsync(template, assignments, _tempDir, table);
+
+        var expectedPath = Path.Combine(_tempDir, "AdministrativeTemplates", "Admin Template.json");
+        Assert.True(File.Exists(expectedPath));
+        Assert.Contains(table.Entries, e => e.ObjectType == "AdministrativeTemplate" && e.OriginalId == "template-id");
+    }
+
+    [Fact]
+    public async Task ExportEnrollmentConfiguration_CreatesJsonFile()
+    {
+        var configuration = new DeviceEnrollmentConfiguration
+        {
+            Id = "enroll-id",
+            DisplayName = "Enrollment Profile"
+        };
+        var table = new MigrationTable();
+
+        await _service.ExportEnrollmentConfigurationAsync(configuration, _tempDir, table);
+
+        var expectedPath = Path.Combine(_tempDir, "EnrollmentConfigurations", "Enrollment Profile.json");
+        Assert.True(File.Exists(expectedPath));
+        Assert.Contains(table.Entries, e => e.ObjectType == "EnrollmentConfiguration" && e.OriginalId == "enroll-id");
+    }
 }

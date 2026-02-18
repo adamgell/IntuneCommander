@@ -14,5 +14,14 @@ public interface IExportService
     Task ExportApplicationAsync(MobileApp app, IReadOnlyList<MobileAppAssignment> assignments, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
     Task ExportApplicationsAsync(IEnumerable<(MobileApp App, IReadOnlyList<MobileAppAssignment> Assignments)> apps, string outputPath, CancellationToken cancellationToken = default);
 
+    Task ExportEndpointSecurityIntentAsync(DeviceManagementIntent intent, IReadOnlyList<DeviceManagementIntentAssignment> assignments, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportEndpointSecurityIntentsAsync(IEnumerable<(DeviceManagementIntent Intent, IReadOnlyList<DeviceManagementIntentAssignment> Assignments)> intents, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportAdministrativeTemplateAsync(GroupPolicyConfiguration template, IReadOnlyList<GroupPolicyConfigurationAssignment> assignments, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportAdministrativeTemplatesAsync(IEnumerable<(GroupPolicyConfiguration Template, IReadOnlyList<GroupPolicyConfigurationAssignment> Assignments)> templates, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportEnrollmentConfigurationsAsync(IEnumerable<DeviceEnrollmentConfiguration> configurations, string outputPath, CancellationToken cancellationToken = default);
+
     Task SaveMigrationTableAsync(MigrationTable table, string outputPath, CancellationToken cancellationToken = default);
 }

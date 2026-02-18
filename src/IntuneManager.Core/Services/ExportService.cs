@@ -163,4 +163,141 @@ public class ExportService : IExportService
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
     }
+
+    public async Task ExportEndpointSecurityIntentAsync(
+        DeviceManagementIntent intent,
+        IReadOnlyList<DeviceManagementIntentAssignment> assignments,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "EndpointSecurity");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(intent.DisplayName ?? intent.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var export = new EndpointSecurityExport
+        {
+            Intent = intent,
+            Assignments = assignments.ToList()
+        };
+
+        var json = JsonSerializer.Serialize(export, JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (intent.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "EndpointSecurityIntent",
+                OriginalId = intent.Id,
+                Name = intent.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportEndpointSecurityIntentsAsync(
+        IEnumerable<(DeviceManagementIntent Intent, IReadOnlyList<DeviceManagementIntentAssignment> Assignments)> intents,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var (intent, assignments) in intents)
+        {
+            await ExportEndpointSecurityIntentAsync(intent, assignments, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportAdministrativeTemplateAsync(
+        GroupPolicyConfiguration template,
+        IReadOnlyList<GroupPolicyConfigurationAssignment> assignments,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "AdministrativeTemplates");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(template.DisplayName ?? template.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var export = new AdministrativeTemplateExport
+        {
+            Template = template,
+            Assignments = assignments.ToList()
+        };
+
+        var json = JsonSerializer.Serialize(export, JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (template.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "AdministrativeTemplate",
+                OriginalId = template.Id,
+                Name = template.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportAdministrativeTemplatesAsync(
+        IEnumerable<(GroupPolicyConfiguration Template, IReadOnlyList<GroupPolicyConfigurationAssignment> Assignments)> templates,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var (template, assignments) in templates)
+        {
+            await ExportAdministrativeTemplateAsync(template, assignments, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportEnrollmentConfigurationAsync(
+        DeviceEnrollmentConfiguration configuration,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "EnrollmentConfigurations");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(configuration.DisplayName ?? configuration.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(configuration, configuration.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (configuration.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "EnrollmentConfiguration",
+                OriginalId = configuration.Id,
+                Name = configuration.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportEnrollmentConfigurationsAsync(
+        IEnumerable<DeviceEnrollmentConfiguration> configurations,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var configuration in configurations)
+        {
+            await ExportEnrollmentConfigurationAsync(configuration, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
 }

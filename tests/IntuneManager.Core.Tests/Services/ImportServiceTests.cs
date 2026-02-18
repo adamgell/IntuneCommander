@@ -235,6 +235,104 @@ public class ImportServiceTests : IDisposable
         Assert.Equal("new-pol", table.Entries[0].NewId);
     }
 
+    [Fact]
+    public async Task ImportEndpointSecurityIntentAsync_AssignsAndUpdatesMigration()
+    {
+        var endpointService = new StubEndpointSecurityService
+        {
+            CreateResult = new DeviceManagementIntent { Id = "new-intent", DisplayName = "Created Intent" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, endpointSecurityService: endpointService);
+        var table = new MigrationTable();
+
+        var export = new EndpointSecurityExport
+        {
+            Intent = new DeviceManagementIntent { Id = "old-intent", DisplayName = "Source Intent" },
+            Assignments = [new DeviceManagementIntentAssignment { Id = "ea-1" }]
+        };
+
+        var created = await sut.ImportEndpointSecurityIntentAsync(export, table);
+
+        Assert.Equal("new-intent", created.Id);
+        Assert.True(endpointService.AssignCalled);
+        Assert.Equal("new-intent", endpointService.AssignedIntentId);
+        Assert.All(endpointService.AssignedAssignments!, a => Assert.Null(a.Id));
+        Assert.Single(table.Entries);
+        Assert.Equal("EndpointSecurityIntent", table.Entries[0].ObjectType);
+        Assert.Equal("old-intent", table.Entries[0].OriginalId);
+        Assert.Equal("new-intent", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportAdministrativeTemplateAsync_AssignsAndUpdatesMigration()
+    {
+        var templateService = new StubAdministrativeTemplateService
+        {
+            CreateResult = new GroupPolicyConfiguration { Id = "new-template", DisplayName = "Created Template" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, administrativeTemplateService: templateService);
+        var table = new MigrationTable();
+
+        var export = new AdministrativeTemplateExport
+        {
+            Template = new GroupPolicyConfiguration
+            {
+                Id = "old-template",
+                DisplayName = "Source Template",
+                CreatedDateTime = DateTimeOffset.UtcNow,
+                LastModifiedDateTime = DateTimeOffset.UtcNow
+            },
+            Assignments = [new GroupPolicyConfigurationAssignment { Id = "ta-1" }]
+        };
+
+        var created = await sut.ImportAdministrativeTemplateAsync(export, table);
+
+        Assert.Equal("new-template", created.Id);
+        Assert.NotNull(templateService.LastCreatedTemplate);
+        Assert.Null(templateService.LastCreatedTemplate!.Id);
+        Assert.Null(templateService.LastCreatedTemplate.CreatedDateTime);
+        Assert.Null(templateService.LastCreatedTemplate.LastModifiedDateTime);
+        Assert.True(templateService.AssignCalled);
+        Assert.Equal("new-template", templateService.AssignedTemplateId);
+        Assert.All(templateService.AssignedAssignments!, a => Assert.Null(a.Id));
+        Assert.Single(table.Entries);
+        Assert.Equal("AdministrativeTemplate", table.Entries[0].ObjectType);
+        Assert.Equal("old-template", table.Entries[0].OriginalId);
+        Assert.Equal("new-template", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ImportEnrollmentConfigurationAsync_UpdatesMigration()
+    {
+        var enrollmentService = new StubEnrollmentConfigurationService
+        {
+            CreateResult = new DeviceEnrollmentConfiguration { Id = "new-enroll", DisplayName = "Created Enrollment" }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, enrollmentConfigurationService: enrollmentService);
+        var table = new MigrationTable();
+
+        var configuration = new DeviceEnrollmentConfiguration
+        {
+            Id = "old-enroll",
+            DisplayName = "Source Enrollment",
+            CreatedDateTime = DateTimeOffset.UtcNow,
+            LastModifiedDateTime = DateTimeOffset.UtcNow,
+            Priority = 10
+        };
+
+        var created = await sut.ImportEnrollmentConfigurationAsync(configuration, table);
+
+        Assert.Equal("new-enroll", created.Id);
+        Assert.NotNull(enrollmentService.LastCreatedConfiguration);
+        Assert.Null(enrollmentService.LastCreatedConfiguration!.Id);
+        Assert.Null(enrollmentService.LastCreatedConfiguration.CreatedDateTime);
+        Assert.Null(enrollmentService.LastCreatedConfiguration.LastModifiedDateTime);
+        Assert.Single(table.Entries);
+        Assert.Equal("EnrollmentConfiguration", table.Entries[0].ObjectType);
+        Assert.Equal("old-enroll", table.Entries[0].OriginalId);
+        Assert.Equal("new-enroll", table.Entries[0].NewId);
+    }
+
     private sealed class StubConfigurationService : IConfigurationProfileService
     {
         public DeviceConfiguration? LastCreatedConfig { get; private set; }
@@ -299,5 +397,116 @@ public class ImportServiceTests : IDisposable
             AssignedAssignments = assignments;
             return Task.CompletedTask;
         }
+    }
+
+    private sealed class StubEndpointSecurityService : IEndpointSecurityService
+    {
+        public DeviceManagementIntent? LastCreatedIntent { get; private set; }
+        public DeviceManagementIntent CreateResult { get; set; } = new() { Id = "created-intent", DisplayName = "Created" };
+
+        public bool AssignCalled { get; private set; }
+        public string? AssignedIntentId { get; private set; }
+        public List<DeviceManagementIntentAssignment>? AssignedAssignments { get; private set; }
+
+        public Task<List<DeviceManagementIntent>> ListEndpointSecurityIntentsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceManagementIntent>());
+
+        public Task<DeviceManagementIntent?> GetEndpointSecurityIntentAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<DeviceManagementIntent?>(null);
+
+        public Task<DeviceManagementIntent> CreateEndpointSecurityIntentAsync(DeviceManagementIntent intent, CancellationToken cancellationToken = default)
+        {
+            LastCreatedIntent = intent;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<DeviceManagementIntent> UpdateEndpointSecurityIntentAsync(DeviceManagementIntent intent, CancellationToken cancellationToken = default)
+            => Task.FromResult(intent);
+
+        public Task DeleteEndpointSecurityIntentAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task<List<DeviceManagementIntentAssignment>> GetAssignmentsAsync(string intentId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceManagementIntentAssignment>());
+
+        public Task AssignIntentAsync(string intentId, List<DeviceManagementIntentAssignment> assignments, CancellationToken cancellationToken = default)
+        {
+            AssignCalled = true;
+            AssignedIntentId = intentId;
+            AssignedAssignments = assignments;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class StubAdministrativeTemplateService : IAdministrativeTemplateService
+    {
+        public GroupPolicyConfiguration? LastCreatedTemplate { get; private set; }
+        public GroupPolicyConfiguration CreateResult { get; set; } = new() { Id = "created-template", DisplayName = "Created" };
+
+        public bool AssignCalled { get; private set; }
+        public string? AssignedTemplateId { get; private set; }
+        public List<GroupPolicyConfigurationAssignment>? AssignedAssignments { get; private set; }
+
+        public Task<List<GroupPolicyConfiguration>> ListAdministrativeTemplatesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<GroupPolicyConfiguration>());
+
+        public Task<GroupPolicyConfiguration?> GetAdministrativeTemplateAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<GroupPolicyConfiguration?>(null);
+
+        public Task<GroupPolicyConfiguration> CreateAdministrativeTemplateAsync(GroupPolicyConfiguration template, CancellationToken cancellationToken = default)
+        {
+            LastCreatedTemplate = template;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<GroupPolicyConfiguration> UpdateAdministrativeTemplateAsync(GroupPolicyConfiguration template, CancellationToken cancellationToken = default)
+            => Task.FromResult(template);
+
+        public Task DeleteAdministrativeTemplateAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task<List<GroupPolicyConfigurationAssignment>> GetAssignmentsAsync(string templateId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<GroupPolicyConfigurationAssignment>());
+
+        public Task AssignAdministrativeTemplateAsync(string templateId, List<GroupPolicyConfigurationAssignment> assignments, CancellationToken cancellationToken = default)
+        {
+            AssignCalled = true;
+            AssignedTemplateId = templateId;
+            AssignedAssignments = assignments;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class StubEnrollmentConfigurationService : IEnrollmentConfigurationService
+    {
+        public DeviceEnrollmentConfiguration? LastCreatedConfiguration { get; private set; }
+        public DeviceEnrollmentConfiguration CreateResult { get; set; } = new() { Id = "created-enroll", DisplayName = "Created" };
+
+        public Task<List<DeviceEnrollmentConfiguration>> ListEnrollmentConfigurationsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
+
+        public Task<List<DeviceEnrollmentConfiguration>> ListEnrollmentStatusPagesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
+
+        public Task<List<DeviceEnrollmentConfiguration>> ListEnrollmentRestrictionsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
+
+        public Task<List<DeviceEnrollmentConfiguration>> ListCoManagementSettingsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
+
+        public Task<DeviceEnrollmentConfiguration?> GetEnrollmentConfigurationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<DeviceEnrollmentConfiguration?>(null);
+
+        public Task<DeviceEnrollmentConfiguration> CreateEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, CancellationToken cancellationToken = default)
+        {
+            LastCreatedConfiguration = configuration;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<DeviceEnrollmentConfiguration> UpdateEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, CancellationToken cancellationToken = default)
+            => Task.FromResult(configuration);
+
+        public Task DeleteEnrollmentConfigurationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 }
