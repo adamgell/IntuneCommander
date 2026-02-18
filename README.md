@@ -32,7 +32,7 @@ A cross-platform Intune management tool built with .NET 10 and Avalonia UI, desi
 ### Prerequisites
 - .NET 10 SDK
 - Visual Studio 2022, JetBrains Rider, or VS Code with C# Dev Kit
-- An Azure AD app registration with appropriate Microsoft Graph Beta permissions
+- An Azure AD app registration with appropriate Microsoft Graph permissions (for use with the beta Microsoft Graph SDK/endpoint)
 
 ### Build & Run
 
@@ -78,7 +78,7 @@ src/
     Extensions/              # DI registration (AddIntuneManagerCore)
   IntuneManager.Desktop/     # Avalonia UI application
     Views/                   # MainWindow, LoginView, OverviewView, DebugLogWindow, RawJsonWindow
-    ViewModels/              # MainWindowViewModel (+ feature partial files), LoginViewModel, OverviewViewModel
+    ViewModels/              # MainWindowViewModel, LoginViewModel, OverviewViewModel
     Services/                # DebugLogService (in-memory log, UI-thread-safe)
     Converters/              # ComputedColumnConverters
 tests/

@@ -36,8 +36,9 @@ ClientCertificateCredential  — deferred; requires cert-store integration
 ManagedIdentityCredential    — deferred; not applicable for desktop use
 ```
 
-`InteractiveBrowserAuthProvider` throws `NotSupportedException` for any method
-outside the two implemented ones, preventing silent fallback.
+`InteractiveBrowserAuthProvider` currently falls back to `InteractiveBrowserCredential`
+for any unsupported auth method (including certificate/managed identity), so unsupported
+methods use interactive auth rather than throwing.
 
 ---
 
@@ -88,6 +89,7 @@ outside the two implemented ones, preventing silent fallback.
       "cloud": "GCCHigh",
       "authMethod": "Interactive",
       "clientSecret": null,
+      "certificateThumbprint": null,
       "lastUsed": "2025-02-14T10:30:00Z"
     }
   ],
@@ -96,15 +98,15 @@ outside the two implemented ones, preventing silent fallback.
 ```
 
 ### Encryption Strategy
-**Decision:** DPAPI (Windows) / Keychain (macOS) / libsecret (Linux)
+**Decision:** ASP.NET Core DataProtection with file-system key ring
 
 **Rationale:**
-- Platform-native credential storage
+- Cross-platform solution
 - No custom encryption keys to manage
-- OS-level security guarantees
+- Transparent encryption/decryption via DPAPI on Windows, file-system protection on Linux/macOS
 
 **Implementation:**
-- Profile file encrypted via `Microsoft.AspNetCore.DataProtection` (DPAPI on Windows)
+- Profile file encrypted via `Microsoft.AspNetCore.DataProtection`
 - File is Base64-encoded with `INTUNEMANAGER_ENC:` prefix; plaintext files are migrated on next save
 - `ClientSecret` stored in the encrypted profile; never appears in plaintext on disk
 
@@ -195,7 +197,7 @@ Views/
   RawJsonWindow.axaml
 
 ViewModels/
-  MainWindowViewModel.cs   (+ partial class files per feature area)
+  MainWindowViewModel.cs
   LoginViewModel.cs
   OverviewViewModel.cs
   GroupLookupViewModel.cs
@@ -214,7 +216,7 @@ ViewModels/
 **Service Lifetime (actual):**
 - Singleton: `IAuthenticationProvider`, `IntuneGraphClientFactory`, `ProfileService`, `IProfileEncryptionService`, `ICacheService`
 - Transient: `IExportService`, `MainWindowViewModel`
-- **Not in DI:** Graph API services — created with `new XxxService(graphClient)` in `MainWindowViewModel.ConnectAsync` after authentication succeeds
+- **Not in DI:** Graph API services — created with `new XxxService(graphClient)` in `MainWindowViewModel.ConnectToProfile(...)` after authentication succeeds
 
 ---
 
@@ -412,7 +414,7 @@ ViewModels/
 > **Important:** The project uses `Microsoft.Graph.Beta`, **not** the stable `Microsoft.Graph` package.
 
 ### Dependency Management
-- Use central package management (Directory.Packages.props)
+- Package versions are pinned directly in each `.csproj` file
 - Pin major versions, float minor/patch
 - Review updates monthly
 - Test before updating Graph SDK
