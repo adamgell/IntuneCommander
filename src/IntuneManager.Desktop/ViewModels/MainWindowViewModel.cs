@@ -1904,6 +1904,69 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_groupService == null) return;
 
         IsBusy = true;
+        StatusText = "Loading assigned groups...";
+
+        try
+        {
+            var groups = await _groupService.ListAssignedGroupsAsync();
+            var rows = new List<GroupRow>();
+            var total = groups.Count;
+            var processed = 0;
+
+            using var semaphore = new SemaphoreSlim(5, 5);
+            var tasks = groups.Select(async group =>
+            {
+                await semaphore.WaitAsync();
+                try
+                {
+                    var counts = group.Id != null
+                        ? await _groupService.GetMemberCountsAsync(group.Id)
+                        : new GroupMemberCounts(0, 0, 0, 0);
+
+                    var row = BuildGroupRow(group, counts);
+
+                    var currentProcessed = Interlocked.Increment(ref processed);
+                    lock (rows)
+                    {
+                        rows.Add(row);
+                    }
+
+                    if (currentProcessed % 10 == 0 || currentProcessed == total)
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                            StatusText = $"Loading assigned groups... {currentProcessed}/{total}");
+                    }
+                }
+                finally { semaphore.Release(); }
+            }).ToList();
+
+            await Task.WhenAll(tasks);
+
+            rows.Sort((a, b) => string.Compare(a.GroupName, b.GroupName, StringComparison.OrdinalIgnoreCase));
+
+            AssignedGroupRows = new ObservableCollection<GroupRow>(rows);
+            _assignedGroupsLoaded = true;
+            ApplyFilter();
+
+            // Save to cache
+            if (ActiveProfile?.TenantId != null)
+            {
+                _cacheService.Set(ActiveProfile.TenantId, CacheKeyAssignedGroups, rows);
+                DebugLog.Log("Cache", $"Saved {rows.Count} assigned group row(s) to cache");
+            }
+
+            StatusText = $"Loaded {rows.Count} assigned group(s)";
+        }
+        catch (Exception ex)
+        {
+            SetError($"Failed to load assigned groups: {FormatGraphError(ex)}");
+            StatusText = "Error loading assigned groups";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     // --- Conditional Access view ---
 
@@ -2003,69 +2066,6 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             SetError($"Failed to load policy sets: {FormatGraphError(ex)}");
             StatusText = "Error loading policy sets";
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-        StatusText = "Loading assigned groups...";
-
-        try
-        {
-            var groups = await _groupService.ListAssignedGroupsAsync();
-            var rows = new List<GroupRow>();
-            var total = groups.Count;
-            var processed = 0;
-
-            using var semaphore = new SemaphoreSlim(5, 5);
-            var tasks = groups.Select(async group =>
-            {
-                await semaphore.WaitAsync();
-                try
-                {
-                    var counts = group.Id != null
-                        ? await _groupService.GetMemberCountsAsync(group.Id)
-                        : new GroupMemberCounts(0, 0, 0, 0);
-
-                    var row = BuildGroupRow(group, counts);
-
-                    var currentProcessed = Interlocked.Increment(ref processed);
-                    lock (rows)
-                    {
-                        rows.Add(row);
-                    }
-
-                    if (currentProcessed % 10 == 0 || currentProcessed == total)
-                    {
-                        Dispatcher.UIThread.Post(() =>
-                            StatusText = $"Loading assigned groups... {currentProcessed}/{total}");
-                    }
-                }
-                finally { semaphore.Release(); }
-            }).ToList();
-
-            await Task.WhenAll(tasks);
-
-            rows.Sort((a, b) => string.Compare(a.GroupName, b.GroupName, StringComparison.OrdinalIgnoreCase));
-
-            AssignedGroupRows = new ObservableCollection<GroupRow>(rows);
-            _assignedGroupsLoaded = true;
-            ApplyFilter();
-
-            // Save to cache
-            if (ActiveProfile?.TenantId != null)
-            {
-                _cacheService.Set(ActiveProfile.TenantId, CacheKeyAssignedGroups, rows);
-                DebugLog.Log("Cache", $"Saved {rows.Count} assigned group row(s) to cache");
-            }
-
-            StatusText = $"Loaded {rows.Count} assigned group(s)";
-        }
-        catch (Exception ex)
-        {
-            SetError($"Failed to load assigned groups: {FormatGraphError(ex)}");
-            StatusText = "Error loading assigned groups";
         }
         finally
         {
@@ -2316,10 +2316,12 @@ public partial class MainWindowViewModel : ViewModelBase
                     StatusText = "Loading conditional access policies...";
                     var policies = await _conditionalAccessPolicyService.ListPoliciesAsync(cancellationToken);
                     ConditionalAccessPolicies = new ObservableCollection<ConditionalAccessPolicy>(policies);
+                    _conditionalAccessLoaded = true;
                     DebugLog.Log("Graph", $"Loaded {policies.Count} conditional access policy(ies)");
                 }
                 catch (Exception ex)
                 {
+                    _conditionalAccessLoaded = false;
                     var detail = FormatGraphError(ex);
                     DebugLog.LogError($"Failed to load conditional access policies: {detail}", ex);
                     errors.Add($"Conditional Access: {detail}");
@@ -2333,10 +2335,12 @@ public partial class MainWindowViewModel : ViewModelBase
                     StatusText = "Loading assignment filters...";
                     var filters = await _assignmentFilterService.ListFiltersAsync(cancellationToken);
                     AssignmentFilters = new ObservableCollection<DeviceAndAppManagementAssignmentFilter>(filters);
+                    _assignmentFiltersLoaded = true;
                     DebugLog.Log("Graph", $"Loaded {filters.Count} assignment filter(s)");
                 }
                 catch (Exception ex)
                 {
+                    _assignmentFiltersLoaded = false;
                     var detail = FormatGraphError(ex);
                     DebugLog.LogError($"Failed to load assignment filters: {detail}", ex);
                     errors.Add($"Assignment Filters: {detail}");
@@ -2350,10 +2354,12 @@ public partial class MainWindowViewModel : ViewModelBase
                     StatusText = "Loading policy sets...";
                     var sets = await _policySetService.ListPolicySetsAsync(cancellationToken);
                     PolicySets = new ObservableCollection<PolicySet>(sets);
+                    _policySetsLoaded = true;
                     DebugLog.Log("Graph", $"Loaded {sets.Count} policy set(s)");
                 }
                 catch (Exception ex)
                 {
+                    _policySetsLoaded = false;
                     var detail = FormatGraphError(ex);
                     DebugLog.LogError($"Failed to load policy sets: {detail}", ex);
                     errors.Add($"Policy Sets: {detail}");
@@ -2579,7 +2585,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>
     /// Attempts to populate all collections from cached data.
-    /// Returns how many data types were loaded (0–4).
+    /// Returns how many data types were loaded.
     /// </summary>
     private int TryLoadFromCache(string tenantId)
     {
@@ -2626,9 +2632,39 @@ public partial class MainWindowViewModel : ViewModelBase
                 UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeySettingsCatalog);
             }
 
+            var conditionalAccessPolicies = _cacheService.Get<ConditionalAccessPolicy>(tenantId, CacheKeyConditionalAccess);
+            if (conditionalAccessPolicies != null)
+            {
+                ConditionalAccessPolicies = new ObservableCollection<ConditionalAccessPolicy>(conditionalAccessPolicies);
+                _conditionalAccessLoaded = true;
+                DebugLog.Log("Cache", $"Loaded {conditionalAccessPolicies.Count} conditional access policy(ies) from cache");
+                typesLoaded++;
+                UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeyConditionalAccess);
+            }
+
+            var assignmentFilters = _cacheService.Get<DeviceAndAppManagementAssignmentFilter>(tenantId, CacheKeyAssignmentFilters);
+            if (assignmentFilters != null)
+            {
+                AssignmentFilters = new ObservableCollection<DeviceAndAppManagementAssignmentFilter>(assignmentFilters);
+                _assignmentFiltersLoaded = true;
+                DebugLog.Log("Cache", $"Loaded {assignmentFilters.Count} assignment filter(s) from cache");
+                typesLoaded++;
+                UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeyAssignmentFilters);
+            }
+
+            var policySets = _cacheService.Get<PolicySet>(tenantId, CacheKeyPolicySets);
+            if (policySets != null)
+            {
+                PolicySets = new ObservableCollection<PolicySet>(policySets);
+                _policySetsLoaded = true;
+                DebugLog.Log("Cache", $"Loaded {policySets.Count} policy set(s) from cache");
+                typesLoaded++;
+                UpdateOldestCacheTime(ref oldestCacheTime, tenantId, CacheKeyPolicySets);
+            }
+
             if (typesLoaded > 0)
             {
-                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count;
+                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count;
                 var ageText = FormatCacheAge(oldestCacheTime);
                 CacheStatusText = oldestCacheTime.HasValue
                     ? $"Cache: {oldestCacheTime.Value.ToLocalTime():MMM dd, h:mm tt}"
@@ -2641,7 +2677,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 DebugLog.Log("Cache", "No cached data found");
             }
 
-            // If all 4 primary types loaded, also populate Overview dashboard from cache
+            // If all primary overview types loaded, also populate Overview dashboard from cache
             if (typesLoaded >= 4)
             {
                 var cachedAssignments = _cacheService.Get<AppAssignmentRow>(tenantId, CacheKeyAppAssignments);
@@ -2737,6 +2773,15 @@ public partial class MainWindowViewModel : ViewModelBase
             if (SettingsCatalogPolicies.Count > 0)
                 _cacheService.Set(tenantId, CacheKeySettingsCatalog, SettingsCatalogPolicies.ToList());
 
+            if (ConditionalAccessPolicies.Count > 0)
+                _cacheService.Set(tenantId, CacheKeyConditionalAccess, ConditionalAccessPolicies.ToList());
+
+            if (AssignmentFilters.Count > 0)
+                _cacheService.Set(tenantId, CacheKeyAssignmentFilters, AssignmentFilters.ToList());
+
+            if (PolicySets.Count > 0)
+                _cacheService.Set(tenantId, CacheKeyPolicySets, PolicySets.ToList());
+
             DebugLog.Log("Cache", "Saved data to disk cache");
             CacheStatusText = $"Cache: {DateTime.Now:MMM dd, h:mm tt}";
         }
@@ -2773,6 +2818,9 @@ public partial class MainWindowViewModel : ViewModelBase
         AppAssignmentRows.Clear();
         SelectedAppAssignmentRow = null;
         _appAssignmentsLoaded = false;
+        _conditionalAccessLoaded = false;
+        _assignmentFiltersLoaded = false;
+        _policySetsLoaded = false;
         SettingsCatalogPolicies.Clear();
         SelectedSettingsCatalogPolicy = null;
         ConditionalAccessPolicies.Clear();
