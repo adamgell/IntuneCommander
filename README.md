@@ -78,7 +78,7 @@ src/
     Extensions/              # DI registration (AddIntuneManagerCore)
   IntuneManager.Desktop/     # Avalonia UI application
     Views/                   # MainWindow, LoginView, OverviewView, DebugLogWindow, RawJsonWindow
-    ViewModels/              # MainWindowViewModel (+ feature partial files), LoginViewModel, OverviewViewModel
+    ViewModels/              # MainWindowViewModel, LoginViewModel, OverviewViewModel
     Services/                # DebugLogService (in-memory log, UI-thread-safe)
     Converters/              # ComputedColumnConverters
 tests/
