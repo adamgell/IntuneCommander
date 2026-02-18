@@ -298,6 +298,9 @@
                                     <Binding Path="SelectedCompliancePolicy" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedSettingsCatalogPolicy" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedApplication" Converter="{x:Static ObjectConverters.IsNull}" />
+                                    <Binding Path="SelectedConditionalAccessPolicy" Converter="{x:Static ObjectConverters.IsNull}" />
+                                    <Binding Path="SelectedAssignmentFilter" Converter="{x:Static ObjectConverters.IsNull}" />
+                                    <Binding Path="SelectedPolicySet" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedAppAssignmentRow" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedDynamicGroupRow" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedAssignedGroupRow" Converter="{x:Static ObjectConverters.IsNull}" />
@@ -571,6 +574,107 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- Conditional Access details                 -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <ScrollViewer IsVisible="{Binding SelectedConditionalAccessPolicy, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="4">
+
+                                <TextBlock Text="Policy Information" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedConditionalAccessPolicy}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="State" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding State}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- Assignment Filter details                  -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <ScrollViewer IsVisible="{Binding SelectedAssignmentFilter, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="4">
+
+                                <TextBlock Text="Filter Information" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedAssignmentFilter}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Platform" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding Platform}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding AssignmentFilterManagementType}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Rule" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Rule}" TextWrapping="Wrap"
+                                                       FontFamily="Consolas,Courier New,monospace" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- Policy Set details                         -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <ScrollViewer IsVisible="{Binding SelectedPolicySet, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="4">
+
+                                <TextBlock Text="Policy Set Information" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedPolicySet}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 
