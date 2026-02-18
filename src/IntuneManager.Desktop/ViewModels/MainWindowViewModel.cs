@@ -542,7 +542,7 @@ public partial class MainWindowViewModel : ViewModelBase
         else if (SelectedIntuneBrandingProfile is { } brandingProfile)
         {
             sb.AppendLine("=== Intune Branding Profile ===");
-            Append(sb, "Name", brandingProfile.DisplayName);
+            Append(sb, "Display Name", brandingProfile.DisplayName);
             Append(sb, "Profile Name", brandingProfile.ProfileName);
             Append(sb, "ID", brandingProfile.Id);
             Append(sb, "Show Logo", brandingProfile.ShowLogo?.ToString());
@@ -1752,6 +1752,66 @@ public partial class MainWindowViewModel : ViewModelBase
                         SelectedTermsAndConditions = updated;
                     }
                     DebugLog.Log("Graph", $"Refreshed terms and conditions: {updated.DisplayName}");
+                }
+            }
+            else if (IsScopeTagsCategory && SelectedScopeTag?.Id != null && _scopeTagService != null)
+            {
+                StatusText = $"Refreshing {SelectedScopeTag.DisplayName}...";
+                var updated = await _scopeTagService.GetScopeTagAsync(SelectedScopeTag.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = ScopeTags.IndexOf(SelectedScopeTag);
+                    if (idx >= 0)
+                    {
+                        ScopeTags[idx] = updated;
+                        SelectedScopeTag = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed scope tag: {updated.DisplayName}");
+                }
+            }
+            else if (IsRoleDefinitionsCategory && SelectedRoleDefinition?.Id != null && _roleDefinitionService != null)
+            {
+                StatusText = $"Refreshing {SelectedRoleDefinition.DisplayName}...";
+                var updated = await _roleDefinitionService.GetRoleDefinitionAsync(SelectedRoleDefinition.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = RoleDefinitions.IndexOf(SelectedRoleDefinition);
+                    if (idx >= 0)
+                    {
+                        RoleDefinitions[idx] = updated;
+                        SelectedRoleDefinition = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed role definition: {updated.DisplayName}");
+                }
+            }
+            else if (IsIntuneBrandingCategory && SelectedIntuneBrandingProfile?.Id != null && _intuneBrandingService != null)
+            {
+                StatusText = $"Refreshing {SelectedIntuneBrandingProfile.ProfileName ?? SelectedIntuneBrandingProfile.DisplayName}...";
+                var updated = await _intuneBrandingService.GetIntuneBrandingProfileAsync(SelectedIntuneBrandingProfile.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = IntuneBrandingProfiles.IndexOf(SelectedIntuneBrandingProfile);
+                    if (idx >= 0)
+                    {
+                        IntuneBrandingProfiles[idx] = updated;
+                        SelectedIntuneBrandingProfile = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed Intune branding profile: {updated.ProfileName ?? updated.DisplayName}");
+                }
+            }
+            else if (IsAzureBrandingCategory && SelectedAzureBrandingLocalization?.Id != null && _azureBrandingService != null)
+            {
+                StatusText = $"Refreshing {SelectedAzureBrandingLocalization.Id}...";
+                var updated = await _azureBrandingService.GetBrandingLocalizationAsync(SelectedAzureBrandingLocalization.Id, cancellationToken);
+                if (updated != null)
+                {
+                    var idx = AzureBrandingLocalizations.IndexOf(SelectedAzureBrandingLocalization);
+                    if (idx >= 0)
+                    {
+                        AzureBrandingLocalizations[idx] = updated;
+                        SelectedAzureBrandingLocalization = updated;
+                    }
+                    DebugLog.Log("Graph", $"Refreshed Azure branding localization: {updated.Id}");
                 }
             }
             else if (IsConditionalAccessCategory && SelectedConditionalAccessPolicy?.Id != null && _conditionalAccessPolicyService != null)
