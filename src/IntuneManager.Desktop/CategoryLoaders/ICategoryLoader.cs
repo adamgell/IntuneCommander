@@ -8,8 +8,11 @@ namespace IntuneManager.Desktop.CategoryLoaders;
 /// Contract for a per-category data loader.
 ///
 /// Every Intune object-type category must implement this interface so that
-/// loading, caching, status reporting, and error handling are handled
+/// loading, status reporting, error handling, and cache write are handled
 /// uniformly by <see cref="CategoryLoadHelper.ExecuteAsync{T}"/>.
+///
+/// Cache reads are handled separately by <c>TryLoadLazyCacheEntry</c> in the
+/// <c>SelectedNavCategory</c> setter before calling <c>ExecuteAsync</c>.
 ///
 /// Implement the interface for a new category, pass the instance to
 /// <see cref="CategoryLoadHelper.ExecuteAsync{T}"/>, and use the returned
