@@ -41,3 +41,9 @@ For client secret authentication:
 
 This project is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement), a PowerShell/WPF-based Intune management tool.
 Merill for originally creating https://github.com/merill/idPowerToys
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting pull requests, code standards, and development workflow.
+
+For current PR status and organization, see [PR_STATUS.md](PR_STATUS.md).
