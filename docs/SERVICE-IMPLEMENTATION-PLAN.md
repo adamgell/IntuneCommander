@@ -1,146 +1,103 @@
-# Intune Commander Service Build Plan
+# Intune Commander Service Implementation Plan (Current)
 
-## Goals
-- Continue migration from PowerShell module object handlers to typed Core services.
-- Keep service-per-type architecture with Graph SDK models and async/cancellation support.
-- Preserve reliability requirements: manual `@odata.nextLink` pagination, no `PageIterator`.
+## Scope
+- Keep migration from legacy PowerShell handlers to typed Core services + Avalonia UI.
+- Maintain service-per-type architecture using `Microsoft.Graph.Beta.Models`.
+- Preserve reliability rule for all list operations: manual `@odata.nextLink` pagination (`$top=999`, then `.WithUrl(nextLink)`).
 
-## Core Service Conventions (Current)
-- Interface + implementation per object type in `src/IntuneManager.Core/Services/`.
-- Constructor takes `GraphServiceClient`.
-- Async methods with `CancellationToken cancellationToken = default`.
-- List methods return `List<T>` and implement manual pagination:
-  - Initial query uses `$top=999`
-  - Follow `response.OdataNextLink` with `.WithUrl(response.OdataNextLink)`
-- CRUD methods throw on null create/update responses.
-- Assignment pattern where supported:
-  - `GetAssignmentsAsync(id)`
-  - `Assign...Async(id, List<TAssignment>)`
+## Completed Since Initial Plan (Now Done)
 
-## Service Backlog (Prioritized)
+The original Wave 1–5 backlog has been implemented and integrated:
 
-### Wave 1 (Scaffold now, complete first)
-1. Endpoint Security (`/deviceManagement/intents`)
-2. Administrative Templates (`/deviceManagement/groupPolicyConfigurations`)
-3. Enrollment Configurations (`/deviceManagement/deviceEnrollmentConfigurations`)
+- Endpoint Security, Administrative Templates, Enrollment Configurations
+- App Protection, Managed Device App Configurations, Targeted Managed App Configurations, Terms and Conditions
+- Scope Tags, Role Definitions, Intune Branding, Azure Branding
+- Autopilot, Device Health Scripts, Mac Custom Attributes, Feature Updates
+- Named Locations, Authentication Strength, Authentication Context, Terms of Use
+- Desktop wiring in `MainWindowViewModel` and detail panes
+- Export/Import coverage in `ExportService` / `ImportService`
+- Core test expansion for Wave 4–5 contracts and import/export flows
 
-### Wave 2 (App and policy plane)
-4. App Protection (`/deviceAppManagement/managedAppPolicies`)
-5. Managed App Configurations:
-   - `/deviceAppManagement/mobileAppConfigurations`
-   - `/deviceAppManagement/targetedManagedAppConfigurations`
-6. Terms and Conditions (`/deviceManagement/termsAndConditions`)
+## Remaining Gaps vs `EndpointManager.psm1`
 
-### Wave 3 (Tenant admin plane)
-7. Scope Tags (`/deviceManagement/roleScopeTags`)
-8. Role Definitions (`/deviceManagement/roleDefinitions`)
-9. Intune Branding (`/deviceManagement/intuneBrandingProfiles`)
-10. Azure Branding (`/organization/{organizationId}/branding/localizations`)
+### A) Missing Object Families (No equivalent service/view yet)
+1. Scripts family
+   - `PowerShellScripts` (`/deviceManagement/deviceManagementScripts`)
+   - `MacScripts` (`/deviceManagement/deviceShellScripts`)
+   - `ComplianceScripts` (`/deviceManagement/deviceComplianceScripts`)
+2. Policy dependencies and support objects
+   - `ADMXFiles` (`/deviceManagement/groupPolicyUploadedDefinitionFiles`)
+   - `ReusableSettings` (`/deviceManagement/reusablePolicySettings`)
+   - `Notifications` (`/deviceManagement/notificationMessageTemplates`)
+3. Update families not yet represented
+   - `UpdatePolicies` (WUfB subset in `/deviceManagement/deviceConfigurations`)
+   - `QualityUpdates` (`/deviceManagement/windowsQualityUpdateProfiles`)
+   - `DriverUpdateProfiles` (`/deviceManagement/windowsDriverUpdateProfiles`)
+4. Enrollment/admin long-tail
+   - `AppleDEPOnboardingSettings`
+   - `AppleEnrollmentTypes`
+   - `DeviceCategories`
+5. Cloud PC
+   - `W365ProvisioningPolicies` (`/deviceManagement/virtualEndpoint/provisioningPolicies`)
+   - `W365UserSettings` (`/deviceManagement/virtualEndpoint/userSettings`)
+6. Additional legacy object variants
+   - `InventoryPolicies`
+   - `AndroidOEMConfig`
+   - `CompliancePoliciesV2`
 
-### Wave 4 (Enrollment and updates)
-11. Autopilot (`/deviceManagement/windowsAutopilotDeploymentProfiles`)
-12. Device Health Scripts (`/deviceManagement/deviceHealthScripts`)
-13. Mac Custom Attributes (`/deviceManagement/deviceCustomAttributeShellScripts`)
-14. Feature Updates (`/deviceManagement/windowsFeatureUpdateProfiles`)
+### B) Feature Parity Gaps on Already-Migrated Objects
+- Object-specific pre/post transforms used by legacy import/update pipelines are only partially ported.
+- Assignment/update/delete behavior parity is incomplete for several categories.
+- Advanced exports (CSV/document/diagram) are not broadly available in the desktop app.
+- Legacy split-view depth (especially Conditional Access and Autopilot workflows) is only partially reproduced.
 
-### Wave 5 (Conditional Access adjacent)
-15. Named Locations (`/identity/conditionalAccess/namedLocations`)
-16. Authentication Strengths (`/identity/conditionalAccess/authenticationStrengths/policies`)
-17. Authentication Contexts (`/identity/conditionalAccess/authenticationContextClassReferences`)
-18. Terms of Use (`/identityGovernance/termsOfUse/agreements`)
+## Prioritized Delivery Plan
 
-## Wave 1 Concrete Scaffold Checklist
+### Wave 6 — Scripts and Policy Dependencies (highest impact)
+1. Add Core services + interfaces
+   - `IDeviceManagementScriptService` / `DeviceManagementScriptService`
+   - `IDeviceShellScriptService` / `DeviceShellScriptService`
+   - `IComplianceScriptService` / `ComplianceScriptService`
+   - `IAdmxFileService` / `AdmxFileService`
+   - `IReusableSettingService` / `ReusableSettingService`
+2. Add desktop categories, loaders, cache keys, and detail panes.
+3. Add export/import support for script objects first (migration-critical path).
 
-For each service:
-- [ ] Add `I<Type>Service` interface in `Core/Services/`
-- [ ] Add `<Type>Service` implementation in `Core/Services/`
-- [ ] Add list/get/create/update/delete methods
-- [ ] Add assignments methods where API exposes assignments + assign action
-- [ ] Use manual `@odata.nextLink` pagination in all list methods
-- [ ] Ensure model types are from `Microsoft.Graph.Beta.Models`
+### Wave 7 — Update Plane Completion
+1. Add services for:
+   - WUfB Update Policies (typed subset service over `/deviceManagement/deviceConfigurations`)
+   - Quality Updates
+   - Driver Update Profiles
+2. Integrate with desktop navigation and export/import.
+3. Add tests for update profile pagination and serialization compatibility.
 
-### 1) Endpoint Security
-- Interface: `IEndpointSecurityService`
-- Class: `EndpointSecurityService`
-- Endpoints:
-  - List/Get/Create/Update/Delete: `/deviceManagement/intents`
-  - Assignments: `/deviceManagement/intents/{id}/assignments`
-  - Assign action: `/deviceManagement/intents/{id}/assign`
-- Methods:
-  - `ListEndpointSecurityIntentsAsync`
-  - `GetEndpointSecurityIntentAsync`
-  - `CreateEndpointSecurityIntentAsync`
-  - `UpdateEndpointSecurityIntentAsync`
-  - `DeleteEndpointSecurityIntentAsync`
-  - `GetAssignmentsAsync`
-  - `AssignIntentAsync`
+### Wave 8 — Enrollment + Apple + Device Admin Extensions
+1. Add services for Apple DEP onboarding, Apple enrollment types, and device categories.
+2. Surface co-management/ESP/restrictions as clear sub-views in desktop UX.
+3. Port required import-order/dependency logic from legacy behavior.
 
-### 2) Administrative Templates
-- Interface: `IAdministrativeTemplateService`
-- Class: `AdministrativeTemplateService`
-- Endpoints:
-  - List/Get/Create/Update/Delete: `/deviceManagement/groupPolicyConfigurations`
-  - Assignments: `/deviceManagement/groupPolicyConfigurations/{id}/assignments`
-  - Assign action: `/deviceManagement/groupPolicyConfigurations/{id}/assign`
-- Methods:
-  - `ListAdministrativeTemplatesAsync`
-  - `GetAdministrativeTemplateAsync`
-  - `CreateAdministrativeTemplateAsync`
-  - `UpdateAdministrativeTemplateAsync`
-  - `DeleteAdministrativeTemplateAsync`
-  - `GetAssignmentsAsync`
-  - `AssignAdministrativeTemplateAsync`
+### Wave 9 — Cloud PC + Long-Tail Policy Objects
+1. Add `W365ProvisioningPolicies` and `W365UserSettings` services.
+2. Add `InventoryPolicies`, `AndroidOEMConfig`, and `CompliancePoliciesV2` support.
+3. Decide read-only vs full CRUD/import-export per object before implementation.
 
-### 3) Enrollment Configurations
-- Interface: `IEnrollmentConfigurationService`
-- Class: `EnrollmentConfigurationService`
-- Endpoint:
-  - Base collection: `/deviceManagement/deviceEnrollmentConfigurations`
-- Methods:
-  - `ListEnrollmentConfigurationsAsync`
-  - `ListEnrollmentStatusPagesAsync` (ESP subset)
-  - `ListEnrollmentRestrictionsAsync` (restrictions subset)
-  - `ListCoManagementSettingsAsync` (co-management subset)
-  - `GetEnrollmentConfigurationAsync`
-  - `CreateEnrollmentConfigurationAsync`
-  - `UpdateEnrollmentConfigurationAsync`
-  - `DeleteEnrollmentConfigurationAsync`
+### Wave 10 — Behavior Parity Hardening
+1. Fill missing pre/post import and update transforms for currently migrated objects.
+2. Close assignment/delete parity gaps where Graph supports assignment endpoints/actions.
+3. Extend CSV/document exports for additional high-value categories.
 
-## Delivery Plan
+## Implementation Checklist (apply to each new service)
+- [ ] Add `I<Type>Service` and `<Type>Service` in `src/IntuneManager.Core/Services/`
+- [ ] Constructor receives `GraphServiceClient`
+- [ ] Async APIs accept `CancellationToken`
+- [ ] List methods use manual pagination (`$top=999` + `OdataNextLink`)
+- [ ] Add desktop loader + nav category + cache key
+- [ ] Add export/import handlers when migration-relevant
+- [ ] Add focused Core tests (pagination, CRUD, null/error handling)
 
-### Phase A — Scaffold (this change)
-- Add Wave 1 interfaces and service classes with full list/get/create/update/delete signatures.
-- Implement manual pagination loops and baseline filtering helpers.
-
-### Phase B — Functional Completion
-- Endpoint Security:
-  - Add intent-specific import/export normalization helpers.
-  - Add reusable-settings resolution path.
-- Administrative Templates:
-  - Add definition/presentation traversal methods used by import/export.
-  - Add file import/copy helper entry points.
-- Enrollment:
-  - Validate and harden subtype filters for ESP/Restrictions/Co-management.
-  - Add assignment methods if graph model path is confirmed in SDK.
-
-### Phase C — Integrate Into Desktop
-- Add collections + selection properties in `MainWindowViewModel`.
-- Add category entries, lazy-load handlers, and cache keys.
-- Add DataGrid column configs for each new type.
-
-### Phase D — Export/Import Integration
-- Extend `ExportService` + `ImportService` for Wave 1 objects.
-- Preserve migration-table compatibility.
-
-### Phase E — Tests
-- Add `IntuneManager.Core.Tests` for each new service:
-  - pagination continuation
-  - list/get/create/update/delete success + null handling
-  - assignment operations (where implemented)
-
-## Definition of Done (per service)
-- Compiles and unit tests added/passing.
-- Manual pagination used on every list method.
-- Cancellation token passed to all graph calls.
-- No UI-thread sync blocking introduced.
-- Service methods are consumed by desktop view model paths (for user-facing features).
+## Definition of Done
+- Builds cleanly (`dotnet build`) and relevant tests pass (`dotnet test`).
+- No UI-thread blocking introduced (startup remains async-first).
+- New service is visible in desktop navigation and can load tenant data.
+- Export/import (when in scope) is migration-table compatible.
+- Documentation updated with endpoint mapping and status.

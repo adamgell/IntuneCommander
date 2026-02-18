@@ -40,3 +40,4 @@ For client secret authentication:
 ## Acknowledgments
 
 This project is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement), a PowerShell/WPF-based Intune management tool.
+Merill for originally creating https://github.com/merill/idPowerToys
