@@ -30,6 +30,7 @@
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc6.1" />
     <PackageReference Include="MessageBox.Avalonia" Version="3.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+    <PackageReference Include="Syncfusion.Presentation.Net.Core" Version="28.1.33" />
   </ItemGroup>
 
   <ItemGroup>

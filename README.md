@@ -22,6 +22,7 @@ A cross-platform Intune management tool built with .NET 10 and Avalonia UI, desi
 | Graph API | **Microsoft.Graph.Beta** 5.130.x-preview |
 | Cache | LiteDB 5.0.x (AES-encrypted via DataProtection) |
 | Charts | LiveChartsCore.SkiaSharpView.Avalonia |
+| PowerPoint Export | Syncfusion.Presentation.Net.Core 28.1.x |
 | DI | Microsoft.Extensions.DependencyInjection 10.0.x |
 | Testing | xUnit |
 
@@ -33,6 +34,7 @@ A cross-platform Intune management tool built with .NET 10 and Avalonia UI, desi
 - .NET 10 SDK
 - Visual Studio 2022, JetBrains Rider, or VS Code with C# Dev Kit
 - An Azure AD app registration with appropriate Microsoft Graph permissions (for use with the beta Microsoft Graph SDK/endpoint)
+- (Optional) Syncfusion license key for PowerPoint export feature - see [Syncfusion Licensing](#syncfusion-licensing)
 
 ### Build & Run
 
@@ -99,6 +101,46 @@ Autopilot Profiles · Device Health Scripts · Mac Custom Attributes · Feature 
 Named Locations · Authentication Strengths · Authentication Contexts · Terms of Use ·
 Conditional Access · Assignment Filters · Policy Sets · Applications ·
 Application Assignments · Dynamic Groups · Assigned Groups
+
+## Features
+
+### Conditional Access PowerPoint Export
+
+Export Conditional Access policies to a comprehensive PowerPoint presentation with:
+- Cover slide with tenant name and export timestamp
+- Tenant summary with policy counts
+- Policy inventory table showing all policies
+- Detailed slides for each policy (conditions, grant controls, assignments)
+
+**Usage:**
+1. Navigate to the Conditional Access category
+2. Load CA policies
+3. Click "📊 Export PowerPoint" button
+4. Choose save location
+5. Open the generated `.pptx` file
+
+**Current Limitations (v1):**
+- Commercial cloud only (GCC/GCC-High/DoD support planned for future release)
+- Basic policy details (advanced dependency lookups deferred)
+- Feature-level parity with idPowerToys CA decks (not pixel-perfect template matching)
+
+### Syncfusion Licensing
+
+The PowerPoint export feature uses Syncfusion.Presentation.Net.Core, which requires a license key:
+
+**Community License (FREE):**
+- For companies/individuals with < $1M annual revenue
+- Maximum 5 developers
+- Register at: https://www.syncfusion.com/sales/communitylicense
+
+**Commercial License:**
+- Required for companies exceeding Community License thresholds
+- Visit: https://www.syncfusion.com/sales/products
+
+**Setup:**
+Set environment variable: `SYNCFUSION_LICENSE_KEY=your-license-key-here`
+
+The app will run without a license key but will display watermarks on exported PowerPoint files.
 
 ## Acknowledgments
 

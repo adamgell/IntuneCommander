@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Conditional Access PowerPoint Export** (Phase 1-5 complete)
+  - New service: `IConditionalAccessPptExportService` / `ConditionalAccessPptExportService`
+  - Generates comprehensive PowerPoint presentations with:
+    - Cover slide with tenant name and timestamp
+    - Tenant summary with policy counts
+    - Policy inventory table (all policies)
+    - Per-policy detail slides (conditions, grant controls, assignments)
+  - UI integration: Export button visible in Conditional Access category
+  - File save dialog with timestamped default filename
+  - Async export with cancellation support and progress feedback
+  - 11 comprehensive unit tests (parameter validation, file creation, PPTX structure)
+  - Commercial cloud support (v1); GCC/GCC-High/DoD deferred to future release
+- Added Syncfusion.Presentation.Net.Core v28.1.33 dependency for PowerPoint generation
+- Added Syncfusion license initialization via `SYNCFUSION_LICENSE_KEY` environment variable
+- Updated SERVICE-IMPLEMENTATION-PLAN.md with Wave 6 (CA PowerPoint Export Integration)
+- Documented Syncfusion licensing requirements in README.md
+
 ### Documentation
 - Added `PR_STATUS.md` - comprehensive pull request organization and status tracking document
   - Categorizes all 9 open PRs by priority (P1/P2/P3) and type

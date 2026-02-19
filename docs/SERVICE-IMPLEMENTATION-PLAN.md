@@ -53,7 +53,17 @@ The original Wave 1–5 backlog has been implemented and integrated:
 
 ## Prioritized Delivery Plan
 
-### Wave 6 — Scripts and Policy Dependencies (highest impact)
+### Wave 6 — CA PowerPoint Export Integration (in progress)
+Integrate Conditional Access PowerPoint generation with native in-app export flow:
+1. Add Syncfusion PowerPoint library dependencies
+2. Create `IConditionalAccessPptExportService` / `ConditionalAccessPptExportService`
+3. Implement data aggregation and slide generation pipeline
+4. Add desktop command and UX wiring
+5. Commercial cloud support only for v1 (GCC/GCC-High/DoD deferred)
+
+See: `docs/CA-POWERPOINT-INT-PLAN.MD` for full implementation plan.
+
+### Wave 7 — Scripts and Policy Dependencies (highest impact)
 1. Add Core services + interfaces
    - `IDeviceManagementScriptService` / `DeviceManagementScriptService`
    - `IDeviceShellScriptService` / `DeviceShellScriptService`
@@ -63,7 +73,7 @@ The original Wave 1–5 backlog has been implemented and integrated:
 2. Add desktop categories, loaders, cache keys, and detail panes.
 3. Add export/import support for script objects first (migration-critical path).
 
-### Wave 7 — Update Plane Completion
+### Wave 8 — Update Plane Completion
 1. Add services for:
    - WUfB Update Policies (typed subset service over `/deviceManagement/deviceConfigurations`)
    - Quality Updates
@@ -71,17 +81,17 @@ The original Wave 1–5 backlog has been implemented and integrated:
 2. Integrate with desktop navigation and export/import.
 3. Add tests for update profile pagination and serialization compatibility.
 
-### Wave 8 — Enrollment + Apple + Device Admin Extensions
+### Wave 9 — Enrollment + Apple + Device Admin Extensions
 1. Add services for Apple DEP onboarding, Apple enrollment types, and device categories.
 2. Surface co-management/ESP/restrictions as clear sub-views in desktop UX.
 3. Port required import-order/dependency logic from legacy behavior.
 
-### Wave 9 — Cloud PC + Long-Tail Policy Objects
+### Wave 10 — Cloud PC + Long-Tail Policy Objects
 1. Add `W365ProvisioningPolicies` and `W365UserSettings` services.
 2. Add `InventoryPolicies`, `AndroidOEMConfig`, and `CompliancePoliciesV2` support.
 3. Decide read-only vs full CRUD/import-export per object before implementation.
 
-### Wave 10 — Behavior Parity Hardening
+### Wave 11 — Behavior Parity Hardening
 1. Fill missing pre/post import and update transforms for currently migrated objects.
 2. Close assignment/delete parity gaps where Graph supports assignment endpoints/actions.
 3. Extend CSV/document exports for additional high-value categories.
