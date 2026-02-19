@@ -109,7 +109,7 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             Assert.NotNull(fetched);
             Assert.Equal(created.Id, fetched!.Id);
 
-            // Update
+            // Update (with retry for transient Graph API failures)
             var toUpdate = new IpNamedLocation
             {
                 Id = created.Id,
@@ -120,7 +120,7 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
                     new IPv4CidrRange { CidrAddress = "198.51.100.0/24" }
                 ]
             };
-            var updated = await svc.UpdateNamedLocationAsync(toUpdate);
+            var updated = await RetryOnTransientFailureAsync(async () => await svc.UpdateNamedLocationAsync(toUpdate));
             Assert.NotNull(updated);
 
             // Delete
@@ -168,9 +168,9 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             Assert.NotNull(fetched);
             Assert.Equal(created.Id, fetched!.Id);
 
-            // Update
+            // Update (with retry for transient Graph API failures)
             created.Description = "Updated by integration test";
-            var updated = await svc.UpdateTermsAndConditionsAsync(created);
+            var updated = await RetryOnTransientFailureAsync(async () => await svc.UpdateTermsAndConditionsAsync(created));
             Assert.NotNull(updated);
             Assert.Equal("Updated by integration test", updated.Description);
 
@@ -262,9 +262,9 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             var fetched = await svc.GetFeatureUpdateProfileAsync(created.Id!);
             Assert.NotNull(fetched);
 
-            // Update
+            // Update (with retry for transient Graph API failures)
             created.Description = "Updated by integration test";
-            var updated = await svc.UpdateFeatureUpdateProfileAsync(created);
+            var updated = await RetryOnTransientFailureAsync(async () => await svc.UpdateFeatureUpdateProfileAsync(created));
             Assert.NotNull(updated);
 
             // Delete

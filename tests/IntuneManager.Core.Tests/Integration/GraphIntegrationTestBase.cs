@@ -1,6 +1,7 @@
 using Azure.Identity;
 using IntuneManager.Core.Services;
 using Microsoft.Graph.Beta;
+using Microsoft.Graph.Beta.Models.ODataErrors;
 
 namespace IntuneManager.Core.Tests.Integration;
 
@@ -53,5 +54,74 @@ public abstract class GraphIntegrationTestBase
     {
         if (GraphClient == null) return null;
         return (T?)Activator.CreateInstance(typeof(T), GraphClient);
+    }
+
+    /// <summary>
+    /// Retries an async operation with exponential backoff for transient Graph API failures.
+    /// Useful for integration tests against live APIs that may experience intermittent issues.
+    /// </summary>
+    protected async Task<TResult> RetryOnTransientFailureAsync<TResult>(
+        Func<Task<TResult>> operation,
+        int maxAttempts = 3,
+        int initialDelayMs = 1000)
+    {
+        var attempt = 0;
+        Exception? lastException = null;
+
+        while (attempt < maxAttempts)
+        {
+            try
+            {
+                var result = await operation();
+                
+                // If result is null and we haven't exhausted retries, treat as transient
+                if (result == null && attempt < maxAttempts - 1)
+                {
+                    attempt++;
+                    var delay = initialDelayMs * (int)Math.Pow(2, attempt - 1);
+                    await Task.Delay(delay);
+                    continue;
+                }
+                
+                return result;
+            }
+            catch (ODataError ex) when (IsTransientError(ex) && attempt < maxAttempts - 1)
+            {
+                lastException = ex;
+                attempt++;
+                var delay = initialDelayMs * (int)Math.Pow(2, attempt - 1);
+                await Task.Delay(delay);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to update") && attempt < maxAttempts - 1)
+            {
+                // Catch our custom "Failed to update" exceptions from services
+                lastException = ex;
+                attempt++;
+                var delay = initialDelayMs * (int)Math.Pow(2, attempt - 1);
+                await Task.Delay(delay);
+            }
+        }
+
+        // If we got here, all retries failed — throw the last exception
+        throw lastException ?? new InvalidOperationException("Operation failed after all retries");
+    }
+
+    /// <summary>
+    /// Determines if an ODataError is transient (retriable).
+    /// </summary>
+    private static bool IsTransientError(ODataError error)
+    {
+        // Check for 500 series errors (server-side issues)
+        if (error.ResponseStatusCode >= 500 && error.ResponseStatusCode < 600)
+            return true;
+
+        // Check for specific transient error messages
+        var message = error.Message?.ToLowerInvariant() ?? string.Empty;
+        if (message.Contains("internal server error") ||
+            message.Contains("service unavailable") ||
+            message.Contains("timeout"))
+            return true;
+
+        return false;
     }
 }
