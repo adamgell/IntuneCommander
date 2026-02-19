@@ -36,9 +36,9 @@ ClientCertificateCredential  — deferred; requires cert-store integration
 ManagedIdentityCredential    — deferred; not applicable for desktop use
 ```
 
-`InteractiveBrowserAuthProvider` currently falls back to `InteractiveBrowserCredential`
-for any unsupported auth method (including certificate/managed identity), so unsupported
-methods use interactive auth rather than throwing.
+`InteractiveBrowserAuthProvider` currently throws `NotSupportedException` for any
+unsupported auth method (including certificate/managed identity), so unsupported
+methods fail fast instead of falling back to interactive authentication.
 
 ---
 
