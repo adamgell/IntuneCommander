@@ -44,7 +44,7 @@ public static class CategoryLoadHelper
         CancellationToken cancellationToken = default)
     {
         ctx.SetBusy(true);
-        ctx.SetStatus($"Loading {loader.CategoryName}...");
+        ctx.SetStatus($"Loading {loader.CategoryName.ToLowerInvariant()}...");
 
         try
         {
@@ -61,8 +61,8 @@ public static class CategoryLoadHelper
         }
         catch (Exception ex)
         {
-            ctx.SetError($"Failed to load {loader.CategoryName}: {ctx.FormatError(ex)}");
-            ctx.SetStatus($"Error loading {loader.CategoryName}");
+            ctx.SetError($"Failed to load {loader.CategoryName.ToLowerInvariant()}: {ctx.FormatError(ex)}");
+            ctx.SetStatus($"Error loading {loader.CategoryName.ToLowerInvariant()}");
             return null;
         }
         finally
