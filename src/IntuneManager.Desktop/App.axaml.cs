@@ -20,8 +20,7 @@ public partial class App : Application
 
     public override void Initialize()
     {
-        // Register Syncfusion license (Community Edition - free for projects with <5 developers and <$1M revenue)
-        // For production: Replace with your license key or use environment variable
+        // Register Syncfusion license using key from environment variable (see project documentation for licensing details)
         var syncfusionLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY");
         if (!string.IsNullOrEmpty(syncfusionLicense))
         {
