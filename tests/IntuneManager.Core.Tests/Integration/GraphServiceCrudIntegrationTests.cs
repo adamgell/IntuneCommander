@@ -141,7 +141,10 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             NamedLocation? fetched = null;
             for (int attempt = 0; attempt < 5; attempt++)
             {
-                await Task.Delay(3000 * (attempt + 1));
+                if (attempt > 0)
+                {
+                    await Task.Delay(3000 * attempt);
+                }
                 try
                 {
                     fetched = await svc.GetNamedLocationAsync(created.Id!);
@@ -205,7 +208,10 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             NamedLocation? fetched = null;
             for (int attempt = 0; attempt < 5; attempt++)
             {
-                await Task.Delay(3000 * (attempt + 1));
+                if (attempt > 0)
+                {
+                    await Task.Delay(3000 * attempt);
+                }
                 try
                 {
                     fetched = await svc.GetNamedLocationAsync(created.Id!);
@@ -230,6 +236,10 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             Microsoft.Graph.Beta.Models.ODataErrors.ODataError? lastError = null;
             for (int updateAttempt = 0; updateAttempt < 5; updateAttempt++)
             {
+                if (updateAttempt > 0)
+                {
+                    await Task.Delay(5000 * updateAttempt);
+                }
                 try
                 {
                     updated = await svc.UpdateNamedLocationAsync(toUpdate);
@@ -239,7 +249,6 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
                     when (ex.ResponseStatusCode is 400 or 404)
                 {
                     lastError = ex;
-                    await Task.Delay(5000 * (updateAttempt + 1));
                 }
             }
 
