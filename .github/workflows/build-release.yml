@@ -7,9 +7,12 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    environment: production
     permissions:
       contents: read
-    
+    env:
+      SYNCFUSION_LICENSE_KEY: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

@@ -162,7 +162,7 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
                 try
                 {
                     await Task.Delay(3000 * (delAttempt + 1));
-                    await svc.DeleteNamedLocationAsync(created.Id!);
+                    await svc.DeleteNamedLocationAsync(created!.Id!);
                     created = null;
                     break;
                 }
@@ -288,7 +288,7 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
                 try
                 {
                     await Task.Delay(3000 * (delAttempt + 1));
-                    await svc.DeleteNamedLocationAsync(created.Id!);
+                    await svc.DeleteNamedLocationAsync(created!.Id!);
                     created = null;
                     break;
                 }
