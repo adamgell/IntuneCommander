@@ -11,7 +11,8 @@ All permissions below are **Application** type (not Delegated) and require **adm
 
 | Permission | Access | Services |
 |---|---|---|
-| `DeviceManagementConfiguration.ReadWrite.All` | Read & write | ConfigurationProfile, Compliance, AdministrativeTemplate, EndpointSecurity, SettingsCatalog, FeatureUpdate, DeviceHealthScript, MacCustomAttribute, AssignmentFilter |
+| `DeviceManagementConfiguration.ReadWrite.All` | Read & write | ConfigurationProfile, Compliance, AdministrativeTemplate, EndpointSecurity, SettingsCatalog, FeatureUpdate, AssignmentFilter |
+| `DeviceManagementScripts.ReadWrite.All` | Read & write | DeviceHealthScript, MacCustomAttribute |
 | `DeviceManagementApps.ReadWrite.All` | Read & write | Application, AppProtectionPolicy, ManagedAppConfiguration, PolicySet |
 | `DeviceManagementServiceConfig.ReadWrite.All` | Read & write | EnrollmentConfiguration, Autopilot, IntuneBranding, TermsAndConditions |
 | `DeviceManagementRBAC.ReadWrite.All` | Read & write | RoleDefinition, ScopeTag |

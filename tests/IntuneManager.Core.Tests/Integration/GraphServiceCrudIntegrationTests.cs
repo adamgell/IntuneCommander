@@ -101,6 +101,9 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             Assert.NotNull(created);
             Assert.NotNull(created.Id);
 
+            // Brief delay — Entra ID named locations have eventual consistency
+            await Task.Delay(3000);
+
             // Get
             var fetched = await svc.GetNamedLocationAsync(created.Id!);
             Assert.NotNull(fetched);
@@ -150,9 +153,11 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             var tac = new TermsAndConditions
             {
                 DisplayName = $"{TestPrefix}TAC_{Guid.NewGuid():N}",
-                Description = "Integration test — auto cleanup",
+                Description = "Integration test -- auto cleanup",
                 Title = "Test Terms",
                 BodyText = "These are test terms and conditions.",
+                AcceptanceStatement = "I accept these terms.",
+                Version = 1,
             };
             created = await svc.CreateTermsAndConditionsAsync(tac);
             Assert.NotNull(created);
@@ -246,8 +251,8 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             var profile = new WindowsFeatureUpdateProfile
             {
                 DisplayName = $"{TestPrefix}FeatureUpdate_{Guid.NewGuid():N}",
-                Description = "Integration test — auto cleanup",
-                FeatureUpdateVersion = "Windows 10, version 22H2",
+                Description = "Integration test -- auto cleanup",
+                FeatureUpdateVersion = "Windows 11, version 24H2",
             };
             created = await svc.CreateFeatureUpdateProfileAsync(profile);
             Assert.NotNull(created);
@@ -291,8 +296,21 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             var role = new DeviceAndAppManagementRoleDefinition
             {
                 DisplayName = $"{TestPrefix}Role_{Guid.NewGuid():N}",
-                Description = "Integration test — auto cleanup",
+                Description = "Integration test -- auto cleanup",
                 IsBuiltIn = false,
+                RolePermissions =
+                [
+                    new RolePermission
+                    {
+                        ResourceActions =
+                        [
+                            new ResourceAction
+                            {
+                                AllowedResourceActions = ["Microsoft.Intune_Organization_Read"]
+                            }
+                        ]
+                    }
+                ],
             };
             created = await svc.CreateRoleDefinitionAsync(role);
             Assert.NotNull(created);

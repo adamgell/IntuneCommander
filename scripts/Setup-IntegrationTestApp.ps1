@@ -112,6 +112,7 @@ $requiredPermissions = @(
     "DeviceManagementServiceConfig.ReadWrite.All"
     "DeviceManagementRBAC.ReadWrite.All"
     "DeviceManagementManagedDevices.Read.All"
+    "DeviceManagementScripts.ReadWrite.All"
 
     # Entra ID -- Conditional Access & Identity
     "Policy.ReadWrite.ConditionalAccess"

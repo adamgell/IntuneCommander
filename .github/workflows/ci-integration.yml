@@ -16,6 +16,7 @@ name: CI — Integration Tests (Graph API)
 #   DeviceManagementManagedDevices.ReadWrite.All
 #   DeviceManagementRBAC.ReadWrite.All
 #   DeviceManagementServiceConfig.ReadWrite.All
+#   DeviceManagementScripts.ReadWrite.All
 #   Policy.ReadWrite.ConditionalAccess
 #   Policy.Read.All
 #   Agreement.ReadWrite.All
