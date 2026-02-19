@@ -141,10 +141,7 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             NamedLocation? fetched = null;
             for (int attempt = 0; attempt < 5; attempt++)
             {
-                if (attempt > 0)
-                {
-                    await Task.Delay(3000 * attempt);
-                }
+                await Task.Delay(3000 * (attempt + 1));
                 try
                 {
                     fetched = await svc.GetNamedLocationAsync(created.Id!);
@@ -159,10 +156,22 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             Assert.NotNull(fetched);
             Assert.Equal(created.Id, fetched!.Id);
 
-            // Delete
-            await Task.Delay(2000);
-            await svc.DeleteNamedLocationAsync(created.Id!);
-            created = null;
+            // Delete — retry with backoff for replication lag
+            for (int delAttempt = 0; delAttempt < 5; delAttempt++)
+            {
+                try
+                {
+                    await Task.Delay(3000 * (delAttempt + 1));
+                    await svc.DeleteNamedLocationAsync(created.Id!);
+                    created = null;
+                    break;
+                }
+                catch (Microsoft.Graph.Beta.Models.ODataErrors.ODataError ex)
+                    when (ex.ResponseStatusCode is 404 && delAttempt < 4)
+                {
+                    // Not replicated yet — retry
+                }
+            }
         }
         finally
         {
@@ -208,10 +217,7 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             NamedLocation? fetched = null;
             for (int attempt = 0; attempt < 5; attempt++)
             {
-                if (attempt > 0)
-                {
-                    await Task.Delay(3000 * attempt);
-                }
+                await Task.Delay(3000 * (attempt + 1));
                 try
                 {
                     fetched = await svc.GetNamedLocationAsync(created.Id!);
@@ -226,27 +232,30 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             Assert.NotNull(fetched);
 
             // Update — retry with extended backoff (up to ~75 s total wait)
+            // Must include IpRanges in the PATCH payload — Graph returns 400
+            // for IpNamedLocation PATCH without the required derived-type fields.
             var updatedName = $"{TestPrefix}NamedLoc_Updated_{Guid.NewGuid():N}";
             var toUpdate = new IpNamedLocation
             {
                 Id = created.Id,
                 DisplayName = updatedName,
+                IpRanges =
+                [
+                    new IPv4CidrRange { CidrAddress = "203.0.113.0/24" }
+                ],
             };
             NamedLocation? updated = null;
             Microsoft.Graph.Beta.Models.ODataErrors.ODataError? lastError = null;
-            for (int updateAttempt = 0; updateAttempt < 5; updateAttempt++)
+            for (int updateAttempt = 0; updateAttempt < 6; updateAttempt++)
             {
-                if (updateAttempt > 0)
-                {
-                    await Task.Delay(5000 * updateAttempt);
-                }
+                await Task.Delay(5000 * (updateAttempt + 1));
                 try
                 {
                     updated = await svc.UpdateNamedLocationAsync(toUpdate);
                     break;
                 }
                 catch (Microsoft.Graph.Beta.Models.ODataErrors.ODataError ex)
-                    when (ex.ResponseStatusCode is 400 or 404)
+                    when (ex.ResponseStatusCode is 400 or 404 or 500)
                 {
                     lastError = ex;
                 }
@@ -255,20 +264,34 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             if (updated == null)
             {
                 throw new InvalidOperationException(
-                    $"NamedLocation PATCH failed after 5 retries due to Entra ID replication lag. " +
+                    $"NamedLocation PATCH failed after 6 retries due to Entra ID replication lag. " +
                     $"Last error: {lastError?.ResponseStatusCode} — {lastError?.Message}");
             }
 
-            // Verify via follow-up GET — do not trust the PATCH response alone
-            await Task.Delay(3000);
-            var verified = await svc.GetNamedLocationAsync(created.Id!);
+            // Verify via follow-up GET with polling — do not trust the PATCH
+            // response alone; Entra ID has extreme eventual-consistency lag
+            var verified = await PollUntilAsync(
+                () => svc.GetNamedLocationAsync(created.Id!),
+                n => n.DisplayName == updatedName);
             Assert.NotNull(verified);
             Assert.Equal(updatedName, verified!.DisplayName);
 
-            // Delete
-            await Task.Delay(2000);
-            await svc.DeleteNamedLocationAsync(created.Id!);
-            created = null;
+            // Delete — retry with backoff for replication lag
+            for (int delAttempt = 0; delAttempt < 5; delAttempt++)
+            {
+                try
+                {
+                    await Task.Delay(3000 * (delAttempt + 1));
+                    await svc.DeleteNamedLocationAsync(created.Id!);
+                    created = null;
+                    break;
+                }
+                catch (Microsoft.Graph.Beta.Models.ODataErrors.ODataError ex)
+                    when (ex.ResponseStatusCode is 404 && delAttempt < 4)
+                {
+                    // Not replicated yet — retry
+                }
+            }
         }
         finally
         {
