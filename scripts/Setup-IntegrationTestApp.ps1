@@ -395,12 +395,31 @@ foreach ($perm in $permissionIds) {
         Write-Host "  [OK] Consented: $($perm.Name)" -ForegroundColor Green
         $consentedCount++
     } catch {
-        $statusCode = $_.Exception.Response.StatusCode.value__
-        if ($statusCode -eq 409) {
+        # Read the response body to detect "already exists" errors
+        $errBody = ""
+        try {
+            $stream = $_.Exception.Response.GetResponseStream()
+            if ($stream) {
+                $reader = New-Object System.IO.StreamReader($stream)
+                $errBody = $reader.ReadToEnd()
+                $reader.Close()
+            }
+        } catch { }
+
+        $statusCode = 0
+        try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { }
+
+        # Graph returns 409 or 400 with "already exists" for duplicate consent
+        $isAlreadyExists = ($statusCode -eq 409) -or
+            ($errBody -match "already exists") -or
+            ($errBody -match "Permission being assigned")
+
+        if ($isAlreadyExists) {
             Write-Host "  [~] Already consented: $($perm.Name)" -ForegroundColor DarkGray
             $alreadyCount++
         } else {
-            Write-Warning "  [X] Failed to consent '$($perm.Name)': $($_.Exception.Message)"
+            $detail = if ($errBody) { $errBody } else { $_.Exception.Message }
+            Write-Warning "  [X] Failed to consent '$($perm.Name)': $detail"
         }
     }
 }
