@@ -993,6 +993,514 @@ public class ImportServiceTests : IDisposable
         Assert.Equal("new-ctx", table.Entries[0].NewId);
     }
 
+    // ---------- Legacy 12-param constructor ----------
+
+    [Fact]
+    public void LegacyConstructor_12Params_IsCallable()
+    {
+        var sut = new ImportService(
+            new StubConfigurationService(), null, null, null, null, null, null, null, null, null, null, null);
+        Assert.NotNull(sut);
+    }
+
+    // ---------- ReadFromFolder – missing folder → empty ----------
+
+    [Fact]
+    public async Task ReadEndpointSecurityIntentsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadEndpointSecurityIntentsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadAdministrativeTemplatesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAdministrativeTemplatesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadEnrollmentConfigurationsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadEnrollmentConfigurationsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadAppProtectionPoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAppProtectionPoliciesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadManagedDeviceAppConfigurationsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadManagedDeviceAppConfigurationsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadTargetedManagedAppConfigurationsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadTargetedManagedAppConfigurationsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadTermsAndConditionsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadTermsAndConditionsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadScopeTagsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadScopeTagsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadRoleDefinitionsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadRoleDefinitionsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadIntuneBrandingProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadIntuneBrandingProfilesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadAzureBrandingLocalizationsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAzureBrandingLocalizationsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadAutopilotProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAutopilotProfilesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadDeviceHealthScriptsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadDeviceHealthScriptsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadMacCustomAttributesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadMacCustomAttributesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadFeatureUpdateProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadFeatureUpdateProfilesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadNamedLocationsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadNamedLocationsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadAuthenticationStrengthPoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAuthenticationStrengthPoliciesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadAuthenticationContextsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAuthenticationContextsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadTermsOfUseAgreementsFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadTermsOfUseAgreementsFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    // ---------- ReadFromFolder – folder with files → reads all ----------
+
+    [Fact]
+    public async Task ReadEndpointSecurityIntentsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "EndpointSecurity");
+        Directory.CreateDirectory(folder);
+
+        var e1 = new EndpointSecurityExport { Intent = new DeviceManagementIntent { Id = "e1", DisplayName = "E1" } };
+        var e2 = new EndpointSecurityExport { Intent = new DeviceManagementIntent { Id = "e2", DisplayName = "E2" } };
+        await File.WriteAllTextAsync(Path.Combine(folder, "e1.json"), System.Text.Json.JsonSerializer.Serialize(e1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "e2.json"), System.Text.Json.JsonSerializer.Serialize(e2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadEndpointSecurityIntentsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadAdministrativeTemplatesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "AdministrativeTemplates");
+        Directory.CreateDirectory(folder);
+
+        var t1 = new AdministrativeTemplateExport { Template = new GroupPolicyConfiguration { Id = "t1", DisplayName = "T1" } };
+        var t2 = new AdministrativeTemplateExport { Template = new GroupPolicyConfiguration { Id = "t2", DisplayName = "T2" } };
+        await File.WriteAllTextAsync(Path.Combine(folder, "t1.json"), System.Text.Json.JsonSerializer.Serialize(t1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "t2.json"), System.Text.Json.JsonSerializer.Serialize(t2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAdministrativeTemplatesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadEnrollmentConfigurationsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "EnrollmentConfigurations");
+        Directory.CreateDirectory(folder);
+
+        var c1 = new DeviceEnrollmentConfiguration { Id = "ec1", DisplayName = "EC1" };
+        var c2 = new DeviceEnrollmentConfiguration { Id = "ec2", DisplayName = "EC2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "ec1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "ec2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadEnrollmentConfigurationsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadAppProtectionPoliciesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "AppProtectionPolicies");
+        Directory.CreateDirectory(folder);
+
+        var p1 = new AndroidManagedAppProtection { Id = "app1", DisplayName = "App1" };
+        var p2 = new AndroidManagedAppProtection { Id = "app2", DisplayName = "App2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAppProtectionPoliciesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadManagedDeviceAppConfigurationsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "ManagedDeviceAppConfigurations");
+        Directory.CreateDirectory(folder);
+
+        var c1 = new ManagedDeviceMobileAppConfiguration { Id = "mdac1", DisplayName = "MDAC1" };
+        var c2 = new ManagedDeviceMobileAppConfiguration { Id = "mdac2", DisplayName = "MDAC2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "c1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "c2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadManagedDeviceAppConfigurationsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadTargetedManagedAppConfigurationsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "TargetedManagedAppConfigurations");
+        Directory.CreateDirectory(folder);
+
+        var c1 = new TargetedManagedAppConfiguration { Id = "tmac1", DisplayName = "TMAC1" };
+        var c2 = new TargetedManagedAppConfiguration { Id = "tmac2", DisplayName = "TMAC2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "c1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "c2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadTargetedManagedAppConfigurationsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadTermsAndConditionsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "TermsAndConditions");
+        Directory.CreateDirectory(folder);
+
+        var t1 = new TermsAndConditions { Id = "tnc1", DisplayName = "TNC1" };
+        var t2 = new TermsAndConditions { Id = "tnc2", DisplayName = "TNC2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "t1.json"), System.Text.Json.JsonSerializer.Serialize(t1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "t2.json"), System.Text.Json.JsonSerializer.Serialize(t2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadTermsAndConditionsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadScopeTagsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "ScopeTags");
+        Directory.CreateDirectory(folder);
+
+        var s1 = new RoleScopeTag { Id = "st1", DisplayName = "ST1" };
+        var s2 = new RoleScopeTag { Id = "st2", DisplayName = "ST2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(s1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(s2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadScopeTagsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadRoleDefinitionsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "RoleDefinitions");
+        Directory.CreateDirectory(folder);
+
+        var r1 = new RoleDefinition { Id = "rd1", DisplayName = "RD1" };
+        var r2 = new RoleDefinition { Id = "rd2", DisplayName = "RD2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "r1.json"), System.Text.Json.JsonSerializer.Serialize(r1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "r2.json"), System.Text.Json.JsonSerializer.Serialize(r2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadRoleDefinitionsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadIntuneBrandingProfilesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "IntuneBrandingProfiles");
+        Directory.CreateDirectory(folder);
+
+        var b1 = new IntuneBrandingProfile { Id = "ibp1", ProfileName = "IBP1" };
+        var b2 = new IntuneBrandingProfile { Id = "ibp2", ProfileName = "IBP2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "b1.json"), System.Text.Json.JsonSerializer.Serialize(b1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "b2.json"), System.Text.Json.JsonSerializer.Serialize(b2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadIntuneBrandingProfilesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadAzureBrandingLocalizationsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "AzureBrandingLocalizations");
+        Directory.CreateDirectory(folder);
+
+        var l1 = new OrganizationalBrandingLocalization { Id = "loc1" };
+        var l2 = new OrganizationalBrandingLocalization { Id = "loc2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "l1.json"), System.Text.Json.JsonSerializer.Serialize(l1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "l2.json"), System.Text.Json.JsonSerializer.Serialize(l2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAzureBrandingLocalizationsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadAutopilotProfilesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "AutopilotProfiles");
+        Directory.CreateDirectory(folder);
+
+        var p1 = new WindowsAutopilotDeploymentProfile { Id = "ap1", DisplayName = "AP1" };
+        var p2 = new WindowsAutopilotDeploymentProfile { Id = "ap2", DisplayName = "AP2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAutopilotProfilesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadDeviceHealthScriptsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "DeviceHealthScripts");
+        Directory.CreateDirectory(folder);
+
+        var s1 = new DeviceHealthScript { Id = "dhs1", DisplayName = "DHS1" };
+        var s2 = new DeviceHealthScript { Id = "dhs2", DisplayName = "DHS2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(s1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(s2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadDeviceHealthScriptsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadMacCustomAttributesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "MacCustomAttributes");
+        Directory.CreateDirectory(folder);
+
+        var a1 = new DeviceCustomAttributeShellScript { Id = "mca1", DisplayName = "MCA1" };
+        var a2 = new DeviceCustomAttributeShellScript { Id = "mca2", DisplayName = "MCA2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "a1.json"), System.Text.Json.JsonSerializer.Serialize(a1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "a2.json"), System.Text.Json.JsonSerializer.Serialize(a2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadMacCustomAttributesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadFeatureUpdateProfilesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "FeatureUpdates");
+        Directory.CreateDirectory(folder);
+
+        var p1 = new WindowsFeatureUpdateProfile { Id = "fup1", DisplayName = "FUP1" };
+        var p2 = new WindowsFeatureUpdateProfile { Id = "fup2", DisplayName = "FUP2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadFeatureUpdateProfilesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadNamedLocationsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "NamedLocations");
+        Directory.CreateDirectory(folder);
+
+        var n1 = new NamedLocation { Id = "nl1" };
+        var n2 = new NamedLocation { Id = "nl2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "n1.json"), System.Text.Json.JsonSerializer.Serialize(n1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "n2.json"), System.Text.Json.JsonSerializer.Serialize(n2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadNamedLocationsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadAuthenticationStrengthPoliciesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "AuthenticationStrengths");
+        Directory.CreateDirectory(folder);
+
+        var p1 = new AuthenticationStrengthPolicy { Id = "asp1", DisplayName = "ASP1" };
+        var p2 = new AuthenticationStrengthPolicy { Id = "asp2", DisplayName = "ASP2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAuthenticationStrengthPoliciesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadAuthenticationContextsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "AuthenticationContexts");
+        Directory.CreateDirectory(folder);
+
+        var c1 = new AuthenticationContextClassReference { Id = "ctx1", DisplayName = "CTX1" };
+        var c2 = new AuthenticationContextClassReference { Id = "ctx2", DisplayName = "CTX2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "c1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "c2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadAuthenticationContextsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ReadTermsOfUseAgreementsFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "TermsOfUse");
+        Directory.CreateDirectory(folder);
+
+        var a1 = new Agreement { Id = "tou1", DisplayName = "TOU1" };
+        var a2 = new Agreement { Id = "tou2", DisplayName = "TOU2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "a1.json"), System.Text.Json.JsonSerializer.Serialize(a1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "a2.json"), System.Text.Json.JsonSerializer.Serialize(a2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadTermsOfUseAgreementsFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    // ---------- ImportNamedLocationAsync edge case: null AdditionalData ----------
+
+    [Fact]
+    public async Task ImportNamedLocationAsync_NullAdditionalData_UsesUnknownName()
+    {
+        var namedLocationService = new StubNamedLocationService
+        {
+            CreateResult = new NamedLocation { Id = "created-nl", AdditionalData = null }
+        };
+        var sut = new ImportService(new StubConfigurationService(), null, namedLocationService: namedLocationService);
+        var table = new MigrationTable();
+
+        var namedLocation = new NamedLocation { Id = "orig-nl" };
+        await sut.ImportNamedLocationAsync(namedLocation, table);
+
+        Assert.Single(table.Entries);
+        Assert.Equal("Unknown", table.Entries[0].Name);
+    }
+
     private sealed class StubConfigurationService : IConfigurationProfileService
     {
         public DeviceConfiguration? LastCreatedConfig { get; private set; }

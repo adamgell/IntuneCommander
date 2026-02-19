@@ -198,6 +198,112 @@ public class ConditionalAccessPptExportServiceTests : IDisposable
         Assert.Equal(0x4B, bytes[1]); // 'K'
     }
 
+    [Fact]
+    public async Task ExportAsync_WithComplexPolicyData_CoversOptionalSections()
+    {
+        // Arrange
+        var policies = new List<ConditionalAccessPolicy>
+        {
+            new()
+            {
+                Id = "policy-complex",
+                DisplayName = null,
+                State = null,
+                CreatedDateTime = null,
+                Conditions = new ConditionalAccessConditionSet
+                {
+                    Users = new ConditionalAccessUsers
+                    {
+                        IncludeUsers = [],
+                        ExcludeUsers = []
+                    },
+                    Applications = new ConditionalAccessApplications
+                    {
+                        IncludeApplications = null,
+                        ExcludeApplications = null
+                    },
+                    Platforms = new ConditionalAccessPlatforms
+                    {
+                        IncludePlatforms = null
+                    },
+                    Locations = new ConditionalAccessLocations
+                    {
+                        IncludeLocations = null,
+                        ExcludeLocations = null
+                    }
+                },
+                GrantControls = new ConditionalAccessGrantControls
+                {
+                    Operator = null,
+                    BuiltInControls = [],
+                    TermsOfUse = ["tou-1"],
+                    CustomAuthenticationFactors = ["custom-1"]
+                }
+            },
+            new()
+            {
+                Id = "policy-complex-2",
+                DisplayName = "Complex Policy 2",
+                State = ConditionalAccessPolicyState.Enabled,
+                CreatedDateTime = DateTimeOffset.UtcNow,
+                Conditions = new ConditionalAccessConditionSet
+                {
+                    Applications = new ConditionalAccessApplications
+                    {
+                        IncludeApplications = ["All"],
+                        ExcludeApplications = ["app-id-1"]
+                    },
+                    Platforms = new ConditionalAccessPlatforms
+                    {
+                        IncludePlatforms = [ConditionalAccessDevicePlatform.Android]
+                    },
+                    Locations = new ConditionalAccessLocations
+                    {
+                        IncludeLocations = ["AllTrusted"],
+                        ExcludeLocations = ["loc-id-1"]
+                    }
+                },
+                GrantControls = new ConditionalAccessGrantControls
+                {
+                    Operator = "AND",
+                    BuiltInControls = [ConditionalAccessGrantControl.Mfa],
+                    TermsOfUse = [],
+                    CustomAuthenticationFactors = []
+                }
+            }
+        };
+
+        var service = new ConditionalAccessPptExportService(
+            new MockConditionalAccessPolicyService(customPolicies: policies),
+            new MockNamedLocationService(),
+            new MockAuthenticationStrengthService(),
+            new MockAuthenticationContextService(),
+            new MockApplicationService());
+
+        var outputPath = Path.Combine(_tempDir, "complex-export.pptx");
+
+        // Act
+        await service.ExportAsync(outputPath, "Test Tenant");
+
+        // Assert
+        Assert.True(File.Exists(outputPath));
+        Assert.True(new FileInfo(outputPath).Length > 0);
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithPreCancelledToken_ThrowsOperationCanceledException()
+    {
+        // Arrange
+        var service = CreateServiceWithData();
+        var outputPath = Path.Combine(_tempDir, "cancelled-before-loop.pptx");
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => service.ExportAsync(outputPath, "Test Tenant", cts.Token));
+    }
+
     private ConditionalAccessPptExportService CreateService()
     {
         return new ConditionalAccessPptExportService(
@@ -222,14 +328,21 @@ public class ConditionalAccessPptExportServiceTests : IDisposable
     private class MockConditionalAccessPolicyService : IConditionalAccessPolicyService
     {
         private readonly bool _withData;
+        private readonly List<ConditionalAccessPolicy>? _customPolicies;
 
-        public MockConditionalAccessPolicyService(bool withData = false)
+        public MockConditionalAccessPolicyService(bool withData = false, List<ConditionalAccessPolicy>? customPolicies = null)
         {
             _withData = withData;
+            _customPolicies = customPolicies;
         }
 
         public Task<List<ConditionalAccessPolicy>> ListPoliciesAsync(CancellationToken cancellationToken = default)
         {
+            if (_customPolicies != null)
+            {
+                return Task.FromResult(_customPolicies);
+            }
+
             if (_withData)
             {
                 return Task.FromResult(new List<ConditionalAccessPolicy>

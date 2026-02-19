@@ -208,6 +208,208 @@ public class GroupServiceTests
         Assert.Contains(progress, p => p.StartsWith("Found 3 assignment(s)"));
     }
 
+    // ---------- SearchGroupsAsync with GUID (null client catches exception in catch block) ----------
+
+    [Fact]
+    public async Task SearchGroupsAsync_WithGuidQuery_CatchesGraphExceptionAndReturnsEmpty()
+    {
+        var sut = new GroupService(null!);
+        var guid = Guid.NewGuid().ToString();
+
+        // The service has null _graphClient, so the Graph call throws NullReferenceException
+        // which is caught by the try/catch block, returning an empty list
+        var result = await sut.SearchGroupsAsync(guid);
+
+        Assert.Empty(result);
+    }
+
+    // ---------- GetGroupAssignmentsAsync edge cases ----------
+
+    [Fact]
+    public async Task GetGroupAssignmentsAsync_WithNullProgressCallback_DoesNotThrow()
+    {
+        var groupId = "group-x";
+        var config = new DeviceConfiguration { Id = "c1", DisplayName = "Config", OdataType = "#microsoft.graph.windows10GeneralConfiguration" };
+
+        var configService = new GroupTestConfigService(
+            [config],
+            new Dictionary<string, List<DeviceConfigurationAssignment>>
+            {
+                ["c1"] = [new DeviceConfigurationAssignment { Target = new GroupAssignmentTarget { GroupId = groupId } }]
+            });
+
+        var sut = new GroupService(null!);
+        var results = await sut.GetGroupAssignmentsAsync(groupId, configService, new EmptyComplianceService(), new EmptyApplicationService(), null);
+
+        Assert.Single(results);
+    }
+
+    [Fact]
+    public async Task GetGroupAssignmentsAsync_WithNullConfigId_SkipsItem()
+    {
+        var groupId = "group-x";
+        var configWithNullId = new DeviceConfiguration { Id = null, DisplayName = "No ID Config" };
+
+        var configService = new GroupTestConfigService(
+            [configWithNullId],
+            new Dictionary<string, List<DeviceConfigurationAssignment>>());
+
+        var sut = new GroupService(null!);
+        var results = await sut.GetGroupAssignmentsAsync(groupId, configService, new EmptyComplianceService(), new EmptyApplicationService());
+
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task GetGroupAssignmentsAsync_WithNullAssignmentTarget_IsIgnored()
+    {
+        var groupId = "group-x";
+        var config = new DeviceConfiguration { Id = "c1", DisplayName = "Config", OdataType = "#microsoft.graph.windows10GeneralConfiguration" };
+
+        var configService = new GroupTestConfigService(
+            [config],
+            new Dictionary<string, List<DeviceConfigurationAssignment>>
+            {
+                // Assignment with null Target — MatchesGroup returns false
+                ["c1"] = [new DeviceConfigurationAssignment { Target = null }]
+            });
+
+        var sut = new GroupService(null!);
+        var results = await sut.GetGroupAssignmentsAsync(groupId, configService, new EmptyComplianceService(), new EmptyApplicationService());
+
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task GetGroupAssignmentsAsync_WithAllDevicesTarget_IsIgnored()
+    {
+        var groupId = "group-x";
+        var config = new DeviceConfiguration { Id = "c1", DisplayName = "Config", OdataType = "#microsoft.graph.windows10GeneralConfiguration" };
+
+        var configService = new GroupTestConfigService(
+            [config],
+            new Dictionary<string, List<DeviceConfigurationAssignment>>
+            {
+                // AllDevicesAssignmentTarget hits the default case in MatchesGroup
+                ["c1"] = [new DeviceConfigurationAssignment { Target = new AllDevicesAssignmentTarget() }]
+            });
+
+        var sut = new GroupService(null!);
+        var results = await sut.GetGroupAssignmentsAsync(groupId, configService, new EmptyComplianceService(), new EmptyApplicationService());
+
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task GetGroupAssignmentsAsync_CoversAllPlatformInferences()
+    {
+        var groupId = "g1";
+
+        // Use configs with various OdataTypes to exercise InferPlatform branches
+        var configs = new List<DeviceConfiguration>
+        {
+            new() { Id = "mac", DisplayName = "Mac", OdataType = "#microsoft.graph.macOSCustomConfiguration" },
+            new() { Id = "android", DisplayName = "Android", OdataType = "#microsoft.graph.androidCompliancePolicy" },
+            new() { Id = "web", DisplayName = "Web", OdataType = "#microsoft.graph.webApp" },
+            new() { Id = "unknown", DisplayName = "Unknown", OdataType = "#microsoft.graph.someOtherType" },
+            new() { Id = "empty", DisplayName = "Empty", OdataType = null },
+        };
+
+        var assignments = configs
+            .Where(c => c.Id != null)
+            .ToDictionary(
+                c => c.Id!,
+                c => (List<DeviceConfigurationAssignment>)[new DeviceConfigurationAssignment { Target = new GroupAssignmentTarget { GroupId = groupId } }]);
+
+        var configService = new GroupTestConfigService(configs, assignments);
+        var sut = new GroupService(null!);
+        var results = await sut.GetGroupAssignmentsAsync(groupId, configService, new EmptyComplianceService(), new EmptyApplicationService());
+
+        Assert.Equal(5, results.Count);
+        Assert.Contains(results, r => r.Platform == "macOS");
+        Assert.Contains(results, r => r.Platform == "Android");
+        Assert.Contains(results, r => r.Platform == "Web");
+        Assert.Contains(results, r => r.Platform == "");
+    }
+
+    [Fact]
+    public async Task GetGroupAssignmentsAsync_ProgressCallbackInvokedAtMultipleOfTen()
+    {
+        var groupId = "g1";
+        // 11 configs all matching to trigger both processed%10==0 and processed==configTotal
+        var configs = Enumerable.Range(1, 11).Select(i => new DeviceConfiguration
+        {
+            Id = $"c{i}",
+            DisplayName = $"Config {i}",
+            OdataType = "#microsoft.graph.windows10GeneralConfiguration"
+        }).ToList();
+
+        var assignments = configs.ToDictionary(
+            c => c.Id!,
+            c => (List<DeviceConfigurationAssignment>)[new DeviceConfigurationAssignment { Target = new GroupAssignmentTarget { GroupId = groupId } }]);
+
+        var configService = new GroupTestConfigService(configs, assignments);
+        var progressMessages = new List<string>();
+        var sut = new GroupService(null!);
+
+        var results = await sut.GetGroupAssignmentsAsync(
+            groupId, configService, new EmptyComplianceService(), new EmptyApplicationService(),
+            msg => progressMessages.Add(msg));
+
+        Assert.Equal(11, results.Count);
+        // At processed=10 (%10==0) and processed=11 (==total), progress was reported
+        Assert.Contains(progressMessages, m => m.Contains("10/11"));
+        Assert.Contains(progressMessages, m => m.Contains("11/11"));
+    }
+
+    [Fact]
+    public async Task GetGroupAssignmentsAsync_FriendlyTypeName_NullOdataType_ReturnsEmpty()
+    {
+        var groupId = "g1";
+        var config = new DeviceConfiguration { Id = "c1", DisplayName = "NoType", OdataType = null };
+
+        var configService = new GroupTestConfigService(
+            [config],
+            new Dictionary<string, List<DeviceConfigurationAssignment>>
+            {
+                ["c1"] = [new DeviceConfigurationAssignment { Target = new GroupAssignmentTarget { GroupId = groupId } }]
+            });
+
+        var sut = new GroupService(null!);
+        var results = await sut.GetGroupAssignmentsAsync(groupId, configService, new EmptyComplianceService(), new EmptyApplicationService());
+
+        Assert.Single(results);
+        Assert.Equal("", results[0].ObjectType);
+    }
+
+    private sealed class EmptyComplianceService : ICompliancePolicyService
+    {
+        public Task<List<DeviceCompliancePolicy>> ListCompliancePoliciesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceCompliancePolicy>());
+        public Task<DeviceCompliancePolicy?> GetCompliancePolicyAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<DeviceCompliancePolicy?>(null);
+        public Task<DeviceCompliancePolicy> CreateCompliancePolicyAsync(DeviceCompliancePolicy policy, CancellationToken cancellationToken = default)
+            => Task.FromResult(policy);
+        public Task<DeviceCompliancePolicy> UpdateCompliancePolicyAsync(DeviceCompliancePolicy policy, CancellationToken cancellationToken = default)
+            => Task.FromResult(policy);
+        public Task DeleteCompliancePolicyAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+        public Task<List<DeviceCompliancePolicyAssignment>> GetAssignmentsAsync(string policyId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceCompliancePolicyAssignment>());
+        public Task AssignPolicyAsync(string policyId, List<DeviceCompliancePolicyAssignment> assignments, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class EmptyApplicationService : IApplicationService
+    {
+        public Task<List<MobileApp>> ListApplicationsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<MobileApp>());
+        public Task<MobileApp?> GetApplicationAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<MobileApp?>(null);
+        public Task<List<MobileAppAssignment>> GetAssignmentsAsync(string appId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<MobileAppAssignment>());
+    }
+
     private sealed class GroupTestConfigService : IConfigurationProfileService
     {
         private readonly List<DeviceConfiguration> _configs;

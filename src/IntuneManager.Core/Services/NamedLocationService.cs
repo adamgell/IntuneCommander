@@ -61,8 +61,36 @@ public class NamedLocationService : INamedLocationService
     {
         var id = namedLocation.Id ?? throw new ArgumentException("Named location must have an ID for update");
 
+        NamedLocation patchPayload = namedLocation switch
+        {
+            IpNamedLocation ip => new IpNamedLocation
+            {
+                DisplayName = ip.DisplayName,
+                IsTrusted = ip.IsTrusted,
+                IpRanges = ip.IpRanges,
+                OdataType = string.IsNullOrWhiteSpace(ip.OdataType)
+                    ? "#microsoft.graph.ipNamedLocation"
+                    : ip.OdataType,
+            },
+            CountryNamedLocation country => new CountryNamedLocation
+            {
+                DisplayName = country.DisplayName,
+                CountriesAndRegions = country.CountriesAndRegions,
+                CountryLookupMethod = country.CountryLookupMethod,
+                IncludeUnknownCountriesAndRegions = country.IncludeUnknownCountriesAndRegions,
+                OdataType = string.IsNullOrWhiteSpace(country.OdataType)
+                    ? "#microsoft.graph.countryNamedLocation"
+                    : country.OdataType,
+            },
+            _ => new NamedLocation
+            {
+                DisplayName = namedLocation.DisplayName,
+                OdataType = namedLocation.OdataType,
+            }
+        };
+
         var result = await _graphClient.Identity.ConditionalAccess.NamedLocations[id]
-            .PatchAsync(namedLocation, cancellationToken: cancellationToken);
+            .PatchAsync(patchPayload, cancellationToken: cancellationToken);
 
         return await GraphPatchHelper.PatchWithGetFallbackAsync(
             result, () => GetNamedLocationAsync(id, cancellationToken), "named location");

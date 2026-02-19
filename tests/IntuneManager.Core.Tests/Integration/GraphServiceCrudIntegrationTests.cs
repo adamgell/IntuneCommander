@@ -232,16 +232,22 @@ public class GraphServiceCrudIntegrationTests : GraphIntegrationTestBase
             Assert.NotNull(fetched);
 
             // Update — retry with extended backoff (up to ~75 s total wait)
-            // Must include IpRanges in the PATCH payload — Graph returns 400
-            // for IpNamedLocation PATCH without the required derived-type fields.
+            // Must include the required derived-type fields in the PATCH payload
+            // for IpNamedLocation (isTrusted + ipRanges).
             var updatedName = $"{TestPrefix}NamedLoc_Updated_{Guid.NewGuid():N}";
             var toUpdate = new IpNamedLocation
             {
                 Id = created.Id,
                 DisplayName = updatedName,
+                OdataType = "#microsoft.graph.ipNamedLocation",
+                IsTrusted = (fetched as IpNamedLocation)?.IsTrusted ?? false,
                 IpRanges =
                 [
-                    new IPv4CidrRange { CidrAddress = "203.0.113.0/24" }
+                    new IPv4CidrRange
+                    {
+                        OdataType = "#microsoft.graph.iPv4CidrRange",
+                        CidrAddress = "203.0.113.0/24"
+                    }
                 ],
             };
             NamedLocation? updated = null;
