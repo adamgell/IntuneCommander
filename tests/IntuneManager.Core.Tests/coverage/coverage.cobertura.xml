@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<coverage line-rate="0.4278" branch-rate="0.3161" version="1.9" timestamp="1771472617" lines-covered="1770" lines-valid="4137" branches-covered="508" branches-valid="1607">
+<coverage line-rate="0.425" branch-rate="0.3237" version="1.9" timestamp="1771529941" lines-covered="1770" lines-valid="4164" branches-covered="508" branches-valid="1569">
   <sources>
-    <source>C:\Users\AdamGell\Documents\GitHub\IntuneGUI\src\IntuneManager.Core\</source>
+    <source>C:\Users\adam\Documents\GitHub\IntuneGUI\src\IntuneManager.Core\</source>
   </sources>
   <packages>
-    <package name="IntuneManager.Core" line-rate="0.4278" branch-rate="0.3161" complexity="1861">
+    <package name="IntuneManager.Core" line-rate="0.425" branch-rate="0.3237" complexity="1844">
       <classes>
         <class name="IntuneManager.Core.Services.AdministrativeTemplateService" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="1" complexity="1">
           <methods>
@@ -40,11 +40,22 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.AdministrativeTemplateService/&lt;&gt;c__DisplayClass5_0" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateAdministrativeTemplateAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.AdministrativeTemplateService/&lt;AssignAdministrativeTemplateAsync&gt;d__8" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="1" complexity="1">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="85" hits="0" branch="False" />
                 <line number="86" hits="0" branch="False" />
                 <line number="87" hits="0" branch="False" />
                 <line number="88" hits="0" branch="False" />
@@ -53,11 +64,11 @@
                 <line number="91" hits="0" branch="False" />
                 <line number="92" hits="0" branch="False" />
                 <line number="93" hits="0" branch="False" />
+                <line number="94" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="85" hits="0" branch="False" />
             <line number="86" hits="0" branch="False" />
             <line number="87" hits="0" branch="False" />
             <line number="88" hits="0" branch="False" />
@@ -66,6 +77,7 @@
             <line number="91" hits="0" branch="False" />
             <line number="92" hits="0" branch="False" />
             <line number="93" hits="0" branch="False" />
+            <line number="94" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AdministrativeTemplateService/&lt;CreateAdministrativeTemplateAsync&gt;d__4" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="0" complexity="2">
@@ -100,18 +112,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AdministrativeTemplateService/&lt;GetAdministrativeTemplateAsync&gt;d__3" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -136,30 +148,30 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
               <lines>
-                <line number="77" hits="0" branch="False" />
                 <line number="78" hits="0" branch="False" />
                 <line number="79" hits="0" branch="False" />
-                <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+                <line number="80" hits="0" branch="False" />
+                <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
                   <conditions>
                     <condition number="185" type="jump" coverage="0%" />
                     <condition number="197" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="82" hits="0" branch="False" />
+                <line number="83" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="77" hits="0" branch="False" />
             <line number="78" hits="0" branch="False" />
             <line number="79" hits="0" branch="False" />
-            <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+            <line number="80" hits="0" branch="False" />
+            <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
               <conditions>
                 <condition number="185" type="jump" coverage="0%" />
                 <condition number="197" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="82" hits="0" branch="False" />
+            <line number="83" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AdministrativeTemplateService/&lt;ListAdministrativeTemplatesAsync&gt;d__2" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="0" complexity="6">
@@ -234,24 +246,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.AdministrativeTemplateService/&lt;UpdateAdministrativeTemplateAsync&gt;d__5" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.AdministrativeTemplateService/&lt;UpdateAdministrativeTemplateAsync&gt;d__5" filename="Services\AdministrativeTemplateService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -259,17 +267,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ApplicationService" filename="Services\ApplicationService.cs" line-rate="0" branch-rate="0" complexity="13">
@@ -546,6 +550,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.AppProtectionPolicyService/&lt;&gt;c__DisplayClass5_0" filename="Services\AppProtectionPolicyService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateAppProtectionPolicyAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.AppProtectionPolicyService/&lt;CreateAppProtectionPolicyAsync&gt;d__4" filename="Services\AppProtectionPolicyService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -578,18 +594,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AppProtectionPolicyService/&lt;GetAppProtectionPolicyAsync&gt;d__3" filename="Services\AppProtectionPolicyService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -682,24 +698,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.AppProtectionPolicyService/&lt;UpdateAppProtectionPolicyAsync&gt;d__5" filename="Services\AppProtectionPolicyService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.AppProtectionPolicyService/&lt;UpdateAppProtectionPolicyAsync&gt;d__5" filename="Services\AppProtectionPolicyService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -707,17 +719,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AssignmentFilterService" filename="Services\AssignmentFilterService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -862,6 +870,18 @@
             <line number="14" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.AuthenticationContextService/&lt;&gt;c__DisplayClass5_0" filename="Services\AuthenticationContextService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateAuthenticationContextAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="65" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="65" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.AuthenticationContextService/&lt;CreateAuthenticationContextAsync&gt;d__4" filename="Services\AuthenticationContextService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -894,18 +914,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="68" hits="0" branch="False" />
                 <line number="69" hits="0" branch="False" />
                 <line number="70" hits="0" branch="False" />
                 <line number="71" hits="0" branch="False" />
+                <line number="72" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="68" hits="0" branch="False" />
             <line number="69" hits="0" branch="False" />
             <line number="70" hits="0" branch="False" />
             <line number="71" hits="0" branch="False" />
+            <line number="72" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AuthenticationContextService/&lt;GetAuthenticationContextAsync&gt;d__3" filename="Services\AuthenticationContextService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -998,24 +1018,20 @@
             <line number="41" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.AuthenticationContextService/&lt;UpdateAuthenticationContextAsync&gt;d__5" filename="Services\AuthenticationContextService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.AuthenticationContextService/&lt;UpdateAuthenticationContextAsync&gt;d__5" filename="Services\AuthenticationContextService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="58" hits="0" branch="False" />
                 <line number="59" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="False" />
-                <line number="64" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="226" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="65" hits="0" branch="False" />
+                <line number="64" hits="0" branch="False" />
+                <line number="66" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -1023,17 +1039,13 @@
             <line number="58" hits="0" branch="False" />
             <line number="59" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="False" />
-            <line number="64" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="226" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="65" hits="0" branch="False" />
+            <line number="64" hits="0" branch="False" />
+            <line number="66" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AuthenticationStrengthService" filename="Services\AuthenticationStrengthService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -1052,6 +1064,18 @@
             <line number="12" hits="0" branch="False" />
             <line number="13" hits="0" branch="False" />
             <line number="14" hits="0" branch="False" />
+          </lines>
+        </class>
+        <class name="IntuneManager.Core.Services.AuthenticationStrengthService/&lt;&gt;c__DisplayClass5_0" filename="Services\AuthenticationStrengthService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateAuthenticationStrengthPolicyAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="65" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="65" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AuthenticationStrengthService/&lt;CreateAuthenticationStrengthPolicyAsync&gt;d__4" filename="Services\AuthenticationStrengthService.cs" line-rate="0" branch-rate="0" complexity="2">
@@ -1086,18 +1110,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="68" hits="0" branch="False" />
                 <line number="69" hits="0" branch="False" />
                 <line number="70" hits="0" branch="False" />
                 <line number="71" hits="0" branch="False" />
+                <line number="72" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="68" hits="0" branch="False" />
             <line number="69" hits="0" branch="False" />
             <line number="70" hits="0" branch="False" />
             <line number="71" hits="0" branch="False" />
+            <line number="72" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AuthenticationStrengthService/&lt;GetAuthenticationStrengthPolicyAsync&gt;d__3" filename="Services\AuthenticationStrengthService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -1190,24 +1214,20 @@
             <line number="41" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.AuthenticationStrengthService/&lt;UpdateAuthenticationStrengthPolicyAsync&gt;d__5" filename="Services\AuthenticationStrengthService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.AuthenticationStrengthService/&lt;UpdateAuthenticationStrengthPolicyAsync&gt;d__5" filename="Services\AuthenticationStrengthService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="58" hits="0" branch="False" />
                 <line number="59" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="False" />
-                <line number="64" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="231" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="65" hits="0" branch="False" />
+                <line number="64" hits="0" branch="False" />
+                <line number="66" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -1215,17 +1235,13 @@
             <line number="58" hits="0" branch="False" />
             <line number="59" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="False" />
-            <line number="64" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="231" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="65" hits="0" branch="False" />
+            <line number="64" hits="0" branch="False" />
+            <line number="66" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AutopilotService" filename="Services\AutopilotService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -1262,6 +1278,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.AutopilotService/&lt;&gt;c__DisplayClass5_0" filename="Services\AutopilotService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateAutopilotProfileAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.AutopilotService/&lt;CreateAutopilotProfileAsync&gt;d__4" filename="Services\AutopilotService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -1294,18 +1322,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AutopilotService/&lt;GetAutopilotProfileAsync&gt;d__3" filename="Services\AutopilotService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -1398,24 +1426,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.AutopilotService/&lt;UpdateAutopilotProfileAsync&gt;d__5" filename="Services\AutopilotService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.AutopilotService/&lt;UpdateAutopilotProfileAsync&gt;d__5" filename="Services\AutopilotService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -1423,17 +1447,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AzureBrandingService" filename="Services\AzureBrandingService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -1480,6 +1500,18 @@
             <line number="37" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.AzureBrandingService/&lt;&gt;c__DisplayClass6_0" filename="Services\AzureBrandingService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateBrandingLocalizationAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="84" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="84" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.AzureBrandingService/&lt;CreateBrandingLocalizationAsync&gt;d__5" filename="Services\AzureBrandingService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -1514,20 +1546,20 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="87" hits="0" branch="False" />
                 <line number="88" hits="0" branch="False" />
                 <line number="89" hits="0" branch="False" />
                 <line number="90" hits="0" branch="False" />
                 <line number="91" hits="0" branch="False" />
+                <line number="92" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="87" hits="0" branch="False" />
             <line number="88" hits="0" branch="False" />
             <line number="89" hits="0" branch="False" />
             <line number="90" hits="0" branch="False" />
             <line number="91" hits="0" branch="False" />
+            <line number="92" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.AzureBrandingService/&lt;GetBrandingLocalizationAsync&gt;d__4" filename="Services\AzureBrandingService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -1666,25 +1698,21 @@
             <line number="57" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.AzureBrandingService/&lt;UpdateBrandingLocalizationAsync&gt;d__6" filename="Services\AzureBrandingService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.AzureBrandingService/&lt;UpdateBrandingLocalizationAsync&gt;d__6" filename="Services\AzureBrandingService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="76" hits="0" branch="False" />
                 <line number="77" hits="0" branch="False" />
                 <line number="78" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="170" type="jump" coverage="0%" />
+                    <condition number="242" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="80" hits="0" branch="False" />
                 <line number="81" hits="0" branch="False" />
-                <line number="83" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="379" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="84" hits="0" branch="False" />
+                <line number="83" hits="0" branch="False" />
+                <line number="85" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -1693,17 +1721,13 @@
             <line number="77" hits="0" branch="False" />
             <line number="78" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="170" type="jump" coverage="0%" />
+                <condition number="242" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="80" hits="0" branch="False" />
             <line number="81" hits="0" branch="False" />
-            <line number="83" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="379" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="84" hits="0" branch="False" />
+            <line number="83" hits="0" branch="False" />
+            <line number="85" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.CacheService" filename="Services\CacheService.cs" line-rate="1" branch-rate="1" complexity="23">
@@ -2094,12 +2118,23 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.CompliancePolicyService/&lt;&gt;c__DisplayClass5_0" filename="Services\CompliancePolicyService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateCompliancePolicyAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.CompliancePolicyService/&lt;AssignPolicyAsync&gt;d__8" filename="Services\CompliancePolicyService.cs" line-rate="0" branch-rate="1" complexity="1">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="85" hits="0" branch="False" />
-                <line number="87" hits="0" branch="False" />
+                <line number="86" hits="0" branch="False" />
                 <line number="88" hits="0" branch="False" />
                 <line number="89" hits="0" branch="False" />
                 <line number="90" hits="0" branch="False" />
@@ -2107,12 +2142,12 @@
                 <line number="92" hits="0" branch="False" />
                 <line number="93" hits="0" branch="False" />
                 <line number="94" hits="0" branch="False" />
+                <line number="95" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="85" hits="0" branch="False" />
-            <line number="87" hits="0" branch="False" />
+            <line number="86" hits="0" branch="False" />
             <line number="88" hits="0" branch="False" />
             <line number="89" hits="0" branch="False" />
             <line number="90" hits="0" branch="False" />
@@ -2120,6 +2155,7 @@
             <line number="92" hits="0" branch="False" />
             <line number="93" hits="0" branch="False" />
             <line number="94" hits="0" branch="False" />
+            <line number="95" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.CompliancePolicyService/&lt;CreateCompliancePolicyAsync&gt;d__4" filename="Services\CompliancePolicyService.cs" line-rate="0" branch-rate="0" complexity="2">
@@ -2154,48 +2190,48 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.CompliancePolicyService/&lt;GetAssignmentsAsync&gt;d__7" filename="Services\CompliancePolicyService.cs" line-rate="0" branch-rate="0" complexity="4">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
               <lines>
-                <line number="77" hits="0" branch="False" />
                 <line number="78" hits="0" branch="False" />
                 <line number="79" hits="0" branch="False" />
-                <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+                <line number="80" hits="0" branch="False" />
+                <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
                   <conditions>
                     <condition number="185" type="jump" coverage="0%" />
                     <condition number="197" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="82" hits="0" branch="False" />
+                <line number="83" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="77" hits="0" branch="False" />
             <line number="78" hits="0" branch="False" />
             <line number="79" hits="0" branch="False" />
-            <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+            <line number="80" hits="0" branch="False" />
+            <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
               <conditions>
                 <condition number="185" type="jump" coverage="0%" />
                 <condition number="197" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="82" hits="0" branch="False" />
+            <line number="83" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.CompliancePolicyService/&lt;GetCompliancePolicyAsync&gt;d__3" filename="Services\CompliancePolicyService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -2288,24 +2324,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.CompliancePolicyService/&lt;UpdateCompliancePolicyAsync&gt;d__5" filename="Services\CompliancePolicyService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.CompliancePolicyService/&lt;UpdateCompliancePolicyAsync&gt;d__5" filename="Services\CompliancePolicyService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -2313,17 +2345,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ConditionalAccessPolicyService" filename="Services\ConditionalAccessPolicyService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -3162,6 +3190,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.ConfigurationProfileService/&lt;&gt;c__DisplayClass5_0" filename="Services\ConfigurationProfileService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateDeviceConfigurationAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.ConfigurationProfileService/&lt;CreateDeviceConfigurationAsync&gt;d__4" filename="Services\ConfigurationProfileService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -3194,48 +3234,48 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ConfigurationProfileService/&lt;GetAssignmentsAsync&gt;d__7" filename="Services\ConfigurationProfileService.cs" line-rate="0" branch-rate="0" complexity="4">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
               <lines>
-                <line number="77" hits="0" branch="False" />
                 <line number="78" hits="0" branch="False" />
                 <line number="79" hits="0" branch="False" />
-                <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+                <line number="80" hits="0" branch="False" />
+                <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
                   <conditions>
                     <condition number="185" type="jump" coverage="0%" />
                     <condition number="197" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="82" hits="0" branch="False" />
+                <line number="83" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="77" hits="0" branch="False" />
             <line number="78" hits="0" branch="False" />
             <line number="79" hits="0" branch="False" />
-            <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+            <line number="80" hits="0" branch="False" />
+            <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
               <conditions>
                 <condition number="185" type="jump" coverage="0%" />
                 <condition number="197" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="82" hits="0" branch="False" />
+            <line number="83" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ConfigurationProfileService/&lt;GetDeviceConfigurationAsync&gt;d__3" filename="Services\ConfigurationProfileService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -3328,24 +3368,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.ConfigurationProfileService/&lt;UpdateDeviceConfigurationAsync&gt;d__5" filename="Services\ConfigurationProfileService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.ConfigurationProfileService/&lt;UpdateDeviceConfigurationAsync&gt;d__5" filename="Services\ConfigurationProfileService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -3353,17 +3389,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.DeviceHealthScriptService" filename="Services\DeviceHealthScriptService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -3400,6 +3432,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.DeviceHealthScriptService/&lt;&gt;c__DisplayClass5_0" filename="Services\DeviceHealthScriptService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateDeviceHealthScriptAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.DeviceHealthScriptService/&lt;CreateDeviceHealthScriptAsync&gt;d__4" filename="Services\DeviceHealthScriptService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -3432,18 +3476,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.DeviceHealthScriptService/&lt;GetDeviceHealthScriptAsync&gt;d__3" filename="Services\DeviceHealthScriptService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -3536,24 +3580,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.DeviceHealthScriptService/&lt;UpdateDeviceHealthScriptAsync&gt;d__5" filename="Services\DeviceHealthScriptService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.DeviceHealthScriptService/&lt;UpdateDeviceHealthScriptAsync&gt;d__5" filename="Services\DeviceHealthScriptService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -3561,17 +3601,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.EndpointSecurityService" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -3608,11 +3644,22 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.EndpointSecurityService/&lt;&gt;c__DisplayClass5_0" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateEndpointSecurityIntentAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.EndpointSecurityService/&lt;AssignIntentAsync&gt;d__8" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="1" complexity="1">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="85" hits="0" branch="False" />
                 <line number="86" hits="0" branch="False" />
                 <line number="87" hits="0" branch="False" />
                 <line number="88" hits="0" branch="False" />
@@ -3621,11 +3668,11 @@
                 <line number="91" hits="0" branch="False" />
                 <line number="92" hits="0" branch="False" />
                 <line number="93" hits="0" branch="False" />
+                <line number="94" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="85" hits="0" branch="False" />
             <line number="86" hits="0" branch="False" />
             <line number="87" hits="0" branch="False" />
             <line number="88" hits="0" branch="False" />
@@ -3634,6 +3681,7 @@
             <line number="91" hits="0" branch="False" />
             <line number="92" hits="0" branch="False" />
             <line number="93" hits="0" branch="False" />
+            <line number="94" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.EndpointSecurityService/&lt;CreateEndpointSecurityIntentAsync&gt;d__4" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="0" complexity="2">
@@ -3668,48 +3716,48 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.EndpointSecurityService/&lt;GetAssignmentsAsync&gt;d__7" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="0" complexity="4">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
               <lines>
-                <line number="77" hits="0" branch="False" />
                 <line number="78" hits="0" branch="False" />
                 <line number="79" hits="0" branch="False" />
-                <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+                <line number="80" hits="0" branch="False" />
+                <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
                   <conditions>
                     <condition number="185" type="jump" coverage="0%" />
                     <condition number="197" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="82" hits="0" branch="False" />
+                <line number="83" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="77" hits="0" branch="False" />
             <line number="78" hits="0" branch="False" />
             <line number="79" hits="0" branch="False" />
-            <line number="81" hits="0" branch="True" condition-coverage="0% (0/4)">
+            <line number="80" hits="0" branch="False" />
+            <line number="82" hits="0" branch="True" condition-coverage="0% (0/4)">
               <conditions>
                 <condition number="185" type="jump" coverage="0%" />
                 <condition number="197" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="82" hits="0" branch="False" />
+            <line number="83" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.EndpointSecurityService/&lt;GetEndpointSecurityIntentAsync&gt;d__3" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -3802,24 +3850,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.EndpointSecurityService/&lt;UpdateEndpointSecurityIntentAsync&gt;d__5" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.EndpointSecurityService/&lt;UpdateEndpointSecurityIntentAsync&gt;d__5" filename="Services\EndpointSecurityService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -3827,52 +3871,48 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.EnrollmentConfigurationService" filename="Services\EnrollmentConfigurationService.cs" line-rate="0" branch-rate="0" complexity="7">
           <methods>
             <method name="IsEnrollmentStatusPage" signature="(Microsoft.Graph.Beta.Models.DeviceEnrollmentConfiguration)" line-rate="0" branch-rate="0" complexity="2">
               <lines>
-                <line number="95" hits="0" branch="False" />
-                <line number="96" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="96" hits="0" branch="False" />
+                <line number="97" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
                     <condition number="8" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="97" hits="0" branch="False" />
+                <line number="98" hits="0" branch="False" />
               </lines>
             </method>
             <method name="IsCoManagementSettings" signature="(Microsoft.Graph.Beta.Models.DeviceEnrollmentConfiguration)" line-rate="0" branch-rate="0" complexity="2">
               <lines>
-                <line number="100" hits="0" branch="False" />
-                <line number="101" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="101" hits="0" branch="False" />
+                <line number="102" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
                     <condition number="8" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="102" hits="0" branch="False" />
+                <line number="103" hits="0" branch="False" />
               </lines>
             </method>
             <method name="IsEnrollmentRestriction" signature="(Microsoft.Graph.Beta.Models.DeviceEnrollmentConfiguration)" line-rate="0" branch-rate="0" complexity="2">
               <lines>
-                <line number="105" hits="0" branch="False" />
-                <line number="106" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="106" hits="0" branch="False" />
+                <line number="107" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
                     <condition number="7" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="107" hits="0" branch="False" />
+                <line number="108" hits="0" branch="False" />
               </lines>
             </method>
             <method name=".ctor" signature="(Microsoft.Graph.Beta.GraphServiceClient)" line-rate="0" branch-rate="1" complexity="1">
@@ -3885,27 +3925,27 @@
             </method>
           </methods>
           <lines>
-            <line number="95" hits="0" branch="False" />
-            <line number="96" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="96" hits="0" branch="False" />
+            <line number="97" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
                 <condition number="8" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="97" hits="0" branch="False" />
-            <line number="100" hits="0" branch="False" />
-            <line number="101" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="98" hits="0" branch="False" />
+            <line number="101" hits="0" branch="False" />
+            <line number="102" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
                 <condition number="8" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="102" hits="0" branch="False" />
-            <line number="105" hits="0" branch="False" />
-            <line number="106" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="103" hits="0" branch="False" />
+            <line number="106" hits="0" branch="False" />
+            <line number="107" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
                 <condition number="7" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="107" hits="0" branch="False" />
+            <line number="108" hits="0" branch="False" />
             <line number="11" hits="0" branch="False" />
             <line number="12" hits="0" branch="False" />
             <line number="13" hits="0" branch="False" />
@@ -3926,6 +3966,18 @@
             <line number="22" hits="0" branch="False" />
             <line number="23" hits="0" branch="False" />
             <line number="24" hits="0" branch="False" />
+          </lines>
+        </class>
+        <class name="IntuneManager.Core.Services.EnrollmentConfigurationService/&lt;&gt;c__DisplayClass8_0" filename="Services\EnrollmentConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateEnrollmentConfigurationAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="86" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="86" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.EnrollmentConfigurationService/&lt;CreateEnrollmentConfigurationAsync&gt;d__7" filename="Services\EnrollmentConfigurationService.cs" line-rate="0" branch-rate="0" complexity="2">
@@ -3960,18 +4012,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="89" hits="0" branch="False" />
                 <line number="90" hits="0" branch="False" />
                 <line number="91" hits="0" branch="False" />
                 <line number="92" hits="0" branch="False" />
+                <line number="93" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="89" hits="0" branch="False" />
             <line number="90" hits="0" branch="False" />
             <line number="91" hits="0" branch="False" />
             <line number="92" hits="0" branch="False" />
+            <line number="93" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.EnrollmentConfigurationService/&lt;GetEnrollmentConfigurationAsync&gt;d__6" filename="Services\EnrollmentConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -4142,24 +4194,20 @@
             <line number="50" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.EnrollmentConfigurationService/&lt;UpdateEnrollmentConfigurationAsync&gt;d__8" filename="Services\EnrollmentConfigurationService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.EnrollmentConfigurationService/&lt;UpdateEnrollmentConfigurationAsync&gt;d__8" filename="Services\EnrollmentConfigurationService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="79" hits="0" branch="False" />
                 <line number="80" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="82" hits="0" branch="False" />
                 <line number="83" hits="0" branch="False" />
-                <line number="85" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="86" hits="0" branch="False" />
+                <line number="85" hits="0" branch="False" />
+                <line number="87" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -4167,17 +4215,13 @@
             <line number="79" hits="0" branch="False" />
             <line number="80" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="82" hits="0" branch="False" />
             <line number="83" hits="0" branch="False" />
-            <line number="85" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="86" hits="0" branch="False" />
+            <line number="85" hits="0" branch="False" />
+            <line number="87" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ExportService" filename="Services\ExportService.cs" line-rate="1" branch-rate="1" complexity="2">
@@ -6618,6 +6662,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.FeatureUpdateProfileService/&lt;&gt;c__DisplayClass5_0" filename="Services\FeatureUpdateProfileService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateFeatureUpdateProfileAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.FeatureUpdateProfileService/&lt;CreateFeatureUpdateProfileAsync&gt;d__4" filename="Services\FeatureUpdateProfileService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -6650,18 +6706,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.FeatureUpdateProfileService/&lt;GetFeatureUpdateProfileAsync&gt;d__3" filename="Services\FeatureUpdateProfileService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -6754,24 +6810,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.FeatureUpdateProfileService/&lt;UpdateFeatureUpdateProfileAsync&gt;d__5" filename="Services\FeatureUpdateProfileService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.FeatureUpdateProfileService/&lt;UpdateFeatureUpdateProfileAsync&gt;d__5" filename="Services\FeatureUpdateProfileService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -6779,17 +6831,51 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
+          </lines>
+        </class>
+        <class name="IntuneManager.Core.Services.GraphPatchHelper/&lt;PatchWithGetFallbackAsync&gt;d__0`1" filename="Services\GraphPatchHelper.cs" line-rate="0" branch-rate="0" complexity="4">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+              <lines>
+                <line number="20" hits="0" branch="False" />
+                <line number="21" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="31" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="22" hits="0" branch="False" />
+                <line number="24" hits="0" branch="False" />
+                <line number="25" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="188" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="26" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="20" hits="0" branch="False" />
+            <line number="21" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="221" type="jump" coverage="0%" />
+                <condition number="31" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="22" hits="0" branch="False" />
+            <line number="24" hits="0" branch="False" />
+            <line number="25" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="188" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="26" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.GroupService" filename="Services\GroupService.cs" line-rate="0.8717" branch-rate="0.625" complexity="41">
@@ -11938,6 +12024,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.IntuneBrandingService/&lt;&gt;c__DisplayClass5_0" filename="Services\IntuneBrandingService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateIntuneBrandingProfileAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.IntuneBrandingService/&lt;CreateIntuneBrandingProfileAsync&gt;d__4" filename="Services\IntuneBrandingService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -11970,18 +12068,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.IntuneBrandingService/&lt;GetIntuneBrandingProfileAsync&gt;d__3" filename="Services\IntuneBrandingService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -12074,24 +12172,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.IntuneBrandingService/&lt;UpdateIntuneBrandingProfileAsync&gt;d__5" filename="Services\IntuneBrandingService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.IntuneBrandingService/&lt;UpdateIntuneBrandingProfileAsync&gt;d__5" filename="Services\IntuneBrandingService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -12099,17 +12193,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.MacCustomAttributeService" filename="Services\MacCustomAttributeService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -12146,6 +12236,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.MacCustomAttributeService/&lt;&gt;c__DisplayClass5_0" filename="Services\MacCustomAttributeService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateMacCustomAttributeAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.MacCustomAttributeService/&lt;CreateMacCustomAttributeAsync&gt;d__4" filename="Services\MacCustomAttributeService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -12178,18 +12280,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.MacCustomAttributeService/&lt;GetMacCustomAttributeAsync&gt;d__3" filename="Services\MacCustomAttributeService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -12282,24 +12384,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.MacCustomAttributeService/&lt;UpdateMacCustomAttributeAsync&gt;d__5" filename="Services\MacCustomAttributeService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.MacCustomAttributeService/&lt;UpdateMacCustomAttributeAsync&gt;d__5" filename="Services\MacCustomAttributeService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -12307,17 +12405,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ManagedAppConfigurationService" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -12349,9 +12443,9 @@
             </method>
             <method name="&lt;ListTargetedManagedAppConfigurationsAsync&gt;b__7_0" signature="(Microsoft.Kiota.Abstractions.RequestConfiguration`1&lt;Microsoft.Graph.Beta.DeviceAppManagement.TargetedManagedAppConfigurations.TargetedManagedAppConfigurationsRequestBuilder/TargetedManagedAppConfigurationsRequestBuilderGetQueryParameters&gt;)" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="82" hits="0" branch="False" />
                 <line number="83" hits="0" branch="False" />
                 <line number="84" hits="0" branch="False" />
+                <line number="85" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -12359,9 +12453,33 @@
             <line number="22" hits="0" branch="False" />
             <line number="23" hits="0" branch="False" />
             <line number="24" hits="0" branch="False" />
-            <line number="82" hits="0" branch="False" />
             <line number="83" hits="0" branch="False" />
             <line number="84" hits="0" branch="False" />
+            <line number="85" hits="0" branch="False" />
+          </lines>
+        </class>
+        <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;&gt;c__DisplayClass10_0" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateTargetedManagedAppConfigurationAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="129" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="129" hits="0" branch="False" />
+          </lines>
+        </class>
+        <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;&gt;c__DisplayClass5_0" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateManagedDeviceAppConfigurationAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;CreateManagedDeviceAppConfigurationAsync&gt;d__4" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="0" complexity="2">
@@ -12396,64 +12514,64 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
-                <line number="113" hits="0" branch="False" />
                 <line number="114" hits="0" branch="False" />
                 <line number="115" hits="0" branch="False" />
-                <line number="117" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="116" hits="0" branch="False" />
+                <line number="118" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
                     <condition number="175" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="118" hits="0" branch="False" />
+                <line number="119" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="113" hits="0" branch="False" />
             <line number="114" hits="0" branch="False" />
             <line number="115" hits="0" branch="False" />
-            <line number="117" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="116" hits="0" branch="False" />
+            <line number="118" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
                 <condition number="175" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="118" hits="0" branch="False" />
+            <line number="119" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;DeleteManagedDeviceAppConfigurationAsync&gt;d__6" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;DeleteTargetedManagedAppConfigurationAsync&gt;d__11" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="131" hits="0" branch="False" />
-                <line number="132" hits="0" branch="False" />
                 <line number="133" hits="0" branch="False" />
                 <line number="134" hits="0" branch="False" />
+                <line number="135" hits="0" branch="False" />
+                <line number="136" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="131" hits="0" branch="False" />
-            <line number="132" hits="0" branch="False" />
             <line number="133" hits="0" branch="False" />
             <line number="134" hits="0" branch="False" />
+            <line number="135" hits="0" branch="False" />
+            <line number="136" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;GetManagedDeviceAppConfigurationAsync&gt;d__3" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -12478,18 +12596,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="107" hits="0" branch="False" />
                 <line number="108" hits="0" branch="False" />
                 <line number="109" hits="0" branch="False" />
                 <line number="110" hits="0" branch="False" />
+                <line number="111" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="107" hits="0" branch="False" />
             <line number="108" hits="0" branch="False" />
             <line number="109" hits="0" branch="False" />
             <line number="110" hits="0" branch="False" />
+            <line number="111" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;ListManagedDeviceAppConfigurationsAsync&gt;d__2" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="0" complexity="6">
@@ -12568,92 +12686,88 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="6">
               <lines>
-                <line number="77" hits="0" branch="False" />
                 <line number="78" hits="0" branch="False" />
-                <line number="80" hits="0" branch="False" />
+                <line number="79" hits="0" branch="False" />
                 <line number="81" hits="0" branch="False" />
-                <line number="86" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="82" hits="0" branch="False" />
+                <line number="87" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
                     <condition number="481" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="87" hits="0" branch="False" />
-                <line number="88" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="88" hits="0" branch="False" />
+                <line number="89" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
                     <condition number="241" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="89" hits="0" branch="False" />
-                <line number="91" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="90" hits="0" branch="False" />
+                <line number="92" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
                     <condition number="289" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="92" hits="0" branch="False" />
                 <line number="93" hits="0" branch="False" />
                 <line number="94" hits="0" branch="False" />
                 <line number="95" hits="0" branch="False" />
                 <line number="96" hits="0" branch="False" />
-                <line number="98" hits="0" branch="False" />
+                <line number="97" hits="0" branch="False" />
                 <line number="99" hits="0" branch="False" />
-                <line number="101" hits="0" branch="False" />
-                <line number="103" hits="0" branch="False" />
+                <line number="100" hits="0" branch="False" />
+                <line number="102" hits="0" branch="False" />
                 <line number="104" hits="0" branch="False" />
+                <line number="105" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="77" hits="0" branch="False" />
             <line number="78" hits="0" branch="False" />
-            <line number="80" hits="0" branch="False" />
+            <line number="79" hits="0" branch="False" />
             <line number="81" hits="0" branch="False" />
-            <line number="86" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="82" hits="0" branch="False" />
+            <line number="87" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
                 <condition number="481" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="87" hits="0" branch="False" />
-            <line number="88" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="88" hits="0" branch="False" />
+            <line number="89" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
                 <condition number="241" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="89" hits="0" branch="False" />
-            <line number="91" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="90" hits="0" branch="False" />
+            <line number="92" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
                 <condition number="289" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="92" hits="0" branch="False" />
             <line number="93" hits="0" branch="False" />
             <line number="94" hits="0" branch="False" />
             <line number="95" hits="0" branch="False" />
             <line number="96" hits="0" branch="False" />
-            <line number="98" hits="0" branch="False" />
+            <line number="97" hits="0" branch="False" />
             <line number="99" hits="0" branch="False" />
-            <line number="101" hits="0" branch="False" />
-            <line number="103" hits="0" branch="False" />
+            <line number="100" hits="0" branch="False" />
+            <line number="102" hits="0" branch="False" />
             <line number="104" hits="0" branch="False" />
+            <line number="105" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;UpdateManagedDeviceAppConfigurationAsync&gt;d__5" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;UpdateManagedDeviceAppConfigurationAsync&gt;d__5" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -12661,55 +12775,43 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;UpdateTargetedManagedAppConfigurationAsync&gt;d__10" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.ManagedAppConfigurationService/&lt;UpdateTargetedManagedAppConfigurationAsync&gt;d__10" filename="Services\ManagedAppConfigurationService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
-                <line number="121" hits="0" branch="False" />
-                <line number="122" hits="0" branch="True" condition-coverage="0% (0/2)">
+                <line number="122" hits="0" branch="False" />
+                <line number="123" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
-                <line number="124" hits="0" branch="False" />
                 <line number="125" hits="0" branch="False" />
-                <line number="127" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
+                <line number="126" hits="0" branch="False" />
                 <line number="128" hits="0" branch="False" />
+                <line number="130" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="121" hits="0" branch="False" />
-            <line number="122" hits="0" branch="True" condition-coverage="0% (0/2)">
+            <line number="122" hits="0" branch="False" />
+            <line number="123" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
-            <line number="124" hits="0" branch="False" />
             <line number="125" hits="0" branch="False" />
-            <line number="127" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
+            <line number="126" hits="0" branch="False" />
             <line number="128" hits="0" branch="False" />
+            <line number="130" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.NamedLocationService" filename="Services\NamedLocationService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -12746,6 +12848,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.NamedLocationService/&lt;&gt;c__DisplayClass5_0" filename="Services\NamedLocationService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateNamedLocationAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.NamedLocationService/&lt;CreateNamedLocationAsync&gt;d__4" filename="Services\NamedLocationService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -12778,18 +12892,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.NamedLocationService/&lt;GetNamedLocationAsync&gt;d__3" filename="Services\NamedLocationService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -12882,24 +12996,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.NamedLocationService/&lt;UpdateNamedLocationAsync&gt;d__5" filename="Services\NamedLocationService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.NamedLocationService/&lt;UpdateNamedLocationAsync&gt;d__5" filename="Services\NamedLocationService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="226" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -12907,17 +13017,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="226" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.PolicySetService" filename="Services\PolicySetService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -13474,6 +13580,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.RoleDefinitionService/&lt;&gt;c__DisplayClass5_0" filename="Services\RoleDefinitionService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateRoleDefinitionAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.RoleDefinitionService/&lt;CreateRoleDefinitionAsync&gt;d__4" filename="Services\RoleDefinitionService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -13506,18 +13624,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.RoleDefinitionService/&lt;GetRoleDefinitionAsync&gt;d__3" filename="Services\RoleDefinitionService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -13610,24 +13728,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.RoleDefinitionService/&lt;UpdateRoleDefinitionAsync&gt;d__5" filename="Services\RoleDefinitionService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.RoleDefinitionService/&lt;UpdateRoleDefinitionAsync&gt;d__5" filename="Services\RoleDefinitionService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -13635,17 +13749,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ScopeTagService" filename="Services\ScopeTagService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -13682,6 +13792,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.ScopeTagService/&lt;&gt;c__DisplayClass5_0" filename="Services\ScopeTagService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateScopeTagAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.ScopeTagService/&lt;CreateScopeTagAsync&gt;d__4" filename="Services\ScopeTagService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -13714,18 +13836,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.ScopeTagService/&lt;GetScopeTagAsync&gt;d__3" filename="Services\ScopeTagService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -13818,24 +13940,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.ScopeTagService/&lt;UpdateScopeTagAsync&gt;d__5" filename="Services\ScopeTagService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.ScopeTagService/&lt;UpdateScopeTagAsync&gt;d__5" filename="Services\ScopeTagService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -13843,17 +13961,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.SettingsCatalogService" filename="Services\SettingsCatalogService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -14056,6 +14170,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.TermsAndConditionsService/&lt;&gt;c__DisplayClass5_0" filename="Services\TermsAndConditionsService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateTermsAndConditionsAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.TermsAndConditionsService/&lt;CreateTermsAndConditionsAsync&gt;d__4" filename="Services\TermsAndConditionsService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -14088,18 +14214,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.TermsAndConditionsService/&lt;GetTermsAndConditionsAsync&gt;d__3" filename="Services\TermsAndConditionsService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -14192,24 +14318,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.TermsAndConditionsService/&lt;UpdateTermsAndConditionsAsync&gt;d__5" filename="Services\TermsAndConditionsService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.TermsAndConditionsService/&lt;UpdateTermsAndConditionsAsync&gt;d__5" filename="Services\TermsAndConditionsService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="221" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -14217,17 +14339,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="221" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.TermsOfUseService" filename="Services\TermsOfUseService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -14264,6 +14382,18 @@
             <line number="24" hits="0" branch="False" />
           </lines>
         </class>
+        <class name="IntuneManager.Core.Services.TermsOfUseService/&lt;&gt;c__DisplayClass5_0" filename="Services\TermsOfUseService.cs" line-rate="0" branch-rate="1" complexity="1">
+          <methods>
+            <method name="&lt;UpdateTermsOfUseAgreementAsync&gt;b__0" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="68" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="68" hits="0" branch="False" />
+          </lines>
+        </class>
         <class name="IntuneManager.Core.Services.TermsOfUseService/&lt;CreateTermsOfUseAgreementAsync&gt;d__4" filename="Services\TermsOfUseService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
@@ -14296,18 +14426,18 @@
           <methods>
             <method name="MoveNext" signature="()" line-rate="0" branch-rate="1" complexity="1">
               <lines>
-                <line number="71" hits="0" branch="False" />
                 <line number="72" hits="0" branch="False" />
                 <line number="73" hits="0" branch="False" />
                 <line number="74" hits="0" branch="False" />
+                <line number="75" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="71" hits="0" branch="False" />
             <line number="72" hits="0" branch="False" />
             <line number="73" hits="0" branch="False" />
             <line number="74" hits="0" branch="False" />
+            <line number="75" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.TermsOfUseService/&lt;GetTermsOfUseAgreementAsync&gt;d__3" filename="Services\TermsOfUseService.cs" line-rate="0" branch-rate="1" complexity="1">
@@ -14400,24 +14530,20 @@
             <line number="44" hits="0" branch="False" />
           </lines>
         </class>
-        <class name="IntuneManager.Core.Services.TermsOfUseService/&lt;UpdateTermsOfUseAgreementAsync&gt;d__5" filename="Services\TermsOfUseService.cs" line-rate="0" branch-rate="0" complexity="4">
+        <class name="IntuneManager.Core.Services.TermsOfUseService/&lt;UpdateTermsOfUseAgreementAsync&gt;d__5" filename="Services\TermsOfUseService.cs" line-rate="0" branch-rate="0" complexity="2">
           <methods>
-            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="4">
+            <method name="MoveNext" signature="()" line-rate="0" branch-rate="0" complexity="2">
               <lines>
                 <line number="61" hits="0" branch="False" />
                 <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
                   <conditions>
-                    <condition number="31" type="jump" coverage="0%" />
+                    <condition number="92" type="jump" coverage="0%" />
                   </conditions>
                 </line>
                 <line number="64" hits="0" branch="False" />
                 <line number="65" hits="0" branch="False" />
-                <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-                  <conditions>
-                    <condition number="226" type="jump" coverage="0%" />
-                  </conditions>
-                </line>
-                <line number="68" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="69" hits="0" branch="False" />
               </lines>
             </method>
           </methods>
@@ -14425,17 +14551,13 @@
             <line number="61" hits="0" branch="False" />
             <line number="62" hits="0" branch="True" condition-coverage="0% (0/2)">
               <conditions>
-                <condition number="31" type="jump" coverage="0%" />
+                <condition number="92" type="jump" coverage="0%" />
               </conditions>
             </line>
             <line number="64" hits="0" branch="False" />
             <line number="65" hits="0" branch="False" />
-            <line number="67" hits="0" branch="True" condition-coverage="0% (0/2)">
-              <conditions>
-                <condition number="226" type="jump" coverage="0%" />
-              </conditions>
-            </line>
-            <line number="68" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="69" hits="0" branch="False" />
           </lines>
         </class>
         <class name="IntuneManager.Core.Services.CaPptExport.AssignedCloudAppAction" filename="Services\CaPptExport\AssignedCloudAppAction.cs" line-rate="0" branch-rate="0" complexity="75">
