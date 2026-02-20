@@ -34,6 +34,7 @@ public partial class MainWindow : Window
         DataContextChanged += OnDataContextChanged;
     }
 
+
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
@@ -53,6 +54,16 @@ public partial class MainWindow : Window
             columnChooserButton.Click += OnColumnChooserClick;
 
         AttachViewModelIfAvailable("Loaded");
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.Key == Key.F12)
+        {
+            OnDebugLogLinkPressed(this, null!);
+            e.Handled = true;
+        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
