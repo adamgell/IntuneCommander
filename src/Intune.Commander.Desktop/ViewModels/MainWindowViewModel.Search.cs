@@ -662,6 +662,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 Contains(a.Id, q)));
 
+        OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
+
     }
 
 

@@ -62,11 +62,20 @@ public partial class DebugLogWindow : Window
         }
 
         await CopyToClipboardAsync(selected.Select(s => s.Formatted));
+        await ShowCopyFeedback(CopySelectedButton, "Copy Selected");
     }
 
     private async void OnCopyAll(object? sender, RoutedEventArgs e)
     {
         await CopyToClipboardAsync(_viewModel.FilteredEntries.Select(x => x.Formatted));
+        await ShowCopyFeedback(CopyAllButton, "Copy All");
+    }
+
+    private async Task ShowCopyFeedback(Button button, string originalLabel)
+    {
+        button.Content = "✓ Copied!";
+        await Task.Delay(1500);
+        button.Content = originalLabel;
     }
 
     private async void OnSaveLog(object? sender, RoutedEventArgs e)

@@ -22,73 +22,185 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<NavCategory> NavCategories { get; } = [];
 
+    public ObservableCollection<NavCategoryGroup> NavGroups { get; } = [];
 
 
-    private static List<NavCategory> BuildDefaultNavCategories() =>
+
+    private static readonly NavCategory OverviewCategory = new() { Name = "Overview", Icon = "📊" };
+
+
+
+    private static List<NavCategoryGroup> BuildDefaultNavGroups() =>
 
     [
 
-        new NavCategory { Name = "Overview", Icon = "📊" },
+        new NavCategoryGroup
 
-        new NavCategory { Name = "Device Configurations", Icon = "⚙" },
+        {
 
-        new NavCategory { Name = "Compliance Policies", Icon = "✓" },
+            Name = "Devices", Icon = "💻",
 
-        new NavCategory { Name = "Applications", Icon = "📦" },
+            Children = new ObservableCollection<NavCategory>
 
-        new NavCategory { Name = "Application Assignments", Icon = "📋" },
+            {
 
-        new NavCategory { Name = "Settings Catalog", Icon = "⚙" },
+                new() { Name = "Device Configurations", Icon = "⚙" },
 
-        new NavCategory { Name = "Endpoint Security", Icon = "🛡" },
+                new() { Name = "Compliance Policies", Icon = "✓" },
 
-        new NavCategory { Name = "Administrative Templates", Icon = "🧾" },
+                new() { Name = "Settings Catalog", Icon = "⚙" },
 
-        new NavCategory { Name = "Enrollment Configurations", Icon = "🪪" },
+                new() { Name = "Administrative Templates", Icon = "🧾" },
 
-        new NavCategory { Name = "App Protection Policies", Icon = "🔒" },
+                new() { Name = "Endpoint Security", Icon = "🛡" },
 
-        new NavCategory { Name = "Managed Device App Configurations", Icon = "📱" },
+                new() { Name = "Enrollment Configurations", Icon = "🪪" },
 
-        new NavCategory { Name = "Targeted Managed App Configurations", Icon = "🎯" },
+            }
 
-        new NavCategory { Name = "Terms and Conditions", Icon = "📜" },
+        },
 
-        new NavCategory { Name = "Scope Tags", Icon = "🏷" },
+        new NavCategoryGroup
 
-        new NavCategory { Name = "Role Definitions", Icon = "💼" },
+        {
 
-        new NavCategory { Name = "Intune Branding", Icon = "🎨" },
+            Name = "Applications", Icon = "📦",
 
-        new NavCategory { Name = "Azure Branding", Icon = "🟦" },
+            Children = new ObservableCollection<NavCategory>
 
-        new NavCategory { Name = "Autopilot Profiles", Icon = "🚀" },
+            {
 
-        new NavCategory { Name = "Device Health Scripts", Icon = "🩺" },
+                new() { Name = "Applications", Icon = "📦" },
 
-        new NavCategory { Name = "Mac Custom Attributes", Icon = "🍎" },
+                new() { Name = "Application Assignments", Icon = "📋" },
 
-        new NavCategory { Name = "Feature Updates", Icon = "🪟" },
+                new() { Name = "App Protection Policies", Icon = "🔒" },
 
-        new NavCategory { Name = "Named Locations", Icon = "📍" },
+                new() { Name = "Managed Device App Configurations", Icon = "📱" },
 
-        new NavCategory { Name = "Authentication Strengths", Icon = "🔐" },
+                new() { Name = "Targeted Managed App Configurations", Icon = "🎯" },
 
-        new NavCategory { Name = "Authentication Contexts", Icon = "🏷" },
+            }
 
-        new NavCategory { Name = "Terms of Use", Icon = "📄" },
+        },
 
-        new NavCategory { Name = "Conditional Access", Icon = "🔐" },
+        new NavCategoryGroup
 
-        new NavCategory { Name = "Assignment Filters", Icon = "🧩" },
+        {
 
-        new NavCategory { Name = "Policy Sets", Icon = "🗂" },
+            Name = "Identity & Access", Icon = "🔐",
 
-        new NavCategory { Name = "Dynamic Groups", Icon = "🔄" },
+            Children = new ObservableCollection<NavCategory>
 
-        new NavCategory { Name = "Assigned Groups", Icon = "👥" }
+            {
+
+                new() { Name = "Conditional Access", Icon = "🔐" },
+
+                new() { Name = "Named Locations", Icon = "📍" },
+
+                new() { Name = "Authentication Strengths", Icon = "🔐" },
+
+                new() { Name = "Authentication Contexts", Icon = "🏷" },
+
+                new() { Name = "Terms of Use", Icon = "📄" },
+
+            }
+
+        },
+
+        new NavCategoryGroup
+
+        {
+
+            Name = "Tenant Admin", Icon = "🏢",
+
+            Children = new ObservableCollection<NavCategory>
+
+            {
+
+                new() { Name = "Scope Tags", Icon = "🏷" },
+
+                new() { Name = "Role Definitions", Icon = "💼" },
+
+                new() { Name = "Assignment Filters", Icon = "🧩" },
+
+                new() { Name = "Policy Sets", Icon = "🗂" },
+
+                new() { Name = "Intune Branding", Icon = "🎨" },
+
+                new() { Name = "Azure Branding", Icon = "🟦" },
+
+                new() { Name = "Terms and Conditions", Icon = "📜" },
+
+                new() { Name = "Autopilot Profiles", Icon = "🚀" },
+
+            }
+
+        },
+
+        new NavCategoryGroup
+
+        {
+
+            Name = "Monitoring", Icon = "🩺",
+
+            Children = new ObservableCollection<NavCategory>
+
+            {
+
+                new() { Name = "Device Health Scripts", Icon = "🩺" },
+
+                new() { Name = "Mac Custom Attributes", Icon = "🍎" },
+
+                new() { Name = "Feature Updates", Icon = "🪟" },
+
+            }
+
+        },
+
+        new NavCategoryGroup
+
+        {
+
+            Name = "Groups", Icon = "👥",
+
+            Children = new ObservableCollection<NavCategory>
+
+            {
+
+                new() { Name = "Dynamic Groups", Icon = "🔄" },
+
+                new() { Name = "Assigned Groups", Icon = "👥" },
+
+            }
+
+        },
 
     ];
+
+
+
+    /// <summary>
+
+    /// Flat list of all category names (derived from groups) for backward compatibility.
+
+    /// </summary>
+
+    private static List<NavCategory> BuildDefaultNavCategories()
+
+    {
+
+        var groups = BuildDefaultNavGroups();
+
+        var result = new List<NavCategory> { OverviewCategory };
+
+        foreach (var g in groups)
+
+            result.AddRange(g.Children);
+
+        return result;
+
+    }
 
 
 
@@ -125,6 +237,18 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var category in expected)
 
             NavCategories.Add(category);
+
+
+
+        // Rebuild grouped nav structure
+
+        var groups = BuildDefaultNavGroups();
+
+        NavGroups.Clear();
+
+        foreach (var group in groups)
+
+            NavGroups.Add(group);
 
 
 
@@ -304,6 +428,54 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsAssignedGroupsCategory => SelectedCategory?.Name == "Assigned Groups";
 
+    public bool IsCurrentCategoryEmpty =>
+        !IsBusy &&
+        SelectedCategory is not null &&
+        !IsOverviewCategory &&
+        GetCurrentFilteredCount() == 0;
+
+    private int GetCurrentFilteredCount() => SelectedCategory?.Name switch
+    {
+        "Device Configurations" => FilteredDeviceConfigurations.Count,
+        "Compliance Policies" => FilteredCompliancePolicies.Count,
+        "Applications" => FilteredApplications.Count,
+        "Application Assignments" => FilteredAppAssignmentRows.Count,
+        "Dynamic Groups" => FilteredDynamicGroupRows.Count,
+        "Assigned Groups" => FilteredAssignedGroupRows.Count,
+        "Settings Catalog" => FilteredSettingsCatalogPolicies.Count,
+        "Endpoint Security" => FilteredEndpointSecurityIntents.Count,
+        "Administrative Templates" => FilteredAdministrativeTemplates.Count,
+        "Enrollment Configurations" => FilteredEnrollmentConfigurations.Count,
+        "App Protection Policies" => FilteredAppProtectionPolicies.Count,
+        "Managed Device App Configurations" => FilteredManagedDeviceAppConfigurations.Count,
+        "Targeted Managed App Configurations" => FilteredTargetedManagedAppConfigurations.Count,
+        "Terms and Conditions" => FilteredTermsAndConditionsCollection.Count,
+        "Scope Tags" => FilteredScopeTags.Count,
+        "Role Definitions" => FilteredRoleDefinitions.Count,
+        "Intune Branding" => FilteredIntuneBrandingProfiles.Count,
+        "Azure Branding" => FilteredAzureBrandingLocalizations.Count,
+        "Conditional Access" => FilteredConditionalAccessPolicies.Count,
+        "Assignment Filters" => FilteredAssignmentFilters.Count,
+        "Policy Sets" => FilteredPolicySets.Count,
+        "Autopilot Profiles" => FilteredAutopilotProfiles.Count,
+        "Device Health Scripts" => FilteredDeviceHealthScripts.Count,
+        "Mac Custom Attributes" => FilteredMacCustomAttributes.Count,
+        "Feature Updates" => FilteredFeatureUpdateProfiles.Count,
+        "Named Locations" => FilteredNamedLocations.Count,
+        "Authentication Strengths" => FilteredAuthenticationStrengthPolicies.Count,
+        "Authentication Contexts" => FilteredAuthenticationContextClassReferences.Count,
+        "Terms of Use" => FilteredTermsOfUseAgreements.Count,
+        _ => -1
+    };
+
+    /// <summary>Navigates to the category with the given name. Used by OverviewViewModel card commands.</summary>
+    public void ActivateCategoryByName(string name)
+    {
+        var cat = NavCategories.FirstOrDefault(c => c.Name == name);
+        if (cat != null)
+            SelectedCategory = cat;
+    }
+
 
 
     partial void OnSelectedCategoryChanged(NavCategory? value)
@@ -451,6 +623,12 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(ActiveColumns));
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+        // Update IsSelected on all nav categories
+        foreach (var cat in NavCategories)
+            cat.IsSelected = cat == value;
+
+        OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
 
 
 

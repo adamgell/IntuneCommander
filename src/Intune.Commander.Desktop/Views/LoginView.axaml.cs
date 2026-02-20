@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Intune.Commander.Desktop.ViewModels;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
 
 namespace Intune.Commander.Desktop.Views;
 
@@ -19,12 +21,30 @@ public partial class LoginView : UserControl
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         if (_vm != null)
+        {
             _vm.ImportProfilesRequested -= OnImportProfilesRequested;
+            _vm.ConfirmDeleteProfile -= OnConfirmDeleteProfile;
+        }
 
         _vm = DataContext as LoginViewModel;
 
         if (_vm != null)
+        {
             _vm.ImportProfilesRequested += OnImportProfilesRequested;
+            _vm.ConfirmDeleteProfile += OnConfirmDeleteProfile;
+        }
+    }
+
+    private async Task<bool> OnConfirmDeleteProfile(string profileName)
+    {
+        var box = MessageBoxManager.GetMessageBoxStandard(
+            "Delete Profile",
+            $"Delete profile \"{profileName}\"? This cannot be undone.",
+            ButtonEnum.YesNo,
+            Icon.Warning);
+        var result = await box.ShowWindowDialogAsync(
+            TopLevel.GetTopLevel(this) as Window ?? throw new InvalidOperationException());
+        return result == ButtonResult.Yes;
     }
 
     private async Task<string?> OnImportProfilesRequested()

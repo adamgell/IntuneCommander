@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
@@ -60,6 +61,10 @@ public partial class MainWindow : Window
         var columnChooserButton = this.FindControl<Button>("ColumnChooserButton");
         if (columnChooserButton != null)
             columnChooserButton.Click += OnColumnChooserClick;
+
+        var overviewNavButton = this.FindControl<Button>("OverviewNavButton");
+        if (overviewNavButton != null)
+            overviewNavButton.Click += OnOverviewNavClick;
 
         AttachViewModelIfAvailable("Loaded");
     }
@@ -526,15 +531,16 @@ public partial class MainWindow : Window
             stack.Children.Add(cb);
         }
 
-        popup.Child = new Border
+        var popupBorder = new Border
         {
-            Background = Avalonia.Media.Brushes.White,
-            BorderBrush = Avalonia.Media.Brushes.Gray,
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(4),
             Padding = new Thickness(4),
             Child = stack
         };
+        popupBorder.Bind(Border.BackgroundProperty, this.GetResourceObservable("SystemControlBackgroundAltHighBrush"));
+        popupBorder.Bind(Border.BorderBrushProperty, this.GetResourceObservable("SystemControlForegroundBaseMediumBrush"));
+        popup.Child = popupBorder;
 
         // Avalonia popups need to be in the visual tree
         if (this.Content is Panel panel)
@@ -646,6 +652,27 @@ public partial class MainWindow : Window
             MsBox.Avalonia.Enums.Icon.Info);
 
         await box.ShowAsPopupAsync(this);
+    }
+
+    private void OnOverviewNavClick(object? sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        // Find the Overview category in the flat NavCategories list
+        var overview = _vm.NavCategories.FirstOrDefault(c => c.Name == "Overview");
+        if (overview != null)
+            _vm.SelectedCategory = overview;
+    }
+
+    private void OnNavItemClick(object? sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        if (sender is Button btn && btn.Tag is NavCategory category)
+        {
+            // Find the matching category in the flat NavCategories list to maintain reference equality
+            var match = _vm.NavCategories.FirstOrDefault(c => c.Name == category.Name);
+            if (match != null)
+                _vm.SelectedCategory = match;
+        }
     }
 
     private static void OpenUrl(string url)

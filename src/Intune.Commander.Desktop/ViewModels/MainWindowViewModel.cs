@@ -1447,6 +1447,12 @@ public partial class MainWindowViewModel : ViewModelBase
         CurrentView = LoginViewModel;
 
         EnsureNavCategories();
+        Overview.NavigateToCategory = ActivateCategoryByName;
+        PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(IsBusy))
+                OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
+        };
 
 
 

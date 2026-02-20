@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -25,22 +26,16 @@ public partial class RawJsonWindow : Window
             var clipboard = GetTopLevel(this)?.Clipboard;
             if (clipboard != null)
                 await clipboard.SetTextAsync(JsonTextBox.Text ?? "");
+
+            CopyButton.Content = "✓ Copied!";
+            await Task.Delay(1500);
+            CopyButton.Content = "📋 Copy to Clipboard";
         }
         catch (Exception)
         {
-            // Inform the user of the clipboard error.
-            var errorWindow = new Window
-            {
-                Title = "Clipboard Error",
-                Width = 400,
-                Height = 150,
-                Content = new TextBlock
-                {
-                    Text = "Unable to copy the JSON content to the clipboard. Please try again."
-                }
-            };
-
-            await errorWindow.ShowDialog(this);
+            CopyButton.Content = "❌ Failed";
+            await Task.Delay(1500);
+            CopyButton.Content = "📋 Copy to Clipboard";
         }
     }
 }

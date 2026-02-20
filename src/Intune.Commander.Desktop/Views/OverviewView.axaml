@@ -69,45 +69,69 @@
             <!-- ═══════════════════════════════════════════ -->
             <UniformGrid Columns="4" Margin="0,0,0,0">
                 <!-- Device Configs -->
-                <Border Background="#1A2196F3" CornerRadius="8" Padding="16" Margin="0,0,8,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="⚙" FontSize="24" HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding TotalDeviceConfigs}" FontSize="28" FontWeight="Bold"
-                                   HorizontalAlignment="Center" Foreground="#2196F3" />
-                        <TextBlock Text="Device Configs" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Border>
+                <Button Command="{Binding NavigateToDeviceConfigsCommand}"
+                        Padding="0" Margin="0,0,8,0"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" HorizontalAlignment="Stretch"
+                        ToolTip.Tip="View Device Configurations">
+                    <Border Background="#1A2196F3" CornerRadius="8" Padding="16">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="⚙" FontSize="24" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding TotalDeviceConfigs}" FontSize="28" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Foreground="#2196F3" />
+                            <TextBlock Text="Device Configs" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Button>
                 <!-- Compliance Policies -->
-                <Border Background="#1A4CAF50" CornerRadius="8" Padding="16" Margin="4,0,4,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="✓" FontSize="24" HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding TotalCompliancePolicies}" FontSize="28" FontWeight="Bold"
-                                   HorizontalAlignment="Center" Foreground="#4CAF50" />
-                        <TextBlock Text="Compliance Policies" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Border>
+                <Button Command="{Binding NavigateToCompliancePoliciesCommand}"
+                        Padding="0" Margin="4,0,4,0"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" HorizontalAlignment="Stretch"
+                        ToolTip.Tip="View Compliance Policies">
+                    <Border Background="#1A4CAF50" CornerRadius="8" Padding="16">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="✓" FontSize="24" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding TotalCompliancePolicies}" FontSize="28" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Foreground="#4CAF50" />
+                            <TextBlock Text="Compliance Policies" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Button>
                 <!-- Applications -->
-                <Border Background="#1AFF9800" CornerRadius="8" Padding="16" Margin="4,0,4,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="📦" FontSize="24" HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding TotalApplications}" FontSize="28" FontWeight="Bold"
-                                   HorizontalAlignment="Center" Foreground="#FF9800" />
-                        <TextBlock Text="Applications" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Border>
+                <Button Command="{Binding NavigateToApplicationsCommand}"
+                        Padding="0" Margin="4,0,4,0"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" HorizontalAlignment="Stretch"
+                        ToolTip.Tip="View Applications">
+                    <Border Background="#1AFF9800" CornerRadius="8" Padding="16">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="📦" FontSize="24" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding TotalApplications}" FontSize="28" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Foreground="#FF9800" />
+                            <TextBlock Text="Applications" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Button>
                 <!-- Unassigned Apps -->
-                <Border Background="#1AF44336" CornerRadius="8" Padding="16" Margin="8,0,0,0">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="⚠" FontSize="24" HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding UnassignedAppCount}" FontSize="28" FontWeight="Bold"
-                                   HorizontalAlignment="Center" Foreground="#F44336" />
-                        <TextBlock Text="Unassigned Apps" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Border>
+                <Button Command="{Binding NavigateToUnassignedAppsCommand}"
+                        Padding="0" Margin="8,0,0,0"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" HorizontalAlignment="Stretch"
+                        ToolTip.Tip="View Unassigned Applications">
+                    <Border Background="#1AF44336" CornerRadius="8" Padding="16">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="⚠" FontSize="24" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding UnassignedAppCount}" FontSize="28" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Foreground="#F44336" />
+                            <TextBlock Text="Unassigned Apps" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Button>
             </UniformGrid>
 
             <!-- ═══════════════════════════════════════════ -->

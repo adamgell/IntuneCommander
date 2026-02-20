@@ -9,8 +9,8 @@
         x:Class="Intune.Commander.Desktop.Views.DebugLogWindow"
         x:DataType="vm:DebugLogViewModel"
         Title="Intune Commander — Debug Log"
-        Width="900" Height="600"
-        MinWidth="400" MinHeight="300">
+        Width="1200" Height="900"
+        MinWidth="1200" MinHeight="900">
 
     <Design.DataContext>
         <vm:DebugLogViewModel />
@@ -24,8 +24,8 @@
             <DockPanel>
                 <!-- Buttons on the right must be declared before the fill child -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
-                    <Button Content="Copy Selected" Click="OnCopySelected" Padding="10,3" FontSize="12" />
-                    <Button Content="Copy All"      Click="OnCopyAll"      Padding="10,3" FontSize="12" />
+                    <Button x:Name="CopySelectedButton" Content="Copy Selected" Click="OnCopySelected" Padding="10,3" FontSize="12" />
+                    <Button x:Name="CopyAllButton"      Content="Copy All"      Click="OnCopyAll"      Padding="10,3" FontSize="12" />
                     <Button Content="Export..."     Click="OnSaveLog"      Padding="10,3" FontSize="12" />
                     <Button Content="Clear" Command="{Binding ClearLogCommand}" Padding="10,3" FontSize="12" />
                 </StackPanel>
@@ -47,7 +47,7 @@
                 BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="8,4">
-            <StackPanel Orientation="Horizontal" Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="9">
                 <TextBlock Text="Show:" VerticalAlignment="Center" FontSize="12" />
                 <CheckBox Content="Debug"  IsChecked="{Binding ShowDebug}"   FontSize="12" />
                 <CheckBox Content="Info"   IsChecked="{Binding ShowInfo}"    FontSize="12" />
@@ -105,9 +105,14 @@
 
             <!-- ── Row 2: grouped modules panel ─────────────────────────── -->
             <ScrollViewer Grid.Row="2"
-                          VerticalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Visible"
                           HorizontalScrollBarVisibility="Disabled"
                           Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                <ScrollViewer.Styles>
+                    <Style Selector="ScrollBar:vertical">
+                        <Setter Property="Width" Value="20" />
+                    </Style>
+                </ScrollViewer.Styles>
                 <StackPanel Margin="6,4">
                     <TextBlock Text="Modules" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4" />
                     <ItemsControl ItemsSource="{Binding GroupedEntries}">

@@ -85,6 +85,26 @@
                           IsEnabled="{Binding !IsBusy}" />
             </StackPanel>
 
+            <Expander Header="Where do I find these values?" FontSize="12" Padding="0">
+                <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                        CornerRadius="4" Padding="12,8" Margin="0,4,0,0">
+                    <StackPanel Spacing="6">
+                        <TextBlock FontSize="12" TextWrapping="Wrap">
+                            <Run FontWeight="SemiBold">Tenant ID: </Run>
+                            <Run>Azure Portal → Azure Active Directory → Overview → Tenant ID</Run>
+                        </TextBlock>
+                        <TextBlock FontSize="12" TextWrapping="Wrap">
+                            <Run FontWeight="SemiBold">Client ID: </Run>
+                            <Run>Azure Portal → App Registrations → your app → Application (client) ID</Run>
+                        </TextBlock>
+                        <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                            For Interactive auth, only Tenant ID and Client ID are required.
+                            Client Secret is only needed for Client Credentials / service accounts.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </Expander>
+
             <StackPanel Spacing="4" IsVisible="{Binding IsClientSecretVisible}">
                 <TextBlock Text="Client Secret" FontSize="12" />
                 <TextBox Text="{Binding ClientSecret}"

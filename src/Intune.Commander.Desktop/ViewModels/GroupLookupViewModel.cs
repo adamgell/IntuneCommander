@@ -50,6 +50,30 @@ public partial class GroupLookupViewModel : ViewModelBase
     [ObservableProperty]
     private string? _activeFilter;
 
+    // Computed filter-active indicators (bound to button accent classes)
+    public bool IsConfigFilterActive => ActiveFilter == "Device Configuration";
+    public bool IsComplianceFilterActive => ActiveFilter == "Compliance Policy";
+    public bool IsAppFilterActive => ActiveFilter == "Application";
+    public bool IsAllFilterActive => ActiveFilter is null;
+
+    public bool HasNoResults =>
+        !IsSearching && !IsLoadingAssignments &&
+        !string.IsNullOrEmpty(SelectedGroupInfo) &&
+        FilteredAssignmentResults.Count == 0;
+
+    partial void OnActiveFilterChanged(string? value)
+    {
+        OnPropertyChanged(nameof(IsConfigFilterActive));
+        OnPropertyChanged(nameof(IsComplianceFilterActive));
+        OnPropertyChanged(nameof(IsAppFilterActive));
+        OnPropertyChanged(nameof(IsAllFilterActive));
+        OnPropertyChanged(nameof(HasNoResults));
+    }
+
+    partial void OnIsSearchingChanged(bool value) => OnPropertyChanged(nameof(HasNoResults));
+    partial void OnIsLoadingAssignmentsChanged(bool value) => OnPropertyChanged(nameof(HasNoResults));
+    partial void OnSelectedGroupInfoChanged(string value) => OnPropertyChanged(nameof(HasNoResults));
+
     // Summaries per category
     [ObservableProperty]
     private int _configCount;
@@ -91,6 +115,7 @@ public partial class GroupLookupViewModel : ViewModelBase
             FilteredAssignmentResults = new ObservableCollection<GroupAssignedObject>(
                 AssignmentResults.Where(r => r.Category == ActiveFilter));
         }
+        OnPropertyChanged(nameof(HasNoResults));
     }
 
     [RelayCommand]

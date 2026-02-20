@@ -92,6 +92,7 @@
                 <Button Command="{Binding FilterByCategoryCommand}"
                         CommandParameter="Device Configuration"
                         x:Name="FilterConfigBtn"
+                        Classes.accent="{Binding IsConfigFilterActive}"
                         Padding="10,4" CornerRadius="4">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="⚙" FontSize="14" VerticalAlignment="Center" />
@@ -107,6 +108,7 @@
                 <Button Command="{Binding FilterByCategoryCommand}"
                         CommandParameter="Compliance Policy"
                         x:Name="FilterComplianceBtn"
+                        Classes.accent="{Binding IsComplianceFilterActive}"
                         Padding="10,4" CornerRadius="4">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="✓" FontSize="14" VerticalAlignment="Center" />
@@ -122,6 +124,7 @@
                 <Button Command="{Binding FilterByCategoryCommand}"
                         CommandParameter="Application"
                         x:Name="FilterAppBtn"
+                        Classes.accent="{Binding IsAppFilterActive}"
                         Padding="10,4" CornerRadius="4">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="📦" FontSize="14" VerticalAlignment="Center" />
@@ -136,6 +139,7 @@
                 </Button>
                 <Button Command="{Binding FilterByCategoryCommand}"
                         x:Name="FilterAllBtn"
+                        Classes.accent="{Binding IsAllFilterActive}"
                         Padding="10,4" CornerRadius="4">
                     <TextBlock FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center">
                         <TextBlock.Text>
@@ -149,7 +153,8 @@
         </Border>
 
         <!-- Results DataGrid -->
-        <DataGrid ItemsSource="{Binding FilteredAssignmentResults}"
+        <Panel>
+            <DataGrid ItemsSource="{Binding FilteredAssignmentResults}"
                   IsReadOnly="True"
                   AutoGenerateColumns="False"
                   GridLinesVisibility="Horizontal"
@@ -167,6 +172,21 @@
                 <DataGridCheckBoxColumn Header="Exclusion" Binding="{Binding IsExclusion}" Width="80" />
             </DataGrid.Columns>
         </DataGrid>
+            <Border IsVisible="{Binding HasNoResults}"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Padding="24,16" CornerRadius="8"
+                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                <StackPanel Spacing="8" HorizontalAlignment="Center">
+                    <TextBlock Text="🔍" FontSize="32" HorizontalAlignment="Center" />
+                    <TextBlock Text="No assignments found for this group"
+                               FontSize="14" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Try clearing the category filter or searching for a different group."
+                               FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                               HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="320" />
+                </StackPanel>
+            </Border>
+        </Panel>
 
     </DockPanel>
 </Window>

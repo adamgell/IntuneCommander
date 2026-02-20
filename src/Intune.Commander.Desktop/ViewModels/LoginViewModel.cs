@@ -82,6 +82,12 @@ public partial class LoginViewModel : ViewModelBase
     /// </summary>
     public event Func<Task<string?>>? ImportProfilesRequested;
 
+    /// <summary>
+    /// Raised before deleting a profile. The view shows a confirmation dialog and
+    /// returns true if the user confirms deletion, false to cancel.
+    /// </summary>
+    public event Func<string, Task<bool>>? ConfirmDeleteProfile;
+
     public LoginViewModel(ProfileService profileService, IntuneGraphClientFactory graphClientFactory)
     {
         _profileService = profileService;
@@ -210,6 +216,12 @@ public partial class LoginViewModel : ViewModelBase
     private async Task DeleteProfileAsync(CancellationToken cancellationToken)
     {
         if (SelectedProfile is null) return;
+
+        if (ConfirmDeleteProfile is not null)
+        {
+            var confirmed = await ConfirmDeleteProfile.Invoke(SelectedProfile.Name);
+            if (!confirmed) return;
+        }
 
         ClearError();
         try

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Intune.Commander.Core.Models;
 using LiveChartsCore;
 using LiveChartsCore.Measure;
@@ -161,6 +162,23 @@ public partial class OverviewViewModel : ObservableObject
 
         ConfigsByPlatformSeries = series.ToArray();
     }
+
+    /// <summary>
+    /// Delegate set by MainWindowViewModel to allow card-click navigation.
+    /// </summary>
+    public Action<string>? NavigateToCategory { get; set; }
+
+    [RelayCommand]
+    private void NavigateToDeviceConfigs() => NavigateToCategory?.Invoke("Device Configurations");
+
+    [RelayCommand]
+    private void NavigateToCompliancePolicies() => NavigateToCategory?.Invoke("Compliance Policies");
+
+    [RelayCommand]
+    private void NavigateToApplications() => NavigateToCategory?.Invoke("Applications");
+
+    [RelayCommand]
+    private void NavigateToUnassignedApps() => NavigateToCategory?.Invoke("Applications");
 
     private void BuildRecentlyModified(
         IReadOnlyList<DeviceConfiguration> configs,
