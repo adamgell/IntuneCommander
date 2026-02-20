@@ -5,8 +5,8 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <Include>[IntuneManager.Core]*</Include>
-          <Exclude>[IntuneManager.Core.Tests]*</Exclude>
+          <Include>[Intune.Commander.Core]*</Include>
+          <Exclude>[Intune.Commander.Core.Tests]*</Exclude>
           <IncludeTestAssembly>false</IncludeTestAssembly>
         </Configuration>
       </DataCollector>
