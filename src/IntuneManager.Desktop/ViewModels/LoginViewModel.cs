@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -49,6 +51,12 @@ public partial class LoginViewModel : ViewModelBase
     public ObservableCollection<TenantProfile> SavedProfiles { get; } = [];
 
     public event EventHandler<TenantProfile>? LoginSucceeded;
+
+    /// <summary>
+    /// Raised when the user clicks "Import Profiles". The view subscribes and
+    /// opens a file picker, returning the selected file path (or null if cancelled).
+    /// </summary>
+    public event Func<Task<string?>>? ImportProfilesRequested;
 
     public LoginViewModel(ProfileService profileService, IntuneGraphClientFactory graphClientFactory)
     {
@@ -265,6 +273,60 @@ public partial class LoginViewModel : ViewModelBase
         if (activeId is not null)
         {
             SelectedProfile = SavedProfiles.FirstOrDefault(p => p.Id == activeId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportProfilesAsync(CancellationToken cancellationToken)
+    {
+        if (ImportProfilesRequested == null) return;
+
+        var path = await ImportProfilesRequested.Invoke();
+        if (path == null) return;
+
+        ClearError();
+        try
+        {
+            var json = await File.ReadAllTextAsync(path, cancellationToken);
+            var imported = ProfileImportHelper.ParseProfiles(json);
+
+            if (imported.Count == 0)
+            {
+                StatusMessage = "No valid profiles found in file";
+                return;
+            }
+
+            var existing = _profileService.Profiles.ToList();
+            int added = 0;
+
+            foreach (var profile in imported)
+            {
+                // Skip duplicates (same tenant + client)
+                bool isDuplicate = existing.Any(e =>
+                    string.Equals(e.TenantId, profile.TenantId, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(e.ClientId, profile.ClientId, StringComparison.OrdinalIgnoreCase));
+
+                if (isDuplicate) continue;
+
+                // Always generate a fresh Id
+                profile.Id = Guid.NewGuid().ToString();
+
+                _profileService.AddProfile(profile);
+                SavedProfiles.Add(profile);
+                existing.Add(profile);
+                added++;
+            }
+
+            await _profileService.SaveAsync(cancellationToken);
+            StatusMessage = $"Imported {added} profile(s)";
+        }
+        catch (JsonException ex)
+        {
+            SetError($"Invalid JSON: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            SetError($"Import failed: {ex.Message}");
         }
     }
 
