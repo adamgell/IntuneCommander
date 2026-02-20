@@ -5,13 +5,13 @@
         xmlns:conv="using:Intune.Commander.Desktop.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="750"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="1050"
         x:Class="Intune.Commander.Desktop.Views.MainWindow"
         x:Name="MainWin"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
-        Width="1100" Height="750"
-        MinWidth="900" MinHeight="625">
+        Width="1100" Height="1050"
+        MinWidth="900" MinHeight="750">
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
