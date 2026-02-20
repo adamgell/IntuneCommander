@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -34,6 +35,13 @@ public partial class MainWindow : Window
         DataContextChanged += OnDataContextChanged;
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        // Ensure all child windows are closed and the process exits cleanly.
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
+    }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
