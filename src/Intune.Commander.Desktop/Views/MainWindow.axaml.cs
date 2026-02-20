@@ -59,7 +59,8 @@ public partial class MainWindow : Window
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (e.Key == Key.F12)
+        // Ctrl+Shift+L — open debug log (F12 is reserved for Avalonia DevTools)
+        if (e.Key == Key.L && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
         {
             OnDebugLogLinkPressed(this, null!);
             e.Handled = true;
