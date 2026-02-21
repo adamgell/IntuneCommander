@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using Classic.Avalonia.Theme;
@@ -25,14 +28,43 @@ public partial class App : Application
     public static ServiceProvider? Services { get; private set; }
     public static AppTheme CurrentTheme { get; private set; } = AppTheme.Fluent;
 
-    private const string ClassicOverridesUri = "avares://Intune.Commander.Desktop/Themes/ClassicThemeOverrides.axaml";
+    // Injected directly onto app.Resources (flat, not in ThemeDictionaries) when Classic is active.
+    // These cover Fluent-only SystemControl* keys that Classic theme does not define at all.
+    private static readonly Dictionary<string, object> _classicFlatResources = new()
+    {
+        ["SystemControlBackgroundChromeMediumBrush"]    = new SolidColorBrush(Color.Parse("#C0C0C0")),
+        ["SystemControlBackgroundChromeMediumLowBrush"] = new SolidColorBrush(Color.Parse("#D4D0C8")),
+        ["SystemControlBackgroundAltHighBrush"]         = new SolidColorBrush(Colors.White),
+        ["SystemControlForegroundBaseMediumLowBrush"]   = new SolidColorBrush(Color.Parse("#808080")),
+        ["SystemControlForegroundBaseHighBrush"]        = new SolidColorBrush(Colors.Black),
+        ["SystemControlHighlightListLowBrush"]          = new SolidColorBrush(Color.FromArgb(30, 0, 0, 128)),
+        ["SystemAccentColor"]                           = Color.Parse("#000080"),
+    };
+
+    // Injected INTO ThemeDictionaries[Light] and [Dark] when Classic is active.
+    // MUST be here because Avalonia resolves ThemeDictionaries entries BEFORE flat
+    // MergedDictionaries, so AppNavTextBrush etc. can only be overridden this way.
+    private static readonly Dictionary<string, object> _classicThemeResources = new()
+    {
+        ["AppNavTextBrush"]         = new SolidColorBrush(Colors.Black),
+        ["AppTextSecondaryBrush"]   = new SolidColorBrush(Color.Parse("#444444")),
+        ["AppErrorTextBrush"]       = new SolidColorBrush(Color.Parse("#CC0000")),
+        ["AppErrorBackgroundBrush"] = new SolidColorBrush(Color.FromArgb(26, 255, 0, 0)),
+    };
+
+    // Saved originals from ThemeDictionaries so we can restore on switching back to Fluent.
+    private static readonly Dictionary<ThemeVariant, Dictionary<string, object?>> _savedThemeValues = new()
+    {
+        [ThemeVariant.Light] = [],
+        [ThemeVariant.Dark]  = [],
+    };
 
     public static void ApplyTheme(AppTheme theme)
     {
         CurrentTheme = theme;
         var app = Application.Current!;
 
-        // Locate existing main theme style (ClassicTheme or FluentTheme) by type
+        // ── 1. Swap the main theme style ─────────────────────────────────────────
         var themeIndex = app.Styles
             .Select((s, i) => new { s, i })
             .FirstOrDefault(x => x.s is ClassicTheme || x.s is FluentTheme)
@@ -47,17 +79,17 @@ public partial class App : Application
             themeIndex = 0;
         }
 
-        // Locate existing DataGrid style include by source URI
+        // ── 2. Swap the DataGrid theme ────────────────────────────────────────────
         const string classicDataGrid = "avares://Classic.Avalonia.Theme.DataGrid/Classic.axaml";
-        const string fluentDataGrid = "avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml";
+        const string fluentDataGrid  = "avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml";
         var dataGridIndex = app.Styles
             .Select((s, i) => new { s, i })
             .FirstOrDefault(x =>
             {
                 if (x.s is not StyleInclude si || si.Source == null) return false;
                 var src = si.Source.ToString();
-                return src.Contains("Classic.Avalonia.Theme.DataGrid", StringComparison.OrdinalIgnoreCase) ||
-                       src.Contains("Avalonia.Controls.DataGrid/Themes", StringComparison.OrdinalIgnoreCase);
+                return src.Contains("Classic.Avalonia.Theme.DataGrid", StringComparison.OrdinalIgnoreCase)
+                    || src.Contains("Avalonia.Controls.DataGrid/Themes", StringComparison.OrdinalIgnoreCase);
             })
             ?.i ?? -1;
 
@@ -71,24 +103,49 @@ public partial class App : Application
         else
             app.Styles.Insert(themeIndex + 1, newDataGrid);
 
-        // Apply or remove Classic brush overrides.
-        // The overrides redefine Fluent-specific SystemControl* resource keys so that
-        // the nav panel, toolbar, and status bar render correctly under Classic theme.
-        var overridesKey = new Uri(ClassicOverridesUri);
-        var existingOverrides = app.Resources.MergedDictionaries
-            .OfType<ResourceInclude>()
-            .FirstOrDefault(r => r.Source == overridesKey);
+        // ── 3. Patch / restore ThemeDictionaries entries ──────────────────────────
+        // Avalonia resolves ThemeDictionaries[Light/Dark] BEFORE flat MergedDictionaries,
+        // so App-specific brushes (AppNavTextBrush etc.) MUST be set inside the theme dicts.
+        var appResources = (ResourceDictionary)app.Resources;
+        foreach (var variant in new[] { ThemeVariant.Light, ThemeVariant.Dark })
+        {
+            if (!appResources.ThemeDictionaries.TryGetValue(variant, out var provider)
+                || provider is not ResourceDictionary themeDict)
+                continue;
 
-        if (theme == AppTheme.Classic && existingOverrides == null)
-        {
-            app.Resources.MergedDictionaries.Add(new ResourceInclude(overridesKey)
+            if (theme == AppTheme.Classic)
             {
-                Source = overridesKey
-            });
+                foreach (var kv in _classicThemeResources)
+                {
+                    themeDict.TryGetValue(kv.Key, out var original);
+                    _savedThemeValues[variant][kv.Key] = original;
+                    themeDict[kv.Key] = kv.Value;
+                }
+            }
+            else
+            {
+                foreach (var kv in _savedThemeValues[variant])
+                {
+                    if (kv.Value is null)
+                        themeDict.Remove(kv.Key);
+                    else
+                        themeDict[kv.Key] = kv.Value;
+                }
+                _savedThemeValues[variant].Clear();
+            }
         }
-        else if (theme != AppTheme.Classic && existingOverrides != null)
+
+        // ── 4. Inject / remove flat SystemControl* resources ──────────────────────
+        // These Fluent-only keys don't exist in Classic at all; any location wins for them.
+        if (theme == AppTheme.Classic)
         {
-            app.Resources.MergedDictionaries.Remove(existingOverrides);
+            foreach (var kv in _classicFlatResources)
+                appResources[kv.Key] = kv.Value;
+        }
+        else
+        {
+            foreach (var key in _classicFlatResources.Keys)
+                appResources.Remove(key);
         }
 
         AppSettingsService.Save(new AppSettings { Theme = theme });
@@ -102,7 +159,7 @@ public partial class App : Application
         {
             SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);
         }
-        
+
         AvaloniaXamlLoader.Load(this);
     }
 
