@@ -10,4 +10,5 @@ public interface IDeviceManagementScriptService
     Task<DeviceManagementScript> UpdateDeviceManagementScriptAsync(DeviceManagementScript script, CancellationToken cancellationToken = default);
     Task DeleteDeviceManagementScriptAsync(string id, CancellationToken cancellationToken = default);
     Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default);
+    Task AssignScriptAsync(string scriptId, List<DeviceManagementScriptAssignment> assignments, CancellationToken cancellationToken = default);
 }

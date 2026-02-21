@@ -362,14 +362,20 @@ public partial class MainWindowViewModel : ViewModelBase
             else if (IsDeviceManagementScriptsCategory && SelectedDeviceManagementScript != null)
             {
                 StatusText = $"Exporting {SelectedDeviceManagementScript.DisplayName ?? "device management script"}...";
+                var scriptAssignments = SelectedDeviceManagementScript.Id != null && _deviceManagementScriptService != null
+                    ? await _deviceManagementScriptService.GetAssignmentsAsync(SelectedDeviceManagementScript.Id, cancellationToken)
+                    : [];
                 await _exportService.ExportDeviceManagementScriptAsync(
-                    SelectedDeviceManagementScript, outputPath, migrationTable, cancellationToken);
+                    SelectedDeviceManagementScript, scriptAssignments, outputPath, migrationTable, cancellationToken);
             }
             else if (IsDeviceShellScriptsCategory && SelectedDeviceShellScript != null)
             {
                 StatusText = $"Exporting {SelectedDeviceShellScript.DisplayName ?? "device shell script"}...";
+                var shellScriptAssignments = SelectedDeviceShellScript.Id != null && _deviceShellScriptService != null
+                    ? await _deviceShellScriptService.GetAssignmentsAsync(SelectedDeviceShellScript.Id, cancellationToken)
+                    : [];
                 await _exportService.ExportDeviceShellScriptAsync(
-                    SelectedDeviceShellScript, outputPath, migrationTable, cancellationToken);
+                    SelectedDeviceShellScript, shellScriptAssignments, outputPath, migrationTable, cancellationToken);
             }
             else if (IsComplianceScriptsCategory && SelectedComplianceScript != null)
             {
@@ -672,7 +678,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 StatusText = "Exporting device management scripts...";
                 foreach (var script in DeviceManagementScripts)
                 {
-                    await _exportService.ExportDeviceManagementScriptAsync(script, outputPath, migrationTable, cancellationToken);
+                    var assignments = script.Id != null && _deviceManagementScriptService != null
+                        ? await _deviceManagementScriptService.GetAssignmentsAsync(script.Id, cancellationToken)
+                        : [];
+                    await _exportService.ExportDeviceManagementScriptAsync(script, assignments, outputPath, migrationTable, cancellationToken);
                     count++;
                 }
             }
@@ -683,7 +692,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 StatusText = "Exporting device shell scripts...";
                 foreach (var script in DeviceShellScripts)
                 {
-                    await _exportService.ExportDeviceShellScriptAsync(script, outputPath, migrationTable, cancellationToken);
+                    var assignments = script.Id != null && _deviceShellScriptService != null
+                        ? await _deviceShellScriptService.GetAssignmentsAsync(script.Id, cancellationToken)
+                        : [];
+                    await _exportService.ExportDeviceShellScriptAsync(script, assignments, outputPath, migrationTable, cancellationToken);
                     count++;
                 }
             }

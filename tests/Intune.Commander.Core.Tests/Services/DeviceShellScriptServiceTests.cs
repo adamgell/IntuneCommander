@@ -78,10 +78,22 @@ public class DeviceShellScriptServiceTests
     }
 
     [Fact]
-    public void Interface_HasSixMethods()
+    public void Interface_DefinesAssignScriptMethod()
+    {
+        var method = typeof(IDeviceShellScriptService).GetMethod("AssignScriptAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(List<DeviceManagementScriptAssignment>), parameters[1].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[2].ParameterType);
+    }
+
+    [Fact]
+    public void Interface_HasSevenMethods()
     {
         var methods = typeof(IDeviceShellScriptService).GetMethods();
-        Assert.Equal(6, methods.Length);
+        Assert.Equal(7, methods.Length);
     }
 
     [Fact]

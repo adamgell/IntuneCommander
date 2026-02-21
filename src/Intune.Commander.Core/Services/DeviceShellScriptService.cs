@@ -81,4 +81,15 @@ public class DeviceShellScriptService : IDeviceShellScriptService
 
         return response?.Value ?? [];
     }
+
+    public async Task AssignScriptAsync(string scriptId, List<DeviceManagementScriptAssignment> assignments, CancellationToken cancellationToken = default)
+    {
+        await _graphClient.DeviceManagement.DeviceShellScripts[scriptId]
+            .Assign.PostAsync(
+                new Microsoft.Graph.Beta.DeviceManagement.DeviceShellScripts.Item.Assign.AssignPostRequestBody
+                {
+                    DeviceManagementScriptAssignments = assignments
+                },
+                cancellationToken: cancellationToken);
+    }
 }
