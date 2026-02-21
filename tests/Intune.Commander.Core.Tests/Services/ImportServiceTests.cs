@@ -1517,8 +1517,10 @@ public class ImportServiceTests : IDisposable
 
         var s1 = new DeviceManagementScript { Id = "dms1", DisplayName = "Script1" };
         var s2 = new DeviceManagementScript { Id = "dms2", DisplayName = "Script2" };
-        await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(s1));
-        await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(s2));
+        var e1 = new DeviceManagementScriptExport { Script = s1 };
+        var e2 = new DeviceManagementScriptExport { Script = s2 };
+        await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(e1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(e2));
 
         var sut = new ImportService(new StubConfigurationService());
         var result = await sut.ReadDeviceManagementScriptsFromFolderAsync(_tempDir);
@@ -1544,7 +1546,13 @@ public class ImportServiceTests : IDisposable
             LastModifiedDateTime = DateTimeOffset.UtcNow
         };
 
-        var created = await sut.ImportDeviceManagementScriptAsync(script, table);
+        var export = new DeviceManagementScriptExport
+        {
+            Script = script,
+            Assignments = []
+        };
+
+        var created = await sut.ImportDeviceManagementScriptAsync(export, table);
 
         Assert.Equal("new-dms", created.Id);
         Assert.NotNull(scriptService.LastCreatedScript);
@@ -1571,8 +1579,10 @@ public class ImportServiceTests : IDisposable
 
         var s1 = new DeviceShellScript { Id = "dss1", DisplayName = "Shell1" };
         var s2 = new DeviceShellScript { Id = "dss2", DisplayName = "Shell2" };
-        await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(s1));
-        await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(s2));
+        var e1 = new DeviceShellScriptExport { Script = s1, Assignments = [] };
+        var e2 = new DeviceShellScriptExport { Script = s2, Assignments = [] };
+        await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(e1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(e2));
 
         var sut = new ImportService(new StubConfigurationService());
         var result = await sut.ReadDeviceShellScriptsFromFolderAsync(_tempDir);
@@ -1598,7 +1608,13 @@ public class ImportServiceTests : IDisposable
             LastModifiedDateTime = DateTimeOffset.UtcNow
         };
 
-        var created = await sut.ImportDeviceShellScriptAsync(script, table);
+        var export = new DeviceShellScriptExport
+        {
+            Script = script,
+            Assignments = []
+        };
+
+        var created = await sut.ImportDeviceShellScriptAsync(export, table);
 
         Assert.Equal("new-dss", created.Id);
         Assert.NotNull(scriptService.LastCreatedScript);
@@ -2216,6 +2232,9 @@ public class ImportServiceTests : IDisposable
 
         public Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default)
             => Task.FromResult(new List<DeviceManagementScriptAssignment>());
+
+        public Task AssignScriptAsync(string scriptId, List<DeviceManagementScriptAssignment> assignments, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 
     private sealed class StubDeviceShellScriptService : IDeviceShellScriptService
@@ -2243,5 +2262,8 @@ public class ImportServiceTests : IDisposable
 
         public Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default)
             => Task.FromResult(new List<DeviceManagementScriptAssignment>());
+
+        public Task AssignScriptAsync(string scriptId, List<DeviceManagementScriptAssignment> assignments, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 }

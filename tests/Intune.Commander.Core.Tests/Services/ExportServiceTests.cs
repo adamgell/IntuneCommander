@@ -886,7 +886,7 @@ public class ExportServiceTests : IDisposable
         var script = new DeviceManagementScript { Id = "dms-id", DisplayName = "PS Script" };
         var table = new MigrationTable();
 
-        await _service.ExportDeviceManagementScriptAsync(script, _tempDir, table);
+        await _service.ExportDeviceManagementScriptAsync(script, [], _tempDir, table);
 
         Assert.True(File.Exists(Path.Combine(_tempDir, "DeviceManagementScripts", "PS Script.json")));
         Assert.Contains(table.Entries, e => e.ObjectType == "DeviceManagementScript" && e.OriginalId == "dms-id");
@@ -898,7 +898,7 @@ public class ExportServiceTests : IDisposable
         var script = new DeviceManagementScript { Id = "fallback-dms-id", DisplayName = null };
         var table = new MigrationTable();
 
-        await _service.ExportDeviceManagementScriptAsync(script, _tempDir, table);
+        await _service.ExportDeviceManagementScriptAsync(script, [], _tempDir, table);
 
         var folder = Path.Combine(_tempDir, "DeviceManagementScripts");
         var files = Directory.GetFiles(folder, "*.json");
@@ -912,7 +912,7 @@ public class ExportServiceTests : IDisposable
         var script = new DeviceManagementScript { Id = null, DisplayName = "No Id Script" };
         var table = new MigrationTable();
 
-        await _service.ExportDeviceManagementScriptAsync(script, _tempDir, table);
+        await _service.ExportDeviceManagementScriptAsync(script, [], _tempDir, table);
 
         Assert.Empty(table.Entries);
     }
@@ -920,10 +920,10 @@ public class ExportServiceTests : IDisposable
     [Fact]
     public async Task ExportDeviceManagementScripts_ExportsMultipleAndWritesMigrationTable()
     {
-        var scripts = new List<DeviceManagementScript>
+        var scripts = new List<(DeviceManagementScript Script, IReadOnlyList<DeviceManagementScriptAssignment> Assignments)>
         {
-            new() { Id = "dms-1", DisplayName = "Script One" },
-            new() { Id = "dms-2", DisplayName = "Script Two" }
+            (new DeviceManagementScript { Id = "dms-1", DisplayName = "Script One" }, []),
+            (new DeviceManagementScript { Id = "dms-2", DisplayName = "Script Two" }, [])
         };
 
         await _service.ExportDeviceManagementScriptsAsync(scripts, _tempDir);
@@ -940,7 +940,7 @@ public class ExportServiceTests : IDisposable
         var script = new DeviceShellScript { Id = "dss-id", DisplayName = "Shell Script" };
         var table = new MigrationTable();
 
-        await _service.ExportDeviceShellScriptAsync(script, _tempDir, table);
+        await _service.ExportDeviceShellScriptAsync(script, [], _tempDir, table);
 
         Assert.True(File.Exists(Path.Combine(_tempDir, "DeviceShellScripts", "Shell Script.json")));
         Assert.Contains(table.Entries, e => e.ObjectType == "DeviceShellScript" && e.OriginalId == "dss-id");
@@ -952,7 +952,7 @@ public class ExportServiceTests : IDisposable
         var script = new DeviceShellScript { Id = "fallback-dss-id", DisplayName = null };
         var table = new MigrationTable();
 
-        await _service.ExportDeviceShellScriptAsync(script, _tempDir, table);
+        await _service.ExportDeviceShellScriptAsync(script, [], _tempDir, table);
 
         var folder = Path.Combine(_tempDir, "DeviceShellScripts");
         var files = Directory.GetFiles(folder, "*.json");
@@ -966,7 +966,7 @@ public class ExportServiceTests : IDisposable
         var script = new DeviceShellScript { Id = null, DisplayName = "No Id Shell Script" };
         var table = new MigrationTable();
 
-        await _service.ExportDeviceShellScriptAsync(script, _tempDir, table);
+        await _service.ExportDeviceShellScriptAsync(script, [], _tempDir, table);
 
         Assert.Empty(table.Entries);
     }
@@ -974,10 +974,10 @@ public class ExportServiceTests : IDisposable
     [Fact]
     public async Task ExportDeviceShellScripts_ExportsMultipleAndWritesMigrationTable()
     {
-        var scripts = new List<DeviceShellScript>
+        var scripts = new List<(DeviceShellScript Script, IReadOnlyList<DeviceManagementScriptAssignment> Assignments)>
         {
-            new() { Id = "dss-1", DisplayName = "Shell One" },
-            new() { Id = "dss-2", DisplayName = "Shell Two" }
+            (new DeviceShellScript { Id = "dss-1", DisplayName = "Shell One" }, []),
+            (new DeviceShellScript { Id = "dss-2", DisplayName = "Shell Two" }, [])
         };
 
         await _service.ExportDeviceShellScriptsAsync(scripts, _tempDir);
