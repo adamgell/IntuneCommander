@@ -18,7 +18,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Intune.Commander.Core.Models;
 using Intune.Commander.Desktop.Converters;
-using Intune.Commander.Desktop.Models;
+
 using Intune.Commander.Desktop.ViewModels;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -686,16 +686,6 @@ public partial class MainWindow : Window
             MsBox.Avalonia.Enums.Icon.Info);
 
         await box.ShowAsPopupAsync(this);
-    }
-
-    private void OnThemeFluentClick(object? sender, RoutedEventArgs e)
-    {
-        App.ApplyTheme(AppTheme.Fluent);
-    }
-
-    private void OnThemeClassicClick(object? sender, RoutedEventArgs e)
-    {
-        App.ApplyTheme(AppTheme.Classic);
     }
 
     private void OnOverviewNavClick(object? sender, RoutedEventArgs e)
