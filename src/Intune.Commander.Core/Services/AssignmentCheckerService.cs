@@ -261,26 +261,37 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     var statusResp = await _graphClient.DeviceManagement
                         .DeviceConfigurations[config.Id].DeviceStatuses
                         .GetAsync(req =>
-                            req.QueryParameters.Select = ["id", "deviceDisplayName", "status",
-                                "userPrincipalName", "lastReportedDateTime"],
-                            cancellationToken);
-                    var statuses = statusResp?.Value ?? [];
-                    foreach (var s in statuses)
-                    {
-                        var statusStr = s.Status?.ToString().ToLowerInvariant() ?? "";
-                        if (!failedStatuses.Contains(statusStr)) continue;
-                        var row = new AssignmentReportRow
                         {
-                            PolicyId = config.Id,
-                            PolicyName = config.DisplayName ?? config.Id,
-                            PolicyType = "Device Configuration",
-                            TargetDevice = s.DeviceDisplayName ?? "",
-                            Status = s.Status?.ToString() ?? "",
-                            UserPrincipalName = s.UserPrincipalName ?? "",
-                            LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
-                        };
-                        lock (rows) rows.Add(row);
-                        onRow?.Invoke(row);
+                            req.QueryParameters.Select = ["id", "deviceDisplayName", "status",
+                                "userPrincipalName", "lastReportedDateTime"];
+                            req.QueryParameters.Top = 999;
+                        }, cancellationToken);
+
+                    while (statusResp != null)
+                    {
+                        foreach (var s in statusResp.Value ?? [])
+                        {
+                            var statusStr = s.Status?.ToString().ToLowerInvariant() ?? "";
+                            if (!failedStatuses.Contains(statusStr)) continue;
+                            var row = new AssignmentReportRow
+                            {
+                                PolicyId = config.Id,
+                                PolicyName = config.DisplayName ?? config.Id,
+                                PolicyType = "Device Configuration",
+                                TargetDevice = s.DeviceDisplayName ?? "",
+                                Status = s.Status?.ToString() ?? "",
+                                UserPrincipalName = s.UserPrincipalName ?? "",
+                                LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
+                            };
+                            lock (rows) rows.Add(row);
+                            onRow?.Invoke(row);
+                        }
+
+                        if (string.IsNullOrEmpty(statusResp.OdataNextLink)) break;
+                        statusResp = await _graphClient.DeviceManagement
+                            .DeviceConfigurations[config.Id].DeviceStatuses
+                            .WithUrl(statusResp.OdataNextLink)
+                            .GetAsync(cancellationToken: cancellationToken);
                     }
                 }
                 finally { sem.Release(); }
@@ -309,26 +320,37 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     var statusResp = await _graphClient.DeviceManagement
                         .DeviceCompliancePolicies[policy.Id].DeviceStatuses
                         .GetAsync(req =>
-                            req.QueryParameters.Select = ["id", "deviceDisplayName", "status",
-                                "userPrincipalName", "lastReportedDateTime"],
-                            cancellationToken);
-                    var statuses = statusResp?.Value ?? [];
-                    foreach (var s in statuses)
-                    {
-                        var statusStr = s.Status?.ToString().ToLowerInvariant() ?? "";
-                        if (!complianceFailed.Contains(statusStr)) continue;
-                        var row = new AssignmentReportRow
                         {
-                            PolicyId = policy.Id,
-                            PolicyName = policy.DisplayName ?? policy.Id,
-                            PolicyType = "Compliance Policy",
-                            TargetDevice = s.DeviceDisplayName ?? "",
-                            Status = s.Status?.ToString() ?? "",
-                            UserPrincipalName = s.UserPrincipalName ?? "",
-                            LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
-                        };
-                        lock (rows) rows.Add(row);
-                        onRow?.Invoke(row);
+                            req.QueryParameters.Select = ["id", "deviceDisplayName", "status",
+                                "userPrincipalName", "lastReportedDateTime"];
+                            req.QueryParameters.Top = 999;
+                        }, cancellationToken);
+
+                    while (statusResp != null)
+                    {
+                        foreach (var s in statusResp.Value ?? [])
+                        {
+                            var statusStr = s.Status?.ToString().ToLowerInvariant() ?? "";
+                            if (!complianceFailed.Contains(statusStr)) continue;
+                            var row = new AssignmentReportRow
+                            {
+                                PolicyId = policy.Id,
+                                PolicyName = policy.DisplayName ?? policy.Id,
+                                PolicyType = "Compliance Policy",
+                                TargetDevice = s.DeviceDisplayName ?? "",
+                                Status = s.Status?.ToString() ?? "",
+                                UserPrincipalName = s.UserPrincipalName ?? "",
+                                LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
+                            };
+                            lock (rows) rows.Add(row);
+                            onRow?.Invoke(row);
+                        }
+
+                        if (string.IsNullOrEmpty(statusResp.OdataNextLink)) break;
+                        statusResp = await _graphClient.DeviceManagement
+                            .DeviceCompliancePolicies[policy.Id].DeviceStatuses
+                            .WithUrl(statusResp.OdataNextLink)
+                            .GetAsync(cancellationToken: cancellationToken);
                     }
                 }
                 finally { sem2.Release(); }
@@ -398,12 +420,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchDeviceConfigurationsAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             p => PlatformFromOData(p.OdataType),
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.DeviceConfigurations[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Settings Catalog ──
         progress?.Invoke("Scanning settings catalog policies...");
@@ -412,12 +435,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchSettingsCatalogAsync(ct),
             p => p.Id!, p => p.Name ?? p.Id!,
             p => p.Platforms?.ToString() ?? "",
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.ConfigurationPolicies[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.ConfigurationPolicies[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.ConfigurationPolicies[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Administrative Templates ──
         progress?.Invoke("Scanning administrative templates...");
@@ -426,12 +450,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchAdminTemplatesAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             _ => "Windows",
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.GroupPolicyConfigurations[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.GroupPolicyConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.GroupPolicyConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Compliance Policies ──
         progress?.Invoke("Scanning compliance policies...");
@@ -440,12 +465,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchCompliancePoliciesAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             p => PlatformFromOData(p.OdataType),
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── App Protection Policies ──
         progress?.Invoke("Scanning app protection policies...");
@@ -483,12 +509,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchMobileAppConfigurationsAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             p => PlatformFromOData(p.OdataType),
-            async id =>
-            {
-                var r = await _graphClient.DeviceAppManagement.MobileAppConfigurations[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceAppManagement.MobileAppConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceAppManagement.MobileAppConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Applications ──
         progress?.Invoke("Scanning applications...");
@@ -497,12 +524,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchApplicationsAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             p => PlatformFromOData(p.OdataType),
-            async id =>
-            {
-                var r = await _graphClient.DeviceAppManagement.MobileApps[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceAppManagement.MobileApps[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceAppManagement.MobileApps[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Platform Scripts ──
         progress?.Invoke("Scanning platform scripts...");
@@ -511,12 +539,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchPlatformScriptsAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             _ => "Windows",
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.DeviceManagementScripts[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceManagementScripts[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceManagementScripts[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Health Scripts ──
         progress?.Invoke("Scanning health scripts...");
@@ -525,12 +554,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchHealthScriptsAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             _ => "Windows",
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.DeviceHealthScripts[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceHealthScripts[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceHealthScripts[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Endpoint Security (Settings Catalog families) ──
         progress?.Invoke("Scanning endpoint security policies...");
@@ -550,12 +580,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => Task.FromResult(esPolicies),
             p => p.Id!, p => p.Name ?? p.Id!,
             p => p.Platforms?.ToString() ?? "",
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.ConfigurationPolicies[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.ConfigurationPolicies[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.ConfigurationPolicies[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Endpoint Security Intents (legacy) ──
         await ScanPolicyTypeAsync(rows, mode, directGroupId, entityCtx, emptyCtx, ct,
@@ -563,12 +594,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchEndpointSecurityIntentsAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             _ => "",
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.Intents[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            }, onRow);
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.Intents[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.Intents[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)),
+            onRow);
 
         // ── Enrollment Configurations ──
         progress?.Invoke("Scanning enrollment configurations...");
@@ -577,12 +609,12 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             () => FetchEnrollmentConfigurationsAsync(ct),
             p => p.Id!, p => p.DisplayName ?? p.Id!,
             _ => "",
-            async id =>
-            {
-                var r = await _graphClient.DeviceManagement.DeviceEnrollmentConfigurations[id]
-                    .Assignments.GetAsync(cancellationToken: ct);
-                return Flatten(r?.Value);
-            });
+            async id => await FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceEnrollmentConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceEnrollmentConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
 
         rows.Sort(PolicyTypeNameComparer);
     }
@@ -756,6 +788,30 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         return result;
     }
 
+    /// <summary>
+    /// Fetches all pages of an assignment collection, flattening into <see cref="FlatAssignment"/> list.
+    /// Use this instead of calling <c>.Assignments.GetAsync()</c> directly to avoid truncated results.
+    /// </summary>
+    private static async Task<List<FlatAssignment>> FetchAllAssignmentPagesAsync<TResponse, TItem>(
+        Func<Task<TResponse?>> fetchFirst,
+        Func<TResponse, string?> getNextLink,
+        Func<TResponse, IList<TItem>?> getItems,
+        Func<string, Task<TResponse?>> fetchByUrl)
+        where TResponse : class
+        where TItem : class
+    {
+        var result = new List<FlatAssignment>();
+        var page = await fetchFirst();
+        while (page != null)
+        {
+            result.AddRange(Flatten(getItems(page)));
+            var next = getNextLink(page);
+            if (string.IsNullOrEmpty(next)) break;
+            page = await fetchByUrl(next);
+        }
+        return result;
+    }
+
     private static void AppendTarget(List<FlatAssignment> result,
         DeviceAndAppManagementAssignmentTarget? target)
     {
@@ -780,25 +836,35 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         ManagedAppPolicy policy, CancellationToken ct)
     {
         var odataType = policy.OdataType ?? "";
+        var id = policy.Id!;
         try
         {
             if (odataType.Contains("android", StringComparison.OrdinalIgnoreCase))
             {
-                var r = await _graphClient.DeviceAppManagement
-                    .AndroidManagedAppProtections[policy.Id!].Assignments.GetAsync(cancellationToken: ct);
-                return FlattenTargetedManagedApp(r?.Value);
+                return await FetchAllAssignmentPagesAsync(
+                    () => _graphClient.DeviceAppManagement
+                        .AndroidManagedAppProtections[id].Assignments.GetAsync(cancellationToken: ct),
+                    r => r.OdataNextLink, r => r.Value,
+                    url => _graphClient.DeviceAppManagement
+                        .AndroidManagedAppProtections[id].Assignments.WithUrl(url).GetAsync(cancellationToken: ct));
             }
             if (odataType.Contains("ios", StringComparison.OrdinalIgnoreCase))
             {
-                var r = await _graphClient.DeviceAppManagement
-                    .IosManagedAppProtections[policy.Id!].Assignments.GetAsync(cancellationToken: ct);
-                return FlattenTargetedManagedApp(r?.Value);
+                return await FetchAllAssignmentPagesAsync(
+                    () => _graphClient.DeviceAppManagement
+                        .IosManagedAppProtections[id].Assignments.GetAsync(cancellationToken: ct),
+                    r => r.OdataNextLink, r => r.Value,
+                    url => _graphClient.DeviceAppManagement
+                        .IosManagedAppProtections[id].Assignments.WithUrl(url).GetAsync(cancellationToken: ct));
             }
             if (odataType.Contains("windows", StringComparison.OrdinalIgnoreCase))
             {
-                var r = await _graphClient.DeviceAppManagement
-                    .WindowsManagedAppProtections[policy.Id!].Assignments.GetAsync(cancellationToken: ct);
-                return FlattenTargetedManagedApp(r?.Value);
+                return await FetchAllAssignmentPagesAsync(
+                    () => _graphClient.DeviceAppManagement
+                        .WindowsManagedAppProtections[id].Assignments.GetAsync(cancellationToken: ct),
+                    r => r.OdataNextLink, r => r.Value,
+                    url => _graphClient.DeviceAppManagement
+                        .WindowsManagedAppProtections[id].Assignments.WithUrl(url).GetAsync(cancellationToken: ct));
             }
         }
         catch { /* ignore per-policy errors */ }
@@ -897,25 +963,121 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             ct.ThrowIfCancellationRequested();
         }
 
+        // ── All 11 policy types ──────────────────────────────────────────────────
+
         var configs = await FetchDeviceConfigurationsAsync(ct);
         await CollectFromAsync(configs, p => p.Id!,
-            async id => Flatten((await _graphClient.DeviceManagement.DeviceConfigurations[id]
-                .Assignments.GetAsync(cancellationToken: ct))?.Value));
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
 
         var scPolicies = await FetchSettingsCatalogAsync(ct);
         await CollectFromAsync(scPolicies, p => p.Id!,
-            async id => Flatten((await _graphClient.DeviceManagement.ConfigurationPolicies[id]
-                .Assignments.GetAsync(cancellationToken: ct))?.Value));
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.ConfigurationPolicies[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.ConfigurationPolicies[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
+
+        var adminTemplates = await FetchAdminTemplatesAsync(ct);
+        await CollectFromAsync(adminTemplates, p => p.Id!,
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.GroupPolicyConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.GroupPolicyConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
 
         var cpPolicies = await FetchCompliancePoliciesAsync(ct);
         await CollectFromAsync(cpPolicies, p => p.Id!,
-            async id => Flatten((await _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
-                .Assignments.GetAsync(cancellationToken: ct))?.Value));
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
+
+        var appConfigPolicies = await FetchMobileAppConfigurationsAsync(ct);
+        await CollectFromAsync(appConfigPolicies, p => p.Id!,
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceAppManagement.MobileAppConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceAppManagement.MobileAppConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
 
         var apps = await FetchApplicationsAsync(ct);
         await CollectFromAsync(apps, p => p.Id!,
-            async id => Flatten((await _graphClient.DeviceAppManagement.MobileApps[id]
-                .Assignments.GetAsync(cancellationToken: ct))?.Value));
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceAppManagement.MobileApps[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceAppManagement.MobileApps[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
+
+        var scripts = await FetchPlatformScriptsAsync(ct);
+        await CollectFromAsync(scripts, p => p.Id!,
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceManagementScripts[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceManagementScripts[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
+
+        var healthScripts = await FetchHealthScriptsAsync(ct);
+        await CollectFromAsync(healthScripts, p => p.Id!,
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceHealthScripts[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceHealthScripts[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
+
+        var intents = await FetchEndpointSecurityIntentsAsync(ct);
+        await CollectFromAsync(intents, p => p.Id!,
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.Intents[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.Intents[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
+
+        var enrollmentConfigs = await FetchEnrollmentConfigurationsAsync(ct);
+        await CollectFromAsync(enrollmentConfigs, p => p.Id!,
+            id => FetchAllAssignmentPagesAsync(
+                () => _graphClient.DeviceManagement.DeviceEnrollmentConfigurations[id]
+                    .Assignments.GetAsync(cancellationToken: ct),
+                r => r.OdataNextLink, r => r.Value,
+                url => _graphClient.DeviceManagement.DeviceEnrollmentConfigurations[id]
+                    .Assignments.WithUrl(url).GetAsync(cancellationToken: ct)));
+
+        // App protection policies need special handling (type-specific endpoints)
+        var appProtPolicies = await FetchAppProtectionPoliciesAsync(ct);
+        using var appProtSem = new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
+        var appProtTasks = appProtPolicies.Select(async policy =>
+        {
+            try
+            {
+                await appProtSem.WaitAsync(ct);
+                try
+                {
+                    if (policy.Id == null) return;
+                    var flat = await FetchAppProtectionAssignmentsAsync(policy, ct);
+                    foreach (var fa in flat.Where(f => f.GroupId != null))
+                        lock (ids) ids.Add(fa.GroupId!);
+                }
+                catch (OperationCanceledException) { throw; }
+                catch { }
+                finally { appProtSem.Release(); }
+            }
+            catch (OperationCanceledException) { }
+        });
+        await Task.WhenAll(appProtTasks);
+        ct.ThrowIfCancellationRequested();
 
         return ids;
     }

@@ -16,9 +16,12 @@ public class AssignmentCheckerServiceTests
     [Fact]
     public void Service_HasGraphClientConstructor()
     {
-        var ctor = typeof(AssignmentCheckerService)
-            .GetConstructor([typeof(GraphServiceClient)]);
-        Assert.NotNull(ctor);
+        var ctors = typeof(AssignmentCheckerService).GetConstructors();
+        Assert.True(ctors.Any(c =>
+        {
+            var p = c.GetParameters();
+            return p.Length >= 1 && p[0].ParameterType == typeof(GraphServiceClient);
+        }));
     }
 
     // ── Interface contract tests ─────────────────────────────────────────────────
@@ -32,7 +35,7 @@ public class AssignmentCheckerServiceTests
         Assert.Equal(typeof(Task<List<AssignmentReportRow>>), method.ReturnType);
         var p = method.GetParameters();
         Assert.Equal(typeof(string), p[0].ParameterType);
-        Assert.Equal(typeof(CancellationToken), p[2].ParameterType);
+        Assert.Equal(typeof(CancellationToken), p[3].ParameterType);
     }
 
     [Fact]
