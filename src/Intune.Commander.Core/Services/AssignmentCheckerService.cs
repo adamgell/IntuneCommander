@@ -496,7 +496,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         var allConfigPolicies = await FetchSettingsCatalogAsync(ct);
         var esPolicies = allConfigPolicies
             .Where(p => p.TemplateReference?.TemplateFamily != null &&
-                        endpointFamilies.Contains(p.TemplateReference.TemplateFamily.ToString()))
+                        endpointFamilies.Contains(p.TemplateReference.TemplateFamily.ToString()!))
             .ToList();
         await ScanPolicyTypeAsync(rows, mode, directGroupId, entityCtx, emptyCtx, ct,
             "Endpoint Security",
