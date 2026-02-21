@@ -32,9 +32,28 @@ public static class AppSettingsService
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
-            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(settings, JsonOptions));
+            var directory = Path.GetDirectoryName(SettingsPath)!;
+            Directory.CreateDirectory(directory);
+
+            var json = JsonSerializer.Serialize(settings, JsonOptions);
+            var tempPath = Path.Combine(directory, Path.GetRandomFileName());
+
+            File.WriteAllText(tempPath, json);
+
+            if (File.Exists(SettingsPath))
+            {
+                // Atomically replace existing settings with the new file.
+                File.Replace(tempPath, SettingsPath, destinationBackupFileName: null);
+            }
+            else
+            {
+                // First-time save: move the temp file into place.
+                File.Move(tempPath, SettingsPath);
+            }
         }
-        catch { /* best effort */ }
+        catch
+        {
+            // best effort
+        }
     }
 }
