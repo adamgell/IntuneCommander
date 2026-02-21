@@ -89,4 +89,16 @@ public interface IImportService
     Task<Agreement?> ReadTermsOfUseAgreementAsync(string filePath, CancellationToken cancellationToken = default);
     Task<List<Agreement>> ReadTermsOfUseAgreementsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
     Task<Agreement> ImportTermsOfUseAgreementAsync(Agreement agreement, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+
+    Task<DeviceManagementScriptExport?> ReadDeviceManagementScriptAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<List<DeviceManagementScriptExport>> ReadDeviceManagementScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
+    Task<DeviceManagementScript> ImportDeviceManagementScriptAsync(DeviceManagementScriptExport export, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+
+    Task<DeviceShellScriptExport?> ReadDeviceShellScriptAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<List<DeviceShellScriptExport>> ReadDeviceShellScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
+    Task<DeviceShellScript> ImportDeviceShellScriptAsync(DeviceShellScriptExport export, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+
+    Task<DeviceComplianceScript?> ReadComplianceScriptAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<List<DeviceComplianceScript>> ReadComplianceScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
+    Task<DeviceComplianceScript> ImportComplianceScriptAsync(DeviceComplianceScript script, MigrationTable migrationTable, CancellationToken cancellationToken = default);
 }

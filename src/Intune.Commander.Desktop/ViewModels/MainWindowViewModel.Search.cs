@@ -218,6 +218,24 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
+    [ObservableProperty]
+
+    private ObservableCollection<DeviceManagementScript> _filteredDeviceManagementScripts = [];
+
+
+
+    [ObservableProperty]
+
+    private ObservableCollection<DeviceShellScript> _filteredDeviceShellScripts = [];
+
+
+
+    [ObservableProperty]
+
+    private ObservableCollection<DeviceComplianceScript> _filteredComplianceScripts = [];
+
+
+
     private void ApplyFilter()
 
     {
@@ -287,6 +305,12 @@ public partial class MainWindowViewModel : ViewModelBase
             FilteredAuthenticationContextClassReferences = new ObservableCollection<AuthenticationContextClassReference>(AuthenticationContextClassReferences);
 
             FilteredTermsOfUseAgreements = new ObservableCollection<Agreement>(TermsOfUseAgreements);
+
+            FilteredDeviceManagementScripts = new ObservableCollection<DeviceManagementScript>(DeviceManagementScripts);
+
+            FilteredDeviceShellScripts = new ObservableCollection<DeviceShellScript>(DeviceShellScripts);
+
+            FilteredComplianceScripts = new ObservableCollection<DeviceComplianceScript>(ComplianceScripts);
 
             return;
 
@@ -661,6 +685,42 @@ public partial class MainWindowViewModel : ViewModelBase
                 Contains(TryReadStringProperty(a, "Description"), q) ||
 
                 Contains(a.Id, q)));
+
+        FilteredDeviceManagementScripts = new ObservableCollection<DeviceManagementScript>(
+
+            DeviceManagementScripts.Where(s =>
+
+                Contains(TryReadStringProperty(s, "DisplayName"), q) ||
+
+                Contains(TryReadStringProperty(s, "Description"), q) ||
+
+                Contains(TryReadStringProperty(s, "FileName"), q) ||
+
+                Contains(s.Id, q)));
+
+        FilteredDeviceShellScripts = new ObservableCollection<DeviceShellScript>(
+
+            DeviceShellScripts.Where(s =>
+
+                Contains(TryReadStringProperty(s, "DisplayName"), q) ||
+
+                Contains(TryReadStringProperty(s, "Description"), q) ||
+
+                Contains(TryReadStringProperty(s, "FileName"), q) ||
+
+                Contains(s.Id, q)));
+
+        FilteredComplianceScripts = new ObservableCollection<DeviceComplianceScript>(
+
+            ComplianceScripts.Where(s =>
+
+                Contains(TryReadStringProperty(s, "DisplayName"), q) ||
+
+                Contains(TryReadStringProperty(s, "Description"), q) ||
+
+                Contains(TryReadStringProperty(s, "Publisher"), q) ||
+
+                Contains(s.Id, q)));
 
         OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
 

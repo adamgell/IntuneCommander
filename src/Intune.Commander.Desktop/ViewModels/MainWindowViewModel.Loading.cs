@@ -321,6 +321,33 @@ public partial class MainWindowViewModel : ViewModelBase
             CacheKeyTermsOfUseAgreements,
             "terms of use agreement(s)");
 
+    private Task LoadDeviceManagementScriptsAsync() =>
+        LoadCollectionAsync(
+            _deviceManagementScriptService,
+            ct => _deviceManagementScriptService!.ListDeviceManagementScriptsAsync(ct),
+            items => DeviceManagementScripts = items,
+            () => _deviceManagementScriptsLoaded = true,
+            CacheKeyDeviceManagementScripts,
+            "device management script(s)");
+
+    private Task LoadDeviceShellScriptsAsync() =>
+        LoadCollectionAsync(
+            _deviceShellScriptService,
+            ct => _deviceShellScriptService!.ListDeviceShellScriptsAsync(ct),
+            items => DeviceShellScripts = items,
+            () => _deviceShellScriptsLoaded = true,
+            CacheKeyDeviceShellScripts,
+            "device shell script(s)");
+
+    private Task LoadComplianceScriptsAsync() =>
+        LoadCollectionAsync(
+            _complianceScriptService,
+            ct => _complianceScriptService!.ListComplianceScriptsAsync(ct),
+            items => ComplianceScripts = items,
+            () => _complianceScriptsLoaded = true,
+            CacheKeyComplianceScripts,
+            "compliance script(s)");
+
     // ─── BuildGroupRow ─────────────────────────────────────────────────────
 
     private static GroupRow BuildGroupRow(Microsoft.Graph.Beta.Models.Group group, GroupMemberCounts counts)
@@ -376,6 +403,9 @@ public partial class MainWindowViewModel : ViewModelBase
         var loadAuthenticationStrengths = IsAuthenticationStrengthsCategory;
         var loadAuthenticationContexts = IsAuthenticationContextsCategory;
         var loadTermsOfUse = IsTermsOfUseCategory;
+        var loadDeviceManagementScripts = IsDeviceManagementScriptsCategory;
+        var loadDeviceShellScripts = IsDeviceShellScriptsCategory;
+        var loadComplianceScripts = IsComplianceScriptsCategory;
 
         try
         {
@@ -617,10 +647,34 @@ public partial class MainWindowViewModel : ViewModelBase
                     "terms of use agreement(s)", "Terms Of Use",
                     errors, cancellationToken);
 
+            if (_deviceManagementScriptService != null && loadDeviceManagementScripts)
+                await RefreshCollectionAsync(
+                    ct => _deviceManagementScriptService.ListDeviceManagementScriptsAsync(ct),
+                    items => DeviceManagementScripts = items,
+                    v => _deviceManagementScriptsLoaded = v,
+                    "device management script(s)", "Device Management Scripts",
+                    errors, cancellationToken);
+
+            if (_deviceShellScriptService != null && loadDeviceShellScripts)
+                await RefreshCollectionAsync(
+                    ct => _deviceShellScriptService.ListDeviceShellScriptsAsync(ct),
+                    items => DeviceShellScripts = items,
+                    v => _deviceShellScriptsLoaded = v,
+                    "device shell script(s)", "Device Shell Scripts",
+                    errors, cancellationToken);
+
+            if (_complianceScriptService != null && loadComplianceScripts)
+                await RefreshCollectionAsync(
+                    ct => _complianceScriptService.ListComplianceScriptsAsync(ct),
+                    items => ComplianceScripts = items,
+                    v => _complianceScriptsLoaded = v,
+                    "compliance script(s)", "Compliance Scripts",
+                    errors, cancellationToken);
+
             // --- Summary ---
 
-            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count;
-            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use)";
+            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count;
+            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use, {DeviceManagementScripts.Count} device mgmt scripts, {DeviceShellScripts.Count} shell scripts, {ComplianceScripts.Count} compliance scripts)";
 
             if (errors.Count > 0)
                 SetError($"Some data failed to load — {string.Join("; ", errors)}");
@@ -850,9 +904,30 @@ public partial class MainWindowViewModel : ViewModelBase
                 "terms of use agreement(s)", ref oldestCacheTime))
                 typesLoaded++;
 
+            if (TryLoadCollectionFromCache<DeviceManagementScript>(
+                tenantId, CacheKeyDeviceManagementScripts,
+                items => DeviceManagementScripts = items,
+                () => _deviceManagementScriptsLoaded = true,
+                "device management script(s)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<DeviceShellScript>(
+                tenantId, CacheKeyDeviceShellScripts,
+                items => DeviceShellScripts = items,
+                () => _deviceShellScriptsLoaded = true,
+                "device shell script(s)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<DeviceComplianceScript>(
+                tenantId, CacheKeyComplianceScripts,
+                items => ComplianceScripts = items,
+                () => _complianceScriptsLoaded = true,
+                "compliance script(s)", ref oldestCacheTime))
+                typesLoaded++;
+
             if (typesLoaded > 0)
             {
-                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count;
+                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count;
                 var ageText = FormatCacheAge(oldestCacheTime);
                 CacheStatusText = oldestCacheTime.HasValue
                     ? $"Cache: {oldestCacheTime.Value.ToLocalTime():MMM dd, h:mm tt}"
@@ -950,6 +1025,9 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveCollectionToCache(tenantId, CacheKeyAuthenticationStrengths, AuthenticationStrengthPolicies);
             SaveCollectionToCache(tenantId, CacheKeyAuthenticationContexts, AuthenticationContextClassReferences);
             SaveCollectionToCache(tenantId, CacheKeyTermsOfUseAgreements, TermsOfUseAgreements);
+            SaveCollectionToCache(tenantId, CacheKeyDeviceManagementScripts, DeviceManagementScripts);
+            SaveCollectionToCache(tenantId, CacheKeyDeviceShellScripts, DeviceShellScripts);
+            SaveCollectionToCache(tenantId, CacheKeyComplianceScripts, ComplianceScripts);
 
             DebugLog.Log("Cache", "Saved data to disk cache");
         }

@@ -26,6 +26,9 @@ public class ImportService : IImportService
     private readonly IAuthenticationStrengthService? _authenticationStrengthService;
     private readonly IAuthenticationContextService? _authenticationContextService;
     private readonly ITermsOfUseService? _termsOfUseService;
+    private readonly IDeviceManagementScriptService? _deviceManagementScriptService;
+    private readonly IDeviceShellScriptService? _deviceShellScriptService;
+    private readonly IComplianceScriptService? _complianceScriptService;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -52,7 +55,10 @@ public class ImportService : IImportService
         INamedLocationService? namedLocationService = null,
         IAuthenticationStrengthService? authenticationStrengthService = null,
         IAuthenticationContextService? authenticationContextService = null,
-        ITermsOfUseService? termsOfUseService = null)
+        ITermsOfUseService? termsOfUseService = null,
+        IDeviceManagementScriptService? deviceManagementScriptService = null,
+        IDeviceShellScriptService? deviceShellScriptService = null,
+        IComplianceScriptService? complianceScriptService = null)
     {
         _configProfileService = configProfileService;
         _compliancePolicyService = compliancePolicyService;
@@ -74,6 +80,9 @@ public class ImportService : IImportService
         _authenticationStrengthService = authenticationStrengthService;
         _authenticationContextService = authenticationContextService;
         _termsOfUseService = termsOfUseService;
+        _deviceManagementScriptService = deviceManagementScriptService;
+        _deviceShellScriptService = deviceShellScriptService;
+        _complianceScriptService = complianceScriptService;
     }
 
     public ImportService(
@@ -102,6 +111,8 @@ public class ImportService : IImportService
             roleDefinitionService,
             intuneBrandingService,
             azureBrandingService,
+            null,
+            null,
             null,
             null,
             null,
@@ -1282,6 +1293,187 @@ public class ImportService : IImportService
             migrationTable.AddOrUpdate(new MigrationEntry
             {
                 ObjectType = "TermsOfUseAgreement",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    // --- Device Management Scripts ---
+
+    public async Task<DeviceManagementScriptExport?> ReadDeviceManagementScriptAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<DeviceManagementScriptExport>(json, JsonOptions);
+    }
+
+    public async Task<List<DeviceManagementScriptExport>> ReadDeviceManagementScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<DeviceManagementScriptExport>();
+        var folder = Path.Combine(folderPath, "DeviceManagementScripts");
+
+        if (!Directory.Exists(folder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(folder, "*.json"))
+        {
+            var export = await ReadDeviceManagementScriptAsync(file, cancellationToken);
+            if (export != null)
+                results.Add(export);
+        }
+
+        return results;
+    }
+
+    public async Task<DeviceManagementScript> ImportDeviceManagementScriptAsync(
+        DeviceManagementScriptExport export,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_deviceManagementScriptService == null)
+            throw new InvalidOperationException("Device management script service is not available");
+
+        var script = export.Script;
+        var originalId = script.Id;
+        ClearMetadataForCreate(script);
+
+        var created = await _deviceManagementScriptService.CreateDeviceManagementScriptAsync(script, cancellationToken);
+
+        if (export.Assignments.Count > 0 && created.Id != null)
+        {
+            foreach (var assignment in export.Assignments)
+            {
+                assignment.Id = null;
+            }
+
+            await _deviceManagementScriptService.AssignScriptAsync(created.Id, export.Assignments, cancellationToken);
+        }
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "DeviceManagementScript",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    // --- Device Shell Scripts ---
+
+    public async Task<DeviceShellScriptExport?> ReadDeviceShellScriptAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<DeviceShellScriptExport>(json, JsonOptions);
+    }
+
+    public async Task<List<DeviceShellScriptExport>> ReadDeviceShellScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<DeviceShellScriptExport>();
+        var folder = Path.Combine(folderPath, "DeviceShellScripts");
+
+        if (!Directory.Exists(folder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(folder, "*.json"))
+        {
+            var export = await ReadDeviceShellScriptAsync(file, cancellationToken);
+            if (export != null)
+                results.Add(export);
+        }
+
+        return results;
+    }
+
+    public async Task<DeviceShellScript> ImportDeviceShellScriptAsync(
+        DeviceShellScriptExport export,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_deviceShellScriptService == null)
+            throw new InvalidOperationException("Device shell script service is not available");
+
+        var script = export.Script;
+        var originalId = script.Id;
+        ClearMetadataForCreate(script);
+
+        var created = await _deviceShellScriptService.CreateDeviceShellScriptAsync(script, cancellationToken);
+
+        if (export.Assignments.Count > 0 && created.Id != null)
+        {
+            foreach (var assignment in export.Assignments)
+            {
+                assignment.Id = null;
+            }
+
+            await _deviceShellScriptService.AssignScriptAsync(created.Id, export.Assignments, cancellationToken);
+        }
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "DeviceShellScript",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    // --- Compliance Scripts ---
+
+    public async Task<DeviceComplianceScript?> ReadComplianceScriptAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<DeviceComplianceScript>(json, JsonOptions);
+    }
+
+    public async Task<List<DeviceComplianceScript>> ReadComplianceScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<DeviceComplianceScript>();
+        var folder = Path.Combine(folderPath, "ComplianceScripts");
+
+        if (!Directory.Exists(folder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(folder, "*.json"))
+        {
+            var script = await ReadComplianceScriptAsync(file, cancellationToken);
+            if (script != null)
+                results.Add(script);
+        }
+
+        return results;
+    }
+
+    public async Task<DeviceComplianceScript> ImportComplianceScriptAsync(
+        DeviceComplianceScript script,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_complianceScriptService == null)
+            throw new InvalidOperationException("Compliance script service is not available");
+
+        var originalId = script.Id;
+        ClearMetadataForCreate(script);
+
+        var created = await _complianceScriptService.CreateComplianceScriptAsync(script, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "ComplianceScript",
                 OriginalId = originalId,
                 NewId = created.Id,
                 Name = created.DisplayName ?? "Unknown"

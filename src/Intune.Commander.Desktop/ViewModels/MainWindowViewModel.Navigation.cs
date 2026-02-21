@@ -154,6 +154,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 new() { Name = "Feature Updates", Icon = "🪟" },
 
+                new() { Name = "Device Management Scripts", Icon = "📜" },
+
+                new() { Name = "Device Shell Scripts", Icon = "🐚" },
+
+                new() { Name = "Compliance Scripts", Icon = "✅" },
+
             }
 
         },
@@ -324,6 +330,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         "Terms of Use" => TermsOfUseColumns,
 
+        "Device Management Scripts" => DeviceManagementScriptColumns,
+
+        "Device Shell Scripts" => DeviceShellScriptColumns,
+
+        "Compliance Scripts" => ComplianceScriptColumns,
+
         "Dynamic Groups" => DynamicGroupColumns,
 
         "Assigned Groups" => AssignedGroupColumns,
@@ -424,6 +436,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsTermsOfUseCategory => SelectedCategory?.Name == "Terms of Use";
 
+    public bool IsDeviceManagementScriptsCategory => SelectedCategory?.Name == "Device Management Scripts";
+
+    public bool IsDeviceShellScriptsCategory => SelectedCategory?.Name == "Device Shell Scripts";
+
+    public bool IsComplianceScriptsCategory => SelectedCategory?.Name == "Compliance Scripts";
+
     public bool IsDynamicGroupsCategory => SelectedCategory?.Name == "Dynamic Groups";
 
     public bool IsAssignedGroupsCategory => SelectedCategory?.Name == "Assigned Groups";
@@ -465,6 +483,9 @@ public partial class MainWindowViewModel : ViewModelBase
         "Authentication Strengths" => FilteredAuthenticationStrengthPolicies.Count,
         "Authentication Contexts" => FilteredAuthenticationContextClassReferences.Count,
         "Terms of Use" => FilteredTermsOfUseAgreements.Count,
+        "Device Management Scripts" => FilteredDeviceManagementScripts.Count,
+        "Device Shell Scripts" => FilteredDeviceShellScripts.Count,
+        "Compliance Scripts" => FilteredComplianceScripts.Count,
         _ => -1
     };
 
@@ -537,6 +558,12 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedAuthenticationContextClassReference = null;
 
         SelectedTermsOfUseAgreement = null;
+
+        SelectedDeviceManagementScript = null;
+
+        SelectedDeviceShellScript = null;
+
+        SelectedComplianceScript = null;
 
         SelectedDynamicGroupRow = null;
 
@@ -615,6 +642,12 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsAuthenticationContextsCategory));
 
         OnPropertyChanged(nameof(IsTermsOfUseCategory));
+
+        OnPropertyChanged(nameof(IsDeviceManagementScriptsCategory));
+
+        OnPropertyChanged(nameof(IsDeviceShellScriptsCategory));
+
+        OnPropertyChanged(nameof(IsComplianceScriptsCategory));
 
         OnPropertyChanged(nameof(IsDynamicGroupsCategory));
 
@@ -1397,6 +1430,90 @@ public partial class MainWindowViewModel : ViewModelBase
                 _termsOfUseAgreementsLoaded = true;
 
                 _ = LoadTermsOfUseAgreementsAsync();
+
+            }
+
+        }
+
+        if (value?.Name == "Device Management Scripts" && !_deviceManagementScriptsLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<DeviceManagementScript>(CacheKeyDeviceManagementScripts, rows =>
+
+            {
+
+                DeviceManagementScripts = new ObservableCollection<DeviceManagementScript>(rows);
+
+                _deviceManagementScriptsLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} device management script(s) from cache";
+
+            }))
+
+            {
+
+                _deviceManagementScriptsLoaded = true;
+
+                _ = LoadDeviceManagementScriptsAsync();
+
+            }
+
+        }
+
+        if (value?.Name == "Device Shell Scripts" && !_deviceShellScriptsLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<DeviceShellScript>(CacheKeyDeviceShellScripts, rows =>
+
+            {
+
+                DeviceShellScripts = new ObservableCollection<DeviceShellScript>(rows);
+
+                _deviceShellScriptsLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} device shell script(s) from cache";
+
+            }))
+
+            {
+
+                _deviceShellScriptsLoaded = true;
+
+                _ = LoadDeviceShellScriptsAsync();
+
+            }
+
+        }
+
+        if (value?.Name == "Compliance Scripts" && !_complianceScriptsLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<DeviceComplianceScript>(CacheKeyComplianceScripts, rows =>
+
+            {
+
+                ComplianceScripts = new ObservableCollection<DeviceComplianceScript>(rows);
+
+                _complianceScriptsLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} compliance script(s) from cache";
+
+            }))
+
+            {
+
+                _complianceScriptsLoaded = true;
+
+                _ = LoadComplianceScriptsAsync();
 
             }
 

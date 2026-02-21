@@ -961,4 +961,141 @@ public class ExportService : IExportService
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
     }
+
+    public async Task ExportDeviceManagementScriptAsync(
+        DeviceManagementScript script,
+        IReadOnlyList<DeviceManagementScriptAssignment> assignments,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "DeviceManagementScripts");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var export = new DeviceManagementScriptExport
+        {
+            Script = script,
+            Assignments = assignments.ToList()
+        };
+
+        var json = JsonSerializer.Serialize(export, JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (script.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "DeviceManagementScript",
+                OriginalId = script.Id,
+                Name = script.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportDeviceManagementScriptsAsync(
+        IEnumerable<(DeviceManagementScript Script, IReadOnlyList<DeviceManagementScriptAssignment> Assignments)> scripts,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var (script, assignments) in scripts)
+        {
+            await ExportDeviceManagementScriptAsync(script, assignments, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportDeviceShellScriptAsync(
+        DeviceShellScript script,
+        IReadOnlyList<DeviceManagementScriptAssignment> assignments,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "DeviceShellScripts");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var export = new DeviceShellScriptExport
+        {
+            Script = script,
+            Assignments = assignments.ToList()
+        };
+
+        var json = JsonSerializer.Serialize(export, JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (script.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "DeviceShellScript",
+                OriginalId = script.Id,
+                Name = script.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportDeviceShellScriptsAsync(
+        IEnumerable<(DeviceShellScript Script, IReadOnlyList<DeviceManagementScriptAssignment> Assignments)> scripts,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var (script, assignments) in scripts)
+        {
+            await ExportDeviceShellScriptAsync(script, assignments, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportComplianceScriptAsync(
+        DeviceComplianceScript script,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "ComplianceScripts");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (script.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "ComplianceScript",
+                OriginalId = script.Id,
+                Name = script.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportComplianceScriptsAsync(
+        IEnumerable<DeviceComplianceScript> scripts,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var script in scripts)
+        {
+            await ExportComplianceScriptAsync(script, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
 }

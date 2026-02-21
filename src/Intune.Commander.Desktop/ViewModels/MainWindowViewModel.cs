@@ -116,6 +116,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private const string CacheKeyAssignedGroups = "AssignedGroups";
 
+    private const string CacheKeyDeviceManagementScripts = "DeviceManagementScripts";
+
+    private const string CacheKeyDeviceShellScripts = "DeviceShellScripts";
+
+    private const string CacheKeyComplianceScripts = "ComplianceScripts";
+
 
 
     private GraphServiceClient? _graphClient;
@@ -155,9 +161,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private IRoleDefinitionService? _roleDefinitionService;
 
     private IIntuneBrandingService? _intuneBrandingService;
-
     private IAzureBrandingService? _azureBrandingService;
-
     private IAutopilotService? _autopilotService;
 
     private IDeviceHealthScriptService? _deviceHealthScriptService;
@@ -174,6 +178,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private ITermsOfUseService? _termsOfUseService;
 
+    private IDeviceManagementScriptService? _deviceManagementScriptService;
+    private IDeviceShellScriptService? _deviceShellScriptService;
+    private IComplianceScriptService? _complianceScriptService;
     private IConditionalAccessPptExportService? _conditionalAccessPptExportService;
 
 
@@ -564,7 +571,32 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool _featureUpdateProfilesLoaded;
 
+    // --- Device Management Scripts (PowerShell) ---
+    [ObservableProperty]
+    private ObservableCollection<DeviceManagementScript> _deviceManagementScripts = [];
 
+    [ObservableProperty]
+    private DeviceManagementScript? _selectedDeviceManagementScript;
+
+    private bool _deviceManagementScriptsLoaded;
+
+    // --- Device Shell Scripts (macOS/Linux) ---
+    [ObservableProperty]
+    private ObservableCollection<DeviceShellScript> _deviceShellScripts = [];
+
+    [ObservableProperty]
+    private DeviceShellScript? _selectedDeviceShellScript;
+
+    private bool _deviceShellScriptsLoaded;
+
+    // --- Compliance Scripts ---
+    [ObservableProperty]
+    private ObservableCollection<DeviceComplianceScript> _complianceScripts = [];
+
+    [ObservableProperty]
+    private DeviceComplianceScript? _selectedComplianceScript;
+
+    private bool _complianceScriptsLoaded;
 
     // --- Named Locations ---
 
@@ -1201,6 +1233,70 @@ public partial class MainWindowViewModel : ViewModelBase
         new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
 
         new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+
+    ];
+
+
+
+    public ObservableCollection<DataGridColumnConfig> DeviceManagementScriptColumns { get; } =
+
+    [
+
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+
+        new() { Header = "File Name", BindingPath = "FileName", Width = 180, IsVisible = true },
+
+        new() { Header = "Run As Account", BindingPath = "RunAsAccount", Width = 120, IsVisible = true },
+
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+
+    ];
+
+
+
+    public ObservableCollection<DataGridColumnConfig> DeviceShellScriptColumns { get; } =
+
+    [
+
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+
+        new() { Header = "File Name", BindingPath = "FileName", Width = 180, IsVisible = true },
+
+        new() { Header = "Run As Account", BindingPath = "RunAsAccount", Width = 120, IsVisible = true },
+
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+
+    ];
+
+
+
+    public ObservableCollection<DataGridColumnConfig> ComplianceScriptColumns { get; } =
+
+    [
+
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+
+        new() { Header = "Publisher", BindingPath = "Publisher", Width = 150, IsVisible = true },
+
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
 
         new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
 

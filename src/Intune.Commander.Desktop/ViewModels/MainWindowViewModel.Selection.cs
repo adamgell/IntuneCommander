@@ -820,6 +820,96 @@ public partial class MainWindowViewModel : ViewModelBase
 
             }
 
+            else if (IsDeviceManagementScriptsCategory && SelectedDeviceManagementScript?.Id != null && _deviceManagementScriptService != null)
+
+            {
+
+                StatusText = "Refreshing device management script...";
+
+                var updated = await _deviceManagementScriptService.GetDeviceManagementScriptAsync(SelectedDeviceManagementScript.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = DeviceManagementScripts.IndexOf(SelectedDeviceManagementScript);
+
+                    if (idx >= 0)
+
+                    {
+
+                        DeviceManagementScripts[idx] = updated;
+
+                        SelectedDeviceManagementScript = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed device management script: {TryReadStringProperty(updated, "DisplayName")}");
+
+                }
+
+            }
+
+            else if (IsDeviceShellScriptsCategory && SelectedDeviceShellScript?.Id != null && _deviceShellScriptService != null)
+
+            {
+
+                StatusText = "Refreshing device shell script...";
+
+                var updated = await _deviceShellScriptService.GetDeviceShellScriptAsync(SelectedDeviceShellScript.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = DeviceShellScripts.IndexOf(SelectedDeviceShellScript);
+
+                    if (idx >= 0)
+
+                    {
+
+                        DeviceShellScripts[idx] = updated;
+
+                        SelectedDeviceShellScript = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed device shell script: {TryReadStringProperty(updated, "DisplayName")}");
+
+                }
+
+            }
+
+            else if (IsComplianceScriptsCategory && SelectedComplianceScript?.Id != null && _complianceScriptService != null)
+
+            {
+
+                StatusText = "Refreshing compliance script...";
+
+                var updated = await _complianceScriptService.GetComplianceScriptAsync(SelectedComplianceScript.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = ComplianceScripts.IndexOf(SelectedComplianceScript);
+
+                    if (idx >= 0)
+
+                    {
+
+                        ComplianceScripts[idx] = updated;
+
+                        SelectedComplianceScript = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed compliance script: {TryReadStringProperty(updated, "DisplayName")}");
+
+                }
+
+            }
+
             else
 
             {
@@ -900,7 +990,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
         (IsAuthenticationContextsCategory && SelectedAuthenticationContextClassReference != null) ||
 
-        (IsTermsOfUseCategory && SelectedTermsOfUseAgreement != null);
+        (IsTermsOfUseCategory && SelectedTermsOfUseAgreement != null) ||
+
+        (IsDeviceManagementScriptsCategory && SelectedDeviceManagementScript != null) ||
+
+        (IsDeviceShellScriptsCategory && SelectedDeviceShellScript != null) ||
+
+        (IsComplianceScriptsCategory && SelectedComplianceScript != null);
 
 
 
@@ -1344,6 +1440,62 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
+    partial void OnSelectedDeviceManagementScriptChanged(DeviceManagementScript? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Device Management Script";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+        if (value?.Id != null)
+
+            _ = LoadDeviceManagementScriptAssignmentsAsync(value.Id);
+
+    }
+
+
+
+    partial void OnSelectedDeviceShellScriptChanged(DeviceShellScript? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Device Shell Script";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+        if (value?.Id != null)
+
+            _ = LoadDeviceShellScriptAssignmentsAsync(value.Id);
+
+    }
+
+
+
+    partial void OnSelectedComplianceScriptChanged(DeviceComplianceScript? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Compliance Script";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+    }
+
+
+
     partial void OnSelectedDynamicGroupRowChanged(GroupRow? value)
 
     {
@@ -1661,6 +1813,82 @@ public partial class MainWindowViewModel : ViewModelBase
         {
 
             DebugLog.LogError($"Failed to load administrative template assignments: {FormatGraphError(ex)}", ex);
+
+        }
+
+        finally { IsLoadingDetails = false; }
+
+    }
+
+
+
+    private async Task LoadDeviceManagementScriptAssignmentsAsync(string scriptId)
+
+    {
+
+        if (_deviceManagementScriptService == null) return;
+
+        IsLoadingDetails = true;
+
+        try
+
+        {
+
+            var assignments = await _deviceManagementScriptService.GetAssignmentsAsync(scriptId);
+
+            var items = new List<AssignmentDisplayItem>();
+
+            foreach (var a in assignments)
+
+                items.Add(await MapAssignmentAsync(a.Target));
+
+            SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+
+        }
+
+        catch (Exception ex)
+
+        {
+
+            DebugLog.LogError($"Failed to load device management script assignments: {FormatGraphError(ex)}", ex);
+
+        }
+
+        finally { IsLoadingDetails = false; }
+
+    }
+
+
+
+    private async Task LoadDeviceShellScriptAssignmentsAsync(string scriptId)
+
+    {
+
+        if (_deviceShellScriptService == null) return;
+
+        IsLoadingDetails = true;
+
+        try
+
+        {
+
+            var assignments = await _deviceShellScriptService.GetAssignmentsAsync(scriptId);
+
+            var items = new List<AssignmentDisplayItem>();
+
+            foreach (var a in assignments)
+
+                items.Add(await MapAssignmentAsync(a.Target));
+
+            SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+
+        }
+
+        catch (Exception ex)
+
+        {
+
+            DebugLog.LogError($"Failed to load device shell script assignments: {FormatGraphError(ex)}", ex);
 
         }
 
