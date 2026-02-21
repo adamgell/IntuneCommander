@@ -1,18 +1,23 @@
 using System;
 using System.IO;
 using System.Text.Json;
-using IntuneManager.Desktop.Models;
+using System.Text.Json.Serialization;
+using Intune.Commander.Desktop.Models;
 
-namespace IntuneManager.Desktop.Services;
+namespace Intune.Commander.Desktop.Services;
 
 public static class AppSettingsService
 {
     private static readonly string SettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "IntuneManager",
+        "Intune.Commander",
         "settings.json");
 
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
 
     public static AppSettings Load()
     {
@@ -21,10 +26,13 @@ public static class AppSettingsService
             if (File.Exists(SettingsPath))
             {
                 var json = File.ReadAllText(SettingsPath);
-                return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
             }
         }
-        catch { /* fall through to default */ }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to load app settings from '{SettingsPath}': {ex}");
+        }
         return new AppSettings();
     }
 
@@ -32,9 +40,28 @@ public static class AppSettingsService
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
-            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(settings, JsonOptions));
+            var directory = Path.GetDirectoryName(SettingsPath)!;
+            Directory.CreateDirectory(directory);
+
+            var json = JsonSerializer.Serialize(settings, JsonOptions);
+            var tempPath = Path.Combine(directory, Path.GetRandomFileName());
+
+            File.WriteAllText(tempPath, json);
+
+            if (File.Exists(SettingsPath))
+            {
+                // Atomically replace existing settings with the new file.
+                File.Replace(tempPath, SettingsPath, destinationBackupFileName: null);
+            }
+            else
+            {
+                // First-time save: move the temp file into place.
+                File.Move(tempPath, SettingsPath);
+            }
         }
-        catch { /* best effort */ }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save app settings to '{SettingsPath}': {ex}");
+        }
     }
 }
