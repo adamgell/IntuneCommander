@@ -1552,7 +1552,7 @@ public class ImportServiceTests : IDisposable
             Assignments = []
         };
 
-        var created = await sut.ImportDeviceManagementScriptAsync(export, table);
+        var created = await sut.ImportDeviceManagementScriptAsync(export.Script, table);
 
         Assert.Equal("new-dms", created.Id);
         Assert.NotNull(scriptService.LastCreatedScript);
@@ -1614,7 +1614,7 @@ public class ImportServiceTests : IDisposable
             Assignments = []
         };
 
-        var created = await sut.ImportDeviceShellScriptAsync(export, table);
+        var created = await sut.ImportDeviceShellScriptAsync(export.Script, table);
 
         Assert.Equal("new-dss", created.Id);
         Assert.NotNull(scriptService.LastCreatedScript);

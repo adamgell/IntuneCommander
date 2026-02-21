@@ -90,13 +90,13 @@ public interface IImportService
     Task<List<Agreement>> ReadTermsOfUseAgreementsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
     Task<Agreement> ImportTermsOfUseAgreementAsync(Agreement agreement, MigrationTable migrationTable, CancellationToken cancellationToken = default);
 
-    Task<DeviceManagementScriptExport?> ReadDeviceManagementScriptAsync(string filePath, CancellationToken cancellationToken = default);
-    Task<List<DeviceManagementScriptExport>> ReadDeviceManagementScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
-    Task<DeviceManagementScript> ImportDeviceManagementScriptAsync(DeviceManagementScriptExport export, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task<DeviceManagementScript?> ReadDeviceManagementScriptAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<List<DeviceManagementScript>> ReadDeviceManagementScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
+    Task<DeviceManagementScript> ImportDeviceManagementScriptAsync(DeviceManagementScript script, MigrationTable migrationTable, CancellationToken cancellationToken = default);
 
-    Task<DeviceShellScriptExport?> ReadDeviceShellScriptAsync(string filePath, CancellationToken cancellationToken = default);
-    Task<List<DeviceShellScriptExport>> ReadDeviceShellScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
-    Task<DeviceShellScript> ImportDeviceShellScriptAsync(DeviceShellScriptExport export, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task<DeviceShellScript?> ReadDeviceShellScriptAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<List<DeviceShellScript>> ReadDeviceShellScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
+    Task<DeviceShellScript> ImportDeviceShellScriptAsync(DeviceShellScript script, MigrationTable migrationTable, CancellationToken cancellationToken = default);
 
     Task<DeviceComplianceScript?> ReadComplianceScriptAsync(string filePath, CancellationToken cancellationToken = default);
     Task<List<DeviceComplianceScript>> ReadComplianceScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);

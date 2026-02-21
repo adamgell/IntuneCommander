@@ -30,12 +30,7 @@
                     <Separator />
                     <MenuItem Header="_About Intune Commander" x:Name="MenuAbout" Click="OnAboutClick" />
                 </MenuItem>
-                <MenuItem Header="_View">
-                    <MenuItem Header="_Theme">
-                        <MenuItem Header="_Fluent" x:Name="MenuThemeFluent" Click="OnThemeFluentClick" />
-                        <MenuItem Header="_Classic (Windows 9x)" x:Name="MenuThemeClassic" Click="OnThemeClassicClick" />
-                    </MenuItem>
-                </MenuItem>
+
         </Menu>
 
         <!-- Status Bar -->

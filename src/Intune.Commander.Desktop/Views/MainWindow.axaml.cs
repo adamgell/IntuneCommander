@@ -18,6 +18,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Intune.Commander.Core.Models;
 using Intune.Commander.Desktop.Converters;
+
 using Intune.Commander.Desktop.ViewModels;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -68,7 +69,6 @@ public partial class MainWindow : Window
             overviewNavButton.Click += OnOverviewNavClick;
 
         AttachViewModelIfAvailable("Loaded");
-        UpdateThemeCheckmarks();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -750,30 +750,5 @@ public partial class MainWindow : Window
         });
 
         return file?.Path.LocalPath;
-    }
-
-    private void OnThemeFluentClick(object? sender, RoutedEventArgs e)
-    {
-        App.ApplyTheme(Models.AppTheme.Fluent);
-        UpdateThemeCheckmarks();
-    }
-
-    private void OnThemeClassicClick(object? sender, RoutedEventArgs e)
-    {
-        App.ApplyTheme(Models.AppTheme.Classic);
-        UpdateThemeCheckmarks();
-    }
-
-    private void UpdateThemeCheckmarks()
-    {
-        var isFluent = App.CurrentTheme == Models.AppTheme.Fluent;
-        if (this.FindControl<MenuItem>("MenuThemeFluent") is { } fluent)
-        {
-            fluent.IsChecked = isFluent;
-        }
-        if (this.FindControl<MenuItem>("MenuThemeClassic") is { } classic)
-        {
-            classic.IsChecked = !isFluent;
-        }
     }
 }

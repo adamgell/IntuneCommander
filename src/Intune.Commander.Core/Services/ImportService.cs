@@ -1304,15 +1304,15 @@ public class ImportService : IImportService
 
     // --- Device Management Scripts ---
 
-    public async Task<DeviceManagementScriptExport?> ReadDeviceManagementScriptAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<DeviceManagementScript?> ReadDeviceManagementScriptAsync(string filePath, CancellationToken cancellationToken = default)
     {
         var json = await File.ReadAllTextAsync(filePath, cancellationToken);
-        return JsonSerializer.Deserialize<DeviceManagementScriptExport>(json, JsonOptions);
+        return JsonSerializer.Deserialize<DeviceManagementScript>(json, JsonOptions);
     }
 
-    public async Task<List<DeviceManagementScriptExport>> ReadDeviceManagementScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    public async Task<List<DeviceManagementScript>> ReadDeviceManagementScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
     {
-        var results = new List<DeviceManagementScriptExport>();
+        var results = new List<DeviceManagementScript>();
         var folder = Path.Combine(folderPath, "DeviceManagementScripts");
 
         if (!Directory.Exists(folder))
@@ -1320,37 +1320,26 @@ public class ImportService : IImportService
 
         foreach (var file in Directory.GetFiles(folder, "*.json"))
         {
-            var export = await ReadDeviceManagementScriptAsync(file, cancellationToken);
-            if (export != null)
-                results.Add(export);
+            var script = await ReadDeviceManagementScriptAsync(file, cancellationToken);
+            if (script != null)
+                results.Add(script);
         }
 
         return results;
     }
 
     public async Task<DeviceManagementScript> ImportDeviceManagementScriptAsync(
-        DeviceManagementScriptExport export,
+        DeviceManagementScript script,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
     {
         if (_deviceManagementScriptService == null)
             throw new InvalidOperationException("Device management script service is not available");
 
-        var script = export.Script;
         var originalId = script.Id;
         ClearMetadataForCreate(script);
 
         var created = await _deviceManagementScriptService.CreateDeviceManagementScriptAsync(script, cancellationToken);
-
-        if (export.Assignments.Count > 0 && created.Id != null)
-        {
-            foreach (var assignment in export.Assignments)
-            {
-                assignment.Id = null;
-            }
-
-            await _deviceManagementScriptService.AssignScriptAsync(created.Id, export.Assignments, cancellationToken);
-        }
 
         if (originalId != null && created.Id != null)
         {
@@ -1368,15 +1357,15 @@ public class ImportService : IImportService
 
     // --- Device Shell Scripts ---
 
-    public async Task<DeviceShellScriptExport?> ReadDeviceShellScriptAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<DeviceShellScript?> ReadDeviceShellScriptAsync(string filePath, CancellationToken cancellationToken = default)
     {
         var json = await File.ReadAllTextAsync(filePath, cancellationToken);
-        return JsonSerializer.Deserialize<DeviceShellScriptExport>(json, JsonOptions);
+        return JsonSerializer.Deserialize<DeviceShellScript>(json, JsonOptions);
     }
 
-    public async Task<List<DeviceShellScriptExport>> ReadDeviceShellScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    public async Task<List<DeviceShellScript>> ReadDeviceShellScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
     {
-        var results = new List<DeviceShellScriptExport>();
+        var results = new List<DeviceShellScript>();
         var folder = Path.Combine(folderPath, "DeviceShellScripts");
 
         if (!Directory.Exists(folder))
@@ -1384,37 +1373,26 @@ public class ImportService : IImportService
 
         foreach (var file in Directory.GetFiles(folder, "*.json"))
         {
-            var export = await ReadDeviceShellScriptAsync(file, cancellationToken);
-            if (export != null)
-                results.Add(export);
+            var script = await ReadDeviceShellScriptAsync(file, cancellationToken);
+            if (script != null)
+                results.Add(script);
         }
 
         return results;
     }
 
     public async Task<DeviceShellScript> ImportDeviceShellScriptAsync(
-        DeviceShellScriptExport export,
+        DeviceShellScript script,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
     {
         if (_deviceShellScriptService == null)
             throw new InvalidOperationException("Device shell script service is not available");
 
-        var script = export.Script;
         var originalId = script.Id;
         ClearMetadataForCreate(script);
 
         var created = await _deviceShellScriptService.CreateDeviceShellScriptAsync(script, cancellationToken);
-
-        if (export.Assignments.Count > 0 && created.Id != null)
-        {
-            foreach (var assignment in export.Assignments)
-            {
-                assignment.Id = null;
-            }
-
-            await _deviceShellScriptService.AssignScriptAsync(created.Id, export.Assignments, cancellationToken);
-        }
 
         if (originalId != null && created.Id != null)
         {

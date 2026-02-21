@@ -359,6 +359,24 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _exportService.ExportTermsOfUseAgreementAsync(
                     SelectedTermsOfUseAgreement, outputPath, migrationTable, cancellationToken);
             }
+            else if (IsDeviceManagementScriptsCategory && SelectedDeviceManagementScript != null)
+            {
+                StatusText = $"Exporting {SelectedDeviceManagementScript.DisplayName ?? "device management script"}...";
+                await _exportService.ExportDeviceManagementScriptAsync(
+                    SelectedDeviceManagementScript, outputPath, migrationTable, cancellationToken);
+            }
+            else if (IsDeviceShellScriptsCategory && SelectedDeviceShellScript != null)
+            {
+                StatusText = $"Exporting {SelectedDeviceShellScript.DisplayName ?? "device shell script"}...";
+                await _exportService.ExportDeviceShellScriptAsync(
+                    SelectedDeviceShellScript, outputPath, migrationTable, cancellationToken);
+            }
+            else if (IsComplianceScriptsCategory && SelectedComplianceScript != null)
+            {
+                StatusText = $"Exporting {SelectedComplianceScript.DisplayName ?? "compliance script"}...";
+                await _exportService.ExportComplianceScriptAsync(
+                    SelectedComplianceScript, outputPath, migrationTable, cancellationToken);
+            }
             else
             {
                 StatusText = "Nothing selected to export";
@@ -648,6 +666,39 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
 
+            // Export device management scripts
+            if (DeviceManagementScripts.Any())
+            {
+                StatusText = "Exporting device management scripts...";
+                foreach (var script in DeviceManagementScripts)
+                {
+                    await _exportService.ExportDeviceManagementScriptAsync(script, outputPath, migrationTable, cancellationToken);
+                    count++;
+                }
+            }
+
+            // Export device shell scripts
+            if (DeviceShellScripts.Any())
+            {
+                StatusText = "Exporting device shell scripts...";
+                foreach (var script in DeviceShellScripts)
+                {
+                    await _exportService.ExportDeviceShellScriptAsync(script, outputPath, migrationTable, cancellationToken);
+                    count++;
+                }
+            }
+
+            // Export compliance scripts
+            if (ComplianceScripts.Any())
+            {
+                StatusText = "Exporting compliance scripts...";
+                foreach (var script in ComplianceScripts)
+                {
+                    await _exportService.ExportComplianceScriptAsync(script, outputPath, migrationTable, cancellationToken);
+                    count++;
+                }
+            }
+
             await _exportService.SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
             StatusText = $"Exported {count} item(s) to {outputPath}";
         }
@@ -863,6 +914,33 @@ public partial class MainWindowViewModel : ViewModelBase
             foreach (var agreement in termsOfUseAgreements)
             {
                 await _importService.ImportTermsOfUseAgreementAsync(agreement, migrationTable, cancellationToken);
+                imported++;
+                StatusText = $"Imported {imported} item(s)...";
+            }
+
+            // Import device management scripts
+            var deviceManagementScripts = await _importService.ReadDeviceManagementScriptsFromFolderAsync(folderPath, cancellationToken);
+            foreach (var script in deviceManagementScripts)
+            {
+                await _importService.ImportDeviceManagementScriptAsync(script, migrationTable, cancellationToken);
+                imported++;
+                StatusText = $"Imported {imported} item(s)...";
+            }
+
+            // Import device shell scripts
+            var deviceShellScripts = await _importService.ReadDeviceShellScriptsFromFolderAsync(folderPath, cancellationToken);
+            foreach (var script in deviceShellScripts)
+            {
+                await _importService.ImportDeviceShellScriptAsync(script, migrationTable, cancellationToken);
+                imported++;
+                StatusText = $"Imported {imported} item(s)...";
+            }
+
+            // Import compliance scripts
+            var complianceScripts = await _importService.ReadComplianceScriptsFromFolderAsync(folderPath, cancellationToken);
+            foreach (var script in complianceScripts)
+            {
+                await _importService.ImportComplianceScriptAsync(script, migrationTable, cancellationToken);
                 imported++;
                 StatusText = $"Imported {imported} item(s)...";
             }

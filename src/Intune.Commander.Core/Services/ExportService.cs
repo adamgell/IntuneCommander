@@ -964,7 +964,6 @@ public class ExportService : IExportService
 
     public async Task ExportDeviceManagementScriptAsync(
         DeviceManagementScript script,
-        IReadOnlyList<DeviceManagementScriptAssignment> assignments,
         string outputPath,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
@@ -975,13 +974,7 @@ public class ExportService : IExportService
         var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
         var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
 
-        var export = new DeviceManagementScriptExport
-        {
-            Script = script,
-            Assignments = assignments.ToList()
-        };
-
-        var json = JsonSerializer.Serialize(export, JsonOptions);
+        var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
 
         if (script.Id != null)
@@ -996,15 +989,15 @@ public class ExportService : IExportService
     }
 
     public async Task ExportDeviceManagementScriptsAsync(
-        IEnumerable<(DeviceManagementScript Script, IReadOnlyList<DeviceManagementScriptAssignment> Assignments)> scripts,
+        IEnumerable<DeviceManagementScript> scripts,
         string outputPath,
         CancellationToken cancellationToken = default)
     {
         var migrationTable = new MigrationTable();
 
-        foreach (var (script, assignments) in scripts)
+        foreach (var script in scripts)
         {
-            await ExportDeviceManagementScriptAsync(script, assignments, outputPath, migrationTable, cancellationToken);
+            await ExportDeviceManagementScriptAsync(script, outputPath, migrationTable, cancellationToken);
         }
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
@@ -1012,7 +1005,6 @@ public class ExportService : IExportService
 
     public async Task ExportDeviceShellScriptAsync(
         DeviceShellScript script,
-        IReadOnlyList<DeviceManagementScriptAssignment> assignments,
         string outputPath,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
@@ -1023,13 +1015,7 @@ public class ExportService : IExportService
         var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
         var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
 
-        var export = new DeviceShellScriptExport
-        {
-            Script = script,
-            Assignments = assignments.ToList()
-        };
-
-        var json = JsonSerializer.Serialize(export, JsonOptions);
+        var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
 
         if (script.Id != null)
@@ -1044,15 +1030,15 @@ public class ExportService : IExportService
     }
 
     public async Task ExportDeviceShellScriptsAsync(
-        IEnumerable<(DeviceShellScript Script, IReadOnlyList<DeviceManagementScriptAssignment> Assignments)> scripts,
+        IEnumerable<DeviceShellScript> scripts,
         string outputPath,
         CancellationToken cancellationToken = default)
     {
         var migrationTable = new MigrationTable();
 
-        foreach (var (script, assignments) in scripts)
+        foreach (var script in scripts)
         {
-            await ExportDeviceShellScriptAsync(script, assignments, outputPath, migrationTable, cancellationToken);
+            await ExportDeviceShellScriptAsync(script, outputPath, migrationTable, cancellationToken);
         }
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
