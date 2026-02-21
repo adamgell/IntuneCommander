@@ -141,6 +141,9 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.IsAuthenticationStrengthsCategory)
             or nameof(MainWindowViewModel.IsAuthenticationContextsCategory)
             or nameof(MainWindowViewModel.IsTermsOfUseCategory)
+            or nameof(MainWindowViewModel.IsDeviceManagementScriptsCategory)
+            or nameof(MainWindowViewModel.IsDeviceShellScriptsCategory)
+            or nameof(MainWindowViewModel.IsComplianceScriptsCategory)
             or nameof(MainWindowViewModel.IsDynamicGroupsCategory)
             or nameof(MainWindowViewModel.IsAssignedGroupsCategory)
             or nameof(MainWindowViewModel.IsOverviewCategory))
@@ -187,6 +190,9 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.FilteredAuthenticationStrengthPolicies)
             or nameof(MainWindowViewModel.FilteredAuthenticationContextClassReferences)
             or nameof(MainWindowViewModel.FilteredTermsOfUseAgreements)
+            or nameof(MainWindowViewModel.FilteredDeviceManagementScripts)
+            or nameof(MainWindowViewModel.FilteredDeviceShellScripts)
+            or nameof(MainWindowViewModel.FilteredComplianceScripts)
             or nameof(MainWindowViewModel.FilteredDynamicGroupRows)
             or nameof(MainWindowViewModel.FilteredAssignedGroupRows))
         {
@@ -233,6 +239,9 @@ public partial class MainWindow : Window
             nameof(MainWindowViewModel.FilteredAuthenticationStrengthPolicies) => _vm.IsAuthenticationStrengthsCategory,
             nameof(MainWindowViewModel.FilteredAuthenticationContextClassReferences) => _vm.IsAuthenticationContextsCategory,
             nameof(MainWindowViewModel.FilteredTermsOfUseAgreements) => _vm.IsTermsOfUseCategory,
+            nameof(MainWindowViewModel.FilteredDeviceManagementScripts) => _vm.IsDeviceManagementScriptsCategory,
+            nameof(MainWindowViewModel.FilteredDeviceShellScripts) => _vm.IsDeviceShellScriptsCategory,
+            nameof(MainWindowViewModel.FilteredComplianceScripts) => _vm.IsComplianceScriptsCategory,
             nameof(MainWindowViewModel.FilteredDynamicGroupRows)    => _vm.IsDynamicGroupsCategory,
             nameof(MainWindowViewModel.FilteredAssignedGroupRows)   => _vm.IsAssignedGroupsCategory,
             _ => false
@@ -435,6 +444,27 @@ public partial class MainWindow : Window
                 new Binding(nameof(_vm.FilteredTermsOfUseAgreements)) { Source = _vm });
             _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
                 new Binding(nameof(_vm.SelectedTermsOfUseAgreement)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
+        else if (_vm.IsDeviceManagementScriptsCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredDeviceManagementScripts)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedDeviceManagementScript)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
+        else if (_vm.IsDeviceShellScriptsCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredDeviceShellScripts)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedDeviceShellScript)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
+        else if (_vm.IsComplianceScriptsCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredComplianceScripts)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedComplianceScript)) { Source = _vm, Mode = BindingMode.TwoWay });
         }
         else if (_vm.IsDynamicGroupsCategory)
         {

@@ -71,5 +71,14 @@ public interface IExportService
     Task ExportTermsOfUseAgreementAsync(Agreement agreement, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
     Task ExportTermsOfUseAgreementsAsync(IEnumerable<Agreement> agreements, string outputPath, CancellationToken cancellationToken = default);
 
+    Task ExportDeviceManagementScriptAsync(DeviceManagementScript script, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportDeviceManagementScriptsAsync(IEnumerable<DeviceManagementScript> scripts, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportDeviceShellScriptAsync(DeviceShellScript script, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportDeviceShellScriptsAsync(IEnumerable<DeviceShellScript> scripts, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportComplianceScriptAsync(DeviceComplianceScript script, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportComplianceScriptsAsync(IEnumerable<DeviceComplianceScript> scripts, string outputPath, CancellationToken cancellationToken = default);
+
     Task SaveMigrationTableAsync(MigrationTable table, string outputPath, CancellationToken cancellationToken = default);
 }

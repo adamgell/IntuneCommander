@@ -160,6 +160,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _termsOfUseService = new TermsOfUseService(_graphClient);
 
+            _deviceManagementScriptService = new DeviceManagementScriptService(_graphClient);
+
+            _deviceShellScriptService = new DeviceShellScriptService(_graphClient);
+
+            _complianceScriptService = new ComplianceScriptService(_graphClient);
+
             _conditionalAccessPptExportService = new ConditionalAccessPptExportService(
                 _conditionalAccessPolicyService,
                 _namedLocationService,
@@ -209,7 +215,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 _authenticationContextService,
 
-                _termsOfUseService);
+                _termsOfUseService,
+
+                _deviceManagementScriptService,
+
+                _deviceShellScriptService,
+
+                _complianceScriptService);
 
 
 
@@ -465,6 +477,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _termsOfUseAgreementsLoaded = false;
 
+        _deviceManagementScriptsLoaded = false;
+
+        _deviceShellScriptsLoaded = false;
+
+        _complianceScriptsLoaded = false;
+
         SettingsCatalogPolicies.Clear();
 
         SelectedSettingsCatalogPolicy = null;
@@ -557,6 +575,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedTermsOfUseAgreement = null;
 
+        DeviceManagementScripts.Clear();
+
+        SelectedDeviceManagementScript = null;
+
+        DeviceShellScripts.Clear();
+
+        SelectedDeviceShellScript = null;
+
+        ComplianceScripts.Clear();
+
+        SelectedComplianceScript = null;
+
         DynamicGroupRows.Clear();
 
         SelectedDynamicGroupRow = null;
@@ -626,6 +656,12 @@ public partial class MainWindowViewModel : ViewModelBase
         _authenticationContextService = null;
 
         _termsOfUseService = null;
+
+        _deviceManagementScriptService = null;
+
+        _deviceShellScriptService = null;
+
+        _complianceScriptService = null;
 
         _importService = null;
 

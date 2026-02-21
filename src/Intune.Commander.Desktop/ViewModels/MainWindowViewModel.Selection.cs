@@ -820,6 +820,96 @@ public partial class MainWindowViewModel : ViewModelBase
 
             }
 
+            else if (IsDeviceManagementScriptsCategory && SelectedDeviceManagementScript?.Id != null && _deviceManagementScriptService != null)
+
+            {
+
+                StatusText = "Refreshing device management script...";
+
+                var updated = await _deviceManagementScriptService.GetDeviceManagementScriptAsync(SelectedDeviceManagementScript.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = DeviceManagementScripts.IndexOf(SelectedDeviceManagementScript);
+
+                    if (idx >= 0)
+
+                    {
+
+                        DeviceManagementScripts[idx] = updated;
+
+                        SelectedDeviceManagementScript = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed device management script: {TryReadStringProperty(updated, "DisplayName")}");
+
+                }
+
+            }
+
+            else if (IsDeviceShellScriptsCategory && SelectedDeviceShellScript?.Id != null && _deviceShellScriptService != null)
+
+            {
+
+                StatusText = "Refreshing device shell script...";
+
+                var updated = await _deviceShellScriptService.GetDeviceShellScriptAsync(SelectedDeviceShellScript.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = DeviceShellScripts.IndexOf(SelectedDeviceShellScript);
+
+                    if (idx >= 0)
+
+                    {
+
+                        DeviceShellScripts[idx] = updated;
+
+                        SelectedDeviceShellScript = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed device shell script: {TryReadStringProperty(updated, "DisplayName")}");
+
+                }
+
+            }
+
+            else if (IsComplianceScriptsCategory && SelectedComplianceScript?.Id != null && _complianceScriptService != null)
+
+            {
+
+                StatusText = "Refreshing compliance script...";
+
+                var updated = await _complianceScriptService.GetComplianceScriptAsync(SelectedComplianceScript.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = ComplianceScripts.IndexOf(SelectedComplianceScript);
+
+                    if (idx >= 0)
+
+                    {
+
+                        ComplianceScripts[idx] = updated;
+
+                        SelectedComplianceScript = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed compliance script: {TryReadStringProperty(updated, "DisplayName")}");
+
+                }
+
+            }
+
             else
 
             {
@@ -900,7 +990,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
         (IsAuthenticationContextsCategory && SelectedAuthenticationContextClassReference != null) ||
 
-        (IsTermsOfUseCategory && SelectedTermsOfUseAgreement != null);
+        (IsTermsOfUseCategory && SelectedTermsOfUseAgreement != null) ||
+
+        (IsDeviceManagementScriptsCategory && SelectedDeviceManagementScript != null) ||
+
+        (IsDeviceShellScriptsCategory && SelectedDeviceShellScript != null) ||
+
+        (IsComplianceScriptsCategory && SelectedComplianceScript != null);
 
 
 
@@ -1335,6 +1431,54 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemAssignments.Clear();
 
         SelectedItemTypeName = "Terms of Use";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+    }
+
+
+
+    partial void OnSelectedDeviceManagementScriptChanged(DeviceManagementScript? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Device Management Script";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+    }
+
+
+
+    partial void OnSelectedDeviceShellScriptChanged(DeviceShellScript? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Device Shell Script";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+    }
+
+
+
+    partial void OnSelectedComplianceScriptChanged(DeviceComplianceScript? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Compliance Script";
 
         SelectedItemPlatform = "";
 
