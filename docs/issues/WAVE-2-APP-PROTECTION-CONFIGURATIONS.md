@@ -111,8 +111,8 @@ Wave 2 focuses on implementing services for application protection policies and 
 ## Scaffolding Steps
 
 ### Core Service Setup
-- [ ] Add interface files in `src/IntuneManager.Core/Services/`
-- [ ] Add implementation classes in `src/IntuneManager.Core/Services/`
+- [ ] Add interface files in `src/Intune.Commander.Core/Services/`
+- [ ] Add implementation classes in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructors accept `GraphServiceClient`
 - [ ] Add all service methods with proper signatures
 - [ ] Implement manual `@odata.nextLink` pagination in all list methods
@@ -136,17 +136,17 @@ Wave 2 focuses on implementing services for application protection policies and 
 - [ ] Wire up export/import commands for new types
 
 ### Testing
-- [ ] Add `AppProtectionServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `AppProtectionServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
   - Test assignment operations if applicable
-- [ ] Add `ManagedAppConfigurationServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `ManagedAppConfigurationServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation for both mobile and targeted configurations
   - Test list/get/create/update/delete success paths
   - Test null response handling
   - Test assignment operations if applicable
-- [ ] Add `TermsAndConditionsServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `TermsAndConditionsServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling

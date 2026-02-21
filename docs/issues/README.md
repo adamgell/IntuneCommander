@@ -11,7 +11,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 2. Administrative Template Service (`/deviceManagement/groupPolicyConfigurations`)
 3. Enrollment Configuration Service (`/deviceManagement/deviceEnrollmentConfigurations`)
 
-**Status:** 🔲 Not Started
+**Status:** ✅ Complete
 
 ---
 
@@ -22,7 +22,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 2. Managed App Configuration Service (mobile + targeted configurations)
 3. Terms and Conditions Service (`/deviceManagement/termsAndConditions`)
 
-**Status:** 🔲 Not Started
+**Status:** ✅ Complete
 
 ---
 
@@ -34,7 +34,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 3. Intune Branding Service (`/deviceManagement/intuneBrandingProfiles`)
 4. Azure Branding Service (`/organization/{organizationId}/branding/localizations`)
 
-**Status:** 🔲 Not Started
+**Status:** ✅ Complete
 
 ---
 
@@ -46,7 +46,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 3. Mac Custom Attribute Service (`/deviceManagement/deviceCustomAttributeShellScripts`)
 4. Feature Update Service (`/deviceManagement/windowsFeatureUpdateProfiles`)
 
-**Status:** 🔲 Not Started
+**Status:** ✅ Complete
 
 ---
 
@@ -58,7 +58,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 3. Authentication Context Service (`/identity/conditionalAccess/authenticationContextClassReferences`)
 4. Terms of Use Service (`/identityGovernance/termsOfUse/agreements`)
 
-**Status:** 🔲 Not Started
+**Status:** ✅ Complete
 
 ---
 
@@ -68,7 +68,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 
 Each service follows these conventions:
 
-1. **Interface + Implementation** in `src/IntuneManager.Core/Services/`
+1. **Interface + Implementation** in `src/Intune.Commander.Core/Services/`
 2. **Constructor** accepts `GraphServiceClient`
 3. **Async methods** with `CancellationToken cancellationToken = default`
 4. **List methods** use manual `@odata.nextLink` pagination with `$top=999`
@@ -83,7 +83,7 @@ Each service follows these conventions:
 - **Phase B — Functional Completion:** Implement special helpers, normalization
 - **Phase C — Desktop Integration:** Add to `MainWindowViewModel`, UI wiring
 - **Phase D — Export/Import:** Extend `ExportService`/`ImportService`
-- **Phase E — Tests:** Add unit tests in `IntuneManager.Core.Tests`
+- **Phase E — Tests:** Add unit tests in `Intune.Commander.Core.Tests`
 
 ### Definition of Done (per service)
 

@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: ── IntuneManager Release Script ──────────────────────────────────
+:: ── Intune.Commander Release Script ──────────────────────────────────
 :: Builds a self-contained single-file exe and creates a GitHub release.
 :: Usage:  release.bat 0.2.0
 ::         release.bat 0.2.0-beta1
@@ -16,9 +16,9 @@ if "%~1"=="" (
 
 set VERSION=%~1
 set TAG=v%VERSION%
-set PROJECT=src\IntuneManager.Desktop\IntuneManager.Desktop.csproj
-set PUBLISH_DIR=src\IntuneManager.Desktop\bin\Release\net8.0\win-x64\publish
-set EXE=%PUBLISH_DIR%\IntuneManager.Desktop.exe
+set PROJECT=src\Intune.Commander.Desktop\Intune.Commander.Desktop.csproj
+set PUBLISH_DIR=src\Intune.Commander.Desktop\bin\Release\net10.0\win-x64\publish
+set EXE=%PUBLISH_DIR%\Intune.Commander.Desktop.exe
 
 :: Determine if this is a prerelease (contains hyphen)
 set "PRERELEASE="
@@ -26,7 +26,7 @@ echo %VERSION% | findstr /C:"-" >nul && set "PRERELEASE=--prerelease"
 
 echo.
 echo ============================================
-echo  IntuneManager Release %TAG%
+echo  Intune.Commander Release %TAG%
 echo ============================================
 echo.
 

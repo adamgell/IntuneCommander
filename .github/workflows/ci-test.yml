@@ -22,14 +22,14 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore IntuneManager.sln
+        run: dotnet restore Intune.Commander.sln
 
       - name: Build solution
-        run: dotnet build IntuneManager.sln --configuration Release --no-restore
+        run: dotnet build Intune.Commander.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
         run: |
-          dotnet test IntuneManager.sln \
+          dotnet test Intune.Commander.sln \
             --configuration Release \
             --no-build \
             --verbosity normal \
@@ -37,8 +37,8 @@ jobs:
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=cobertura \
             /p:CoverletOutput=./coverage/ \
-            /p:Include="[IntuneManager.Core]*" \
-            /p:Exclude="[IntuneManager.Core.Tests]*" \
+            /p:Include="[Intune.Commander.Core]*" \
+            /p:Exclude="[Intune.Commander.Core.Tests]*" \
             /p:Threshold=40 \
             /p:ThresholdType=line \
             /p:ThresholdStat=total

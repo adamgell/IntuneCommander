@@ -67,16 +67,16 @@ jobs:
 
       - name: Restore dependencies
         if: steps.check-secrets.outputs.has_secrets == 'true'
-        run: dotnet restore IntuneManager.sln
+        run: dotnet restore Intune.Commander.sln
 
       - name: Build solution
         if: steps.check-secrets.outputs.has_secrets == 'true'
-        run: dotnet build IntuneManager.sln --configuration Release --no-restore
+        run: dotnet build Intune.Commander.sln --configuration Release --no-restore
 
       - name: Run integration tests
         if: steps.check-secrets.outputs.has_secrets == 'true'
         run: |
-          dotnet test IntuneManager.sln \
+          dotnet test Intune.Commander.sln \
             --configuration Release \
             --no-build \
             --verbosity normal \

@@ -25,7 +25,7 @@ dotnet test --filter "Category=Integration"
 dotnet test --filter "FullyQualifiedName~ProfileServiceTests"
 
 # Run the desktop application
-dotnet run --project src/IntuneManager.Desktop
+dotnet run --project src/Intune.Commander.Desktop
 ```
 
 ## Technology Stack
@@ -52,27 +52,27 @@ dotnet run --project src/IntuneManager.Desktop
 
 ```
 src/
-  IntuneManager.Core/        # Business logic (.NET 10 class library)
+  Intune.Commander.Core/    # Business logic (.NET 10 class library)
     Auth/                    # IAuthenticationProvider, InteractiveBrowserAuthProvider, IntuneGraphClientFactory
     Models/                  # Enums (CloudEnvironment, AuthMethod), TenantProfile, ProfileStore,
                              #   CloudEndpoints, MigrationEntry/Table, export DTOs, CacheEntry, GroupAssignmentResult
     Services/                # 30+ Graph API services + ProfileService, CacheService, ExportService, ImportService
-    Extensions/              # ServiceCollectionExtensions (AddIntuneManagerCore)
-  IntuneManager.Desktop/     # Avalonia UI
+    Extensions/              # ServiceCollectionExtensions (AddIntuneCommanderCore)
+  Intune.Commander.Desktop/  # Avalonia UI
     Views/                   # MainWindow, LoginView, OverviewView, GroupLookupWindow, DebugLogWindow, RawJsonWindow
     ViewModels/              # MainWindowViewModel, LoginViewModel, OverviewViewModel, GroupLookupViewModel,
                              #   DebugLogViewModel, NavCategory, DataGridColumnConfig, row/item types
     Services/                # DebugLogService (singleton, UI-thread-safe in-memory log)
     Converters/              # ComputedColumnConverters
 tests/
-  IntuneManager.Core.Tests/  # xUnit tests mirroring src structure
+  Intune.Commander.Core.Tests/  # xUnit tests mirroring src structure
 ```
 
 ### DI and service lifetimes
 
-`App.axaml.cs` calls `services.AddIntuneManagerCore()` then registers `MainWindowViewModel` as transient.
+`App.axaml.cs` calls `services.AddIntuneCommanderCore()` then registers `MainWindowViewModel` as transient.
 
-`AddIntuneManagerCore()` registers:
+`AddIntuneCommanderCore()` registers:
 - **Singleton:** `IAuthenticationProvider`, `IntuneGraphClientFactory`, `ProfileService`, `IProfileEncryptionService`, `ICacheService`
 - **Transient:** `IExportService`
 
@@ -95,11 +95,13 @@ Cloud endpoints in `CloudEndpoints.cs`:
 
 ### Caching
 
-`CacheService` uses LiteDB with an AES-encrypted database file at `%LocalAppData%\IntuneManager\cache.db`. The DB password is generated once and stored encrypted via `Microsoft.AspNetCore.DataProtection` in `cache-key.bin`. Cache entries have a 24-hour default TTL and are keyed by tenant ID + data-type string.
+`CacheService` uses LiteDB with an AES-encrypted database file at `%LocalAppData%\Intune.Commander\cache.db`. The DB password is generated once and stored encrypted via `Microsoft.AspNetCore.DataProtection` in `cache-key.bin`. Cache entries have a 24-hour default TTL and are keyed by tenant ID + data-type string.
 
 ### Profile storage
 
-`ProfileService` persists `ProfileStore` (list of `TenantProfile`) to `%LocalAppData%\IntuneManager\profiles.json`. When `IProfileEncryptionService` is injected (always the case in production), the file is prefixed with `INTUNEMANAGER_ENC:` and the payload is DataProtection-encrypted. Plaintext files are migrated to encrypted on next save.
+`ProfileService` persists `ProfileStore` (list of `TenantProfile`) to `%LocalAppData%\Intune.Commander\profiles.json`. When `IProfileEncryptionService` is injected (always the case in production), the file is prefixed with `INTUNEMANAGER_ENC:` and the payload is DataProtection-encrypted. Plaintext files are migrated to encrypted on next save. On first launch after upgrade from a pre-rename build, `ProfileService.LoadAsync` detects and auto-migrates data from the legacy `%LocalAppData%\IntuneManager\profiles.json` path.
+
+> **Legacy compatibility constants** (do not change without careful consideration): `INTUNEMANAGER_ENC:` marker, `IntuneManager.Profiles.v1` DataProtection purpose (fallback decryptor), and `SetApplicationName("IntuneManager")` in `ServiceCollectionExtensions` (changing this makes all existing encrypted data unreadable).
 
 ### DebugLogService
 
@@ -109,6 +111,12 @@ Cloud endpoints in `CloudEndpoints.cs`:
 
 Each object type exports to its own subfolder under the chosen output directory (e.g., `DeviceConfigurations/`, `CompliancePolicies/`, etc.). Files are named `{DisplayName}.json` containing the serialized Graph Beta model. A `migration-table.json` at the root maps original IDs to new IDs after import.
 
+## Git Workflow
+
+- **Never commit directly to `main`.** All changes must go through a feature branch and pull request.
+- Branch naming: `feature/`, `fix/`, `docs/` prefixes (e.g. `feature/wave7-scripts`, `fix/lazy-load-guard`).
+- PRs should be created with `gh pr create` and submitted for Copilot / human review before merging.
+
 ## Coding Conventions
 
 - **C# 12:** primary constructors, collection expressions (`[]`), required members, file-scoped namespaces
@@ -116,7 +124,7 @@ Each object type exports to its own subfolder under the chosen output directory 
 - **Private fields:** `_camelCase`; public: `PascalCase`
 - **ViewModels** must be `partial class` for CommunityToolkit.Mvvm source generators (`[ObservableProperty]`, `[RelayCommand]`)
 - **XAML:** always set `x:DataType` — `AvaloniaUseCompiledBindingsByDefault` is on
-- **Namespaces:** `IntuneManager.Core.*`, `IntuneManager.Desktop.*`
+- **Namespaces:** `Intune.Commander.Core.*`, `Intune.Commander.Desktop.*`
 - **Graph client factory class name:** `IntuneGraphClientFactory` (not `GraphClientFactory`) to avoid collision with `Microsoft.Graph.GraphClientFactory`
 
 ## Key Architecture Decisions
@@ -142,12 +150,14 @@ Each object type exports to its own subfolder under the chosen output directory 
 
 ## Testing Conventions
 
-### Unit tests (`tests/IntuneManager.Core.Tests/`)
+**Unit tests are required for all new or changed code.** Every new service, model, or behavioral change in `Intune.Commander.Core` must include corresponding tests. PRs without adequate test coverage will not be merged.
+
+### Unit tests (`tests/Intune.Commander.Core.Tests/`)
 - xUnit with `[Fact]`/`[Theory]`, no mocking framework
 - Service contract tests verify interface conformance, method signatures, return types, and `CancellationToken` parameters via reflection
 - File I/O tests use temp directories with `IDisposable` cleanup
 
-### Integration tests (`tests/IntuneManager.Core.Tests/Integration/`)
+### Integration tests (`tests/Intune.Commander.Core.Tests/Integration/`)
 - Tagged with `[Trait("Category", "Integration")]` — **always** use this trait for any test hitting Graph API
 - Base class `GraphIntegrationTestBase` provides `GraphServiceClient` from env vars and `ShouldSkip()` for graceful no-op when credentials are missing
 - Read-only tests (List + Get) are safe for any tenant

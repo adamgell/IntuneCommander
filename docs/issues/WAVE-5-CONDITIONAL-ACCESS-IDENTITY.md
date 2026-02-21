@@ -113,8 +113,8 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 ## Scaffolding Steps
 
 ### Core Service Setup
-- [ ] Add interface files in `src/IntuneManager.Core/Services/`
-- [ ] Add implementation classes in `src/IntuneManager.Core/Services/`
+- [ ] Add interface files in `src/Intune.Commander.Core/Services/`
+- [ ] Add implementation classes in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructors accept `GraphServiceClient`
 - [ ] Add all service methods with proper signatures
 - [ ] Implement manual `@odata.nextLink` pagination in all list methods
@@ -139,20 +139,20 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 - [ ] Wire up export/import commands for new types
 
 ### Testing
-- [ ] Add `NamedLocationServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `NamedLocationServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
   - Test handling of IP and Country location subtypes
-- [ ] Add `AuthenticationStrengthServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `AuthenticationStrengthServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
-- [ ] Add `AuthenticationContextServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `AuthenticationContextServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
-- [ ] Add `TermsOfUseServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `TermsOfUseServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
@@ -176,6 +176,6 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 - **Authentication Contexts** provide granular step-up authentication triggers for apps
 - **Terms of Use** agreements contain PDF files that need special handling
 - These resources are part of Azure AD/Entra ID, not Intune — ensure proper permissions are documented
-- Consider whether these services should be in a separate namespace (e.g., `IntuneManager.Core.Services.Identity`)
+- Consider whether these services should be in a separate namespace (e.g., `Intune.Commander.Core.Services.Identity`)
 - Built-in Authentication Strengths are read-only — handle appropriately in UI
 - Named Locations may be referenced by Conditional Access policies — consider dependency tracking

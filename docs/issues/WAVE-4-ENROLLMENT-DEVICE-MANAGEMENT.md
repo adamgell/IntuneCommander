@@ -132,8 +132,8 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 ## Scaffolding Steps
 
 ### Core Service Setup
-- [ ] Add interface files in `src/IntuneManager.Core/Services/`
-- [ ] Add implementation classes in `src/IntuneManager.Core/Services/`
+- [ ] Add interface files in `src/Intune.Commander.Core/Services/`
+- [ ] Add implementation classes in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructors accept `GraphServiceClient`
 - [ ] Add all service methods with proper signatures
 - [ ] Implement manual `@odata.nextLink` pagination in all list methods
@@ -158,24 +158,24 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 - [ ] Wire up export/import commands for new types
 
 ### Testing
-- [ ] Add `AutopilotServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `AutopilotServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
   - Test assignment operations
-- [ ] Add `DeviceHealthScriptServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
-  - Test pagination continuation
-  - Test list/get/create/update/delete success paths
-  - Test null response handling
-  - Test assignment operations
-  - Test script content handling
-- [ ] Add `MacCustomAttributeServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `DeviceHealthScriptServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
   - Test assignment operations
   - Test script content handling
-- [ ] Add `FeatureUpdateServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `MacCustomAttributeServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
+  - Test pagination continuation
+  - Test list/get/create/update/delete success paths
+  - Test null response handling
+  - Test assignment operations
+  - Test script content handling
+- [ ] Add `FeatureUpdateServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling

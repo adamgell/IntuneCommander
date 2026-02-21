@@ -109,8 +109,8 @@ Wave 1 focuses on implementing three core service types that are critical for In
 ## Scaffolding Steps
 
 ### Core Service Setup
-- [ ] Add interface file in `src/IntuneManager.Core/Services/`
-- [ ] Add implementation class in `src/IntuneManager.Core/Services/`
+- [ ] Add interface file in `src/Intune.Commander.Core/Services/`
+- [ ] Add implementation class in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructor accepts `GraphServiceClient`
 - [ ] Add all service methods with proper signatures
 - [ ] Implement manual `@odata.nextLink` pagination in all list methods
@@ -134,17 +134,17 @@ Wave 1 focuses on implementing three core service types that are critical for In
 - [ ] Wire up export/import commands for new types
 
 ### Testing
-- [ ] Add `EndpointSecurityServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `EndpointSecurityServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
   - Test assignment operations
-- [ ] Add `AdministrativeTemplateServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `AdministrativeTemplateServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths
   - Test null response handling
   - Test assignment operations
-- [ ] Add `EnrollmentConfigurationServiceTests.cs` in `tests/IntuneManager.Core.Tests/Services/`
+- [ ] Add `EnrollmentConfigurationServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get success paths
   - Test filtering methods (ESP, Restrictions, Co-management)

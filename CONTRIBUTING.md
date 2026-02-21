@@ -92,7 +92,7 @@ If any breaking changes exist:
 
 ### C# Conventions
 
-- **Namespace**: `IntuneManager.Core.*` or `IntuneManager.Desktop.*`
+- **Namespace**: `Intune.Commander.Core.*` or `Intune.Commander.Desktop.*`
 - **Nullable reference types**: Enabled everywhere
 - **Private fields**: `_camelCase`
 - **Public members**: `PascalCase`
