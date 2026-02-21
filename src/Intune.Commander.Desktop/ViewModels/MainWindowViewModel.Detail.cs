@@ -68,9 +68,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         return new AssignmentReportViewModel(
 
-            new Intune.Commander.Core.Services.AssignmentCheckerService(_graphClient),
+            new Intune.Commander.Core.Services.AssignmentCheckerService(_graphClient, _cacheService, _activeProfile?.TenantId),
 
-            _groupService);
+            _groupService,
+
+            new Intune.Commander.Core.Services.UserService(_graphClient));
 
     }
 

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Intune.Commander.Core.Models;
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
@@ -12,11 +13,28 @@ namespace Intune.Commander.Core.Services;
 public class AssignmentCheckerService : IAssignmentCheckerService
 {
     private readonly GraphServiceClient _graphClient;
+    private readonly ICacheService? _cacheService;
+    private readonly string? _tenantId;
+    private readonly ConcurrentDictionary<string, string> _groupNameCache = new(StringComparer.OrdinalIgnoreCase);
     private const int MaxConcurrency = 5;
 
-    public AssignmentCheckerService(GraphServiceClient graphClient)
+    public AssignmentCheckerService(GraphServiceClient graphClient,
+        ICacheService? cacheService = null, string? tenantId = null)
     {
         _graphClient = graphClient;
+        _cacheService = cacheService;
+        _tenantId = tenantId;
+    }
+
+    private List<T>? TryGetFromCache<T>(string cacheKey) =>
+        (_cacheService != null && _tenantId != null)
+            ? _cacheService.Get<T>(_tenantId, cacheKey)
+            : null;
+
+    private void TrySetCache<T>(string cacheKey, List<T> items)
+    {
+        if (_cacheService != null && _tenantId != null)
+            _cacheService.Set(_tenantId, cacheKey, items);
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -26,6 +44,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
     public async Task<List<AssignmentReportRow>> GetUserAssignmentsAsync(
         string userPrincipalName,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         progress?.Invoke($"Looking up user {userPrincipalName}...");
@@ -39,25 +58,27 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         progress?.Invoke("Fetching group memberships...");
         var groupIds = await GetUserTransitiveMemberGroupIdsAsync(user.Id, cancellationToken);
 
-        return await GetEntityAssignmentsAsync(groupIds, isUser: true, progress, cancellationToken);
+        return await GetEntityAssignmentsAsync(groupIds, isUser: true, progress, onRow, cancellationToken);
     }
 
     public async Task<List<AssignmentReportRow>> GetGroupAssignmentsAsync(
         string groupId,
         string groupName,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         var rows = new List<AssignmentReportRow>();
         await ScanAllPoliciesAsync(
             rows, ScanMode.DirectGroup, groupId, groupName, null,
-            progress, cancellationToken);
+            progress, cancellationToken, onRow);
         return rows;
     }
 
     public async Task<List<AssignmentReportRow>> GetDeviceAssignmentsAsync(
         string deviceName,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         progress?.Invoke($"Looking up device {deviceName}...");
@@ -77,47 +98,52 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         progress?.Invoke("Fetching device group memberships...");
         var groupIds = await GetDeviceTransitiveMemberGroupIdsAsync(device.Id, cancellationToken);
 
-        return await GetEntityAssignmentsAsync(groupIds, isUser: false, progress, cancellationToken);
+        return await GetEntityAssignmentsAsync(groupIds, isUser: false, progress, onRow, cancellationToken);
     }
 
     public async Task<List<AssignmentReportRow>> GetAllPoliciesWithAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         var rows = new List<AssignmentReportRow>();
-        await ScanAllPoliciesAsync(rows, ScanMode.AllPolicies, null, null, null, progress, cancellationToken);
+        await ScanAllPoliciesAsync(rows, ScanMode.AllPolicies, null, null, null, progress, cancellationToken, onRow);
         return rows;
     }
 
     public async Task<List<AssignmentReportRow>> GetAllUsersAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         var rows = new List<AssignmentReportRow>();
-        await ScanAllPoliciesAsync(rows, ScanMode.AllUsers, null, null, null, progress, cancellationToken);
+        await ScanAllPoliciesAsync(rows, ScanMode.AllUsers, null, null, null, progress, cancellationToken, onRow);
         return rows;
     }
 
     public async Task<List<AssignmentReportRow>> GetAllDevicesAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         var rows = new List<AssignmentReportRow>();
-        await ScanAllPoliciesAsync(rows, ScanMode.AllDevices, null, null, null, progress, cancellationToken);
+        await ScanAllPoliciesAsync(rows, ScanMode.AllDevices, null, null, null, progress, cancellationToken, onRow);
         return rows;
     }
 
     public async Task<List<AssignmentReportRow>> GetUnassignedPoliciesAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         var rows = new List<AssignmentReportRow>();
-        await ScanAllPoliciesAsync(rows, ScanMode.Unassigned, null, null, null, progress, cancellationToken);
+        await ScanAllPoliciesAsync(rows, ScanMode.Unassigned, null, null, null, progress, cancellationToken, onRow);
         return rows;
     }
 
     public async Task<List<AssignmentReportRow>> GetEmptyGroupAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         var rows = new List<AssignmentReportRow>();
@@ -136,30 +162,36 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         using var sem = new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
         var tasks = seenGroupIds.Select(async gid =>
         {
-            await sem.WaitAsync(cancellationToken);
             try
             {
-                var group = await _graphClient.Groups[gid]
-                    .GetAsync(req => req.QueryParameters.Select = ["id", "displayName"], cancellationToken);
-                if (group == null) return;
-                lock (groupNames) groupNames[gid] = group.DisplayName ?? gid;
+                await sem.WaitAsync(cancellationToken);
+                try
+                {
+                    var group = await _graphClient.Groups[gid]
+                        .GetAsync(req => req.QueryParameters.Select = ["id", "displayName"], cancellationToken);
+                    if (group == null) return;
+                    lock (groupNames) groupNames[gid] = group.DisplayName ?? gid;
 
-                var members = await _graphClient.Groups[gid].Members
-                    .GetAsync(req => req.QueryParameters.Select = ["id"], cancellationToken);
-                if ((members?.Value?.Count ?? 0) == 0)
-                    lock (emptyGroupIds) emptyGroupIds.Add(gid);
+                    var members = await _graphClient.Groups[gid].Members
+                        .GetAsync(req => req.QueryParameters.Select = ["id"], cancellationToken);
+                    if ((members?.Value?.Count ?? 0) == 0)
+                        lock (emptyGroupIds) emptyGroupIds.Add(gid);
+                }
+                catch (OperationCanceledException) { throw; }
+                catch { /* skip inaccessible groups */ }
+                finally { sem.Release(); }
             }
-            catch { /* skip inaccessible groups */ }
-            finally { sem.Release(); }
+            catch (OperationCanceledException) { /* consolidated into single throw below */ }
         });
         await Task.WhenAll(tasks);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (emptyGroupIds.Count == 0) return rows;
 
         // Third pass: find policies assigned to empty groups
         progress?.Invoke($"Finding policies assigned to {emptyGroupIds.Count} empty group(s)...");
         await ScanAllPoliciesAsync(rows, ScanMode.EmptyGroups, null, null,
-            new EmptyGroupContext(emptyGroupIds, groupNames), progress, cancellationToken);
+            new EmptyGroupContext(emptyGroupIds, groupNames), progress, cancellationToken, onRow);
 
         return rows;
     }
@@ -168,13 +200,14 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         string groupId1, string groupName1,
         string groupId2, string groupName2,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         progress?.Invoke($"Scanning assignments for {groupName1}...");
-        var g1 = await GetGroupAssignmentsAsync(groupId1, groupName1, null, cancellationToken);
+        var g1 = await GetGroupAssignmentsAsync(groupId1, groupName1, cancellationToken: cancellationToken);
 
         progress?.Invoke($"Scanning assignments for {groupName2}...");
-        var g2 = await GetGroupAssignmentsAsync(groupId2, groupName2, null, cancellationToken);
+        var g2 = await GetGroupAssignmentsAsync(groupId2, groupName2, cancellationToken: cancellationToken);
 
         var g1Map = g1.ToDictionary(r => r.PolicyId + "|" + r.PolicyType);
         var g2Map = g2.ToDictionary(r => r.PolicyId + "|" + r.PolicyType);
@@ -187,7 +220,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             g1Map.TryGetValue(key, out var r1);
             g2Map.TryGetValue(key, out var r2);
             var template = r1 ?? r2!;
-            result.Add(new AssignmentReportRow
+            var row = new AssignmentReportRow
             {
                 PolicyId = template.PolicyId,
                 PolicyName = template.PolicyName,
@@ -195,15 +228,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 Platform = template.Platform,
                 Group1Status = r1 != null ? r1.AssignmentReason : "",
                 Group2Status = r2 != null ? r2.AssignmentReason : ""
-            });
+            };
+            result.Add(row);
         }
 
         result.Sort(PolicyTypeNameComparer);
+        foreach (var row in result) onRow?.Invoke(row);
         return result;
     }
 
     public async Task<List<AssignmentReportRow>> GetFailedAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default)
     {
         var rows = new List<AssignmentReportRow>();
@@ -233,17 +269,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     {
                         var statusStr = s.Status?.ToString().ToLowerInvariant() ?? "";
                         if (!failedStatuses.Contains(statusStr)) continue;
-                        lock (rows)
-                            rows.Add(new AssignmentReportRow
-                            {
-                                PolicyId = config.Id,
-                                PolicyName = config.DisplayName ?? config.Id,
-                                PolicyType = "Device Configuration",
-                                TargetDevice = s.DeviceDisplayName ?? "",
-                                Status = s.Status?.ToString() ?? "",
-                                UserPrincipalName = s.UserPrincipalName ?? "",
-                                LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
-                            });
+                        var row = new AssignmentReportRow
+                        {
+                            PolicyId = config.Id,
+                            PolicyName = config.DisplayName ?? config.Id,
+                            PolicyType = "Device Configuration",
+                            TargetDevice = s.DeviceDisplayName ?? "",
+                            Status = s.Status?.ToString() ?? "",
+                            UserPrincipalName = s.UserPrincipalName ?? "",
+                            LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
+                        };
+                        lock (rows) rows.Add(row);
+                        onRow?.Invoke(row);
                     }
                 }
                 finally { sem.Release(); }
@@ -280,17 +317,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     {
                         var statusStr = s.Status?.ToString().ToLowerInvariant() ?? "";
                         if (!complianceFailed.Contains(statusStr)) continue;
-                        lock (rows)
-                            rows.Add(new AssignmentReportRow
-                            {
-                                PolicyId = policy.Id,
-                                PolicyName = policy.DisplayName ?? policy.Id,
-                                PolicyType = "Compliance Policy",
-                                TargetDevice = s.DeviceDisplayName ?? "",
-                                Status = s.Status?.ToString() ?? "",
-                                UserPrincipalName = s.UserPrincipalName ?? "",
-                                LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
-                            });
+                        var row = new AssignmentReportRow
+                        {
+                            PolicyId = policy.Id,
+                            PolicyName = policy.DisplayName ?? policy.Id,
+                            PolicyType = "Compliance Policy",
+                            TargetDevice = s.DeviceDisplayName ?? "",
+                            Status = s.Status?.ToString() ?? "",
+                            UserPrincipalName = s.UserPrincipalName ?? "",
+                            LastReported = s.LastReportedDateTime?.ToString("g") ?? ""
+                        };
+                        lock (rows) rows.Add(row);
+                        onRow?.Invoke(row);
                     }
                 }
                 finally { sem2.Release(); }
@@ -327,11 +365,11 @@ public class AssignmentCheckerService : IAssignmentCheckerService
 
     private async Task<List<AssignmentReportRow>> GetEntityAssignmentsAsync(
         HashSet<string> groupIds, bool isUser,
-        Action<string>? progress, CancellationToken ct)
+        Action<string>? progress, Action<AssignmentReportRow>? onRow, CancellationToken ct)
     {
         var rows = new List<AssignmentReportRow>();
         await ScanAllPoliciesAsync(rows, ScanMode.EntityMatch, null, null,
-            new EntityContext(groupIds, isUser), progress, ct);
+            new EntityContext(groupIds, isUser), progress, ct, onRow);
         return rows;
     }
 
@@ -347,7 +385,8 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         string? directGroupName,
         object? context,
         Action<string>? progress,
-        CancellationToken ct)
+        CancellationToken ct,
+        Action<AssignmentReportRow>? onRow = null)
     {
         var entityCtx = context as EntityContext;
         var emptyCtx = context as EmptyGroupContext;
@@ -364,7 +403,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.DeviceConfigurations[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Settings Catalog ──
         progress?.Invoke("Scanning settings catalog policies...");
@@ -378,7 +417,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.ConfigurationPolicies[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Administrative Templates ──
         progress?.Invoke("Scanning administrative templates...");
@@ -392,7 +431,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.GroupPolicyConfigurations[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Compliance Policies ──
         progress?.Invoke("Scanning compliance policies...");
@@ -406,7 +445,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── App Protection Policies ──
         progress?.Invoke("Scanning app protection policies...");
@@ -415,18 +454,26 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         {
             var appProtTasks = appProtectionPolicies.Select(async policy =>
             {
-                await appProtSem.WaitAsync(ct);
                 try
                 {
-                    if (policy.Id == null) return;
-                    var flat = await FetchAppProtectionAssignmentsAsync(policy, ct);
-                    var row = BuildRow("App Protection Policy", policy.Id, policy.DisplayName ?? policy.Id,
-                        PlatformFromOData(policy.OdataType), flat, mode, directGroupId, entityCtx, emptyCtx);
-                    if (row != null) lock (rows) rows.Add(row);
+                    await appProtSem.WaitAsync(ct);
+                    try
+                    {
+                        if (policy.Id == null) return;
+                        var flat = await FetchAppProtectionAssignmentsAsync(policy, ct);
+                        if (mode == ScanMode.AllPolicies)
+                            await ResolveGroupNamesAsync(flat, ct);
+                        var row = BuildRow("App Protection Policy", policy.Id, policy.DisplayName ?? policy.Id,
+                            PlatformFromOData(policy.OdataType), flat, mode, directGroupId, entityCtx, emptyCtx,
+                            mode == ScanMode.AllPolicies ? _groupNameCache : null);
+                        if (row != null) { lock (rows) rows.Add(row); onRow?.Invoke(row); }
+                    }
+                    finally { appProtSem.Release(); }
                 }
-                finally { appProtSem.Release(); }
+                catch (OperationCanceledException) { /* consolidated into single throw below */ }
             });
             await Task.WhenAll(appProtTasks);
+            ct.ThrowIfCancellationRequested();
         }
 
         // ── App Configuration Policies ──
@@ -441,7 +488,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceAppManagement.MobileAppConfigurations[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Applications ──
         progress?.Invoke("Scanning applications...");
@@ -455,7 +502,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceAppManagement.MobileApps[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Platform Scripts ──
         progress?.Invoke("Scanning platform scripts...");
@@ -469,7 +516,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.DeviceManagementScripts[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Health Scripts ──
         progress?.Invoke("Scanning health scripts...");
@@ -483,7 +530,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.DeviceHealthScripts[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Endpoint Security (Settings Catalog families) ──
         progress?.Invoke("Scanning endpoint security policies...");
@@ -508,7 +555,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.ConfigurationPolicies[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Endpoint Security Intents (legacy) ──
         await ScanPolicyTypeAsync(rows, mode, directGroupId, entityCtx, emptyCtx, ct,
@@ -521,7 +568,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                 var r = await _graphClient.DeviceManagement.Intents[id]
                     .Assignments.GetAsync(cancellationToken: ct);
                 return Flatten(r?.Value);
-            });
+            }, onRow);
 
         // ── Enrollment Configurations ──
         progress?.Invoke("Scanning enrollment configurations...");
@@ -556,27 +603,37 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         Func<T, string> getId,
         Func<T, string> getName,
         Func<T, string> getPlatform,
-        Func<string, Task<List<FlatAssignment>>> getAssignments)
+        Func<string, Task<List<FlatAssignment>>> getAssignments,
+        Action<AssignmentReportRow>? onRow = null)
     {
         var items = await fetchPolicies();
         using var sem = new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
         var tasks = items.Select(async item =>
         {
-            await sem.WaitAsync(ct);
             try
             {
-                var id = getId(item);
-                if (string.IsNullOrEmpty(id)) return;
-                List<FlatAssignment> flat;
-                try { flat = await getAssignments(id); }
-                catch { return; } // skip 403s / 404s
-                var row = BuildRow(policyType, id, getName(item), getPlatform(item),
-                    flat, mode, directGroupId, entityCtx, emptyCtx);
-                if (row != null) lock (rows) rows.Add(row);
+                await sem.WaitAsync(ct);
+                try
+                {
+                    var id = getId(item);
+                    if (string.IsNullOrEmpty(id)) return;
+                    List<FlatAssignment> flat;
+                    try { flat = await getAssignments(id); }
+                    catch (OperationCanceledException) { throw; }
+                    catch { return; } // skip 403s / 404s
+                    if (mode == ScanMode.AllPolicies)
+                        await ResolveGroupNamesAsync(flat, ct);
+                    var row = BuildRow(policyType, id, getName(item), getPlatform(item),
+                        flat, mode, directGroupId, entityCtx, emptyCtx,
+                        mode == ScanMode.AllPolicies ? _groupNameCache : null);
+                    if (row != null) { lock (rows) rows.Add(row); onRow?.Invoke(row); }
+                }
+                finally { sem.Release(); }
             }
-            finally { sem.Release(); }
+            catch (OperationCanceledException) { /* consolidated into single throw below */ }
         });
         await Task.WhenAll(tasks);
+        ct.ThrowIfCancellationRequested();
     }
 
     // ──────────────────────────────────────────────────────────────────────────────
@@ -587,7 +644,8 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         string policyType, string id, string name, string platform,
         List<FlatAssignment> assignments,
         ScanMode mode, string? directGroupId,
-        EntityContext? entityCtx, EmptyGroupContext? emptyCtx)
+        EntityContext? entityCtx, EmptyGroupContext? emptyCtx,
+        IReadOnlyDictionary<string, string>? groupNames = null)
     {
         switch (mode)
         {
@@ -601,7 +659,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     ? new AssignmentReportRow
                     {
                         PolicyId = id, PolicyName = name, PolicyType = policyType, Platform = platform,
-                        AssignmentSummary = SummariseAssignments(assignments)
+                        AssignmentSummary = SummariseAssignments(assignments, groupNames)
                     }
                     : null;
 
@@ -757,15 +815,49 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         return result;
     }
 
-    private static string SummariseAssignments(List<FlatAssignment> assignments)
+    private async Task ResolveGroupNamesAsync(IEnumerable<FlatAssignment> flat, CancellationToken ct)
+    {
+        var unresolved = flat
+            .Where(f => f.GroupId != null && !_groupNameCache.ContainsKey(f.GroupId!))
+            .Select(f => f.GroupId!)
+            .Distinct()
+            .ToList();
+
+        if (unresolved.Count == 0) return;
+
+        using var sem = new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
+        var tasks = unresolved.Select(async groupId =>
+        {
+            await sem.WaitAsync(ct);
+            try
+            {
+                if (_groupNameCache.ContainsKey(groupId)) return;
+                var group = await _graphClient.Groups[groupId]
+                    .GetAsync(req => req.QueryParameters.Select = ["id", "displayName"], ct);
+                _groupNameCache.TryAdd(groupId, group?.DisplayName ?? groupId);
+            }
+            catch (OperationCanceledException) { throw; }
+            catch { _groupNameCache.TryAdd(groupId, groupId); }
+            finally { sem.Release(); }
+        });
+        await Task.WhenAll(tasks);
+        ct.ThrowIfCancellationRequested();
+    }
+
+    private static string SummariseAssignments(List<FlatAssignment> assignments,
+        IReadOnlyDictionary<string, string>? groupNames = null)
     {
         var parts = new List<string>();
         foreach (var a in assignments)
         {
             if (a.IsAllUsers) parts.Add("All Users");
             else if (a.IsAllDevices) parts.Add("All Devices");
-            else if (a.IsExclusion) parts.Add($"[Excluded] {a.GroupId}");
-            else parts.Add($"Group: {a.GroupId}");
+            else if (a.GroupId != null)
+            {
+                var displayName = groupNames?.TryGetValue(a.GroupId, out var n) == true ? n : a.GroupId;
+                if (a.IsExclusion) parts.Add($"[Excluded] {displayName}");
+                else parts.Add($"Group: {displayName}");
+            }
         }
         return parts.Count > 0 ? string.Join(", ", parts.Distinct()) : "Not Assigned";
     }
@@ -784,19 +876,25 @@ public class AssignmentCheckerService : IAssignmentCheckerService
             using var sem = new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
             var tasks = items.Select(async item =>
             {
-                await sem.WaitAsync(ct);
                 try
                 {
-                    var id = getId(item);
-                    if (string.IsNullOrEmpty(id)) return;
-                    var flat = await getAssignments(id);
-                    foreach (var fa in flat.Where(f => f.GroupId != null))
-                        lock (ids) ids.Add(fa.GroupId!);
+                    await sem.WaitAsync(ct);
+                    try
+                    {
+                        var id = getId(item);
+                        if (string.IsNullOrEmpty(id)) return;
+                        var flat = await getAssignments(id);
+                        foreach (var fa in flat.Where(f => f.GroupId != null))
+                            lock (ids) ids.Add(fa.GroupId!);
+                    }
+                    catch (OperationCanceledException) { throw; }
+                    catch { }
+                    finally { sem.Release(); }
                 }
-                catch { }
-                finally { sem.Release(); }
+                catch (OperationCanceledException) { /* consolidated into single throw below */ }
             });
             await Task.WhenAll(tasks);
+            ct.ThrowIfCancellationRequested();
         }
 
         var configs = await FetchDeviceConfigurationsAsync(ct);
@@ -866,17 +964,58 @@ public class AssignmentCheckerService : IAssignmentCheckerService
         return ids;
     }
 
+    public async Task PrefetchAllToCacheAsync(
+        Action<string>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        progress?.Invoke("Downloading device configurations...");
+        await FetchDeviceConfigurationsAsync(cancellationToken);
+
+        progress?.Invoke("Downloading settings catalog policies...");
+        await FetchSettingsCatalogAsync(cancellationToken);
+
+        progress?.Invoke("Downloading administrative templates...");
+        await FetchAdminTemplatesAsync(cancellationToken);
+
+        progress?.Invoke("Downloading compliance policies...");
+        await FetchCompliancePoliciesAsync(cancellationToken);
+
+        progress?.Invoke("Downloading app protection policies...");
+        await FetchAppProtectionPoliciesAsync(cancellationToken);
+
+        progress?.Invoke("Downloading app configuration policies...");
+        await FetchMobileAppConfigurationsAsync(cancellationToken);
+
+        progress?.Invoke("Downloading applications...");
+        await FetchApplicationsAsync(cancellationToken);
+
+        progress?.Invoke("Downloading platform scripts...");
+        await FetchPlatformScriptsAsync(cancellationToken);
+
+        progress?.Invoke("Downloading health scripts...");
+        await FetchHealthScriptsAsync(cancellationToken);
+
+        progress?.Invoke("Downloading endpoint security intents...");
+        await FetchEndpointSecurityIntentsAsync(cancellationToken);
+
+        progress?.Invoke("Downloading enrollment configurations...");
+        await FetchEnrollmentConfigurationsAsync(cancellationToken);
+
+        progress?.Invoke("All policy data downloaded and cached.");
+    }
+
     // ──────────────────────────────────────────────────────────────────────────────
     //  Policy fetchers (with pagination)
     // ──────────────────────────────────────────────────────────────────────────────
 
     private async Task<List<DeviceConfiguration>> FetchDeviceConfigurationsAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<DeviceConfiguration>("DeviceConfigurations") is { } cached) return cached;
         var result = new List<DeviceConfiguration>();
         var resp = await _graphClient.DeviceManagement.DeviceConfigurations.GetAsync(
             req =>
             {
-                req.QueryParameters.Select = ["id", "displayName", "@odata.type"];
+                req.QueryParameters.Select = ["id", "displayName"];
                 req.QueryParameters.Top = 999;
             }, ct);
         while (resp != null)
@@ -887,11 +1026,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("DeviceConfigurations", result);
         return result;
     }
 
     private async Task<List<DeviceManagementConfigurationPolicy>> FetchSettingsCatalogAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<DeviceManagementConfigurationPolicy>("SettingsCatalog") is { } cached) return cached;
         var result = new List<DeviceManagementConfigurationPolicy>();
         var resp = await _graphClient.DeviceManagement.ConfigurationPolicies.GetAsync(
             req =>
@@ -907,11 +1048,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("SettingsCatalog", result);
         return result;
     }
 
     private async Task<List<GroupPolicyConfiguration>> FetchAdminTemplatesAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<GroupPolicyConfiguration>("AdministrativeTemplates") is { } cached) return cached;
         var result = new List<GroupPolicyConfiguration>();
         var resp = await _graphClient.DeviceManagement.GroupPolicyConfigurations.GetAsync(
             req =>
@@ -927,16 +1070,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("AdministrativeTemplates", result);
         return result;
     }
 
     private async Task<List<DeviceCompliancePolicy>> FetchCompliancePoliciesAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<DeviceCompliancePolicy>("CompliancePolicies") is { } cached) return cached;
         var result = new List<DeviceCompliancePolicy>();
         var resp = await _graphClient.DeviceManagement.DeviceCompliancePolicies.GetAsync(
             req =>
             {
-                req.QueryParameters.Select = ["id", "displayName", "@odata.type"];
+                req.QueryParameters.Select = ["id", "displayName"];
                 req.QueryParameters.Top = 999;
             }, ct);
         while (resp != null)
@@ -947,16 +1092,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("CompliancePolicies", result);
         return result;
     }
 
     private async Task<List<ManagedAppPolicy>> FetchAppProtectionPoliciesAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<ManagedAppPolicy>("AppProtectionPolicies") is { } cached) return cached;
         var result = new List<ManagedAppPolicy>();
         var resp = await _graphClient.DeviceAppManagement.ManagedAppPolicies.GetAsync(
             req =>
             {
-                req.QueryParameters.Select = ["id", "displayName", "@odata.type"];
+                req.QueryParameters.Select = ["id", "displayName"];
                 req.QueryParameters.Top = 999;
             }, ct);
         while (resp != null)
@@ -967,16 +1114,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("AppProtectionPolicies", result);
         return result;
     }
 
     private async Task<List<ManagedDeviceMobileAppConfiguration>> FetchMobileAppConfigurationsAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<ManagedDeviceMobileAppConfiguration>("ManagedDeviceAppConfigurations") is { } cached) return cached;
         var result = new List<ManagedDeviceMobileAppConfiguration>();
         var resp = await _graphClient.DeviceAppManagement.MobileAppConfigurations.GetAsync(
             req =>
             {
-                req.QueryParameters.Select = ["id", "displayName", "@odata.type"];
+                req.QueryParameters.Select = ["id", "displayName"];
                 req.QueryParameters.Top = 999;
             }, ct);
         while (resp != null)
@@ -987,16 +1136,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("ManagedDeviceAppConfigurations", result);
         return result;
     }
 
     private async Task<List<MobileApp>> FetchApplicationsAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<MobileApp>("Applications") is { } cached) return cached;
         var result = new List<MobileApp>();
         var resp = await _graphClient.DeviceAppManagement.MobileApps.GetAsync(
             req =>
             {
-                req.QueryParameters.Select = ["id", "displayName", "@odata.type", "isFeatured", "publisher"];
+                req.QueryParameters.Select = ["id", "displayName", "isFeatured", "publisher"];
                 req.QueryParameters.Filter = "isAssigned eq true";
                 req.QueryParameters.Top = 999;
             }, ct);
@@ -1009,11 +1160,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("Applications", result);
         return result;
     }
 
     private async Task<List<DeviceManagementScript>> FetchPlatformScriptsAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<DeviceManagementScript>("DeviceManagementScripts") is { } cached) return cached;
         var result = new List<DeviceManagementScript>();
         var resp = await _graphClient.DeviceManagement.DeviceManagementScripts.GetAsync(
             req =>
@@ -1029,11 +1182,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("DeviceManagementScripts", result);
         return result;
     }
 
     private async Task<List<DeviceHealthScript>> FetchHealthScriptsAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<DeviceHealthScript>("DeviceHealthScripts") is { } cached) return cached;
         var result = new List<DeviceHealthScript>();
         var resp = await _graphClient.DeviceManagement.DeviceHealthScripts.GetAsync(
             req =>
@@ -1049,11 +1204,13 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("DeviceHealthScripts", result);
         return result;
     }
 
     private async Task<List<DeviceManagementIntent>> FetchEndpointSecurityIntentsAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<DeviceManagementIntent>("EndpointSecurityIntents") is { } cached) return cached;
         var result = new List<DeviceManagementIntent>();
         var resp = await _graphClient.DeviceManagement.Intents.GetAsync(
             req =>
@@ -1069,16 +1226,18 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("EndpointSecurityIntents", result);
         return result;
     }
 
     private async Task<List<DeviceEnrollmentConfiguration>> FetchEnrollmentConfigurationsAsync(CancellationToken ct)
     {
+        if (TryGetFromCache<DeviceEnrollmentConfiguration>("EnrollmentConfigurations") is { } cached) return cached;
         var result = new List<DeviceEnrollmentConfiguration>();
         var resp = await _graphClient.DeviceManagement.DeviceEnrollmentConfigurations.GetAsync(
             req =>
             {
-                req.QueryParameters.Select = ["id", "displayName", "@odata.type"];
+                req.QueryParameters.Select = ["id", "displayName"];
                 req.QueryParameters.Top = 999;
             }, ct);
         while (resp != null)
@@ -1089,6 +1248,7 @@ public class AssignmentCheckerService : IAssignmentCheckerService
                     .WithUrl(resp.OdataNextLink).GetAsync(cancellationToken: ct);
             else break;
         }
+        TrySetCache("EnrollmentConfigurations", result);
         return result;
     }
 

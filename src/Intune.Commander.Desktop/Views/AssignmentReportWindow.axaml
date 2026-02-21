@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+        xmlns:m="using:Microsoft.Graph.Beta.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -26,17 +27,36 @@
                           MinWidth="240" VerticalAlignment="Center"
                           Margin="0,0,12,0" />
 
-                <!-- Run / Cancel -->
+                <!-- Run / Cancel / Export -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8"
                             VerticalAlignment="Center">
-                    <Button Content="▶  Run Report"
-                            Command="{Binding RunReportCommand}"
-                            IsEnabled="{Binding !IsRunning}"
-                            Padding="16,6" />
                     <Button Content="⬛  Cancel"
                             Command="{Binding CancelReportCommand}"
                             IsVisible="{Binding IsRunning}"
                             Padding="12,6" />
+                    <Button Content="&#128196; HTML Report"
+                            x:Name="ExportHtmlButton"
+                            Click="OnExportHtmlClick"
+                            IsEnabled="{Binding CanExport}"
+                            Padding="12,6" />
+                    <Button Content="⬇ Export CSV"
+                            x:Name="ExportCsvButton"
+                            Click="OnExportCsvClick"
+                            IsEnabled="{Binding CanExport}"
+                            Padding="12,6" />
+                    <Button Content="&#9660; Download All to Cache"
+                            Command="{Binding PrefetchAllCommand}"
+                            IsEnabled="{Binding !IsRunning}"
+                            ToolTip.Tip="Pre-downloads all policy lists from Graph into the local cache so reports run faster"
+                            Padding="16,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Background="#1A6B3C"
+                            Foreground="White" />
+                    <Button Content="▶  Run Report"
+                            Command="{Binding RunReportCommand}"
+                            IsEnabled="{Binding !IsRunning}"
+                            Padding="16,6" />
                 </StackPanel>
 
                 <!-- Progress bar -->
@@ -79,15 +99,43 @@
                 Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
             <StackPanel Spacing="8">
 
-                <!-- User input (mode 0) -->
-                <StackPanel IsVisible="{Binding ShowUserInput}"
-                            Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="User Principal Name(s):"
-                               VerticalAlignment="Center" Width="180" />
-                    <TextBox Text="{Binding UserInput}"
-                             Watermark="user@contoso.com  (comma-separate for multiple)"
-                             Width="460" x:Name="UserInputBox"
-                             KeyDown="OnUserInputBoxKeyDown" />
+                <!-- User search (mode 0) -->
+                <StackPanel IsVisible="{Binding ShowUserInput}" Spacing="6">
+                    <DockPanel>
+                        <TextBlock Text="User:" VerticalAlignment="Center" Width="60" />
+                        <Button DockPanel.Dock="Right" Content="Search"
+                                Command="{Binding SearchUserCommand}"
+                                IsEnabled="{Binding !IsSearchingUser}"
+                                Padding="12,4" Margin="8,0,0,0" />
+                        <TextBox Text="{Binding UserSearchQuery}"
+                                 Watermark="Name, UPN, or email..."
+                                 x:Name="UserSearchBox"
+                                 KeyDown="OnUserSearchBoxKeyDown" />
+                    </DockPanel>
+                    <Border IsVisible="{Binding UserSearchResults.Count}"
+                            MaxHeight="150" BorderThickness="1"
+                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                            CornerRadius="4">
+                        <ListBox x:Name="UserResultsList"
+                                 ItemsSource="{Binding UserSearchResults}"
+                                 SelectionMode="Multiple"
+                                 SelectionChanged="OnUserResultsSelectionChanged"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="m:User">
+                                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="4,2">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding UserPrincipalName}"
+                                                   Opacity="0.6" FontSize="11" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                    <TextBlock Text="{Binding SelectedUsersInfo}"
+                               IsVisible="{Binding SelectedUsersInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
                 </StackPanel>
 
                 <!-- Device input (mode 2) -->

@@ -18,6 +18,7 @@ public interface IAssignmentCheckerService
     Task<List<AssignmentReportRow>> GetUserAssignmentsAsync(
         string userPrincipalName,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -27,6 +28,7 @@ public interface IAssignmentCheckerService
         string groupId,
         string groupName,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -36,6 +38,7 @@ public interface IAssignmentCheckerService
     Task<List<AssignmentReportRow>> GetDeviceAssignmentsAsync(
         string deviceName,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -43,6 +46,7 @@ public interface IAssignmentCheckerService
     /// </summary>
     Task<List<AssignmentReportRow>> GetAllPoliciesWithAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -50,6 +54,7 @@ public interface IAssignmentCheckerService
     /// </summary>
     Task<List<AssignmentReportRow>> GetAllUsersAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -57,6 +62,7 @@ public interface IAssignmentCheckerService
     /// </summary>
     Task<List<AssignmentReportRow>> GetAllDevicesAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -64,6 +70,7 @@ public interface IAssignmentCheckerService
     /// </summary>
     Task<List<AssignmentReportRow>> GetUnassignedPoliciesAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -71,6 +78,7 @@ public interface IAssignmentCheckerService
     /// </summary>
     Task<List<AssignmentReportRow>> GetEmptyGroupAssignmentsAsync(
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -83,6 +91,7 @@ public interface IAssignmentCheckerService
         string groupId2,
         string groupName2,
         Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -90,6 +99,15 @@ public interface IAssignmentCheckerService
     /// (status == "error", "conflict", "notApplicable", or "nonCompliant").
     /// </summary>
     Task<List<AssignmentReportRow>> GetFailedAssignmentsAsync(
+        Action<string>? progress = null,
+        Action<AssignmentReportRow>? onRow = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Pre-fetches all policy lists from Graph and stores them in the cache.
+    /// Subsequent report runs will use cached data instead of hitting Graph.
+    /// </summary>
+    Task PrefetchAllToCacheAsync(
         Action<string>? progress = null,
         CancellationToken cancellationToken = default);
 }

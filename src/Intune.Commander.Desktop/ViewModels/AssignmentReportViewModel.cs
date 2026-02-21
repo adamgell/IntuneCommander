@@ -13,6 +13,7 @@ using Microsoft.Graph.Beta.Models;
 
 namespace Intune.Commander.Desktop.ViewModels;
 
+
 /// <summary>
 /// ViewModel for the Assignment Report window.
 /// Mirrors the 10 report modes in the IntuneAssignmentChecker PowerShell script.
@@ -21,6 +22,7 @@ public partial class AssignmentReportViewModel : ViewModelBase
 {
     private readonly IAssignmentCheckerService _checkerService;
     private readonly IGroupService _groupService;
+    private readonly IUserService _userService;
 
     // ── Tabs / modes ─────────────────────────────────────────────────────────────
 
@@ -48,8 +50,15 @@ public partial class AssignmentReportViewModel : ViewModelBase
 
     // ── Input fields ─────────────────────────────────────────────────────────────
 
+    // User search (mode 0)
     [ObservableProperty]
-    private string _userInput = "";
+    private string _userSearchQuery = "";
+    [ObservableProperty]
+    private bool _isSearchingUser;
+    [ObservableProperty]
+    private string _selectedUsersInfo = "";
+    public ObservableCollection<User> UserSearchResults { get; } = [];
+    public ObservableCollection<User> SelectedUsers { get; } = [];
 
     [ObservableProperty]
     private string _deviceInput = "";
@@ -97,6 +106,8 @@ public partial class AssignmentReportViewModel : ViewModelBase
 
     public ObservableCollection<AssignmentReportRow> Results { get; } = [];
 
+    public bool CanExport => !IsRunning && ResultCount > 0;
+
     [ObservableProperty]
     private int _resultCount;
 
@@ -135,10 +146,44 @@ public partial class AssignmentReportViewModel : ViewModelBase
 
     public AssignmentReportViewModel(
         IAssignmentCheckerService checkerService,
-        IGroupService groupService)
+        IGroupService groupService,
+        IUserService userService)
     {
         _checkerService = checkerService;
         _groupService = groupService;
+        _userService = userService;
+    }
+
+    // ── User search (mode 0) ─────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task SearchUserAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(UserSearchQuery)) return;
+        IsSearchingUser = true;
+        UserSearchResults.Clear();
+        SelectedUsers.Clear();
+        SelectedUsersInfo = "";
+        try
+        {
+            var users = await _userService.SearchUsersAsync(UserSearchQuery.Trim(), cancellationToken);
+            foreach (var u in users) UserSearchResults.Add(u);
+        }
+        catch (Exception ex) { SetError($"User search failed: {ex.Message}"); }
+        finally { IsSearchingUser = false; }
+    }
+
+    /// <summary>Called from code-behind when the results ListBox selection changes.</summary>
+    public void UpdateSelectedUsers(IEnumerable<User> selected)
+    {
+        SelectedUsers.Clear();
+        foreach (var u in selected) SelectedUsers.Add(u);
+        SelectedUsersInfo = SelectedUsers.Count switch
+        {
+            0 => "",
+            1 => $"{SelectedUsers[0].DisplayName} — {SelectedUsers[0].UserPrincipalName}",
+            _ => $"{SelectedUsers.Count} users selected: {string.Join(", ", SelectedUsers.Select(u => u.UserPrincipalName ?? u.DisplayName))}"
+        };
     }
 
     // ── Mode selection ───────────────────────────────────────────────────────────
@@ -157,11 +202,15 @@ public partial class AssignmentReportViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowCompareColumns));
         OnPropertyChanged(nameof(ShowFailureColumns));
 
-        // Clear results when switching modes
+        // Clear results and user search state when switching modes
         Results.Clear();
         ResultCount = 0;
         ResultSummary = "";
+        UserSearchResults.Clear();
+        SelectedUsers.Clear();
+        SelectedUsersInfo = "";
         ClearError();
+        OnPropertyChanged(nameof(CanExport));
         StatusText = IsAutoRunMode
             ? "Click 'Run Report' to fetch data."
             : GetInputPrompt(value);
@@ -169,7 +218,7 @@ public partial class AssignmentReportViewModel : ViewModelBase
 
     private static string GetInputPrompt(int modeIndex) => modeIndex switch
     {
-        0 => "Enter a User Principal Name (e.g. user@contoso.com) and click Run Report.",
+        0 => "Search for users by name or UPN, select one or more, then click Run Report.",
         1 => "Search for a group by name or GUID, select it, then click Run Report.",
         2 => "Enter a device name (Azure AD device display name) and click Run Report.",
         8 => "Search for two groups to compare, select them, then click Run Report.",
@@ -260,7 +309,7 @@ public partial class AssignmentReportViewModel : ViewModelBase
     [RelayCommand]
     private async Task RunReportAsync(CancellationToken cancellationToken)
     {
-        _cts?.Cancel();
+        if (IsRunning) _cts?.Cancel();
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var ct = _cts.Token;
 
@@ -271,45 +320,58 @@ public partial class AssignmentReportViewModel : ViewModelBase
         ResultCount = 0;
         ResultSummary = "";
 
+        DebugLog.Log("Report", $"Starting report: {SelectedModeName}");
+
+        // Stream rows into the DataGrid as they are found
+        void OnRow(AssignmentReportRow row) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                Results.Add(row);
+                ResultCount = Results.Count;
+            });
+
         try
         {
             List<AssignmentReportRow> rows = SelectedModeIndex switch
             {
-                0 => await RunUserReportAsync(ct),
-                1 => await RunGroupReportAsync(ct),
-                2 => await RunDeviceReportAsync(ct),
-                3 => await _checkerService.GetAllPoliciesWithAssignmentsAsync(ReportProgress, ct),
-                4 => await _checkerService.GetAllUsersAssignmentsAsync(ReportProgress, ct),
-                5 => await _checkerService.GetAllDevicesAssignmentsAsync(ReportProgress, ct),
-                6 => await _checkerService.GetUnassignedPoliciesAsync(ReportProgress, ct),
-                7 => await _checkerService.GetEmptyGroupAssignmentsAsync(ReportProgress, ct),
-                8 => await RunCompareReportAsync(ct),
-                9 => await _checkerService.GetFailedAssignmentsAsync(ReportProgress, ct),
+                0 => await RunUserReportAsync(ct, OnRow),
+                1 => await RunGroupReportAsync(ct, OnRow),
+                2 => await RunDeviceReportAsync(ct, OnRow),
+                3 => await _checkerService.GetAllPoliciesWithAssignmentsAsync(ReportProgress, OnRow, ct),
+                4 => await _checkerService.GetAllUsersAssignmentsAsync(ReportProgress, OnRow, ct),
+                5 => await _checkerService.GetAllDevicesAssignmentsAsync(ReportProgress, OnRow, ct),
+                6 => await _checkerService.GetUnassignedPoliciesAsync(ReportProgress, OnRow, ct),
+                7 => await _checkerService.GetEmptyGroupAssignmentsAsync(ReportProgress, OnRow, ct),
+                8 => await RunCompareReportAsync(ct, OnRow),
+                9 => await _checkerService.GetFailedAssignmentsAsync(ReportProgress, OnRow, ct),
                 _ => []
             };
 
-            foreach (var r in rows)
-                Results.Add(r);
-
             ResultCount = rows.Count;
             ResultSummary = BuildSummary(rows);
-            StatusText = ResultCount == 0
-                ? "No results found."
-                : $"Found {ResultCount} result(s).";
+            var statusMsg = ResultCount == 0 ? "No results found." : $"Found {ResultCount} result(s).";
+            StatusText = statusMsg;
+            DebugLog.Log("Report", $"Completed: {SelectedModeName} — {statusMsg}");
+            if (!string.IsNullOrEmpty(ResultSummary))
+                DebugLog.Log("Report", $"Summary: {ResultSummary}");
         }
         catch (OperationCanceledException)
         {
             StatusText = "Report cancelled.";
+            DebugLog.Log("Report", $"Cancelled: {SelectedModeName}");
         }
         catch (Exception ex)
         {
             SetError($"Report failed: {ex.Message}");
             StatusText = "Report failed — see error above.";
+            DebugLog.Log("Report", $"{SelectedModeName} failed: {ex.Message}");
+            DebugLog.LogError($"[Report] {SelectedModeName}", ex);
         }
         finally
         {
             IsRunning = false;
             IsBusy = false;
+            OnPropertyChanged(nameof(CanExport));
         }
     }
 
@@ -320,40 +382,79 @@ public partial class AssignmentReportViewModel : ViewModelBase
         StatusText = "Cancelling...";
     }
 
+    [RelayCommand]
+    private async Task PrefetchAllAsync(CancellationToken cancellationToken)
+    {
+        if (IsRunning) return;
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var ct = _cts.Token;
+
+        ClearError();
+        IsRunning = true;
+        IsBusy = true;
+
+        DebugLog.Log("Cache", "Starting full policy prefetch...");
+        try
+        {
+            await _checkerService.PrefetchAllToCacheAsync(ReportProgress, ct);
+            StatusText = "All policy data downloaded and cached. Reports will now run faster.";
+            DebugLog.Log("Cache", "Prefetch complete.");
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "Download cancelled.";
+            DebugLog.Log("Cache", "Prefetch cancelled.");
+        }
+        catch (Exception ex)
+        {
+            SetError($"Download failed: {ex.Message}");
+            DebugLog.LogError($"[Cache] Prefetch failed", ex);
+        }
+        finally
+        {
+            IsRunning = false;
+            IsBusy = false;
+        }
+    }
+
     // ── Per-mode runners ─────────────────────────────────────────────────────────
 
-    private async Task<List<AssignmentReportRow>> RunUserReportAsync(CancellationToken ct)
+    private async Task<List<AssignmentReportRow>> RunUserReportAsync(
+        CancellationToken ct, Action<AssignmentReportRow> onRow)
     {
-        var upn = UserInput.Trim();
-        if (string.IsNullOrEmpty(upn))
-            throw new InvalidOperationException("Please enter a User Principal Name.");
+        if (SelectedUsers.Count == 0)
+            throw new InvalidOperationException("Please search for and select at least one user.");
 
-        // Support comma-separated UPNs — run and aggregate
-        var upns = upn.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var all = new List<AssignmentReportRow>();
-        foreach (var u in upns)
+        var multiUser = SelectedUsers.Count > 1;
+        foreach (var user in SelectedUsers)
         {
-            ReportProgress($"Checking assignments for {u}...");
-            var rows = await _checkerService.GetUserAssignmentsAsync(u, ReportProgress, ct);
-            // Tag each row with the UPN for multi-UPN runs
-            if (upns.Length > 1)
-                foreach (var r in rows)
-                    all.Add(r with { UserPrincipalName = u });
+            var upn = user.UserPrincipalName ?? user.Id!;
+            ReportProgress($"Checking assignments for {upn}...");
+            // For multi-user, transform each row to stamp the UPN before streaming
+            Action<AssignmentReportRow> rowCallback = multiUser
+                ? r => onRow(r with { UserPrincipalName = upn })
+                : onRow;
+            var rows = await _checkerService.GetUserAssignmentsAsync(upn, ReportProgress, rowCallback, ct);
+            if (multiUser)
+                foreach (var r in rows) all.Add(r with { UserPrincipalName = upn });
             else
                 all.AddRange(rows);
         }
         return all;
     }
 
-    private async Task<List<AssignmentReportRow>> RunGroupReportAsync(CancellationToken ct)
+    private async Task<List<AssignmentReportRow>> RunGroupReportAsync(
+        CancellationToken ct, Action<AssignmentReportRow> onRow)
     {
         if (SelectedGroup?.Id == null)
             throw new InvalidOperationException("Please search for and select a group.");
         return await _checkerService.GetGroupAssignmentsAsync(
-            SelectedGroup.Id, SelectedGroup.DisplayName ?? SelectedGroup.Id, ReportProgress, ct);
+            SelectedGroup.Id, SelectedGroup.DisplayName ?? SelectedGroup.Id, ReportProgress, onRow, ct);
     }
 
-    private async Task<List<AssignmentReportRow>> RunDeviceReportAsync(CancellationToken ct)
+    private async Task<List<AssignmentReportRow>> RunDeviceReportAsync(
+        CancellationToken ct, Action<AssignmentReportRow> onRow)
     {
         var deviceName = DeviceInput.Trim();
         if (string.IsNullOrEmpty(deviceName))
@@ -361,20 +462,25 @@ public partial class AssignmentReportViewModel : ViewModelBase
 
         var names = deviceName.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var all = new List<AssignmentReportRow>();
+        var multiDevice = names.Length > 1;
         foreach (var d in names)
         {
             ReportProgress($"Checking assignments for device {d}...");
-            var rows = await _checkerService.GetDeviceAssignmentsAsync(d, ReportProgress, ct);
-            if (names.Length > 1)
-                foreach (var r in rows)
-                    all.Add(r with { TargetDevice = d });
+            var deviceName2 = d;
+            Action<AssignmentReportRow> rowCallback = multiDevice
+                ? r => onRow(r with { TargetDevice = deviceName2 })
+                : onRow;
+            var rows = await _checkerService.GetDeviceAssignmentsAsync(d, ReportProgress, rowCallback, ct);
+            if (multiDevice)
+                foreach (var r in rows) all.Add(r with { TargetDevice = d });
             else
                 all.AddRange(rows);
         }
         return all;
     }
 
-    private async Task<List<AssignmentReportRow>> RunCompareReportAsync(CancellationToken ct)
+    private async Task<List<AssignmentReportRow>> RunCompareReportAsync(
+        CancellationToken ct, Action<AssignmentReportRow> onRow)
     {
         if (SelectedCompareGroup1?.Id == null || SelectedCompareGroup2?.Id == null)
             throw new InvalidOperationException("Please select both groups to compare.");
@@ -384,13 +490,24 @@ public partial class AssignmentReportViewModel : ViewModelBase
             SelectedCompareGroup1.DisplayName ?? SelectedCompareGroup1.Id,
             SelectedCompareGroup2.Id,
             SelectedCompareGroup2.DisplayName ?? SelectedCompareGroup2.Id,
-            ReportProgress, ct);
+            ReportProgress, onRow, ct);
     }
+
+    // ── Export ────────────────────────────────────────────────────────────────────
+
+    public string GenerateHtml() =>
+        AssignmentReportExporter.GenerateHtml(SelectedModeName, Results.ToList());
+
+    public string GenerateCsv() =>
+        AssignmentReportExporter.GenerateCsv(SelectedModeName, Results.ToList());
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
 
-    private void ReportProgress(string message) =>
+    private void ReportProgress(string message)
+    {
+        DebugLog.Log("Report", message);
         Dispatcher.UIThread.Post(() => StatusText = message);
+    }
 
     private static string BuildSummary(List<AssignmentReportRow> rows)
     {

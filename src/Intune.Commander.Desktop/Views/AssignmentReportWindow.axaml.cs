@@ -1,9 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using Intune.Commander.Desktop.Services;
 using Intune.Commander.Desktop.ViewModels;
+using Microsoft.Graph.Beta.Models;
 
 namespace Intune.Commander.Desktop.Views;
 
@@ -74,9 +81,17 @@ public partial class AssignmentReportWindow : Window
 
     // ── Keyboard shortcuts ───────────────────────────────────────────────────────
 
-    private void OnUserInputBoxKeyDown(object? sender, KeyEventArgs e)
+    private void OnUserSearchBoxKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) ExecuteRunReport();
+        if (e.Key != Key.Enter || DataContext is not AssignmentReportViewModel vm) return;
+        if (vm.SearchUserCommand.CanExecute(null))
+            vm.SearchUserCommand.Execute(null);
+    }
+
+    private void OnUserResultsSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ListBox lb || DataContext is not AssignmentReportViewModel vm) return;
+        vm.UpdateSelectedUsers(lb.SelectedItems?.OfType<User>() ?? []);
     }
 
     private void OnDeviceInputBoxKeyDown(object? sender, KeyEventArgs e)
@@ -109,6 +124,72 @@ public partial class AssignmentReportWindow : Window
     {
         if (DataContext is AssignmentReportViewModel vm && vm.RunReportCommand.CanExecute(null))
             vm.RunReportCommand.Execute(null);
+    }
+
+    // ── Export ───────────────────────────────────────────────────────────────────
+
+    private async void OnExportHtmlClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not AssignmentReportViewModel vm || !vm.CanExport) return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.StorageProvider == null) return;
+
+        var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save HTML Report",
+            SuggestedFileName = $"Assignment-Report-{timestamp}.html",
+            FileTypeChoices = [new FilePickerFileType("HTML File") { Patterns = ["*.html"] }]
+        });
+
+        if (file?.TryGetLocalPath() is not { } path) return;
+
+        try
+        {
+            var html = vm.GenerateHtml();
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await File.WriteAllTextAsync(path, html, Encoding.UTF8);
+            vm.StatusText = $"HTML report saved: {Path.GetFileName(path)}";
+            DebugLogService.Instance.Log("Export", $"HTML report exported to {path}");
+        }
+        catch (Exception ex)
+        {
+            vm.StatusText = $"Export failed: {ex.Message}";
+            DebugLogService.Instance.LogError($"HTML export failed: {ex.Message}", ex);
+        }
+    }
+
+    private async void OnExportCsvClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not AssignmentReportViewModel vm || !vm.CanExport) return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.StorageProvider == null) return;
+
+        var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export CSV",
+            SuggestedFileName = $"Assignment-Report-{timestamp}.csv",
+            FileTypeChoices = [new FilePickerFileType("CSV File") { Patterns = ["*.csv"] }]
+        });
+
+        if (file?.TryGetLocalPath() is not { } path) return;
+
+        try
+        {
+            var csv = vm.GenerateCsv();
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await File.WriteAllTextAsync(path, csv, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            vm.StatusText = $"CSV exported: {Path.GetFileName(path)}";
+            DebugLogService.Instance.Log("Export", $"CSV exported to {path}");
+        }
+        catch (Exception ex)
+        {
+            vm.StatusText = $"Export failed: {ex.Message}";
+            DebugLogService.Instance.LogError($"CSV export failed: {ex.Message}", ex);
+        }
     }
 
     // ── Window placement persistence ─────────────────────────────────────────────
