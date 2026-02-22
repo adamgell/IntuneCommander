@@ -169,6 +169,11 @@ public partial class MainWindowViewModel : ViewModelBase
             _qualityUpdateProfileService = new QualityUpdateProfileService(_graphClient);
 
             _driverUpdateProfileService = new DriverUpdateProfileService(_graphClient);
+            _admxFileService = new AdmxFileService(_graphClient);
+
+            _reusablePolicySettingService = new ReusablePolicySettingService(_graphClient);
+
+            _notificationTemplateService = new NotificationTemplateService(_graphClient);
 
             _userService = new UserService(_graphClient);
 
@@ -608,6 +613,17 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedDriverUpdateProfile = null;
 
         _driverUpdateProfilesLoaded = false;
+        AdmxFiles.Clear();
+
+        SelectedAdmxFile = null;
+
+        ReusablePolicySettings.Clear();
+
+        SelectedReusablePolicySetting = null;
+
+        NotificationTemplates.Clear();
+
+        SelectedNotificationTemplate = null;
 
         DynamicGroupRows.Clear();
 
@@ -620,6 +636,12 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedAssignedGroupRow = null;
 
         _assignedGroupsLoaded = false;
+
+        _admxFilesLoaded = false;
+
+        _reusablePolicySettingsLoaded = false;
+
+        _notificationTemplatesLoaded = false;
 
         SelectedItemAssignments.Clear();
 
@@ -688,6 +710,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _qualityUpdateProfileService = null;
 
         _driverUpdateProfileService = null;
+        _admxFileService = null;
+
+        _reusablePolicySettingService = null;
+
+        _notificationTemplateService = null;
 
         _userService = null;
 

@@ -1043,6 +1043,71 @@ public class ExportServiceTests : IDisposable
         var folder = Path.Combine(_tempDir, "QualityUpdates");
         Assert.True(File.Exists(Path.Combine(folder, "Quality A.json")));
         Assert.True(File.Exists(Path.Combine(folder, "Quality B.json")));
+    public async Task ExportAdmxFile_CreatesJsonFile()
+    {
+        var admxFile = new GroupPolicyUploadedDefinitionFile { Id = "admx-id", DisplayName = "Test ADMX" };
+        var table = new MigrationTable();
+
+        await _service.ExportAdmxFileAsync(admxFile, _tempDir, table);
+
+        Assert.True(File.Exists(Path.Combine(_tempDir, "AdmxFiles", "Test ADMX.json")));
+        Assert.Contains(table.Entries, e => e.ObjectType == "AdmxFile" && e.OriginalId == "admx-id");
+    }
+
+    [Fact]
+    public async Task ExportAdmxFile_UsesFileNameWhenDisplayNameNull()
+    {
+        var admxFile = new GroupPolicyUploadedDefinitionFile { Id = "admx-id", FileName = "policy.admx" };
+        var table = new MigrationTable();
+
+        await _service.ExportAdmxFileAsync(admxFile, _tempDir, table);
+
+        Assert.True(File.Exists(Path.Combine(_tempDir, "AdmxFiles", "policy.admx.json")));
+    }
+
+    [Fact]
+    public async Task ExportAdmxFiles_ExportsMultipleAndWritesMigrationTable()
+    {
+        var admxFiles = new List<GroupPolicyUploadedDefinitionFile>
+        {
+            new() { Id = "admx-1", DisplayName = "ADMX One" },
+            new() { Id = "admx-2", DisplayName = "ADMX Two" }
+        };
+
+        await _service.ExportAdmxFilesAsync(admxFiles, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "AdmxFiles");
+        Assert.True(File.Exists(Path.Combine(folder, "ADMX One.json")));
+        Assert.True(File.Exists(Path.Combine(folder, "ADMX Two.json")));
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportReusablePolicySetting_CreatesJsonFile()
+    {
+        var setting = new DeviceManagementReusablePolicySetting { Id = "rps-id", DisplayName = "Test Setting" };
+        var table = new MigrationTable();
+
+        await _service.ExportReusablePolicySettingAsync(setting, _tempDir, table);
+
+        Assert.True(File.Exists(Path.Combine(_tempDir, "ReusablePolicySettings", "Test Setting.json")));
+        Assert.Contains(table.Entries, e => e.ObjectType == "ReusablePolicySetting" && e.OriginalId == "rps-id");
+    }
+
+    [Fact]
+    public async Task ExportReusablePolicySettings_ExportsMultipleAndWritesMigrationTable()
+    {
+        var settings = new List<DeviceManagementReusablePolicySetting>
+        {
+            new() { Id = "rps-1", DisplayName = "Setting A" },
+            new() { Id = "rps-2", DisplayName = "Setting B" }
+        };
+
+        await _service.ExportReusablePolicySettingsAsync(settings, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "ReusablePolicySettings");
+        Assert.True(File.Exists(Path.Combine(folder, "Setting A.json")));
+        Assert.True(File.Exists(Path.Combine(folder, "Setting B.json")));
         Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
     }
 
@@ -1073,5 +1138,65 @@ public class ExportServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(folder, "Driver A.json")));
         Assert.True(File.Exists(Path.Combine(folder, "Driver B.json")));
         Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+    public async Task ExportNotificationTemplate_CreatesJsonFile()
+    {
+        var template = new NotificationMessageTemplate { Id = "nt-id", DisplayName = "Test Template" };
+        var table = new MigrationTable();
+
+        await _service.ExportNotificationTemplateAsync(template, _tempDir, table);
+
+        Assert.True(File.Exists(Path.Combine(_tempDir, "NotificationTemplates", "Test Template.json")));
+        Assert.Contains(table.Entries, e => e.ObjectType == "NotificationTemplate" && e.OriginalId == "nt-id");
+    }
+
+    [Fact]
+    public async Task ExportNotificationTemplates_ExportsMultipleAndWritesMigrationTable()
+    {
+        var templates = new List<NotificationMessageTemplate>
+        {
+            new() { Id = "nt-1", DisplayName = "Template A" },
+            new() { Id = "nt-2", DisplayName = "Template B" }
+        };
+
+        await _service.ExportNotificationTemplatesAsync(templates, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "NotificationTemplates");
+        Assert.True(File.Exists(Path.Combine(folder, "Template A.json")));
+        Assert.True(File.Exists(Path.Combine(folder, "Template B.json")));
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportAdmxFile_NullId_SkipsMigrationTableEntry()
+    {
+        var admxFile = new GroupPolicyUploadedDefinitionFile { Id = null, DisplayName = "No Id ADMX" };
+        var table = new MigrationTable();
+
+        await _service.ExportAdmxFileAsync(admxFile, _tempDir, table);
+
+        Assert.Empty(table.Entries);
+    }
+
+    [Fact]
+    public async Task ExportReusablePolicySetting_NullId_SkipsMigrationTableEntry()
+    {
+        var setting = new DeviceManagementReusablePolicySetting { Id = null, DisplayName = "No Id Setting" };
+        var table = new MigrationTable();
+
+        await _service.ExportReusablePolicySettingAsync(setting, _tempDir, table);
+
+        Assert.Empty(table.Entries);
+    }
+
+    [Fact]
+    public async Task ExportNotificationTemplate_NullId_SkipsMigrationTableEntry()
+    {
+        var template = new NotificationMessageTemplate { Id = null, DisplayName = "No Id Template" };
+        var table = new MigrationTable();
+
+        await _service.ExportNotificationTemplateAsync(template, _tempDir, table);
+
+        Assert.Empty(table.Entries);
     }
 }

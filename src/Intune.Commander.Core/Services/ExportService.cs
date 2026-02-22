@@ -1087,6 +1087,8 @@ public class ExportService : IExportService
 
     public async Task ExportQualityUpdateProfileAsync(
         WindowsQualityUpdateProfile profile,
+    public async Task ExportAdmxFileAsync(
+        GroupPolicyUploadedDefinitionFile admxFile,
         string outputPath,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
@@ -1113,6 +1115,28 @@ public class ExportService : IExportService
 
     public async Task ExportQualityUpdateProfilesAsync(
         IEnumerable<WindowsQualityUpdateProfile> profiles,
+        var folderPath = Path.Combine(outputPath, "AdmxFiles");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(admxFile.DisplayName ?? admxFile.FileName ?? admxFile.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(admxFile, admxFile.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (admxFile.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "AdmxFile",
+                OriginalId = admxFile.Id,
+                Name = admxFile.DisplayName ?? admxFile.FileName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportAdmxFilesAsync(
+        IEnumerable<GroupPolicyUploadedDefinitionFile> admxFiles,
         string outputPath,
         CancellationToken cancellationToken = default)
     {
@@ -1121,6 +1145,9 @@ public class ExportService : IExportService
         foreach (var profile in profiles)
         {
             await ExportQualityUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
+        foreach (var admxFile in admxFiles)
+        {
+            await ExportAdmxFileAsync(admxFile, outputPath, migrationTable, cancellationToken);
         }
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
@@ -1128,6 +1155,8 @@ public class ExportService : IExportService
 
     public async Task ExportDriverUpdateProfileAsync(
         WindowsDriverUpdateProfile profile,
+    public async Task ExportReusablePolicySettingAsync(
+        DeviceManagementReusablePolicySetting setting,
         string outputPath,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
@@ -1154,6 +1183,28 @@ public class ExportService : IExportService
 
     public async Task ExportDriverUpdateProfilesAsync(
         IEnumerable<WindowsDriverUpdateProfile> profiles,
+        var folderPath = Path.Combine(outputPath, "ReusablePolicySettings");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(setting.DisplayName ?? setting.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(setting, setting.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (setting.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "ReusablePolicySetting",
+                OriginalId = setting.Id,
+                Name = setting.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportReusablePolicySettingsAsync(
+        IEnumerable<DeviceManagementReusablePolicySetting> settings,
         string outputPath,
         CancellationToken cancellationToken = default)
     {
@@ -1162,6 +1213,50 @@ public class ExportService : IExportService
         foreach (var profile in profiles)
         {
             await ExportDriverUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
+        foreach (var setting in settings)
+        {
+            await ExportReusablePolicySettingAsync(setting, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportNotificationTemplateAsync(
+        NotificationMessageTemplate template,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "NotificationTemplates");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(template.DisplayName ?? template.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(template, template.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (template.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "NotificationTemplate",
+                OriginalId = template.Id,
+                Name = template.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportNotificationTemplatesAsync(
+        IEnumerable<NotificationMessageTemplate> templates,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var template in templates)
+        {
+            await ExportNotificationTemplateAsync(template, outputPath, migrationTable, cancellationToken);
         }
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);

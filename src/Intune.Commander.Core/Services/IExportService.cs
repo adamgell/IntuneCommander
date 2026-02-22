@@ -85,6 +85,14 @@ public interface IExportService
 
     Task ExportDriverUpdateProfileAsync(WindowsDriverUpdateProfile profile, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
     Task ExportDriverUpdateProfilesAsync(IEnumerable<WindowsDriverUpdateProfile> profiles, string outputPath, CancellationToken cancellationToken = default);
+    Task ExportAdmxFileAsync(GroupPolicyUploadedDefinitionFile admxFile, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportAdmxFilesAsync(IEnumerable<GroupPolicyUploadedDefinitionFile> admxFiles, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportReusablePolicySettingAsync(DeviceManagementReusablePolicySetting setting, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportReusablePolicySettingsAsync(IEnumerable<DeviceManagementReusablePolicySetting> settings, string outputPath, CancellationToken cancellationToken = default);
+
+    Task ExportNotificationTemplateAsync(NotificationMessageTemplate template, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportNotificationTemplatesAsync(IEnumerable<NotificationMessageTemplate> templates, string outputPath, CancellationToken cancellationToken = default);
 
     Task SaveMigrationTableAsync(MigrationTable table, string outputPath, CancellationToken cancellationToken = default);
 }

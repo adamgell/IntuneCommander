@@ -366,6 +366,33 @@ public partial class MainWindowViewModel : ViewModelBase
             CacheKeyComplianceScripts,
             "compliance script(s)");
 
+    private Task LoadAdmxFilesAsync() =>
+        LoadCollectionAsync(
+            _admxFileService,
+            ct => _admxFileService!.ListAdmxFilesAsync(ct),
+            items => AdmxFiles = items,
+            () => _admxFilesLoaded = true,
+            CacheKeyAdmxFiles,
+            "ADMX file(s)");
+
+    private Task LoadReusablePolicySettingsAsync() =>
+        LoadCollectionAsync(
+            _reusablePolicySettingService,
+            ct => _reusablePolicySettingService!.ListReusablePolicySettingsAsync(ct),
+            items => ReusablePolicySettings = items,
+            () => _reusablePolicySettingsLoaded = true,
+            CacheKeyReusablePolicySettings,
+            "reusable policy setting(s)");
+
+    private Task LoadNotificationTemplatesAsync() =>
+        LoadCollectionAsync(
+            _notificationTemplateService,
+            ct => _notificationTemplateService!.ListNotificationTemplatesAsync(ct),
+            items => NotificationTemplates = items,
+            () => _notificationTemplatesLoaded = true,
+            CacheKeyNotificationTemplates,
+            "notification template(s)");
+
     // ─── BuildGroupRow ─────────────────────────────────────────────────────
 
     private static GroupRow BuildGroupRow(Microsoft.Graph.Beta.Models.Group group, GroupMemberCounts counts)
@@ -426,6 +453,9 @@ public partial class MainWindowViewModel : ViewModelBase
         var loadDeviceManagementScripts = IsDeviceManagementScriptsCategory;
         var loadDeviceShellScripts = IsDeviceShellScriptsCategory;
         var loadComplianceScripts = IsComplianceScriptsCategory;
+        var loadAdmxFiles = IsAdmxFilesCategory;
+        var loadReusablePolicySettings = IsReusablePolicySettingsCategory;
+        var loadNotificationTemplates = IsNotificationTemplatesCategory;
 
         try
         {
@@ -705,12 +735,36 @@ public partial class MainWindowViewModel : ViewModelBase
                     items => DriverUpdateProfiles = items,
                     v => _driverUpdateProfilesLoaded = v,
                     "driver update profile(s)", "Driver Updates",
+            if (_admxFileService != null && loadAdmxFiles)
+                await RefreshCollectionAsync(
+                    ct => _admxFileService.ListAdmxFilesAsync(ct),
+                    items => AdmxFiles = items,
+                    v => _admxFilesLoaded = v,
+                    "ADMX file(s)", "ADMX Files",
+                    errors, cancellationToken);
+
+            if (_reusablePolicySettingService != null && loadReusablePolicySettings)
+                await RefreshCollectionAsync(
+                    ct => _reusablePolicySettingService.ListReusablePolicySettingsAsync(ct),
+                    items => ReusablePolicySettings = items,
+                    v => _reusablePolicySettingsLoaded = v,
+                    "reusable policy setting(s)", "Reusable Policy Settings",
+                    errors, cancellationToken);
+
+            if (_notificationTemplateService != null && loadNotificationTemplates)
+                await RefreshCollectionAsync(
+                    ct => _notificationTemplateService.ListNotificationTemplatesAsync(ct),
+                    items => NotificationTemplates = items,
+                    v => _notificationTemplatesLoaded = v,
+                    "notification template(s)", "Notification Templates",
                     errors, cancellationToken);
 
             // --- Summary ---
 
             var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + QualityUpdateProfiles.Count + DriverUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count;
             StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {QualityUpdateProfiles.Count} quality updates, {DriverUpdateProfiles.Count} driver updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use, {DeviceManagementScripts.Count} device mgmt scripts, {DeviceShellScripts.Count} shell scripts, {ComplianceScripts.Count} compliance scripts)";
+            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
+            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use, {DeviceManagementScripts.Count} device mgmt scripts, {DeviceShellScripts.Count} shell scripts, {ComplianceScripts.Count} compliance scripts, {AdmxFiles.Count} ADMX files, {ReusablePolicySettings.Count} reusable policy settings, {NotificationTemplates.Count} notification templates)";
 
             if (errors.Count > 0)
                 SetError($"Some data failed to load — {string.Join("; ", errors)}");
@@ -973,11 +1027,31 @@ public partial class MainWindowViewModel : ViewModelBase
                 items => DriverUpdateProfiles = items,
                 () => _driverUpdateProfilesLoaded = true,
                 "driver update profile(s)", ref oldestCacheTime))
+            if (TryLoadCollectionFromCache<GroupPolicyUploadedDefinitionFile>(
+                tenantId, CacheKeyAdmxFiles,
+                items => AdmxFiles = items,
+                () => _admxFilesLoaded = true,
+                "ADMX file(s)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<DeviceManagementReusablePolicySetting>(
+                tenantId, CacheKeyReusablePolicySettings,
+                items => ReusablePolicySettings = items,
+                () => _reusablePolicySettingsLoaded = true,
+                "reusable policy setting(s)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<NotificationMessageTemplate>(
+                tenantId, CacheKeyNotificationTemplates,
+                items => NotificationTemplates = items,
+                () => _notificationTemplatesLoaded = true,
+                "notification template(s)", ref oldestCacheTime))
                 typesLoaded++;
 
             if (typesLoaded > 0)
             {
                 var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + QualityUpdateProfiles.Count + DriverUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count;
+                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
                 var ageText = FormatCacheAge(oldestCacheTime);
                 CacheStatusText = oldestCacheTime.HasValue
                     ? $"Cache: {oldestCacheTime.Value.ToLocalTime():MMM dd, h:mm tt}"
@@ -1080,6 +1154,9 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveCollectionToCache(tenantId, CacheKeyComplianceScripts, ComplianceScripts);
             SaveCollectionToCache(tenantId, CacheKeyQualityUpdateProfiles, QualityUpdateProfiles);
             SaveCollectionToCache(tenantId, CacheKeyDriverUpdateProfiles, DriverUpdateProfiles);
+            SaveCollectionToCache(tenantId, CacheKeyAdmxFiles, AdmxFiles);
+            SaveCollectionToCache(tenantId, CacheKeyReusablePolicySettings, ReusablePolicySettings);
+            SaveCollectionToCache(tenantId, CacheKeyNotificationTemplates, NotificationTemplates);
 
             DebugLog.Log("Cache", "Saved data to disk cache");
         }
@@ -1379,6 +1456,20 @@ public partial class MainWindowViewModel : ViewModelBase
             c => _driverUpdateProfileService!.ListDriverUpdateProfilesAsync(c),
             items => DriverUpdateProfiles = items,
             () => _driverUpdateProfilesLoaded = true, CacheKeyDriverUpdateProfiles);
+        AddTask("ADMX Files", _admxFileService,
+            c => _admxFileService!.ListAdmxFilesAsync(c),
+            items => AdmxFiles = items,
+            () => _admxFilesLoaded = true, CacheKeyAdmxFiles);
+
+        AddTask("Reusable Policy Settings", _reusablePolicySettingService,
+            c => _reusablePolicySettingService!.ListReusablePolicySettingsAsync(c),
+            items => ReusablePolicySettings = items,
+            () => _reusablePolicySettingsLoaded = true, CacheKeyReusablePolicySettings);
+
+        AddTask("Notification Templates", _notificationTemplateService,
+            c => _notificationTemplateService!.ListNotificationTemplatesAsync(c),
+            items => NotificationTemplates = items,
+            () => _notificationTemplatesLoaded = true, CacheKeyNotificationTemplates);
 
         // --- 2 group types (special: require member-count enrichment) ---
         if (_groupService != null)
