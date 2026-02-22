@@ -1974,7 +1974,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             var cached = _cacheService.Get<T>(tenantId, cacheKey);
 
-            if (cached != null && cached.Count > 0)
+            if (cached != null)
 
             {
 

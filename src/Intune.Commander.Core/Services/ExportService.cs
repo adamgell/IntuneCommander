@@ -21,8 +21,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "DeviceConfigurations");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(config.DisplayName ?? config.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, config.DisplayName ?? config.Id ?? "unknown", config.Id);
 
         // Serialize using System.Text.Json with the Graph model
         var json = JsonSerializer.Serialize(config, config.GetType(), JsonOptions);
@@ -65,7 +64,22 @@ public class ExportService : IExportService
     private static string SanitizeFileName(string name)
     {
         var invalid = Path.GetInvalidFileNameChars();
-        return string.Join("_", name.Split(invalid, StringSplitOptions.RemoveEmptyEntries)).Trim();
+        var sanitized = string.Join("_", name.Split(invalid, StringSplitOptions.RemoveEmptyEntries)).Trim();
+        return string.IsNullOrEmpty(sanitized) ? "unnamed" : sanitized;
+    }
+
+    /// <summary>
+    /// Returns a unique .json file path under <paramref name="folderPath"/>.
+    /// If the sanitized name already exists as a file (collision), appends the
+    /// object's <paramref name="id"/> to disambiguate rather than overwriting.
+    /// </summary>
+    private static string GetUniqueFilePath(string folderPath, string name, string? id)
+    {
+        var sanitized = SanitizeFileName(name);
+        var path = Path.Combine(folderPath, $"{sanitized}.json");
+        if (File.Exists(path) && !string.IsNullOrEmpty(id))
+            path = Path.Combine(folderPath, $"{sanitized}_{SanitizeFileName(id)}.json");
+        return path;
     }
 
     public async Task ExportCompliancePolicyAsync(
@@ -78,8 +92,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "CompliancePolicies");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(policy.DisplayName ?? policy.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, policy.DisplayName ?? policy.Id ?? "unknown", policy.Id);
 
         var export = new CompliancePolicyExport
         {
@@ -126,8 +139,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "Applications");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(app.DisplayName ?? app.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, app.DisplayName ?? app.Id ?? "unknown", app.Id);
 
         var export = new ApplicationExport
         {
@@ -174,8 +186,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "EndpointSecurity");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(intent.DisplayName ?? intent.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, intent.DisplayName ?? intent.Id ?? "unknown", intent.Id);
 
         var export = new EndpointSecurityExport
         {
@@ -222,8 +233,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "AdministrativeTemplates");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(template.DisplayName ?? template.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, template.DisplayName ?? template.Id ?? "unknown", template.Id);
 
         var export = new AdministrativeTemplateExport
         {
@@ -269,8 +279,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "EnrollmentConfigurations");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(configuration.DisplayName ?? configuration.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, configuration.DisplayName ?? configuration.Id ?? "unknown", configuration.Id);
 
         var json = JsonSerializer.Serialize(configuration, configuration.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -310,8 +319,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "AppProtectionPolicies");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(policy.DisplayName ?? policy.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, policy.DisplayName ?? policy.Id ?? "unknown", policy.Id);
 
         var json = JsonSerializer.Serialize(policy, policy.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -351,8 +359,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "ManagedDeviceAppConfigurations");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(configuration.DisplayName ?? configuration.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, configuration.DisplayName ?? configuration.Id ?? "unknown", configuration.Id);
 
         var json = JsonSerializer.Serialize(configuration, configuration.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -392,8 +399,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "TargetedManagedAppConfigurations");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(configuration.DisplayName ?? configuration.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, configuration.DisplayName ?? configuration.Id ?? "unknown", configuration.Id);
 
         var json = JsonSerializer.Serialize(configuration, configuration.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -433,8 +439,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "TermsAndConditions");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(termsAndConditions.DisplayName ?? termsAndConditions.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, termsAndConditions.DisplayName ?? termsAndConditions.Id ?? "unknown", termsAndConditions.Id);
 
         var json = JsonSerializer.Serialize(termsAndConditions, termsAndConditions.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -474,8 +479,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "ScopeTags");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(scopeTag.DisplayName ?? scopeTag.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, scopeTag.DisplayName ?? scopeTag.Id ?? "unknown", scopeTag.Id);
 
         var json = JsonSerializer.Serialize(scopeTag, scopeTag.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -515,8 +519,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "RoleDefinitions");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(roleDefinition.DisplayName ?? roleDefinition.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, roleDefinition.DisplayName ?? roleDefinition.Id ?? "unknown", roleDefinition.Id);
 
         var json = JsonSerializer.Serialize(roleDefinition, roleDefinition.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -558,8 +561,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "SettingsCatalog");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(policy.Name ?? policy.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, policy.Name ?? policy.Id ?? "unknown", policy.Id);
 
         var export = new SettingsCatalogExport
         {
@@ -606,8 +608,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "IntuneBrandingProfiles");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(profile.ProfileName ?? profile.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, profile.ProfileName ?? profile.Id ?? "unknown", profile.Id);
 
         var json = JsonSerializer.Serialize(profile, profile.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -647,8 +648,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "AzureBrandingLocalizations");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(localization.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, localization.Id ?? "unknown", null);
 
         var json = JsonSerializer.Serialize(localization, localization.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -688,8 +688,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "AutopilotProfiles");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(profile.DisplayName ?? profile.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, profile.DisplayName ?? profile.Id ?? "unknown", profile.Id);
 
         var json = JsonSerializer.Serialize(profile, profile.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -729,8 +728,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "DeviceHealthScripts");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, script.DisplayName ?? script.Id ?? "unknown", script.Id);
 
         var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -770,8 +768,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "MacCustomAttributes");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, script.DisplayName ?? script.Id ?? "unknown", script.Id);
 
         var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -811,8 +808,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "FeatureUpdates");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(profile.DisplayName ?? profile.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, profile.DisplayName ?? profile.Id ?? "unknown", profile.Id);
 
         var json = JsonSerializer.Serialize(profile, profile.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -856,8 +852,7 @@ public class ExportService : IExportService
             ? value?.ToString()
             : null;
 
-        var sanitizedName = SanitizeFileName(displayName ?? namedLocation.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, displayName ?? "unknown", namedLocation.Id);
 
         var json = JsonSerializer.Serialize(namedLocation, namedLocation.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -897,8 +892,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "AuthenticationStrengths");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(policy.DisplayName ?? policy.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, policy.DisplayName ?? policy.Id ?? "unknown", policy.Id);
 
         var json = JsonSerializer.Serialize(policy, policy.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -939,8 +933,7 @@ public class ExportService : IExportService
         Directory.CreateDirectory(folderPath);
 
         var displayName = contextClassReference.DisplayName ?? contextClassReference.Id;
-        var sanitizedName = SanitizeFileName(displayName ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, displayName ?? "unknown", contextClassReference.Id);
 
         var json = JsonSerializer.Serialize(contextClassReference, contextClassReference.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -980,8 +973,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "TermsOfUse");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(agreement.DisplayName ?? agreement.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, agreement.DisplayName ?? agreement.Id ?? "unknown", agreement.Id);
 
         var json = JsonSerializer.Serialize(agreement, agreement.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1021,8 +1013,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "DeviceManagementScripts");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, script.DisplayName ?? script.Id ?? "unknown", script.Id);
 
         var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1062,8 +1053,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "DeviceShellScripts");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, script.DisplayName ?? script.Id ?? "unknown", script.Id);
 
         var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1103,8 +1093,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "ComplianceScripts");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(script.DisplayName ?? script.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, script.DisplayName ?? script.Id ?? "unknown", script.Id);
 
         var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1144,8 +1133,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "QualityUpdates");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(profile.DisplayName ?? profile.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, profile.DisplayName ?? profile.Id ?? "unknown", profile.Id);
 
         var json = JsonSerializer.Serialize(profile, profile.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1185,8 +1173,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "AdmxFiles");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(admxFile.DisplayName ?? admxFile.FileName ?? admxFile.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, admxFile.DisplayName ?? admxFile.FileName ?? admxFile.Id ?? "unknown", admxFile.Id);
 
         var json = JsonSerializer.Serialize(admxFile, admxFile.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1226,8 +1213,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "DriverUpdates");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(profile.DisplayName ?? profile.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, profile.DisplayName ?? profile.Id ?? "unknown", profile.Id);
 
         var json = JsonSerializer.Serialize(profile, profile.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1267,8 +1253,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "ReusablePolicySettings");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(setting.DisplayName ?? setting.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, setting.DisplayName ?? setting.Id ?? "unknown", setting.Id);
 
         var json = JsonSerializer.Serialize(setting, setting.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -1308,8 +1293,7 @@ public class ExportService : IExportService
         var folderPath = Path.Combine(outputPath, "NotificationTemplates");
         Directory.CreateDirectory(folderPath);
 
-        var sanitizedName = SanitizeFileName(template.DisplayName ?? template.Id ?? "unknown");
-        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+        var filePath = GetUniqueFilePath(folderPath, template.DisplayName ?? template.Id ?? "unknown", template.Id);
 
         var json = JsonSerializer.Serialize(template, template.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);

@@ -71,6 +71,67 @@ public class ExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExportDeviceConfiguration_AllInvalidCharsInName_UsesUnnamedFallback()
+    {
+        // Names with only invalid filename chars should produce "unnamed.json" not ".json"
+        var config = new DeviceConfiguration
+        {
+            Id = "id-x",
+            DisplayName = "/<>:\"|?*" // all invalid chars
+        };
+        var table = new MigrationTable();
+
+        await _service.ExportDeviceConfigurationAsync(config, _tempDir, table);
+
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        var files = Directory.GetFiles(folder, "*.json");
+        Assert.Single(files);
+        // Should not be just ".json" — must have "unnamed" stem
+        Assert.Contains("unnamed", Path.GetFileNameWithoutExtension(files[0]));
+    }
+
+    [Fact]
+    public async Task ExportDeviceConfigurations_DuplicateDisplayNames_BothFilesCreated()
+    {
+        // Two configs with the same display name must NOT overwrite each other
+        var configs = new[]
+        {
+            new DeviceConfiguration { Id = "id-1", DisplayName = "Duplicate Name" },
+            new DeviceConfiguration { Id = "id-2", DisplayName = "Duplicate Name" }
+        };
+
+        await _service.ExportDeviceConfigurationsAsync(configs, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        // Should create 2 distinct files, not 1 overwritten file
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+    }
+
+    [Fact]
+    public async Task ExportDeviceConfiguration_DuplicateDisplayName_SecondFileContainsId()
+    {
+        // Second file with same display name must embed the id in the filename
+        var table = new MigrationTable();
+        var first = new DeviceConfiguration { Id = "id-1", DisplayName = "Same Name" };
+        var second = new DeviceConfiguration { Id = "id-2", DisplayName = "Same Name" };
+
+        await _service.ExportDeviceConfigurationAsync(first, _tempDir, table);
+        await _service.ExportDeviceConfigurationAsync(second, _tempDir, table);
+
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        var files = Directory.GetFiles(folder, "*.json")
+            .Select(Path.GetFileName)
+            .Order()
+            .ToArray();
+
+        Assert.Equal(2, files.Length);
+        // First file: "Same Name.json"
+        Assert.Equal("Same Name.json", files[1]); // alphabetically after "Same Name_id-2..."
+        // Second file must embed the id to disambiguate
+        Assert.Contains("id-2", files[0]);
+    }
+
+    [Fact]
     public async Task ExportDeviceConfigurations_CreatesMigrationTableFile()
     {
         var configs = new[]
@@ -1092,6 +1153,8 @@ public class ExportServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(folder, "Policy Two.json")));
         Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
     }
+
+    [Fact]
     public async Task ExportAdmxFile_CreatesJsonFile()
     {
         var admxFile = new GroupPolicyUploadedDefinitionFile { Id = "admx-id", DisplayName = "Test ADMX" };
