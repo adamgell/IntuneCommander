@@ -48,6 +48,43 @@ public class SettingsCatalogServiceTests
     }
 
     [Fact]
+    public void Interface_DefinesGetPolicySettingsMethod()
+    {
+        var method = typeof(ISettingsCatalogService).GetMethod("GetPolicySettingsAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<DeviceManagementConfigurationSetting>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+        Assert.True(parameters[1].HasDefaultValue);
+    }
+
+    [Fact]
+    public void Interface_DefinesCreateMethod()
+    {
+        var method = typeof(ISettingsCatalogService).GetMethod("CreateSettingsCatalogPolicyAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<DeviceManagementConfigurationPolicy>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(DeviceManagementConfigurationPolicy), parameters[0].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+        Assert.True(parameters[1].HasDefaultValue);
+    }
+
+    [Fact]
+    public void Interface_DefinesAssignMethod()
+    {
+        var method = typeof(ISettingsCatalogService).GetMethod("AssignSettingsCatalogPolicyAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(List<DeviceManagementConfigurationPolicyAssignment>), parameters[1].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[2].ParameterType);
+        Assert.True(parameters[2].HasDefaultValue);
+    }
+
+    [Fact]
     public void Interface_AllMethodsAcceptCancellationToken()
     {
         var methods = typeof(ISettingsCatalogService).GetMethods();
@@ -61,9 +98,9 @@ public class SettingsCatalogServiceTests
     }
 
     [Fact]
-    public void Interface_HasThreeMethods()
+    public void Interface_HasSixMethods()
     {
         var methods = typeof(ISettingsCatalogService).GetMethods();
-        Assert.Equal(3, methods.Length);
+        Assert.Equal(6, methods.Length);
     }
 }

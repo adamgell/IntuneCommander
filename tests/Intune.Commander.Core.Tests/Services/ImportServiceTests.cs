@@ -1692,6 +1692,10 @@ public class ImportServiceTests : IDisposable
     {
         var sut = new ImportService(new StubConfigurationService());
         var result = await sut.ReadQualityUpdateProfilesFromFolderAsync(_tempDir);
+    public async Task ReadSettingsCatalogPoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadSettingsCatalogPoliciesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
 
@@ -1708,6 +1712,18 @@ public class ImportServiceTests : IDisposable
 
         var sut = new ImportService(new StubConfigurationService());
         var result = await sut.ReadQualityUpdateProfilesFromFolderAsync(_tempDir);
+    public async Task ReadSettingsCatalogPoliciesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "SettingsCatalog");
+        Directory.CreateDirectory(folder);
+
+        var export1 = new SettingsCatalogExport { Policy = new DeviceManagementConfigurationPolicy { Id = "sc1", Name = "Policy1" } };
+        var export2 = new SettingsCatalogExport { Policy = new DeviceManagementConfigurationPolicy { Id = "sc2", Name = "Policy2" } };
+        await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(export1, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(export2, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadSettingsCatalogPoliciesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
     }
@@ -1772,6 +1788,51 @@ public class ImportServiceTests : IDisposable
         var result = await sut.ReadDriverUpdateProfilesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
+    public async Task ImportSettingsCatalogPolicyAsync_WithoutService_Throws()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var export = new SettingsCatalogExport { Policy = new DeviceManagementConfigurationPolicy { Id = "sc-id", Name = "Policy" } };
+        var table = new MigrationTable();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sut.ImportSettingsCatalogPolicyAsync(export, table));
+    }
+
+    [Fact]
+    public async Task ImportSettingsCatalogPolicyAsync_UpdatesMigration()
+    {
+        var stubSvc = new StubSettingsCatalogService();
+        var sut = new ImportService(new StubConfigurationService(), settingsCatalogService: stubSvc);
+        var export = new SettingsCatalogExport
+        {
+            Policy = new DeviceManagementConfigurationPolicy { Id = "orig-id", Name = "My Policy" }
+        };
+        var table = new MigrationTable();
+
+        var created = await sut.ImportSettingsCatalogPolicyAsync(export, table);
+
+        Assert.Equal("created-sc", created.Id);
+        Assert.Null(stubSvc.LastCreatedPolicy!.Id);
+        Assert.Contains(table.Entries, e => e.ObjectType == "SettingsCatalog" && e.OriginalId == "orig-id" && e.NewId == "created-sc");
+    }
+
+    [Fact]
+    public async Task ImportSettingsCatalogPolicyAsync_WithAssignments_CallsAssign()
+    {
+        var stubSvc = new StubSettingsCatalogService();
+        var sut = new ImportService(new StubConfigurationService(), settingsCatalogService: stubSvc);
+        var export = new SettingsCatalogExport
+        {
+            Policy = new DeviceManagementConfigurationPolicy { Id = "orig-id", Name = "My Policy" },
+            Assignments = [new DeviceManagementConfigurationPolicyAssignment { Id = "assign-1" }]
+        };
+        var table = new MigrationTable();
+
+        await sut.ImportSettingsCatalogPolicyAsync(export, table);
+
+        Assert.Equal("created-sc", stubSvc.LastAssignedPolicyId);
+        Assert.NotNull(stubSvc.LastAssignments);
+        Assert.Null(stubSvc.LastAssignments![0].Id);
     }
 
     private sealed class StubConfigurationService : IConfigurationProfileService
@@ -2089,6 +2150,9 @@ public class ImportServiceTests : IDisposable
 
         public Task DeleteRoleDefinitionAsync(string id, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
+
+        public Task<List<RoleAssignment>> GetRoleAssignmentsAsync(string roleDefinitionId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<RoleAssignment>());
     }
 
     private sealed class StubIntuneBrandingService : IIntuneBrandingService
@@ -2437,5 +2501,36 @@ public class ImportServiceTests : IDisposable
 
         public Task DeleteDriverUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
+    private sealed class StubSettingsCatalogService : ISettingsCatalogService
+    {
+        public DeviceManagementConfigurationPolicy? LastCreatedPolicy { get; private set; }
+        public string? LastAssignedPolicyId { get; private set; }
+        public List<DeviceManagementConfigurationPolicyAssignment>? LastAssignments { get; private set; }
+        public DeviceManagementConfigurationPolicy CreateResult { get; set; } = new() { Id = "created-sc", Name = "Created" };
+
+        public Task<List<DeviceManagementConfigurationPolicy>> ListSettingsCatalogPoliciesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceManagementConfigurationPolicy>());
+
+        public Task<DeviceManagementConfigurationPolicy?> GetSettingsCatalogPolicyAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<DeviceManagementConfigurationPolicy?>(null);
+
+        public Task<List<DeviceManagementConfigurationPolicyAssignment>> GetAssignmentsAsync(string policyId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceManagementConfigurationPolicyAssignment>());
+
+        public Task<List<DeviceManagementConfigurationSetting>> GetPolicySettingsAsync(string policyId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceManagementConfigurationSetting>());
+
+        public Task<DeviceManagementConfigurationPolicy> CreateSettingsCatalogPolicyAsync(DeviceManagementConfigurationPolicy policy, CancellationToken cancellationToken = default)
+        {
+            LastCreatedPolicy = policy;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task AssignSettingsCatalogPolicyAsync(string policyId, List<DeviceManagementConfigurationPolicyAssignment> assignments, CancellationToken cancellationToken = default)
+        {
+            LastAssignedPolicyId = policyId;
+            LastAssignments = assignments;
+            return Task.CompletedTask;
+        }
     }
 }

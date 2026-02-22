@@ -31,6 +31,7 @@ public class ImportService : IImportService
     private readonly IComplianceScriptService? _complianceScriptService;
     private readonly IQualityUpdateProfileService? _qualityUpdateProfileService;
     private readonly IDriverUpdateProfileService? _driverUpdateProfileService;
+    private readonly ISettingsCatalogService? _settingsCatalogService;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -63,6 +64,7 @@ public class ImportService : IImportService
         IComplianceScriptService? complianceScriptService = null,
         IQualityUpdateProfileService? qualityUpdateProfileService = null,
         IDriverUpdateProfileService? driverUpdateProfileService = null)
+        ISettingsCatalogService? settingsCatalogService = null)
     {
         _configProfileService = configProfileService;
         _compliancePolicyService = compliancePolicyService;
@@ -89,6 +91,7 @@ public class ImportService : IImportService
         _complianceScriptService = complianceScriptService;
         _qualityUpdateProfileService = qualityUpdateProfileService;
         _driverUpdateProfileService = driverUpdateProfileService;
+        _settingsCatalogService = settingsCatalogService;
     }
 
     public ImportService(
@@ -1467,6 +1470,7 @@ public class ImportService : IImportService
         return created;
     }
 
+
     public async Task<WindowsQualityUpdateProfile?> ReadQualityUpdateProfileAsync(string filePath, CancellationToken cancellationToken = default)
     {
         var json = await File.ReadAllTextAsync(filePath, cancellationToken);
@@ -1476,7 +1480,20 @@ public class ImportService : IImportService
     public async Task<List<WindowsQualityUpdateProfile>> ReadQualityUpdateProfilesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
     {
         var results = new List<WindowsQualityUpdateProfile>();
-        var folder = Path.Combine(folderPath, "QualityUpdates");
+        var folder = Path.Combine(folderPath, "Quali=======
+    // --- Settings Catalog ---
+
+    public async Task<SettingsCatalogExport?> ReadSettingsCatalogPolicyAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<SettingsCatalogExport>(json, JsonOptions);
+    }
+
+    public async Task<List<SettingsCatalogExport>> ReadSettingsCatalogPoliciesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<SettingsCatalogExport>();
+        var folder = Path.Combine(folderPath, "SettingsCatalog");
+
 
         if (!Directory.Exists(folder))
             return results;
@@ -1486,6 +1503,9 @@ public class ImportService : IImportService
             var profile = await ReadQualityUpdateProfileAsync(file, cancellationToken);
             if (profile != null)
                 results.Add(profile);
+            var export = await ReadSettingsCatalogPolicyAsync(file, cancellationToken);
+            if (export != null)
+                results.Add(export);
         }
 
         return results;
@@ -1555,6 +1575,48 @@ public class ImportService : IImportService
 
         var created = await _driverUpdateProfileService.CreateDriverUpdateProfileAsync(profile, cancellationToken);
 
+    public async Task<DeviceManagementConfigurationPolicy> ImportSettingsCatalogPolicyAsync(
+        SettingsCatalogExport export,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_settingsCatalogService == null)
+            throw new InvalidOperationException("Settings catalog service is not available");
+
+        var policy = export.Policy;
+        var originalId = policy.Id;
+
+        // Clear read-only properties
+        policy.Id = null;
+        policy.CreatedDateTime = null;
+        policy.LastModifiedDateTime = null;
+        policy.IsAssigned = null;
+
+        // Attach settings to the policy body for creation
+        if (export.Settings.Count > 0)
+        {
+            policy.Settings = export.Settings;
+            // Clear per-setting IDs so Graph creates new ones
+            foreach (var setting in policy.Settings)
+            {
+                setting.Id = null;
+            }
+        }
+
+        var created = await _settingsCatalogService.CreateSettingsCatalogPolicyAsync(policy, cancellationToken);
+
+        // Apply assignments if present
+        if (export.Assignments.Count > 0 && created.Id != null)
+        {
+            foreach (var assignment in export.Assignments)
+            {
+                assignment.Id = null;
+            }
+
+            await _settingsCatalogService.AssignSettingsCatalogPolicyAsync(created.Id, export.Assignments, cancellationToken);
+        }
+
+        // Update migration table
         if (originalId != null && created.Id != null)
         {
             migrationTable.AddOrUpdate(new MigrationEntry
@@ -1563,6 +1625,10 @@ public class ImportService : IImportService
                 OriginalId = originalId,
                 NewId = created.Id,
                 Name = created.DisplayName ?? "Unknown"
+                ObjectType = "SettingsCatalog",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.Name ?? "Unknown"
             });
         }
 

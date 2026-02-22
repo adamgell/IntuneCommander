@@ -150,7 +150,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
             ?? SelectedAssignmentFilter as object
 
-            ?? SelectedPolicySet as object;
+            ?? SelectedPolicySet as object
+
+            ?? SelectedDeviceManagementScript as object
+
+            ?? SelectedDeviceShellScript as object
+
+            ?? SelectedComplianceScript as object;
 
 
 
@@ -213,6 +219,12 @@ public partial class MainWindowViewModel : ViewModelBase
             DeviceAndAppManagementAssignmentFilter af => af.DisplayName ?? "Assignment Filter",
 
             PolicySet ps => ps.DisplayName ?? "Policy Set",
+
+            DeviceManagementScript dms => dms.DisplayName ?? "Device Management Script",
+
+            DeviceShellScript dss => dss.DisplayName ?? "Device Shell Script",
+
+            DeviceComplianceScript cs => cs.DisplayName ?? "Compliance Script",
 
             _ => "Item"
 
@@ -741,6 +753,82 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "Description", policySet.Description);
 
             Append(sb, "ID", policySet.Id);
+
+        }
+
+        else if (SelectedDeviceManagementScript is { } dms)
+
+        {
+
+            sb.AppendLine("=== Device Management Script ===");
+
+            Append(sb, "Name", dms.DisplayName);
+
+            Append(sb, "Description", dms.Description);
+
+            Append(sb, "File Name", dms.FileName);
+
+            Append(sb, "Run As Account", dms.RunAsAccount?.ToString());
+
+            Append(sb, "Run As 32-Bit", dms.RunAs32Bit?.ToString());
+
+            Append(sb, "Enforce Signature Check", dms.EnforceSignatureCheck?.ToString());
+
+            Append(sb, "Created", dms.CreatedDateTime?.ToString("g"));
+
+            Append(sb, "Last Modified", dms.LastModifiedDateTime?.ToString("g"));
+
+            Append(sb, "ID", dms.Id);
+
+            AppendAssignments(sb);
+
+        }
+
+        else if (SelectedDeviceShellScript is { } dss)
+
+        {
+
+            sb.AppendLine("=== Device Shell Script ===");
+
+            Append(sb, "Name", dss.DisplayName);
+
+            Append(sb, "Description", dss.Description);
+
+            Append(sb, "File Name", dss.FileName);
+
+            Append(sb, "Run As Account", dss.RunAsAccount?.ToString());
+
+            Append(sb, "Execution Frequency", dss.ExecutionFrequency?.ToString());
+
+            Append(sb, "Retry Count", dss.RetryCount?.ToString());
+
+            Append(sb, "Block Execution Notifications", dss.BlockExecutionNotifications?.ToString());
+
+            Append(sb, "Created", dss.CreatedDateTime?.ToString("g"));
+
+            Append(sb, "Last Modified", dss.LastModifiedDateTime?.ToString("g"));
+
+            Append(sb, "ID", dss.Id);
+
+            AppendAssignments(sb);
+
+        }
+
+        else if (SelectedComplianceScript is { } cs)
+
+        {
+
+            sb.AppendLine("=== Compliance Script ===");
+
+            Append(sb, "Name", cs.DisplayName);
+
+            Append(sb, "Description", cs.Description);
+
+            Append(sb, "Created", cs.CreatedDateTime?.ToString("g"));
+
+            Append(sb, "Last Modified", cs.LastModifiedDateTime?.ToString("g"));
+
+            Append(sb, "ID", cs.Id);
 
         }
 

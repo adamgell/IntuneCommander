@@ -20,7 +20,7 @@ public class RoleDefinitionService : IRoleDefinitionService
         var response = await _graphClient.DeviceManagement.RoleDefinitions
             .GetAsync(req =>
             {
-                req.QueryParameters.Top = 200;
+                req.QueryParameters.Top = 999;
             }, cancellationToken);
 
         while (response != null)
@@ -72,5 +72,35 @@ public class RoleDefinitionService : IRoleDefinitionService
     {
         await _graphClient.DeviceManagement.RoleDefinitions[id]
             .DeleteAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<List<RoleAssignment>> GetRoleAssignmentsAsync(string roleDefinitionId, CancellationToken cancellationToken = default)
+    {
+        var result = new List<RoleAssignment>();
+
+        var response = await _graphClient.DeviceManagement.RoleDefinitions[roleDefinitionId]
+            .RoleAssignments.GetAsync(req =>
+            {
+                req.QueryParameters.Top = 999;
+            }, cancellationToken);
+
+        while (response != null)
+        {
+            if (response.Value != null)
+                result.AddRange(response.Value);
+
+            if (!string.IsNullOrEmpty(response.OdataNextLink))
+            {
+                response = await _graphClient.DeviceManagement.RoleDefinitions[roleDefinitionId]
+                    .RoleAssignments.WithUrl(response.OdataNextLink)
+                    .GetAsync(cancellationToken: cancellationToken);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return result;
     }
 }

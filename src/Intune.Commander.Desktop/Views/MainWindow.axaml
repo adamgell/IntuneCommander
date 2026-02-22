@@ -328,6 +328,24 @@
                                         </MultiBinding>
                                     </Button.IsVisible>
                                 </Button>
+                                <Button Content="Export CSV"
+                                        Command="{Binding ExportSettingsCatalogCsvCommand}"
+                                        FontSize="12" Padding="8,4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsSettingsCatalogCategory}"
+                                        ToolTip.Tip="Export Settings Catalog policies list to CSV" />
+                                <Button Content="Export CSV"
+                                        Command="{Binding ExportCompliancePoliciesCsvCommand}"
+                                        FontSize="12" Padding="8,4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsCompliancePolicyCategory}"
+                                        ToolTip.Tip="Export Compliance Policies list to CSV" />
+                                <Button Content="Export CSV"
+                                        Command="{Binding ExportAdminTemplatesCsvCommand}"
+                                        FontSize="12" Padding="8,4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsAdministrativeTemplatesCategory}"
+                                        ToolTip.Tip="Export Administrative Templates list to CSV" />
                                 <Button Content="📊 Export PowerPoint"
                                         Command="{Binding ExportConditionalAccessPowerPointCommand}"
                                         FontSize="12" Padding="8,4"
@@ -469,6 +487,9 @@
                                     <Binding Path="SelectedAppAssignmentRow" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedDynamicGroupRow" Converter="{x:Static ObjectConverters.IsNull}" />
                                     <Binding Path="SelectedAssignedGroupRow" Converter="{x:Static ObjectConverters.IsNull}" />
+                                    <Binding Path="SelectedDeviceManagementScript" Converter="{x:Static ObjectConverters.IsNull}" />
+                                    <Binding Path="SelectedDeviceShellScript" Converter="{x:Static ObjectConverters.IsNull}" />
+                                    <Binding Path="SelectedComplianceScript" Converter="{x:Static ObjectConverters.IsNull}" />
                                 </MultiBinding>
                             </TextBlock.IsVisible>
                         </TextBlock>
@@ -2296,6 +2317,275 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- Device Management Script details           -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <ScrollViewer IsVisible="{Binding SelectedDeviceManagementScript, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Properties" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedDeviceManagementScript}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Display Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="File Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding FileName}" FontSize="12" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Run As Account" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding RunAsAccount}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Run As 32-Bit" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding RunAs32Bit}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Enforce Signature Check" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding EnforceSignatureCheck}" FontSize="12" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Created" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Last Modified" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Script Content -->
+                                <TextBlock Text="Script Content" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <SelectableTextBlock Text="{Binding SelectedDeviceManagementScript.ScriptContent, Converter={x:Static conv:BytesToUtf8Converter.Instance}}"
+                                               FontFamily="Monospace" FontSize="11"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                </Border>
+
+                                <!-- Section: Assignments -->
+                                <TextBlock Text="Assignments" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="No assignments"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                   IsVisible="{Binding !SelectedItemAssignments.Count}" />
+                                        <ItemsControl ItemsSource="{Binding SelectedItemAssignments}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="4,3" Margin="0,0,0,4">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Left"
+                                                                    Background="{DynamicResource SystemAccentColor}"
+                                                                    CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
+                                                                    VerticalAlignment="Top">
+                                                                <SelectableTextBlock Text="{Binding TargetKind}"
+                                                                           FontSize="10" Foreground="White" />
+                                                            </Border>
+                                                            <StackPanel Spacing="1">
+                                                                <SelectableTextBlock Text="{Binding Target}"
+                                                                           FontSize="12" TextWrapping="Wrap" />
+                                                                <SelectableTextBlock Text="{Binding GroupId}"
+                                                                           FontSize="10" Foreground="{DynamicResource AppTextSecondaryBrush}" Opacity="0.7"
+                                                                           IsVisible="{Binding GroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- Device Shell Script details                -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <ScrollViewer IsVisible="{Binding SelectedDeviceShellScript, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Properties" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedDeviceShellScript}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Display Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="File Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding FileName}" FontSize="12" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Run As Account" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding RunAsAccount}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Execution Frequency" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding ExecutionFrequency}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Retry Count" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding RetryCount}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Block Execution Notifications" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding BlockExecutionNotifications}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Created" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Last Modified" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Script Content -->
+                                <TextBlock Text="Script Content" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <SelectableTextBlock Text="{Binding SelectedDeviceShellScript.ScriptContent, Converter={x:Static conv:BytesToUtf8Converter.Instance}}"
+                                               FontFamily="Monospace" FontSize="11"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                </Border>
+
+                                <!-- Section: Assignments -->
+                                <TextBlock Text="Assignments" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="No assignments"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                   IsVisible="{Binding !SelectedItemAssignments.Count}" />
+                                        <ItemsControl ItemsSource="{Binding SelectedItemAssignments}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="4,3" Margin="0,0,0,4">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Left"
+                                                                    Background="{DynamicResource SystemAccentColor}"
+                                                                    CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
+                                                                    VerticalAlignment="Top">
+                                                                <SelectableTextBlock Text="{Binding TargetKind}"
+                                                                           FontSize="10" Foreground="White" />
+                                                            </Border>
+                                                            <StackPanel Spacing="1">
+                                                                <SelectableTextBlock Text="{Binding Target}"
+                                                                           FontSize="12" TextWrapping="Wrap" />
+                                                                <SelectableTextBlock Text="{Binding GroupId}"
+                                                                           FontSize="10" Foreground="{DynamicResource AppTextSecondaryBrush}" Opacity="0.7"
+                                                                           IsVisible="{Binding GroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- ═══════════════════════════════════════════ -->
+                        <!-- Compliance Script details                  -->
+                        <!-- ═══════════════════════════════════════════ -->
+                        <ScrollViewer IsVisible="{Binding SelectedComplianceScript, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Properties" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedComplianceScript}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Display Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Created" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Last Modified" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Detection Script Content -->
+                                <TextBlock Text="Detection Script" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <SelectableTextBlock Text="{Binding SelectedComplianceScript.DetectionScriptContent, Converter={x:Static conv:BytesToUtf8Converter.Instance}}"
+                                               FontFamily="Monospace" FontSize="11"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                 </Border>
 
                             </StackPanel>

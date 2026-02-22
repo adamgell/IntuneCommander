@@ -547,6 +547,56 @@ public class ExportService : IExportService
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
     }
 
+    public async Task ExportSettingsCatalogPolicyAsync(
+        DeviceManagementConfigurationPolicy policy,
+        IReadOnlyList<DeviceManagementConfigurationSetting> settings,
+        IReadOnlyList<DeviceManagementConfigurationPolicyAssignment> assignments,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "SettingsCatalog");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(policy.Name ?? policy.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var export = new SettingsCatalogExport
+        {
+            Policy = policy,
+            Settings = settings.ToList(),
+            Assignments = assignments.ToList()
+        };
+
+        var json = JsonSerializer.Serialize(export, JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (policy.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "SettingsCatalog",
+                OriginalId = policy.Id,
+                Name = policy.Name ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportSettingsCatalogPoliciesAsync(
+        IEnumerable<(DeviceManagementConfigurationPolicy Policy, IReadOnlyList<DeviceManagementConfigurationSetting> Settings, IReadOnlyList<DeviceManagementConfigurationPolicyAssignment> Assignments)> policies,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var (policy, settings, assignments) in policies)
+        {
+            await ExportSettingsCatalogPolicyAsync(policy, settings, assignments, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
     public async Task ExportIntuneBrandingProfileAsync(
         IntuneBrandingProfile profile,
         string outputPath,

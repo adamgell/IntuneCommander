@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Text;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Intune.Commander.Desktop.ViewModels;
@@ -96,6 +97,28 @@ public class HumanDateTimeConverter : IValueConverter
         }
 
         return value.ToString();
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => BindingOperations.DoNothing;
+}
+
+/// <summary>
+/// Converts a <see cref="byte[]"/> to a UTF-8 string for display.
+/// Graph API returns script content as raw bytes that represent UTF-8 text.
+/// </summary>
+public class BytesToUtf8Converter : IValueConverter
+{
+    public static readonly BytesToUtf8Converter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is byte[] bytes && bytes.Length > 0)
+        {
+            try { return Encoding.UTF8.GetString(bytes); }
+            catch { return "(binary content)"; }
+        }
+        return "";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
