@@ -1114,4 +1114,37 @@ public class ExportServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(folder, "Template B.json")));
         Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
     }
+
+    [Fact]
+    public async Task ExportAdmxFile_NullId_SkipsMigrationTableEntry()
+    {
+        var admxFile = new GroupPolicyUploadedDefinitionFile { Id = null, DisplayName = "No Id ADMX" };
+        var table = new MigrationTable();
+
+        await _service.ExportAdmxFileAsync(admxFile, _tempDir, table);
+
+        Assert.Empty(table.Entries);
+    }
+
+    [Fact]
+    public async Task ExportReusablePolicySetting_NullId_SkipsMigrationTableEntry()
+    {
+        var setting = new DeviceManagementReusablePolicySetting { Id = null, DisplayName = "No Id Setting" };
+        var table = new MigrationTable();
+
+        await _service.ExportReusablePolicySettingAsync(setting, _tempDir, table);
+
+        Assert.Empty(table.Entries);
+    }
+
+    [Fact]
+    public async Task ExportNotificationTemplate_NullId_SkipsMigrationTableEntry()
+    {
+        var template = new NotificationMessageTemplate { Id = null, DisplayName = "No Id Template" };
+        var table = new MigrationTable();
+
+        await _service.ExportNotificationTemplateAsync(template, _tempDir, table);
+
+        Assert.Empty(table.Entries);
+    }
 }

@@ -619,6 +619,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _assignedGroupsLoaded = false;
 
+        _admxFilesLoaded = false;
+
+        _reusablePolicySettingsLoaded = false;
+
+        _notificationTemplatesLoaded = false;
+
         SelectedItemAssignments.Clear();
 
         SelectedItemTypeName = "";
