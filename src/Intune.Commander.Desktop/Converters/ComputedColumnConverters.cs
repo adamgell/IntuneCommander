@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Text;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Intune.Commander.Desktop.ViewModels;
@@ -96,6 +97,27 @@ public class HumanDateTimeConverter : IValueConverter
         }
 
         return value.ToString();
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => BindingOperations.DoNothing;
+}
+
+/// <summary>
+/// Decodes a Base64-encoded byte array to a UTF-8 string.
+/// </summary>
+public class Base64DecodeConverter : IValueConverter
+{
+    public static readonly Base64DecodeConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is byte[] bytes && bytes.Length > 0)
+        {
+            try { return Encoding.UTF8.GetString(bytes); }
+            catch { return "(binary content)"; }
+        }
+        return "";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
