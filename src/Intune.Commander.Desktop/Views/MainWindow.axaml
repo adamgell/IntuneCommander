@@ -328,6 +328,24 @@
                                         </MultiBinding>
                                     </Button.IsVisible>
                                 </Button>
+                                <Button Content="Export CSV"
+                                        Command="{Binding ExportSettingsCatalogCsvCommand}"
+                                        FontSize="12" Padding="8,4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsSettingsCatalogCategory}"
+                                        ToolTip.Tip="Export Settings Catalog policies list to CSV" />
+                                <Button Content="Export CSV"
+                                        Command="{Binding ExportCompliancePoliciesCsvCommand}"
+                                        FontSize="12" Padding="8,4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsCompliancePolicyCategory}"
+                                        ToolTip.Tip="Export Compliance Policies list to CSV" />
+                                <Button Content="Export CSV"
+                                        Command="{Binding ExportAdminTemplatesCsvCommand}"
+                                        FontSize="12" Padding="8,4"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsAdministrativeTemplatesCategory}"
+                                        ToolTip.Tip="Export Administrative Templates list to CSV" />
                                 <Button Content="📊 Export PowerPoint"
                                         Command="{Binding ExportConditionalAccessPowerPointCommand}"
                                         FontSize="12" Padding="8,4"

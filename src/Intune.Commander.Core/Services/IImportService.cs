@@ -101,4 +101,8 @@ public interface IImportService
     Task<DeviceComplianceScript?> ReadComplianceScriptAsync(string filePath, CancellationToken cancellationToken = default);
     Task<List<DeviceComplianceScript>> ReadComplianceScriptsFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
     Task<DeviceComplianceScript> ImportComplianceScriptAsync(DeviceComplianceScript script, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+
+    Task<SettingsCatalogExport?> ReadSettingsCatalogPolicyAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<List<SettingsCatalogExport>> ReadSettingsCatalogPoliciesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default);
+    Task<DeviceManagementConfigurationPolicy> ImportSettingsCatalogPolicyAsync(SettingsCatalogExport export, MigrationTable migrationTable, CancellationToken cancellationToken = default);
 }

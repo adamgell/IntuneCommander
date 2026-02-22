@@ -41,6 +41,9 @@ public interface IExportService
     Task ExportRoleDefinitionAsync(RoleDefinition roleDefinition, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
     Task ExportRoleDefinitionsAsync(IEnumerable<RoleDefinition> roleDefinitions, string outputPath, CancellationToken cancellationToken = default);
 
+    Task ExportSettingsCatalogPolicyAsync(DeviceManagementConfigurationPolicy policy, IReadOnlyList<DeviceManagementConfigurationSetting> settings, IReadOnlyList<DeviceManagementConfigurationPolicyAssignment> assignments, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportSettingsCatalogPoliciesAsync(IEnumerable<(DeviceManagementConfigurationPolicy Policy, IReadOnlyList<DeviceManagementConfigurationSetting> Settings, IReadOnlyList<DeviceManagementConfigurationPolicyAssignment> Assignments)> policies, string outputPath, CancellationToken cancellationToken = default);
+
     Task ExportIntuneBrandingProfileAsync(IntuneBrandingProfile profile, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
     Task ExportIntuneBrandingProfilesAsync(IEnumerable<IntuneBrandingProfile> profiles, string outputPath, CancellationToken cancellationToken = default);
 

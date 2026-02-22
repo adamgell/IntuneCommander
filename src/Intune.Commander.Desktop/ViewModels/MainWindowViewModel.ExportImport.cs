@@ -114,7 +114,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string CsvEscape(string? value)
     {
         if (string.IsNullOrEmpty(value)) return "\"\"";
-        return "\"" + value.Replace("\"", "\"\"") + "\"";
+        // Neutralize spreadsheet formula injection: prefix formula-starting chars with a tab
+        var sanitized = value;
+        if (sanitized.Length > 0 && (sanitized[0] == '=' || sanitized[0] == '+' || sanitized[0] == '-' || sanitized[0] == '@'))
+            sanitized = "\t" + sanitized;
+        return "\"" + sanitized.Replace("\"", "\"\"") + "\"";
     }
 
     // --- Group CSV Export ---
@@ -199,6 +203,171 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
 
+    // --- Settings Catalog CSV Export ---
+
+    [RelayCommand]
+    private async Task ExportSettingsCatalogCsvAsync(CancellationToken cancellationToken)
+    {
+        if (SettingsCatalogPolicies.Count == 0)
+        {
+            StatusText = "No settings catalog policies to export";
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "Exporting Settings Catalog to CSV...";
+
+        try
+        {
+            var outputPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "IntuneExport");
+            Directory.CreateDirectory(outputPath);
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            var csvPath = Path.Combine(outputPath, $"SettingsCatalog-{timestamp}.csv");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("\"Name\",\"ID\",\"Description\",\"Platforms\",\"Technologies\"," +
+                          "\"Created Date\",\"Last Modified\",\"Setting Count\",\"Is Assigned\"," +
+                          "\"Template Display Name\"");
+
+            foreach (var policy in SettingsCatalogPolicies)
+            {
+                sb.AppendLine(string.Join(",",
+                    CsvEscape(policy.Name),
+                    CsvEscape(policy.Id),
+                    CsvEscape(policy.Description),
+                    CsvEscape(policy.Platforms?.ToString()),
+                    CsvEscape(policy.Technologies?.ToString()),
+                    CsvEscape(policy.CreatedDateTime?.ToString("yyyy-MM-dd HH:mm:ss")),
+                    CsvEscape(policy.LastModifiedDateTime?.ToString("yyyy-MM-dd HH:mm:ss")),
+                    CsvEscape(policy.SettingCount?.ToString()),
+                    CsvEscape(policy.IsAssigned?.ToString()),
+                    CsvEscape(policy.TemplateReference?.TemplateDisplayName)));
+            }
+
+            await File.WriteAllTextAsync(csvPath, sb.ToString(), Encoding.UTF8, cancellationToken);
+            StatusText = $"Exported {SettingsCatalogPolicies.Count} settings catalog policies to {csvPath}";
+        }
+        catch (Exception ex)
+        {
+            SetError($"CSV export failed: {ex.Message}");
+            StatusText = "CSV export failed";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    // --- Compliance Policies CSV Export ---
+
+    [RelayCommand]
+    private async Task ExportCompliancePoliciesCsvAsync(CancellationToken cancellationToken)
+    {
+        if (CompliancePolicies.Count == 0)
+        {
+            StatusText = "No compliance policies to export";
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "Exporting Compliance Policies to CSV...";
+
+        try
+        {
+            var outputPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "IntuneExport");
+            Directory.CreateDirectory(outputPath);
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            var csvPath = Path.Combine(outputPath, $"CompliancePolicies-{timestamp}.csv");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("\"Name\",\"ID\",\"Description\",\"Policy Type\",\"Created Date\"," +
+                          "\"Last Modified\",\"Version\"");
+
+            foreach (var policy in CompliancePolicies)
+            {
+                sb.AppendLine(string.Join(",",
+                    CsvEscape(policy.DisplayName),
+                    CsvEscape(policy.Id),
+                    CsvEscape(policy.Description),
+                    CsvEscape(policy.OdataType),
+                    CsvEscape(policy.CreatedDateTime?.ToString("yyyy-MM-dd HH:mm:ss")),
+                    CsvEscape(policy.LastModifiedDateTime?.ToString("yyyy-MM-dd HH:mm:ss")),
+                    CsvEscape(policy.Version?.ToString())));
+            }
+
+            await File.WriteAllTextAsync(csvPath, sb.ToString(), Encoding.UTF8, cancellationToken);
+            StatusText = $"Exported {CompliancePolicies.Count} compliance policies to {csvPath}";
+        }
+        catch (Exception ex)
+        {
+            SetError($"CSV export failed: {ex.Message}");
+            StatusText = "CSV export failed";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    // --- Admin Templates CSV Export ---
+
+    [RelayCommand]
+    private async Task ExportAdminTemplatesCsvAsync(CancellationToken cancellationToken)
+    {
+        if (AdministrativeTemplates.Count == 0)
+        {
+            StatusText = "No administrative templates to export";
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "Exporting Administrative Templates to CSV...";
+
+        try
+        {
+            var outputPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "IntuneExport");
+            Directory.CreateDirectory(outputPath);
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            var csvPath = Path.Combine(outputPath, $"AdministrativeTemplates-{timestamp}.csv");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("\"Name\",\"ID\",\"Description\",\"Policy Type\",\"Created Date\",\"Last Modified\"");
+
+            foreach (var template in AdministrativeTemplates)
+            {
+                sb.AppendLine(string.Join(",",
+                    CsvEscape(template.DisplayName),
+                    CsvEscape(template.Id),
+                    CsvEscape(template.Description),
+                    CsvEscape(template.PolicyConfigurationIngestionType?.ToString()),
+                    CsvEscape(template.CreatedDateTime?.ToString("yyyy-MM-dd HH:mm:ss")),
+                    CsvEscape(template.LastModifiedDateTime?.ToString("yyyy-MM-dd HH:mm:ss"))));
+            }
+
+            await File.WriteAllTextAsync(csvPath, sb.ToString(), Encoding.UTF8, cancellationToken);
+            StatusText = $"Exported {AdministrativeTemplates.Count} administrative templates to {csvPath}";
+        }
+        catch (Exception ex)
+        {
+            SetError($"CSV export failed: {ex.Message}");
+            StatusText = "CSV export failed";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+
     // --- Export ---
 
     [RelayCommand]
@@ -256,6 +425,18 @@ public partial class MainWindowViewModel : ViewModelBase
                     : [];
                 await _exportService.ExportAdministrativeTemplateAsync(
                     SelectedAdministrativeTemplate, assignments, outputPath, migrationTable, cancellationToken);
+            }
+            else if (IsSettingsCatalogCategory && SelectedSettingsCatalogPolicy != null)
+            {
+                StatusText = $"Exporting {SelectedSettingsCatalogPolicy.Name}...";
+                var settings = _settingsCatalogService != null && SelectedSettingsCatalogPolicy.Id != null
+                    ? await _settingsCatalogService.GetPolicySettingsAsync(SelectedSettingsCatalogPolicy.Id, cancellationToken)
+                    : [];
+                var assignments = _settingsCatalogService != null && SelectedSettingsCatalogPolicy.Id != null
+                    ? await _settingsCatalogService.GetAssignmentsAsync(SelectedSettingsCatalogPolicy.Id, cancellationToken)
+                    : [];
+                await _exportService.ExportSettingsCatalogPolicyAsync(
+                    SelectedSettingsCatalogPolicy, settings, assignments, outputPath, migrationTable, cancellationToken);
             }
             else if (IsEnrollmentConfigurationsCategory && SelectedEnrollmentConfiguration != null)
             {
@@ -477,6 +658,41 @@ public partial class MainWindowViewModel : ViewModelBase
                     await _exportService.ExportAdministrativeTemplateAsync(template, assignments, outputPath, migrationTable, cancellationToken);
                     count++;
                 }
+            }
+
+            // Export settings catalog policies with settings and assignments (bounded parallelism)
+            if (SettingsCatalogPolicies.Any() && _settingsCatalogService != null)
+            {
+                StatusText = "Exporting settings catalog policies...";
+                const int maxDegreeOfParallelism = 4;
+                using var semaphore = new SemaphoreSlim(maxDegreeOfParallelism);
+                var policyExportTasks = new List<Task>();
+
+                foreach (var policy in SettingsCatalogPolicies)
+                {
+                    var capturedPolicy = policy;
+                    policyExportTasks.Add(Task.Run(async () =>
+                    {
+                        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        try
+                        {
+                            var settings = capturedPolicy.Id != null
+                                ? await _settingsCatalogService.GetPolicySettingsAsync(capturedPolicy.Id, cancellationToken).ConfigureAwait(false)
+                                : [];
+                            var assignments = capturedPolicy.Id != null
+                                ? await _settingsCatalogService.GetAssignmentsAsync(capturedPolicy.Id, cancellationToken).ConfigureAwait(false)
+                                : [];
+                            await _exportService.ExportSettingsCatalogPolicyAsync(capturedPolicy, settings, assignments, outputPath, migrationTable, cancellationToken).ConfigureAwait(false);
+                            Interlocked.Increment(ref count);
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    }, cancellationToken));
+                }
+
+                await Task.WhenAll(policyExportTasks).ConfigureAwait(false);
             }
 
             // Export enrollment configurations
@@ -941,6 +1157,15 @@ public partial class MainWindowViewModel : ViewModelBase
             foreach (var script in complianceScripts)
             {
                 await _importService.ImportComplianceScriptAsync(script, migrationTable, cancellationToken);
+                imported++;
+                StatusText = $"Imported {imported} item(s)...";
+            }
+
+            // Import settings catalog policies
+            var settingsCatalogPolicies = await _importService.ReadSettingsCatalogPoliciesFromFolderAsync(folderPath, cancellationToken);
+            foreach (var export in settingsCatalogPolicies)
+            {
+                await _importService.ImportSettingsCatalogPolicyAsync(export, migrationTable, cancellationToken);
                 imported++;
                 StatusText = $"Imported {imported} item(s)...";
             }

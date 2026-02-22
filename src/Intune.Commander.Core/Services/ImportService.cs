@@ -29,6 +29,7 @@ public class ImportService : IImportService
     private readonly IDeviceManagementScriptService? _deviceManagementScriptService;
     private readonly IDeviceShellScriptService? _deviceShellScriptService;
     private readonly IComplianceScriptService? _complianceScriptService;
+    private readonly ISettingsCatalogService? _settingsCatalogService;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -58,7 +59,8 @@ public class ImportService : IImportService
         ITermsOfUseService? termsOfUseService = null,
         IDeviceManagementScriptService? deviceManagementScriptService = null,
         IDeviceShellScriptService? deviceShellScriptService = null,
-        IComplianceScriptService? complianceScriptService = null)
+        IComplianceScriptService? complianceScriptService = null,
+        ISettingsCatalogService? settingsCatalogService = null)
     {
         _configProfileService = configProfileService;
         _compliancePolicyService = compliancePolicyService;
@@ -83,6 +85,7 @@ public class ImportService : IImportService
         _deviceManagementScriptService = deviceManagementScriptService;
         _deviceShellScriptService = deviceShellScriptService;
         _complianceScriptService = complianceScriptService;
+        _settingsCatalogService = settingsCatalogService;
     }
 
     public ImportService(
@@ -1455,6 +1458,88 @@ public class ImportService : IImportService
                 OriginalId = originalId,
                 NewId = created.Id,
                 Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    // --- Settings Catalog ---
+
+    public async Task<SettingsCatalogExport?> ReadSettingsCatalogPolicyAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<SettingsCatalogExport>(json, JsonOptions);
+    }
+
+    public async Task<List<SettingsCatalogExport>> ReadSettingsCatalogPoliciesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<SettingsCatalogExport>();
+        var folder = Path.Combine(folderPath, "SettingsCatalog");
+
+        if (!Directory.Exists(folder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(folder, "*.json"))
+        {
+            var export = await ReadSettingsCatalogPolicyAsync(file, cancellationToken);
+            if (export != null)
+                results.Add(export);
+        }
+
+        return results;
+    }
+
+    public async Task<DeviceManagementConfigurationPolicy> ImportSettingsCatalogPolicyAsync(
+        SettingsCatalogExport export,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_settingsCatalogService == null)
+            throw new InvalidOperationException("Settings catalog service is not available");
+
+        var policy = export.Policy;
+        var originalId = policy.Id;
+
+        // Clear read-only properties
+        policy.Id = null;
+        policy.CreatedDateTime = null;
+        policy.LastModifiedDateTime = null;
+        policy.IsAssigned = null;
+
+        // Attach settings to the policy body for creation
+        if (export.Settings.Count > 0)
+        {
+            policy.Settings = export.Settings;
+            // Clear per-setting IDs so Graph creates new ones
+            foreach (var setting in policy.Settings)
+            {
+                setting.Id = null;
+            }
+        }
+
+        var created = await _settingsCatalogService.CreateSettingsCatalogPolicyAsync(policy, cancellationToken);
+
+        // Apply assignments if present
+        if (export.Assignments.Count > 0 && created.Id != null)
+        {
+            foreach (var assignment in export.Assignments)
+            {
+                assignment.Id = null;
+            }
+
+            await _settingsCatalogService.AssignSettingsCatalogPolicyAsync(created.Id, export.Assignments, cancellationToken);
+        }
+
+        // Update migration table
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "SettingsCatalog",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.Name ?? "Unknown"
             });
         }
 

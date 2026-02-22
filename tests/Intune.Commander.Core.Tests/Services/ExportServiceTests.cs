@@ -1018,6 +1018,51 @@ public class ExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExportSettingsCatalogPolicy_CreatesJsonFile()
+    {
+        var policy = new DeviceManagementConfigurationPolicy { Id = "sc-id", Name = "Test Policy" };
+        var settings = new List<DeviceManagementConfigurationSetting>();
+        var assignments = new List<DeviceManagementConfigurationPolicyAssignment>();
+        var table = new MigrationTable();
+
+        await _service.ExportSettingsCatalogPolicyAsync(policy, settings, assignments, _tempDir, table);
+
+        Assert.True(File.Exists(Path.Combine(_tempDir, "SettingsCatalog", "Test Policy.json")));
+        Assert.Contains(table.Entries, e => e.ObjectType == "SettingsCatalog" && e.OriginalId == "sc-id");
+    }
+
+    [Fact]
+    public async Task ExportSettingsCatalogPolicy_JsonContainsExportModel()
+    {
+        var policy = new DeviceManagementConfigurationPolicy { Id = "sc-id", Name = "Test Policy" };
+        var settings = new List<DeviceManagementConfigurationSetting>();
+        var assignments = new List<DeviceManagementConfigurationPolicyAssignment>();
+        var table = new MigrationTable();
+
+        await _service.ExportSettingsCatalogPolicyAsync(policy, settings, assignments, _tempDir, table);
+
+        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "SettingsCatalog", "Test Policy.json"));
+        Assert.Contains("\"policy\"", json);
+        Assert.Contains("\"settings\"", json);
+        Assert.Contains("\"assignments\"", json);
+    }
+
+    [Fact]
+    public async Task ExportSettingsCatalogPolicies_ExportsMultipleAndWritesMigrationTable()
+    {
+        var items = new List<(DeviceManagementConfigurationPolicy, IReadOnlyList<DeviceManagementConfigurationSetting>, IReadOnlyList<DeviceManagementConfigurationPolicyAssignment>)>
+        {
+            (new DeviceManagementConfigurationPolicy { Id = "sc-1", Name = "Policy One" }, [], []),
+            (new DeviceManagementConfigurationPolicy { Id = "sc-2", Name = "Policy Two" }, [], [])
+        };
+
+        await _service.ExportSettingsCatalogPoliciesAsync(items, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "SettingsCatalog");
+        Assert.True(File.Exists(Path.Combine(folder, "Policy One.json")));
+        Assert.True(File.Exists(Path.Combine(folder, "Policy Two.json")));
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
     public async Task ExportAdmxFile_CreatesJsonFile()
     {
         var admxFile = new GroupPolicyUploadedDefinitionFile { Id = "admx-id", DisplayName = "Test ADMX" };
