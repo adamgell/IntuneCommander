@@ -82,16 +82,27 @@ public class RoleDefinitionServiceTests
     }
 
     [Fact]
-    public void Interface_HasSixMethods()
+    public void Interface_DefinesGetRoleAssignmentsMethod()
     {
-        var methods = typeof(IRoleDefinitionService).GetMethods();
-        Assert.Equal(6, methods.Length);
+        var method = typeof(IRoleDefinitionService).GetMethod("GetRoleAssignmentsAsync", [typeof(CancellationToken)]);
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<DeviceAndAppManagementRoleAssignment>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(CancellationToken), parameters[0].ParameterType);
+        Assert.True(parameters[0].HasDefaultValue);
     }
 
     [Fact]
-    public void Interface_DefinesGetRoleAssignmentsMethod()
+    public void Interface_HasSevenMethods()
     {
-        var method = typeof(IRoleDefinitionService).GetMethod("GetRoleAssignmentsAsync");
+        var methods = typeof(IRoleDefinitionService).GetMethods();
+        Assert.Equal(7, methods.Length);
+    }
+
+    [Fact]
+    public void Interface_DefinesGetRoleAssignmentsByRoleDefinitionMethod()
+    {
+        var method = typeof(IRoleDefinitionService).GetMethod("GetRoleAssignmentsAsync", [typeof(string), typeof(CancellationToken)]);
         Assert.NotNull(method);
         Assert.Equal(typeof(Task<List<RoleAssignment>>), method.ReturnType);
         var parameters = method.GetParameters();

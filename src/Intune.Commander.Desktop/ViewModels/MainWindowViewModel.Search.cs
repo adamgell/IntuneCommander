@@ -237,6 +237,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     [ObservableProperty]
+    private ObservableCollection<CloudPcProvisioningPolicy> _filteredCloudPcProvisioningPolicies = [];
+
+    [ObservableProperty]
+    private ObservableCollection<CloudPcUserSetting> _filteredCloudPcUserSettings = [];
+
+    [ObservableProperty]
+    private ObservableCollection<VppToken> _filteredVppTokens = [];
+
+    [ObservableProperty]
+    private ObservableCollection<DeviceAndAppManagementRoleAssignment> _filteredRoleAssignments = [];
+
+    [ObservableProperty]
 
     private ObservableCollection<WindowsQualityUpdateProfile> _filteredQualityUpdateProfiles = [];
 
@@ -341,6 +353,14 @@ public partial class MainWindowViewModel : ViewModelBase
             FilteredDeviceShellScripts = new ObservableCollection<DeviceShellScript>(DeviceShellScripts);
 
             FilteredComplianceScripts = new ObservableCollection<DeviceComplianceScript>(ComplianceScripts);
+
+            FilteredCloudPcProvisioningPolicies = new ObservableCollection<CloudPcProvisioningPolicy>(CloudPcProvisioningPolicies);
+
+            FilteredCloudPcUserSettings = new ObservableCollection<CloudPcUserSetting>(CloudPcUserSettings);
+
+            FilteredVppTokens = new ObservableCollection<VppToken>(VppTokens);
+
+            FilteredRoleAssignments = new ObservableCollection<DeviceAndAppManagementRoleAssignment>(RoleAssignments);
 
             FilteredQualityUpdateProfiles = new ObservableCollection<WindowsQualityUpdateProfile>(QualityUpdateProfiles);
 
@@ -761,24 +781,40 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 Contains(s.Id, q)));
 
-        FilteredQualityUpdateProfiles = new ObservableCollection<WindowsQualityUpdateProfile>(
-
-            QualityUpdateProfiles.Where(p =>
-
+        FilteredCloudPcProvisioningPolicies = new ObservableCollection<CloudPcProvisioningPolicy>(
+            CloudPcProvisioningPolicies.Where(p =>
                 Contains(p.DisplayName, q) ||
-
                 Contains(p.Description, q) ||
+                Contains(p.Id, q)));
 
+        FilteredCloudPcUserSettings = new ObservableCollection<CloudPcUserSetting>(
+            CloudPcUserSettings.Where(s =>
+                Contains(s.DisplayName, q) ||
+                Contains(s.Id, q)));
+
+        FilteredVppTokens = new ObservableCollection<VppToken>(
+            VppTokens.Where(t =>
+                Contains(t.DisplayName, q) ||
+                Contains(t.AppleId, q) ||
+                Contains(t.OrganizationName, q) ||
+                Contains(t.Id, q)));
+
+        FilteredRoleAssignments = new ObservableCollection<DeviceAndAppManagementRoleAssignment>(
+            RoleAssignments.Where(r =>
+                Contains(r.DisplayName, q) ||
+                Contains(r.Description, q) ||
+                Contains(r.Id, q)));
+
+        FilteredQualityUpdateProfiles = new ObservableCollection<WindowsQualityUpdateProfile>(
+            QualityUpdateProfiles.Where(p =>
+                Contains(p.DisplayName, q) ||
+                Contains(p.Description, q) ||
                 Contains(p.Id, q)));
 
         FilteredDriverUpdateProfiles = new ObservableCollection<WindowsDriverUpdateProfile>(
-
             DriverUpdateProfiles.Where(p =>
-
                 Contains(p.DisplayName, q) ||
-
                 Contains(p.Description, q) ||
-
                 Contains(p.Id, q)));
         FilteredAdmxFiles = new ObservableCollection<GroupPolicyUploadedDefinitionFile>(
 
@@ -815,7 +851,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 Contains(t.DefaultLocale, q) ||
 
                 Contains(t.Id, q)));
-
         OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
 
     }
