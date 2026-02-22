@@ -5,7 +5,7 @@ This document inventories Graph API URI usage from the `IntuneManagement` submod
 ## Artifacts
 
 - Raw endpoint inventory (generated): `docs/graph-uri-inventory.csv`
-- Source scanned: `IntuneManagement/**/*.ps1`, `IntuneManagement/**/*.psm1`
+- Source scanned: `IntuneManagement/**/*.ps1`, `IntuneManagement/**/*.psm1` *(submodule removed from repo; inventory captured before removal)*
 - Extraction captured:
   - `Invoke-GraphRequest -Url "..."` calls
   - `API = "..."` object type definitions
@@ -15,8 +15,10 @@ This document inventories Graph API URI usage from the `IntuneManagement` submod
 - Extracted URI rows: **132**
 - Unique URI patterns: **104**
 - Stable/non-templated URI patterns: **63**
-- **Implemented in Intune Commander: 26 direct Graph API services** (Waves 1–5 complete)
-- **Additional completed feature:** `IConditionalAccessPptExportService` (Wave 6) — orchestrates CA policy data from existing services into a PowerPoint export; not a direct Graph API service
+- **Implemented in Intune Commander: 30 direct Graph API services** (Waves 1–7 Scripts complete)
+- **Additional completed orchestrators (not direct Graph API services):**
+  - `IConditionalAccessPptExportService` (Wave 6) — orchestrates CA policy data into a PowerPoint export
+  - `IAssignmentCheckerService` — full assignment report engine; scans all policy types for user/device/group/all-users/all-devices/empty-group/failure reports; uses `ICacheService` for pre-fetched data
 
 ## Completed Implementation Waves
 
@@ -28,6 +30,8 @@ This document inventories Graph API URI usage from the `IntuneManagement` submod
 | Wave 4 | Device Management Extensions | `IAutopilotService`, `IDeviceHealthScriptService`, `IMacCustomAttributeService`, `IFeatureUpdateProfileService` | ✅ Complete |
 | Wave 5 | Conditional Access and Identity Governance | `INamedLocationService`, `IAuthenticationStrengthService`, `IAuthenticationContextService`, `ITermsOfUseService` | ✅ Complete |
 | Wave 6 | CA PowerPoint Export | `IConditionalAccessPptExportService` (orchestrator, not a direct Graph service) | ✅ Complete |
+| Wave 7 (Scripts) | Platform Scripts | `IDeviceManagementScriptService`, `IDeviceShellScriptService`, `IComplianceScriptService` | ✅ Complete |
+| — | Assignment Report | `IAssignmentCheckerService` (orchestrator) + `IUserService` | ✅ Complete |
 
 ## Current Coverage
 
@@ -61,16 +65,12 @@ All services use `Microsoft.Graph.Beta` and manual `@odata.nextLink` pagination.
 | `IAuthenticationContextService` | `/identity/conditionalAccess/authenticationContextClassReferences` | List, Get, Create, Update, Delete | Authentication Contexts |
 | `ITermsOfUseService` | `/identityGovernance/termsOfUse/agreements` | List, Get, Create, Update, Delete | Terms of Use |
 | `IGroupService` | `/groups` + `/groups/{id}/members` | ListDynamic, ListAssigned, Search, GetMembers, GetGroupAssignments | Dynamic Groups, Assigned Groups, Group Lookup |
+| `IDeviceManagementScriptService` | `/deviceManagement/deviceManagementScripts` | List, Get, Create, Update, Delete, GetAssignments, Assign | Device Management Scripts |
+| `IDeviceShellScriptService` | `/deviceManagement/deviceShellScripts` | List, Get, Create, Update, Delete, GetAssignments, Assign | Device Shell Scripts |
+| `IComplianceScriptService` | `/deviceManagement/deviceComplianceScripts` | List, Get, Create, Update, Delete | Compliance Scripts |
+| `IUserService` | `/users` | SearchUsers (startsWith/UPN), ListUsers | Assignment Report (user search) |
 
 ## Uncovered Endpoint Families (backlog)
-
-### Scripts
-
-| Endpoint | Suggested service | Priority |
-|---|---|---|
-| `/deviceManagement/deviceManagementScripts` | `IDeviceManagementScriptService` | High — migration-critical |
-| `/deviceManagement/deviceShellScripts` | `IDeviceShellScriptService` | High — migration-critical |
-| `/deviceManagement/deviceComplianceScripts` | `IComplianceScriptService` | Medium |
 
 ### Policy Support Objects
 
@@ -118,10 +118,11 @@ All services use `Microsoft.Graph.Beta` and manual `@odata.nextLink` pagination.
 
 Per [SERVICE-IMPLEMENTATION-PLAN.md](SERVICE-IMPLEMENTATION-PLAN.md):
 
-1. **Wave 7 — Scripts** (highest migration value): `IDeviceManagementScriptService`, `IDeviceShellScriptService`, `IComplianceScriptService`, `IAdmxFileService`, `IReusablePolicySettingService`
-2. **Wave 8 — Update Plane**: Quality Updates, Driver Update Profiles
-3. **Wave 9 — Enrollment + Apple**: DEP onboarding, device categories
-4. **Wave 10 — Cloud PC + Long-Tail**: W365 provisioning/user settings, VPP tokens
+1. ~~**Wave 7 — Scripts** (highest migration value): `IDeviceManagementScriptService`, `IDeviceShellScriptService`, `IComplianceScriptService`~~ ✅ Done
+2. **Wave 7 (remaining) — ADMX + Policy Support**: `IAdmxFileService`, `IReusablePolicySettingService`
+3. **Wave 8 — Update Plane**: Quality Updates, Driver Update Profiles
+4. **Wave 9 — Enrollment + Apple**: DEP onboarding, device categories
+5. **Wave 10 — Cloud PC + Long-Tail**: W365 provisioning/user settings, VPP tokens
 
 ## Service Implementation Standard
 
@@ -141,4 +142,6 @@ For each new service:
 - All endpoints use the **Beta** Graph API (`https://graph.microsoft.com/beta/`).
 - The current architecture is service-per-type; new services must follow the same pattern.
 - `$top=999` is the correct pagination default (not `$top=200` as the CSV audit originally noted).
-- `IConditionalAccessPptExportService` is **not** counted in the 26 direct Graph API services — it is an export orchestrator that reads data already loaded into the ViewModel rather than making its own Graph calls.
+- `IConditionalAccessPptExportService` and `IAssignmentCheckerService` are **not** counted in the 30 direct Graph API services — both are orchestrators that consume data from other services/cache rather than owning a single Graph resource type.
+- `IUserService` (`/users`) was added to support user search in the Assignment Report; it is not part of the original IntuneManagement URI inventory but follows the same service-per-type pattern.
+- The `IntuneManagement` submodule has been removed from the repository; the URI inventory in `graph-uri-inventory.csv` was captured before removal and remains the authoritative backlog reference.
