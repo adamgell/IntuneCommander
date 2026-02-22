@@ -20,7 +20,7 @@ public class DeviceManagementScriptService : IDeviceManagementScriptService
         var response = await _graphClient.DeviceManagement.DeviceManagementScripts
             .GetAsync(req =>
             {
-                req.QueryParameters.Top = 999;
+                req.QueryParameters.Top = 200;
             }, cancellationToken);
 
         while (response != null)
