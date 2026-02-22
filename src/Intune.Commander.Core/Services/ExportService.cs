@@ -1087,8 +1087,6 @@ public class ExportService : IExportService
 
     public async Task ExportQualityUpdateProfileAsync(
         WindowsQualityUpdateProfile profile,
-    public async Task ExportAdmxFileAsync(
-        GroupPolicyUploadedDefinitionFile admxFile,
         string outputPath,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
@@ -1115,6 +1113,25 @@ public class ExportService : IExportService
 
     public async Task ExportQualityUpdateProfilesAsync(
         IEnumerable<WindowsQualityUpdateProfile> profiles,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var profile in profiles)
+        {
+            await ExportQualityUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportAdmxFileAsync(
+        GroupPolicyUploadedDefinitionFile admxFile,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
         var folderPath = Path.Combine(outputPath, "AdmxFiles");
         Directory.CreateDirectory(folderPath);
 
@@ -1142,9 +1159,6 @@ public class ExportService : IExportService
     {
         var migrationTable = new MigrationTable();
 
-        foreach (var profile in profiles)
-        {
-            await ExportQualityUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
         foreach (var admxFile in admxFiles)
         {
             await ExportAdmxFileAsync(admxFile, outputPath, migrationTable, cancellationToken);
@@ -1155,8 +1169,6 @@ public class ExportService : IExportService
 
     public async Task ExportDriverUpdateProfileAsync(
         WindowsDriverUpdateProfile profile,
-    public async Task ExportReusablePolicySettingAsync(
-        DeviceManagementReusablePolicySetting setting,
         string outputPath,
         MigrationTable migrationTable,
         CancellationToken cancellationToken = default)
@@ -1183,6 +1195,25 @@ public class ExportService : IExportService
 
     public async Task ExportDriverUpdateProfilesAsync(
         IEnumerable<WindowsDriverUpdateProfile> profiles,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var profile in profiles)
+        {
+            await ExportDriverUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportReusablePolicySettingAsync(
+        DeviceManagementReusablePolicySetting setting,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
         var folderPath = Path.Combine(outputPath, "ReusablePolicySettings");
         Directory.CreateDirectory(folderPath);
 
@@ -1210,9 +1241,6 @@ public class ExportService : IExportService
     {
         var migrationTable = new MigrationTable();
 
-        foreach (var profile in profiles)
-        {
-            await ExportDriverUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
         foreach (var setting in settings)
         {
             await ExportReusablePolicySettingAsync(setting, outputPath, migrationTable, cancellationToken);

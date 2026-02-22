@@ -239,6 +239,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
 
     private ObservableCollection<WindowsQualityUpdateProfile> _filteredQualityUpdateProfiles = [];
+
+
+
+    [ObservableProperty]
+
     private ObservableCollection<GroupPolicyUploadedDefinitionFile> _filteredAdmxFiles = [];
 
 
@@ -246,6 +251,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
 
     private ObservableCollection<WindowsDriverUpdateProfile> _filteredDriverUpdateProfiles = [];
+
+
+
+    [ObservableProperty]
+
     private ObservableCollection<DeviceManagementReusablePolicySetting> _filteredReusablePolicySettings = [];
 
 

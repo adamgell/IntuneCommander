@@ -20,7 +20,7 @@ public class QualityUpdateProfileService : IQualityUpdateProfileService
         var response = await _graphClient.DeviceManagement.WindowsQualityUpdateProfiles
             .GetAsync(req =>
             {
-                req.QueryParameters.Top = 200;
+                req.QueryParameters.Top = 999;
             }, cancellationToken);
 
         while (response != null)

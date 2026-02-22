@@ -1043,6 +1043,10 @@ public class ExportServiceTests : IDisposable
         var folder = Path.Combine(_tempDir, "QualityUpdates");
         Assert.True(File.Exists(Path.Combine(folder, "Quality A.json")));
         Assert.True(File.Exists(Path.Combine(folder, "Quality B.json")));
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
     public async Task ExportAdmxFile_CreatesJsonFile()
     {
         var admxFile = new GroupPolicyUploadedDefinitionFile { Id = "admx-id", DisplayName = "Test ADMX" };
@@ -1139,6 +1143,8 @@ public class ExportServiceTests : IDisposable
         Assert.True(File.Exists(Path.Combine(folder, "Driver B.json")));
         Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
     }
+
+    [Fact]
     public async Task ExportNotificationTemplate_CreatesJsonFile()
     {
         var template = new NotificationMessageTemplate { Id = "nt-id", DisplayName = "Test Template" };

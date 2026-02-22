@@ -1385,6 +1385,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     public ObservableCollection<DataGridColumnConfig> QualityUpdateProfileColumns { get; } =
+
+    [
+
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+
+        new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+
+    ];
+
+
+
     public ObservableCollection<DataGridColumnConfig> AdmxFileColumns { get; } =
 
     [
@@ -1427,7 +1444,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     public ObservableCollection<DataGridColumnConfig> DriverUpdateProfileColumns { get; } =
-    public ObservableCollection<DataGridColumnConfig> NotificationTemplateColumns { get; } =
 
     [
 
@@ -1438,6 +1454,23 @@ public partial class MainWindowViewModel : ViewModelBase
         new() { Header = "Approval Type", BindingPath = "ApprovalType", Width = 150, IsVisible = true },
 
         new() { Header = "Created", BindingPath = "CreatedDateTime", Width = 150, IsVisible = false },
+
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+
+    ];
+
+
+
+    public ObservableCollection<DataGridColumnConfig> NotificationTemplateColumns { get; } =
+
+    [
+
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+
         new() { Header = "Default Locale", BindingPath = "DefaultLocale", Width = 120, IsVisible = true },
 
         new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
