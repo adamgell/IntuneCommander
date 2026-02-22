@@ -1135,6 +1135,47 @@ public class ExportService : IExportService
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
     }
 
+    public async Task ExportQualityUpdateProfileAsync(
+        WindowsQualityUpdateProfile profile,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "QualityUpdates");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(profile.DisplayName ?? profile.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(profile, profile.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (profile.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "QualityUpdateProfile",
+                OriginalId = profile.Id,
+                Name = profile.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportQualityUpdateProfilesAsync(
+        IEnumerable<WindowsQualityUpdateProfile> profiles,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var profile in profiles)
+        {
+            await ExportQualityUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
     public async Task ExportAdmxFileAsync(
         GroupPolicyUploadedDefinitionFile admxFile,
         string outputPath,
@@ -1171,6 +1212,47 @@ public class ExportService : IExportService
         foreach (var admxFile in admxFiles)
         {
             await ExportAdmxFileAsync(admxFile, outputPath, migrationTable, cancellationToken);
+        }
+
+        await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
+    }
+
+    public async Task ExportDriverUpdateProfileAsync(
+        WindowsDriverUpdateProfile profile,
+        string outputPath,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        var folderPath = Path.Combine(outputPath, "DriverUpdates");
+        Directory.CreateDirectory(folderPath);
+
+        var sanitizedName = SanitizeFileName(profile.DisplayName ?? profile.Id ?? "unknown");
+        var filePath = Path.Combine(folderPath, $"{sanitizedName}.json");
+
+        var json = JsonSerializer.Serialize(profile, profile.GetType(), JsonOptions);
+        await File.WriteAllTextAsync(filePath, json, cancellationToken);
+
+        if (profile.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "DriverUpdateProfile",
+                OriginalId = profile.Id,
+                Name = profile.DisplayName ?? "Unknown"
+            });
+        }
+    }
+
+    public async Task ExportDriverUpdateProfilesAsync(
+        IEnumerable<WindowsDriverUpdateProfile> profiles,
+        string outputPath,
+        CancellationToken cancellationToken = default)
+    {
+        var migrationTable = new MigrationTable();
+
+        foreach (var profile in profiles)
+        {
+            await ExportDriverUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
         }
 
         await SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);

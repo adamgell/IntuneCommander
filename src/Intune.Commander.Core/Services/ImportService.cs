@@ -29,6 +29,8 @@ public class ImportService : IImportService
     private readonly IDeviceManagementScriptService? _deviceManagementScriptService;
     private readonly IDeviceShellScriptService? _deviceShellScriptService;
     private readonly IComplianceScriptService? _complianceScriptService;
+    private readonly IQualityUpdateProfileService? _qualityUpdateProfileService;
+    private readonly IDriverUpdateProfileService? _driverUpdateProfileService;
     private readonly ISettingsCatalogService? _settingsCatalogService;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -60,6 +62,8 @@ public class ImportService : IImportService
         IDeviceManagementScriptService? deviceManagementScriptService = null,
         IDeviceShellScriptService? deviceShellScriptService = null,
         IComplianceScriptService? complianceScriptService = null,
+        IQualityUpdateProfileService? qualityUpdateProfileService = null,
+        IDriverUpdateProfileService? driverUpdateProfileService = null,
         ISettingsCatalogService? settingsCatalogService = null)
     {
         _configProfileService = configProfileService;
@@ -85,6 +89,8 @@ public class ImportService : IImportService
         _deviceManagementScriptService = deviceManagementScriptService;
         _deviceShellScriptService = deviceShellScriptService;
         _complianceScriptService = complianceScriptService;
+        _qualityUpdateProfileService = qualityUpdateProfileService;
+        _driverUpdateProfileService = driverUpdateProfileService;
         _settingsCatalogService = settingsCatalogService;
     }
 
@@ -1464,6 +1470,31 @@ public class ImportService : IImportService
         return created;
     }
 
+
+    public async Task<WindowsQualityUpdateProfile?> ReadQualityUpdateProfileAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<WindowsQualityUpdateProfile>(json, JsonOptions);
+    }
+
+    public async Task<List<WindowsQualityUpdateProfile>> ReadQualityUpdateProfilesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<WindowsQualityUpdateProfile>();
+        var folder = Path.Combine(folderPath, "QualityUpdates");
+
+        if (!Directory.Exists(folder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(folder, "*.json"))
+        {
+            var profile = await ReadQualityUpdateProfileAsync(file, cancellationToken);
+            if (profile != null)
+                results.Add(profile);
+        }
+
+        return results;
+    }
+
     // --- Settings Catalog ---
 
     public async Task<SettingsCatalogExport?> ReadSettingsCatalogPolicyAsync(string filePath, CancellationToken cancellationToken = default)
@@ -1488,6 +1519,84 @@ public class ImportService : IImportService
         }
 
         return results;
+    }
+
+    public async Task<WindowsQualityUpdateProfile> ImportQualityUpdateProfileAsync(
+        WindowsQualityUpdateProfile profile,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_qualityUpdateProfileService == null)
+            throw new InvalidOperationException("Quality update profile service is not available");
+
+        var originalId = profile.Id;
+        ClearMetadataForCreate(profile);
+
+        var created = await _qualityUpdateProfileService.CreateQualityUpdateProfileAsync(profile, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "QualityUpdateProfile",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
+    }
+
+    public async Task<WindowsDriverUpdateProfile?> ReadDriverUpdateProfileAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        var json = await File.ReadAllTextAsync(filePath, cancellationToken);
+        return JsonSerializer.Deserialize<WindowsDriverUpdateProfile>(json, JsonOptions);
+    }
+
+    public async Task<List<WindowsDriverUpdateProfile>> ReadDriverUpdateProfilesFromFolderAsync(string folderPath, CancellationToken cancellationToken = default)
+    {
+        var results = new List<WindowsDriverUpdateProfile>();
+        var folder = Path.Combine(folderPath, "DriverUpdates");
+
+        if (!Directory.Exists(folder))
+            return results;
+
+        foreach (var file in Directory.GetFiles(folder, "*.json"))
+        {
+            var profile = await ReadDriverUpdateProfileAsync(file, cancellationToken);
+            if (profile != null)
+                results.Add(profile);
+        }
+
+        return results;
+    }
+
+    public async Task<WindowsDriverUpdateProfile> ImportDriverUpdateProfileAsync(
+        WindowsDriverUpdateProfile profile,
+        MigrationTable migrationTable,
+        CancellationToken cancellationToken = default)
+    {
+        if (_driverUpdateProfileService == null)
+            throw new InvalidOperationException("Driver update profile service is not available");
+
+        var originalId = profile.Id;
+        ClearMetadataForCreate(profile);
+
+        var created = await _driverUpdateProfileService.CreateDriverUpdateProfileAsync(profile, cancellationToken);
+
+        if (originalId != null && created.Id != null)
+        {
+            migrationTable.AddOrUpdate(new MigrationEntry
+            {
+                ObjectType = "DriverUpdateProfile",
+                OriginalId = originalId,
+                NewId = created.Id,
+                Name = created.DisplayName ?? "Unknown"
+            });
+        }
+
+        return created;
     }
 
     public async Task<DeviceManagementConfigurationPolicy> ImportSettingsCatalogPolicyAsync(

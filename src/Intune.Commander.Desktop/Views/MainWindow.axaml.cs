@@ -147,6 +147,8 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.IsComplianceScriptsCategory)
             or nameof(MainWindowViewModel.IsAppleDepCategory)
             or nameof(MainWindowViewModel.IsDeviceCategoriesCategory)
+            or nameof(MainWindowViewModel.IsQualityUpdatesCategory)
+            or nameof(MainWindowViewModel.IsDriverUpdatesCategory)
             or nameof(MainWindowViewModel.IsAdmxFilesCategory)
             or nameof(MainWindowViewModel.IsReusablePolicySettingsCategory)
             or nameof(MainWindowViewModel.IsNotificationTemplatesCategory)
@@ -201,6 +203,8 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.FilteredComplianceScripts)
             or nameof(MainWindowViewModel.FilteredAppleDepSettings)
             or nameof(MainWindowViewModel.FilteredDeviceCategories)
+            or nameof(MainWindowViewModel.FilteredQualityUpdateProfiles)
+            or nameof(MainWindowViewModel.FilteredDriverUpdateProfiles)
             or nameof(MainWindowViewModel.FilteredAdmxFiles)
             or nameof(MainWindowViewModel.FilteredReusablePolicySettings)
             or nameof(MainWindowViewModel.FilteredNotificationTemplates)
@@ -255,6 +259,8 @@ public partial class MainWindow : Window
             nameof(MainWindowViewModel.FilteredComplianceScripts) => _vm.IsComplianceScriptsCategory,
             nameof(MainWindowViewModel.FilteredAppleDepSettings) => _vm.IsAppleDepCategory,
             nameof(MainWindowViewModel.FilteredDeviceCategories) => _vm.IsDeviceCategoriesCategory,
+            nameof(MainWindowViewModel.FilteredQualityUpdateProfiles) => _vm.IsQualityUpdatesCategory,
+            nameof(MainWindowViewModel.FilteredDriverUpdateProfiles) => _vm.IsDriverUpdatesCategory,
             nameof(MainWindowViewModel.FilteredAdmxFiles) => _vm.IsAdmxFilesCategory,
             nameof(MainWindowViewModel.FilteredReusablePolicySettings) => _vm.IsReusablePolicySettingsCategory,
             nameof(MainWindowViewModel.FilteredNotificationTemplates) => _vm.IsNotificationTemplatesCategory,
@@ -495,6 +501,19 @@ public partial class MainWindow : Window
                 new Binding(nameof(_vm.FilteredDeviceCategories)) { Source = _vm });
             _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
                 new Binding(nameof(_vm.SelectedDeviceCategory)) { Source = _vm, Mode = BindingMode.TwoWay });
+        else if (_vm.IsQualityUpdatesCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredQualityUpdateProfiles)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedQualityUpdateProfile)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
+        else if (_vm.IsDriverUpdatesCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredDriverUpdateProfiles)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedDriverUpdateProfile)) { Source = _vm, Mode = BindingMode.TwoWay });
         }
         else if (_vm.IsAdmxFilesCategory)
         {

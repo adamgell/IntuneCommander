@@ -285,6 +285,24 @@ public partial class MainWindowViewModel : ViewModelBase
             CacheKeyFeatureUpdateProfiles,
             "feature update profile(s)");
 
+    private Task LoadQualityUpdateProfilesAsync() =>
+        LoadCollectionAsync(
+            _qualityUpdateProfileService,
+            ct => _qualityUpdateProfileService!.ListQualityUpdateProfilesAsync(ct),
+            items => QualityUpdateProfiles = items,
+            () => _qualityUpdateProfilesLoaded = true,
+            CacheKeyQualityUpdateProfiles,
+            "quality update profile(s)");
+
+    private Task LoadDriverUpdateProfilesAsync() =>
+        LoadCollectionAsync(
+            _driverUpdateProfileService,
+            ct => _driverUpdateProfileService!.ListDriverUpdateProfilesAsync(ct),
+            items => DriverUpdateProfiles = items,
+            () => _driverUpdateProfilesLoaded = true,
+            CacheKeyDriverUpdateProfiles,
+            "driver update profile(s)");
+
     private Task LoadNamedLocationsAsync() =>
         LoadCollectionAsync(
             _namedLocationService,
@@ -443,6 +461,8 @@ public partial class MainWindowViewModel : ViewModelBase
         var loadDeviceHealthScripts = IsDeviceHealthScriptsCategory;
         var loadMacCustomAttributes = IsMacCustomAttributesCategory;
         var loadFeatureUpdates = IsFeatureUpdatesCategory;
+        var loadQualityUpdates = IsQualityUpdatesCategory;
+        var loadDriverUpdates = IsDriverUpdatesCategory;
         var loadNamedLocations = IsNamedLocationsCategory;
         var loadAuthenticationStrengths = IsAuthenticationStrengthsCategory;
         var loadAuthenticationContexts = IsAuthenticationContextsCategory;
@@ -734,6 +754,20 @@ public partial class MainWindowViewModel : ViewModelBase
                     items => DeviceCategories = items,
                     v => _deviceCategoriesLoaded = v,
                     "device category(ies)", "Device Categories",
+            if (_qualityUpdateProfileService != null && loadQualityUpdates)
+                await RefreshCollectionAsync(
+                    ct => _qualityUpdateProfileService.ListQualityUpdateProfilesAsync(ct),
+                    items => QualityUpdateProfiles = items,
+                    v => _qualityUpdateProfilesLoaded = v,
+                    "quality update profile(s)", "Quality Updates",
+                    errors, cancellationToken);
+
+            if (_driverUpdateProfileService != null && loadDriverUpdates)
+                await RefreshCollectionAsync(
+                    ct => _driverUpdateProfileService.ListDriverUpdateProfilesAsync(ct),
+                    items => DriverUpdateProfiles = items,
+                    v => _driverUpdateProfilesLoaded = v,
+                    "driver update profile(s)", "Driver Updates",
                     errors, cancellationToken);
 
             if (_admxFileService != null && loadAdmxFiles)
@@ -764,6 +798,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
             var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AppleDepSettings.Count + DeviceCategories.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
             StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use, {DeviceManagementScripts.Count} device mgmt scripts, {DeviceShellScripts.Count} shell scripts, {ComplianceScripts.Count} compliance scripts, {AppleDepSettings.Count} Apple DEP settings, {DeviceCategories.Count} device categories, {AdmxFiles.Count} ADMX files, {ReusablePolicySettings.Count} reusable policy settings, {NotificationTemplates.Count} notification templates)";
+            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + QualityUpdateProfiles.Count + DriverUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
+            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {QualityUpdateProfiles.Count} quality updates, {DriverUpdateProfiles.Count} driver updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use, {DeviceManagementScripts.Count} device mgmt scripts, {DeviceShellScripts.Count} shell scripts, {ComplianceScripts.Count} compliance scripts, {AdmxFiles.Count} ADMX files, {ReusablePolicySettings.Count} reusable policy settings, {NotificationTemplates.Count} notification templates)";
 
             if (errors.Count > 0)
                 SetError($"Some data failed to load — {string.Join("; ", errors)}");
@@ -1028,6 +1064,18 @@ public partial class MainWindowViewModel : ViewModelBase
                 "device category(ies)", ref oldestCacheTime))
                 typesLoaded++;
 
+            if (TryLoadCollectionFromCache<WindowsQualityUpdateProfile>(
+                tenantId, CacheKeyQualityUpdateProfiles,
+                items => QualityUpdateProfiles = items,
+                () => _qualityUpdateProfilesLoaded = true,
+                "quality update profile(s)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<WindowsDriverUpdateProfile>(
+                tenantId, CacheKeyDriverUpdateProfiles,
+                items => DriverUpdateProfiles = items,
+                () => _driverUpdateProfilesLoaded = true,
+                "driver update profile(s)", ref oldestCacheTime))
             if (TryLoadCollectionFromCache<GroupPolicyUploadedDefinitionFile>(
                 tenantId, CacheKeyAdmxFiles,
                 items => AdmxFiles = items,
@@ -1154,6 +1202,8 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveCollectionToCache(tenantId, CacheKeyComplianceScripts, ComplianceScripts);
             SaveCollectionToCache(tenantId, CacheKeyAppleDepSettings, AppleDepSettings);
             SaveCollectionToCache(tenantId, CacheKeyDeviceCategories, DeviceCategories);
+            SaveCollectionToCache(tenantId, CacheKeyQualityUpdateProfiles, QualityUpdateProfiles);
+            SaveCollectionToCache(tenantId, CacheKeyDriverUpdateProfiles, DriverUpdateProfiles);
             SaveCollectionToCache(tenantId, CacheKeyAdmxFiles, AdmxFiles);
             SaveCollectionToCache(tenantId, CacheKeyReusablePolicySettings, ReusablePolicySettings);
             SaveCollectionToCache(tenantId, CacheKeyNotificationTemplates, NotificationTemplates);
@@ -1456,6 +1506,15 @@ public partial class MainWindowViewModel : ViewModelBase
             c => _deviceCategoryService!.ListDeviceCategoriesAsync(c),
             items => DeviceCategories = items,
             () => _deviceCategoriesLoaded = true, CacheKeyDeviceCategories);
+        AddTask("Quality Update Profiles", _qualityUpdateProfileService,
+            c => _qualityUpdateProfileService!.ListQualityUpdateProfilesAsync(c),
+            items => QualityUpdateProfiles = items,
+            () => _qualityUpdateProfilesLoaded = true, CacheKeyQualityUpdateProfiles);
+
+        AddTask("Driver Update Profiles", _driverUpdateProfileService,
+            c => _driverUpdateProfileService!.ListDriverUpdateProfilesAsync(c),
+            items => DriverUpdateProfiles = items,
+            () => _driverUpdateProfilesLoaded = true, CacheKeyDriverUpdateProfiles);
         AddTask("ADMX Files", _admxFileService,
             c => _admxFileService!.ListAdmxFilesAsync(c),
             items => AdmxFiles = items,

@@ -558,6 +558,18 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _exportService.ExportComplianceScriptAsync(
                     SelectedComplianceScript, outputPath, migrationTable, cancellationToken);
             }
+            else if (IsQualityUpdatesCategory && SelectedQualityUpdateProfile != null)
+            {
+                StatusText = $"Exporting {SelectedQualityUpdateProfile.DisplayName ?? "quality update profile"}...";
+                await _exportService.ExportQualityUpdateProfileAsync(
+                    SelectedQualityUpdateProfile, outputPath, migrationTable, cancellationToken);
+            }
+            else if (IsDriverUpdatesCategory && SelectedDriverUpdateProfile != null)
+            {
+                StatusText = $"Exporting {SelectedDriverUpdateProfile.DisplayName ?? "driver update profile"}...";
+                await _exportService.ExportDriverUpdateProfileAsync(
+                    SelectedDriverUpdateProfile, outputPath, migrationTable, cancellationToken);
+            }
             else
             {
                 StatusText = "Nothing selected to export";
@@ -915,6 +927,28 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
 
+            // Export quality update profiles
+            if (QualityUpdateProfiles.Any())
+            {
+                StatusText = "Exporting quality update profiles...";
+                foreach (var profile in QualityUpdateProfiles)
+                {
+                    await _exportService.ExportQualityUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
+                    count++;
+                }
+            }
+
+            // Export driver update profiles
+            if (DriverUpdateProfiles.Any())
+            {
+                StatusText = "Exporting driver update profiles...";
+                foreach (var profile in DriverUpdateProfiles)
+                {
+                    await _exportService.ExportDriverUpdateProfileAsync(profile, outputPath, migrationTable, cancellationToken);
+                    count++;
+                }
+            }
+
             await _exportService.SaveMigrationTableAsync(migrationTable, outputPath, cancellationToken);
             StatusText = $"Exported {count} item(s) to {outputPath}";
         }
@@ -1157,6 +1191,24 @@ public partial class MainWindowViewModel : ViewModelBase
             foreach (var script in complianceScripts)
             {
                 await _importService.ImportComplianceScriptAsync(script, migrationTable, cancellationToken);
+                imported++;
+                StatusText = $"Imported {imported} item(s)...";
+            }
+
+            // Import quality update profiles
+            var qualityUpdateProfiles = await _importService.ReadQualityUpdateProfilesFromFolderAsync(folderPath, cancellationToken);
+            foreach (var profile in qualityUpdateProfiles)
+            {
+                await _importService.ImportQualityUpdateProfileAsync(profile, migrationTable, cancellationToken);
+                imported++;
+                StatusText = $"Imported {imported} item(s)...";
+            }
+
+            // Import driver update profiles
+            var driverUpdateProfiles = await _importService.ReadDriverUpdateProfilesFromFolderAsync(folderPath, cancellationToken);
+            foreach (var profile in driverUpdateProfiles)
+            {
+                await _importService.ImportDriverUpdateProfileAsync(profile, migrationTable, cancellationToken);
                 imported++;
                 StatusText = $"Imported {imported} item(s)...";
             }

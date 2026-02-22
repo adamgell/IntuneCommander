@@ -910,6 +910,66 @@ public partial class MainWindowViewModel : ViewModelBase
 
             }
 
+            else if (IsQualityUpdatesCategory && SelectedQualityUpdateProfile?.Id != null && _qualityUpdateProfileService != null)
+
+            {
+
+                StatusText = "Refreshing quality update profile...";
+
+                var updated = await _qualityUpdateProfileService.GetQualityUpdateProfileAsync(SelectedQualityUpdateProfile.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = QualityUpdateProfiles.IndexOf(SelectedQualityUpdateProfile);
+
+                    if (idx >= 0)
+
+                    {
+
+                        QualityUpdateProfiles[idx] = updated;
+
+                        SelectedQualityUpdateProfile = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed quality update profile: {updated.DisplayName}");
+
+                }
+
+            }
+
+            else if (IsDriverUpdatesCategory && SelectedDriverUpdateProfile?.Id != null && _driverUpdateProfileService != null)
+
+            {
+
+                StatusText = "Refreshing driver update profile...";
+
+                var updated = await _driverUpdateProfileService.GetDriverUpdateProfileAsync(SelectedDriverUpdateProfile.Id, cancellationToken);
+
+                if (updated != null)
+
+                {
+
+                    var idx = DriverUpdateProfiles.IndexOf(SelectedDriverUpdateProfile);
+
+                    if (idx >= 0)
+
+                    {
+
+                        DriverUpdateProfiles[idx] = updated;
+
+                        SelectedDriverUpdateProfile = updated;
+
+                    }
+
+                    DebugLog.Log("Graph", $"Refreshed driver update profile: {updated.DisplayName}");
+
+                }
+
+            }
+
             else
 
             {
@@ -996,7 +1056,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         (IsDeviceShellScriptsCategory && SelectedDeviceShellScript != null) ||
 
-        (IsComplianceScriptsCategory && SelectedComplianceScript != null);
+        (IsComplianceScriptsCategory && SelectedComplianceScript != null) ||
+
+        (IsQualityUpdatesCategory && SelectedQualityUpdateProfile != null) ||
+
+        (IsDriverUpdatesCategory && SelectedDriverUpdateProfile != null);
 
 
 
@@ -1487,6 +1551,38 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemAssignments.Clear();
 
         SelectedItemTypeName = "Compliance Script";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+    }
+
+
+
+    partial void OnSelectedQualityUpdateProfileChanged(WindowsQualityUpdateProfile? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Quality Update Profile";
+
+        SelectedItemPlatform = "";
+
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+    }
+
+
+
+    partial void OnSelectedDriverUpdateProfileChanged(WindowsDriverUpdateProfile? value)
+
+    {
+
+        SelectedItemAssignments.Clear();
+
+        SelectedItemTypeName = "Driver Update Profile";
 
         SelectedItemPlatform = "";
 

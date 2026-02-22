@@ -1651,11 +1651,72 @@ public class ImportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ImportQualityUpdateProfileAsync_WithoutService_Throws()
+    {
+        var sut = new ImportService(new StubConfigurationService(), null);
+        var table = new MigrationTable();
+        var profile = new WindowsQualityUpdateProfile { Id = "old", DisplayName = "Old" };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ImportQualityUpdateProfileAsync(profile, table));
+    }
+
+    [Fact]
+    public async Task ImportQualityUpdateProfileAsync_UpdatesMigration()
+    {
+        var qualityUpdateService = new StubQualityUpdateProfileService
+        {
+            CreateResult = new WindowsQualityUpdateProfile { Id = "new-qup", DisplayName = "Created Quality Update" }
+        };
+
+        var sut = new ImportService(new StubConfigurationService(),
+            qualityUpdateProfileService: qualityUpdateService);
+
+        var table = new MigrationTable();
+        var profile = new WindowsQualityUpdateProfile
+        {
+            Id = "original-qup",
+            DisplayName = "My Quality Update"
+        };
+
+        var created = await sut.ImportQualityUpdateProfileAsync(profile, table);
+
+        Assert.Equal("new-qup", created.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("QualityUpdateProfile", table.Entries[0].ObjectType);
+        Assert.Equal("original-qup", table.Entries[0].OriginalId);
+        Assert.Equal("new-qup", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ReadQualityUpdateProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadQualityUpdateProfilesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
     public async Task ReadSettingsCatalogPoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
         var sut = new ImportService(new StubConfigurationService());
         var result = await sut.ReadSettingsCatalogPoliciesFromFolderAsync(_tempDir);
         Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadQualityUpdateProfilesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "QualityUpdates");
+        Directory.CreateDirectory(folder);
+
+        var p1 = new WindowsQualityUpdateProfile { Id = "qup1", DisplayName = "QUP1" };
+        var p2 = new WindowsQualityUpdateProfile { Id = "qup2", DisplayName = "QUP2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadQualityUpdateProfilesFromFolderAsync(_tempDir);
+        Assert.Equal(2, result.Count);
     }
 
     [Fact]
@@ -1671,6 +1732,68 @@ public class ImportServiceTests : IDisposable
 
         var sut = new ImportService(new StubConfigurationService());
         var result = await sut.ReadSettingsCatalogPoliciesFromFolderAsync(_tempDir);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task ImportDriverUpdateProfileAsync_WithoutService_Throws()
+    {
+        var sut = new ImportService(new StubConfigurationService(), null);
+        var table = new MigrationTable();
+        var profile = new WindowsDriverUpdateProfile { Id = "old", DisplayName = "Old" };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ImportDriverUpdateProfileAsync(profile, table));
+    }
+
+    [Fact]
+    public async Task ImportDriverUpdateProfileAsync_UpdatesMigration()
+    {
+        var driverUpdateService = new StubDriverUpdateProfileService
+        {
+            CreateResult = new WindowsDriverUpdateProfile { Id = "new-dup", DisplayName = "Created Driver Update" }
+        };
+
+        var sut = new ImportService(new StubConfigurationService(),
+            driverUpdateProfileService: driverUpdateService);
+
+        var table = new MigrationTable();
+        var profile = new WindowsDriverUpdateProfile
+        {
+            Id = "original-dup",
+            DisplayName = "My Driver Update"
+        };
+
+        var created = await sut.ImportDriverUpdateProfileAsync(profile, table);
+
+        Assert.Equal("new-dup", created.Id);
+        Assert.Single(table.Entries);
+        Assert.Equal("DriverUpdateProfile", table.Entries[0].ObjectType);
+        Assert.Equal("original-dup", table.Entries[0].OriginalId);
+        Assert.Equal("new-dup", table.Entries[0].NewId);
+    }
+
+    [Fact]
+    public async Task ReadDriverUpdateProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
+    {
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadDriverUpdateProfilesFromFolderAsync(_tempDir);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ReadDriverUpdateProfilesFromFolderAsync_ReadsAllJsonFiles()
+    {
+        var folder = Path.Combine(_tempDir, "DriverUpdates");
+        Directory.CreateDirectory(folder);
+
+        var p1 = new WindowsDriverUpdateProfile { Id = "dup1", DisplayName = "DUP1" };
+        var p2 = new WindowsDriverUpdateProfile { Id = "dup2", DisplayName = "DUP2" };
+        await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
+        await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
+
+        var sut = new ImportService(new StubConfigurationService());
+        var result = await sut.ReadDriverUpdateProfilesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
     }
@@ -2340,6 +2463,54 @@ public class ImportServiceTests : IDisposable
             => Task.FromResult(new List<DeviceManagementScriptAssignment>());
 
         public Task AssignScriptAsync(string scriptId, List<DeviceManagementScriptAssignment> assignments, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubQualityUpdateProfileService : IQualityUpdateProfileService
+    {
+        public WindowsQualityUpdateProfile? LastCreatedProfile { get; private set; }
+        public WindowsQualityUpdateProfile CreateResult { get; set; } = new() { Id = "created-qup", DisplayName = "Created" };
+
+        public Task<List<WindowsQualityUpdateProfile>> ListQualityUpdateProfilesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<WindowsQualityUpdateProfile>());
+
+        public Task<WindowsQualityUpdateProfile?> GetQualityUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<WindowsQualityUpdateProfile?>(null);
+
+        public Task<WindowsQualityUpdateProfile> CreateQualityUpdateProfileAsync(WindowsQualityUpdateProfile profile, CancellationToken cancellationToken = default)
+        {
+            LastCreatedProfile = profile;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<WindowsQualityUpdateProfile> UpdateQualityUpdateProfileAsync(WindowsQualityUpdateProfile profile, CancellationToken cancellationToken = default)
+            => Task.FromResult(profile);
+
+        public Task DeleteQualityUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubDriverUpdateProfileService : IDriverUpdateProfileService
+    {
+        public WindowsDriverUpdateProfile? LastCreatedProfile { get; private set; }
+        public WindowsDriverUpdateProfile CreateResult { get; set; } = new() { Id = "created-dup", DisplayName = "Created" };
+
+        public Task<List<WindowsDriverUpdateProfile>> ListDriverUpdateProfilesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<WindowsDriverUpdateProfile>());
+
+        public Task<WindowsDriverUpdateProfile?> GetDriverUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult<WindowsDriverUpdateProfile?>(null);
+
+        public Task<WindowsDriverUpdateProfile> CreateDriverUpdateProfileAsync(WindowsDriverUpdateProfile profile, CancellationToken cancellationToken = default)
+        {
+            LastCreatedProfile = profile;
+            return Task.FromResult(CreateResult);
+        }
+
+        public Task<WindowsDriverUpdateProfile> UpdateDriverUpdateProfileAsync(WindowsDriverUpdateProfile profile, CancellationToken cancellationToken = default)
+            => Task.FromResult(profile);
+
+        public Task DeleteDriverUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }
 

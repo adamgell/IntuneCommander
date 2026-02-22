@@ -74,3 +74,4 @@ set-syncfusion-key.cmd
 publish/osx-arm64/
 
 publish/osx-x64/
+tests/Intune.Commander.Core.Tests/coverage.json

@@ -166,6 +166,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _complianceScriptService = new ComplianceScriptService(_graphClient);
 
+            _qualityUpdateProfileService = new QualityUpdateProfileService(_graphClient);
+
+            _driverUpdateProfileService = new DriverUpdateProfileService(_graphClient);
             _admxFileService = new AdmxFileService(_graphClient);
 
             _reusablePolicySettingService = new ReusablePolicySettingService(_graphClient);
@@ -234,6 +237,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 _deviceShellScriptService,
 
                 _complianceScriptService,
+
+                _qualityUpdateProfileService,
+
+                _driverUpdateProfileService,
 
                 _settingsCatalogService);
 
@@ -612,6 +619,17 @@ public partial class MainWindowViewModel : ViewModelBase
         DeviceCategories.Clear();
 
         SelectedDeviceCategory = null;
+        QualityUpdateProfiles.Clear();
+
+        SelectedQualityUpdateProfile = null;
+
+        _qualityUpdateProfilesLoaded = false;
+
+        DriverUpdateProfiles.Clear();
+
+        SelectedDriverUpdateProfile = null;
+
+        _driverUpdateProfilesLoaded = false;
         AdmxFiles.Clear();
 
         SelectedAdmxFile = null;
@@ -706,6 +724,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _complianceScriptService = null;
 
+        _qualityUpdateProfileService = null;
+
+        _driverUpdateProfileService = null;
         _admxFileService = null;
 
         _reusablePolicySettingService = null;

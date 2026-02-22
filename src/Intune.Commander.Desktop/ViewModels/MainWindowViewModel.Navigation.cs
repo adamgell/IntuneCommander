@@ -346,6 +346,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         "Feature Updates" => FeatureUpdateProfileColumns,
 
+        "Quality Updates" => QualityUpdateProfileColumns,
+
+        "Driver Updates" => DriverUpdateProfileColumns,
+
         "Named Locations" => NamedLocationColumns,
 
         "Authentication Strengths" => AuthenticationStrengthColumns,
@@ -461,6 +465,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsFeatureUpdatesCategory => SelectedCategory?.Name == "Feature Updates";
 
+    public bool IsQualityUpdatesCategory => SelectedCategory?.Name == "Quality Updates";
+
+    public bool IsDriverUpdatesCategory => SelectedCategory?.Name == "Driver Updates";
+
     public bool IsNamedLocationsCategory => SelectedCategory?.Name == "Named Locations";
 
     public bool IsAuthenticationStrengthsCategory => SelectedCategory?.Name == "Authentication Strengths";
@@ -521,6 +529,8 @@ public partial class MainWindowViewModel : ViewModelBase
         "Device Health Scripts" => FilteredDeviceHealthScripts.Count,
         "Mac Custom Attributes" => FilteredMacCustomAttributes.Count,
         "Feature Updates" => FilteredFeatureUpdateProfiles.Count,
+        "Quality Updates" => FilteredQualityUpdateProfiles.Count,
+        "Driver Updates" => FilteredDriverUpdateProfiles.Count,
         "Named Locations" => FilteredNamedLocations.Count,
         "Authentication Strengths" => FilteredAuthenticationStrengthPolicies.Count,
         "Authentication Contexts" => FilteredAuthenticationContextClassReferences.Count,
@@ -597,6 +607,10 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedMacCustomAttribute = null;
 
         SelectedFeatureUpdateProfile = null;
+
+        SelectedQualityUpdateProfile = null;
+
+        SelectedDriverUpdateProfile = null;
 
         SelectedNamedLocation = null;
 
@@ -690,6 +704,10 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsMacCustomAttributesCategory));
 
         OnPropertyChanged(nameof(IsFeatureUpdatesCategory));
+
+        OnPropertyChanged(nameof(IsQualityUpdatesCategory));
+
+        OnPropertyChanged(nameof(IsDriverUpdatesCategory));
 
         OnPropertyChanged(nameof(IsNamedLocationsCategory));
 
@@ -1375,6 +1393,66 @@ public partial class MainWindowViewModel : ViewModelBase
                 _featureUpdateProfilesLoaded = true;
 
                 _ = LoadFeatureUpdateProfilesAsync();
+
+            }
+
+        }
+
+
+
+        if (value?.Name == "Quality Updates" && !_qualityUpdateProfilesLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<WindowsQualityUpdateProfile>(CacheKeyQualityUpdateProfiles, rows =>
+
+            {
+
+                QualityUpdateProfiles = new ObservableCollection<WindowsQualityUpdateProfile>(rows);
+
+                _qualityUpdateProfilesLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} quality update profile(s) from cache";
+
+            }))
+
+            {
+
+                _qualityUpdateProfilesLoaded = true;
+
+                _ = LoadQualityUpdateProfilesAsync();
+
+            }
+
+        }
+
+
+
+        if (value?.Name == "Driver Updates" && !_driverUpdateProfilesLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<WindowsDriverUpdateProfile>(CacheKeyDriverUpdateProfiles, rows =>
+
+            {
+
+                DriverUpdateProfiles = new ObservableCollection<WindowsDriverUpdateProfile>(rows);
+
+                _driverUpdateProfilesLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} driver update profile(s) from cache";
+
+            }))
+
+            {
+
+                _driverUpdateProfilesLoaded = true;
+
+                _ = LoadDriverUpdateProfilesAsync();
 
             }
 

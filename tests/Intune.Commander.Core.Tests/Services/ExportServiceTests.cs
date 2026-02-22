@@ -1018,6 +1018,35 @@ public class ExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExportQualityUpdateProfile_CreatesJsonFile()
+    {
+        var profile = new WindowsQualityUpdateProfile { Id = "qup-id", DisplayName = "Quality Update" };
+        var table = new MigrationTable();
+
+        await _service.ExportQualityUpdateProfileAsync(profile, _tempDir, table);
+
+        Assert.True(File.Exists(Path.Combine(_tempDir, "QualityUpdates", "Quality Update.json")));
+        Assert.Contains(table.Entries, e => e.ObjectType == "QualityUpdateProfile" && e.OriginalId == "qup-id");
+    }
+
+    [Fact]
+    public async Task ExportQualityUpdateProfiles_ExportsMultipleAndWritesMigrationTable()
+    {
+        var profiles = new List<WindowsQualityUpdateProfile>
+        {
+            new() { Id = "qup-1", DisplayName = "Quality A" },
+            new() { Id = "qup-2", DisplayName = "Quality B" }
+        };
+
+        await _service.ExportQualityUpdateProfilesAsync(profiles, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "QualityUpdates");
+        Assert.True(File.Exists(Path.Combine(folder, "Quality A.json")));
+        Assert.True(File.Exists(Path.Combine(folder, "Quality B.json")));
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
     public async Task ExportSettingsCatalogPolicy_CreatesJsonFile()
     {
         var policy = new DeviceManagementConfigurationPolicy { Id = "sc-id", Name = "Test Policy" };
@@ -1128,6 +1157,35 @@ public class ExportServiceTests : IDisposable
         var folder = Path.Combine(_tempDir, "ReusablePolicySettings");
         Assert.True(File.Exists(Path.Combine(folder, "Setting A.json")));
         Assert.True(File.Exists(Path.Combine(folder, "Setting B.json")));
+        Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
+    }
+
+    [Fact]
+    public async Task ExportDriverUpdateProfile_CreatesJsonFile()
+    {
+        var profile = new WindowsDriverUpdateProfile { Id = "dup-id", DisplayName = "Driver Update" };
+        var table = new MigrationTable();
+
+        await _service.ExportDriverUpdateProfileAsync(profile, _tempDir, table);
+
+        Assert.True(File.Exists(Path.Combine(_tempDir, "DriverUpdates", "Driver Update.json")));
+        Assert.Contains(table.Entries, e => e.ObjectType == "DriverUpdateProfile" && e.OriginalId == "dup-id");
+    }
+
+    [Fact]
+    public async Task ExportDriverUpdateProfiles_ExportsMultipleAndWritesMigrationTable()
+    {
+        var profiles = new List<WindowsDriverUpdateProfile>
+        {
+            new() { Id = "dup-1", DisplayName = "Driver A" },
+            new() { Id = "dup-2", DisplayName = "Driver B" }
+        };
+
+        await _service.ExportDriverUpdateProfilesAsync(profiles, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "DriverUpdates");
+        Assert.True(File.Exists(Path.Combine(folder, "Driver A.json")));
+        Assert.True(File.Exists(Path.Combine(folder, "Driver B.json")));
         Assert.True(File.Exists(Path.Combine(_tempDir, "migration-table.json")));
     }
 
