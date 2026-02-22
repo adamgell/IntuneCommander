@@ -145,6 +145,9 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.IsDeviceManagementScriptsCategory)
             or nameof(MainWindowViewModel.IsDeviceShellScriptsCategory)
             or nameof(MainWindowViewModel.IsComplianceScriptsCategory)
+            or nameof(MainWindowViewModel.IsAdmxFilesCategory)
+            or nameof(MainWindowViewModel.IsReusablePolicySettingsCategory)
+            or nameof(MainWindowViewModel.IsNotificationTemplatesCategory)
             or nameof(MainWindowViewModel.IsDynamicGroupsCategory)
             or nameof(MainWindowViewModel.IsAssignedGroupsCategory)
             or nameof(MainWindowViewModel.IsOverviewCategory))
@@ -194,6 +197,9 @@ public partial class MainWindow : Window
             or nameof(MainWindowViewModel.FilteredDeviceManagementScripts)
             or nameof(MainWindowViewModel.FilteredDeviceShellScripts)
             or nameof(MainWindowViewModel.FilteredComplianceScripts)
+            or nameof(MainWindowViewModel.FilteredAdmxFiles)
+            or nameof(MainWindowViewModel.FilteredReusablePolicySettings)
+            or nameof(MainWindowViewModel.FilteredNotificationTemplates)
             or nameof(MainWindowViewModel.FilteredDynamicGroupRows)
             or nameof(MainWindowViewModel.FilteredAssignedGroupRows))
         {
@@ -243,6 +249,9 @@ public partial class MainWindow : Window
             nameof(MainWindowViewModel.FilteredDeviceManagementScripts) => _vm.IsDeviceManagementScriptsCategory,
             nameof(MainWindowViewModel.FilteredDeviceShellScripts) => _vm.IsDeviceShellScriptsCategory,
             nameof(MainWindowViewModel.FilteredComplianceScripts) => _vm.IsComplianceScriptsCategory,
+            nameof(MainWindowViewModel.FilteredAdmxFiles) => _vm.IsAdmxFilesCategory,
+            nameof(MainWindowViewModel.FilteredReusablePolicySettings) => _vm.IsReusablePolicySettingsCategory,
+            nameof(MainWindowViewModel.FilteredNotificationTemplates) => _vm.IsNotificationTemplatesCategory,
             nameof(MainWindowViewModel.FilteredDynamicGroupRows)    => _vm.IsDynamicGroupsCategory,
             nameof(MainWindowViewModel.FilteredAssignedGroupRows)   => _vm.IsAssignedGroupsCategory,
             _ => false
