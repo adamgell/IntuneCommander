@@ -2162,6 +2162,8 @@ public class ImportServiceTests : IDisposable
         public Task DeleteRoleDefinitionAsync(string id, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
 
+        public Task<List<DeviceAndAppManagementRoleAssignment>> GetRoleAssignmentsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceAndAppManagementRoleAssignment>());
         public Task<List<RoleAssignment>> GetRoleAssignmentsAsync(string roleDefinitionId, CancellationToken cancellationToken = default)
             => Task.FromResult(new List<RoleAssignment>());
     }

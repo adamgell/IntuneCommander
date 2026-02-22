@@ -383,6 +383,43 @@ public partial class MainWindowViewModel : ViewModelBase
             () => _deviceCategoriesLoaded = true,
             CacheKeyDeviceCategories,
             "device category(ies)");
+
+    private Task LoadCloudPcProvisioningPoliciesAsync() =>
+        LoadCollectionAsync(
+            _cloudPcProvisioningService,
+            ct => _cloudPcProvisioningService!.ListProvisioningPoliciesAsync(ct),
+            items => CloudPcProvisioningPolicies = items,
+            () => _cloudPcProvisioningPoliciesLoaded = true,
+            CacheKeyCloudPcProvisioningPolicies,
+            "Cloud PC provisioning policy(ies)");
+
+    private Task LoadCloudPcUserSettingsAsync() =>
+        LoadCollectionAsync(
+            _cloudPcUserSettingsService,
+            ct => _cloudPcUserSettingsService!.ListUserSettingsAsync(ct),
+            items => CloudPcUserSettings = items,
+            () => _cloudPcUserSettingsLoaded = true,
+            CacheKeyCloudPcUserSettings,
+            "Cloud PC user setting(s)");
+
+    private Task LoadVppTokensAsync() =>
+        LoadCollectionAsync(
+            _vppTokenService,
+            ct => _vppTokenService!.ListVppTokensAsync(ct),
+            items => VppTokens = items,
+            () => _vppTokensLoaded = true,
+            CacheKeyVppTokens,
+            "VPP token(s)");
+
+    private Task LoadRoleAssignmentsAsync() =>
+        LoadCollectionAsync(
+            _roleDefinitionService,
+            ct => _roleDefinitionService!.GetRoleAssignmentsAsync(ct),
+            items => RoleAssignments = items,
+            () => _roleAssignmentsLoaded = true,
+            CacheKeyRoleAssignments,
+            "role assignment(s)");
+
     private Task LoadAdmxFilesAsync() =>
         LoadCollectionAsync(
             _admxFileService,
@@ -472,6 +509,10 @@ public partial class MainWindowViewModel : ViewModelBase
         var loadComplianceScripts = IsComplianceScriptsCategory;
         var loadAppleDep = IsAppleDepCategory;
         var loadDeviceCategories = IsDeviceCategoriesCategory;
+        var loadCloudPcProvisioningPolicies = IsCloudPcProvisioningCategory;
+        var loadCloudPcUserSettings = IsCloudPcUserSettingsCategory;
+        var loadVppTokens = IsVppTokensCategory;
+        var loadRoleAssignments = IsRoleAssignmentsCategory;
         var loadAdmxFiles = IsAdmxFilesCategory;
         var loadReusablePolicySettings = IsReusablePolicySettingsCategory;
         var loadNotificationTemplates = IsNotificationTemplatesCategory;
@@ -756,6 +797,38 @@ public partial class MainWindowViewModel : ViewModelBase
                     "device category(ies)", "Device Categories",
                     errors, cancellationToken);
 
+            if (_cloudPcProvisioningService != null && loadCloudPcProvisioningPolicies)
+                await RefreshCollectionAsync(
+                    ct => _cloudPcProvisioningService.ListProvisioningPoliciesAsync(ct),
+                    items => CloudPcProvisioningPolicies = items,
+                    v => _cloudPcProvisioningPoliciesLoaded = v,
+                    "Cloud PC provisioning policy(ies)", "Cloud PC Provisioning Policies",
+                    errors, cancellationToken);
+
+            if (_cloudPcUserSettingsService != null && loadCloudPcUserSettings)
+                await RefreshCollectionAsync(
+                    ct => _cloudPcUserSettingsService.ListUserSettingsAsync(ct),
+                    items => CloudPcUserSettings = items,
+                    v => _cloudPcUserSettingsLoaded = v,
+                    "Cloud PC user setting(s)", "Cloud PC User Settings",
+                    errors, cancellationToken);
+
+            if (_vppTokenService != null && loadVppTokens)
+                await RefreshCollectionAsync(
+                    ct => _vppTokenService.ListVppTokensAsync(ct),
+                    items => VppTokens = items,
+                    v => _vppTokensLoaded = v,
+                    "VPP token(s)", "VPP Tokens",
+                    errors, cancellationToken);
+
+            if (_roleDefinitionService != null && loadRoleAssignments)
+                await RefreshCollectionAsync(
+                    ct => _roleDefinitionService.GetRoleAssignmentsAsync(ct),
+                    items => RoleAssignments = items,
+                    v => _roleAssignmentsLoaded = v,
+                    "role assignment(s)", "Role Assignments",
+                    errors, cancellationToken);
+
             if (_qualityUpdateProfileService != null && loadQualityUpdates)
                 await RefreshCollectionAsync(
                     ct => _qualityUpdateProfileService.ListQualityUpdateProfilesAsync(ct),
@@ -798,8 +871,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
             // --- Summary ---
 
-            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + QualityUpdateProfiles.Count + DriverUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AppleDepSettings.Count + DeviceCategories.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
-            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {QualityUpdateProfiles.Count} quality updates, {DriverUpdateProfiles.Count} driver updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use, {DeviceManagementScripts.Count} device mgmt scripts, {DeviceShellScripts.Count} shell scripts, {ComplianceScripts.Count} compliance scripts, {AppleDepSettings.Count} Apple DEP settings, {DeviceCategories.Count} device categories, {AdmxFiles.Count} ADMX files, {ReusablePolicySettings.Count} reusable policy settings, {NotificationTemplates.Count} notification templates)";
+            var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + QualityUpdateProfiles.Count + DriverUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AppleDepSettings.Count + DeviceCategories.Count + CloudPcProvisioningPolicies.Count + CloudPcUserSettings.Count + VppTokens.Count + RoleAssignments.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
+            StatusText = $"Loaded {totalItems} item(s) ({DeviceConfigurations.Count} configs, {CompliancePolicies.Count} compliance, {Applications.Count} apps, {SettingsCatalogPolicies.Count} settings catalog, {EndpointSecurityIntents.Count} endpoint security, {AdministrativeTemplates.Count} admin templates, {EnrollmentConfigurations.Count} enrollment configs, {AppProtectionPolicies.Count} app protection, {ManagedDeviceAppConfigurations.Count} managed device app configs, {TargetedManagedAppConfigurations.Count} targeted app configs, {TermsAndConditionsCollection.Count} terms, {ScopeTags.Count} scope tags, {RoleDefinitions.Count} role definitions, {IntuneBrandingProfiles.Count} intune branding, {AzureBrandingLocalizations.Count} azure branding, {ConditionalAccessPolicies.Count} conditional access, {AssignmentFilters.Count} filters, {PolicySets.Count} policy sets, {AutopilotProfiles.Count} autopilot, {DeviceHealthScripts.Count} device health scripts, {MacCustomAttributes.Count} mac custom attributes, {FeatureUpdateProfiles.Count} feature updates, {QualityUpdateProfiles.Count} quality updates, {DriverUpdateProfiles.Count} driver updates, {NamedLocations.Count} named locations, {AuthenticationStrengthPolicies.Count} auth strengths, {AuthenticationContextClassReferences.Count} auth contexts, {TermsOfUseAgreements.Count} terms of use, {DeviceManagementScripts.Count} device mgmt scripts, {DeviceShellScripts.Count} shell scripts, {ComplianceScripts.Count} compliance scripts, {AppleDepSettings.Count} Apple DEP settings, {DeviceCategories.Count} device categories, {CloudPcProvisioningPolicies.Count} Cloud PC provisioning, {CloudPcUserSettings.Count} Cloud PC user settings, {VppTokens.Count} VPP tokens, {RoleAssignments.Count} role assignments, {AdmxFiles.Count} ADMX files, {ReusablePolicySettings.Count} reusable policy settings, {NotificationTemplates.Count} notification templates)";
 
             if (errors.Count > 0)
                 SetError($"Some data failed to load — {string.Join("; ", errors)}");
@@ -1064,6 +1137,34 @@ public partial class MainWindowViewModel : ViewModelBase
                 "device category(ies)", ref oldestCacheTime))
                 typesLoaded++;
 
+            if (TryLoadCollectionFromCache<CloudPcProvisioningPolicy>(
+                tenantId, CacheKeyCloudPcProvisioningPolicies,
+                items => CloudPcProvisioningPolicies = items,
+                () => _cloudPcProvisioningPoliciesLoaded = true,
+                "Cloud PC provisioning policy(ies)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<CloudPcUserSetting>(
+                tenantId, CacheKeyCloudPcUserSettings,
+                items => CloudPcUserSettings = items,
+                () => _cloudPcUserSettingsLoaded = true,
+                "Cloud PC user setting(s)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<VppToken>(
+                tenantId, CacheKeyVppTokens,
+                items => VppTokens = items,
+                () => _vppTokensLoaded = true,
+                "VPP token(s)", ref oldestCacheTime))
+                typesLoaded++;
+
+            if (TryLoadCollectionFromCache<DeviceAndAppManagementRoleAssignment>(
+                tenantId, CacheKeyRoleAssignments,
+                items => RoleAssignments = items,
+                () => _roleAssignmentsLoaded = true,
+                "role assignment(s)", ref oldestCacheTime))
+                typesLoaded++;
+
             if (TryLoadCollectionFromCache<WindowsQualityUpdateProfile>(
                 tenantId, CacheKeyQualityUpdateProfiles,
                 items => QualityUpdateProfiles = items,
@@ -1101,7 +1202,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (typesLoaded > 0)
             {
-                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AppleDepSettings.Count + DeviceCategories.Count + QualityUpdateProfiles.Count + DriverUpdateProfiles.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
+                var totalItems = DeviceConfigurations.Count + CompliancePolicies.Count + Applications.Count + SettingsCatalogPolicies.Count + EndpointSecurityIntents.Count + AdministrativeTemplates.Count + EnrollmentConfigurations.Count + AppProtectionPolicies.Count + ManagedDeviceAppConfigurations.Count + TargetedManagedAppConfigurations.Count + TermsAndConditionsCollection.Count + ScopeTags.Count + RoleDefinitions.Count + IntuneBrandingProfiles.Count + AzureBrandingLocalizations.Count + ConditionalAccessPolicies.Count + AssignmentFilters.Count + PolicySets.Count + AutopilotProfiles.Count + DeviceHealthScripts.Count + MacCustomAttributes.Count + FeatureUpdateProfiles.Count + NamedLocations.Count + AuthenticationStrengthPolicies.Count + AuthenticationContextClassReferences.Count + TermsOfUseAgreements.Count + DeviceManagementScripts.Count + DeviceShellScripts.Count + ComplianceScripts.Count + AppleDepSettings.Count + DeviceCategories.Count + CloudPcProvisioningPolicies.Count + CloudPcUserSettings.Count + VppTokens.Count + RoleAssignments.Count + QualityUpdateProfiles.Count + DriverUpdateProfiles.Count + AdmxFiles.Count + ReusablePolicySettings.Count + NotificationTemplates.Count;
                 var ageText = FormatCacheAge(oldestCacheTime);
                 CacheStatusText = oldestCacheTime.HasValue
                     ? $"Cache: {oldestCacheTime.Value.ToLocalTime():MMM dd, h:mm tt}"
@@ -1204,6 +1305,10 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveCollectionToCache(tenantId, CacheKeyComplianceScripts, ComplianceScripts);
             SaveCollectionToCache(tenantId, CacheKeyAppleDepSettings, AppleDepSettings);
             SaveCollectionToCache(tenantId, CacheKeyDeviceCategories, DeviceCategories);
+            SaveCollectionToCache(tenantId, CacheKeyCloudPcProvisioningPolicies, CloudPcProvisioningPolicies);
+            SaveCollectionToCache(tenantId, CacheKeyCloudPcUserSettings, CloudPcUserSettings);
+            SaveCollectionToCache(tenantId, CacheKeyVppTokens, VppTokens);
+            SaveCollectionToCache(tenantId, CacheKeyRoleAssignments, RoleAssignments);
             SaveCollectionToCache(tenantId, CacheKeyQualityUpdateProfiles, QualityUpdateProfiles);
             SaveCollectionToCache(tenantId, CacheKeyDriverUpdateProfiles, DriverUpdateProfiles);
             SaveCollectionToCache(tenantId, CacheKeyAdmxFiles, AdmxFiles);
@@ -1508,6 +1613,27 @@ public partial class MainWindowViewModel : ViewModelBase
             c => _deviceCategoryService!.ListDeviceCategoriesAsync(c),
             items => DeviceCategories = items,
             () => _deviceCategoriesLoaded = true, CacheKeyDeviceCategories);
+
+        AddTask("Cloud PC Provisioning Policies", _cloudPcProvisioningService,
+            c => _cloudPcProvisioningService!.ListProvisioningPoliciesAsync(c),
+            items => CloudPcProvisioningPolicies = items,
+            () => _cloudPcProvisioningPoliciesLoaded = true, CacheKeyCloudPcProvisioningPolicies);
+
+        AddTask("Cloud PC User Settings", _cloudPcUserSettingsService,
+            c => _cloudPcUserSettingsService!.ListUserSettingsAsync(c),
+            items => CloudPcUserSettings = items,
+            () => _cloudPcUserSettingsLoaded = true, CacheKeyCloudPcUserSettings);
+
+        AddTask("VPP Tokens", _vppTokenService,
+            c => _vppTokenService!.ListVppTokensAsync(c),
+            items => VppTokens = items,
+            () => _vppTokensLoaded = true, CacheKeyVppTokens);
+
+        AddTask("Role Assignments", _roleDefinitionService,
+            c => _roleDefinitionService!.GetRoleAssignmentsAsync(c),
+            items => RoleAssignments = items,
+            () => _roleAssignmentsLoaded = true, CacheKeyRoleAssignments);
+
         AddTask("Quality Update Profiles", _qualityUpdateProfileService,
             c => _qualityUpdateProfileService!.ListQualityUpdateProfilesAsync(c),
             items => QualityUpdateProfiles = items,

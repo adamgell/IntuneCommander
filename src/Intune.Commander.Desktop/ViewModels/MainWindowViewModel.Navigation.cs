@@ -82,6 +82,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 new() { Name = "Targeted Managed App Configurations", Icon = "🎯" },
 
+                new() { Name = "VPP Tokens", Icon = "🎟" },
+
             }
 
         },
@@ -124,6 +126,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 new() { Name = "Role Definitions", Icon = "💼" },
 
+                new() { Name = "Role Assignments", Icon = "🔑" },
+
                 new() { Name = "Assignment Filters", Icon = "🧩" },
 
                 new() { Name = "Policy Sets", Icon = "🗂" },
@@ -135,6 +139,24 @@ public partial class MainWindowViewModel : ViewModelBase
                 new() { Name = "Terms and Conditions", Icon = "📜" },
 
                 new() { Name = "Autopilot Profiles", Icon = "🚀" },
+
+            }
+
+        },
+
+        new NavCategoryGroup
+
+        {
+
+            Name = "Cloud PC", Icon = "🖥",
+
+            Children = new ObservableCollection<NavCategory>
+
+            {
+
+                new() { Name = "Cloud PC Provisioning Policies", Icon = "🖥" },
+
+                new() { Name = "Cloud PC User Settings", Icon = "👤" },
 
             }
 
@@ -377,6 +399,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         "Assigned Groups" => AssignedGroupColumns,
 
+        "Cloud PC Provisioning Policies" => CloudPcProvisioningColumns,
+
+        "Cloud PC User Settings" => CloudPcUserSettingColumns,
+
+        "VPP Tokens" => VppTokenColumns,
+
+        "Role Assignments" => RoleAssignmentColumns,
+
         _ => null
 
     };
@@ -496,6 +526,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsAssignedGroupsCategory => SelectedCategory?.Name == "Assigned Groups";
 
+    public bool IsCloudPcProvisioningCategory => SelectedCategory?.Name == "Cloud PC Provisioning Policies";
+
+    public bool IsCloudPcUserSettingsCategory => SelectedCategory?.Name == "Cloud PC User Settings";
+
+    public bool IsVppTokensCategory => SelectedCategory?.Name == "VPP Tokens";
+
+    public bool IsRoleAssignmentsCategory => SelectedCategory?.Name == "Role Assignments";
+
     public bool IsCurrentCategoryEmpty =>
         !IsBusy &&
         SelectedCategory is not null &&
@@ -540,6 +578,10 @@ public partial class MainWindowViewModel : ViewModelBase
         "Compliance Scripts" => FilteredComplianceScripts.Count,
         "Apple DEP" => FilteredAppleDepSettings.Count,
         "Device Categories" => FilteredDeviceCategories.Count,
+        "Cloud PC Provisioning Policies" => FilteredCloudPcProvisioningPolicies.Count,
+        "Cloud PC User Settings" => FilteredCloudPcUserSettings.Count,
+        "VPP Tokens" => FilteredVppTokens.Count,
+        "Role Assignments" => FilteredRoleAssignments.Count,
         "ADMX Files" => FilteredAdmxFiles.Count,
         "Reusable Policy Settings" => FilteredReusablePolicySettings.Count,
         "Notification Templates" => FilteredNotificationTemplates.Count,
@@ -639,6 +681,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedAssignedGroupRow = null;
 
+        SelectedCloudPcProvisioningPolicy = null;
+
+        SelectedCloudPcUserSetting = null;
+
+        SelectedVppToken = null;
+
+        SelectedRoleAssignment = null;
+
         SelectedItemAssignments.Clear();
 
         SelectedGroupMembers.Clear();
@@ -735,6 +785,14 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDynamicGroupsCategory));
 
         OnPropertyChanged(nameof(IsAssignedGroupsCategory));
+
+        OnPropertyChanged(nameof(IsCloudPcProvisioningCategory));
+
+        OnPropertyChanged(nameof(IsCloudPcUserSettingsCategory));
+
+        OnPropertyChanged(nameof(IsVppTokensCategory));
+
+        OnPropertyChanged(nameof(IsRoleAssignmentsCategory));
 
         OnPropertyChanged(nameof(ActiveColumns));
 
@@ -1692,6 +1750,34 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
+        if (value?.Name == "Cloud PC Provisioning Policies" && !_cloudPcProvisioningPoliciesLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<CloudPcProvisioningPolicy>(CacheKeyCloudPcProvisioningPolicies, rows =>
+
+            {
+
+                CloudPcProvisioningPolicies = new ObservableCollection<CloudPcProvisioningPolicy>(rows);
+
+                _cloudPcProvisioningPoliciesLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} Cloud PC provisioning policy(ies) from cache";
+
+            }))
+
+            {
+
+                _cloudPcProvisioningPoliciesLoaded = true;
+
+                _ = LoadCloudPcProvisioningPoliciesAsync();
+
+            }
+
+        }
+
         if (value?.Name == "ADMX Files" && !_admxFilesLoaded)
 
         {
@@ -1715,6 +1801,34 @@ public partial class MainWindowViewModel : ViewModelBase
                 _admxFilesLoaded = true;
 
                 _ = LoadAdmxFilesAsync();
+
+            }
+
+        }
+
+        if (value?.Name == "Cloud PC User Settings" && !_cloudPcUserSettingsLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<CloudPcUserSetting>(CacheKeyCloudPcUserSettings, rows =>
+
+            {
+
+                CloudPcUserSettings = new ObservableCollection<CloudPcUserSetting>(rows);
+
+                _cloudPcUserSettingsLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} Cloud PC user setting(s) from cache";
+
+            }))
+
+            {
+
+                _cloudPcUserSettingsLoaded = true;
+
+                _ = LoadCloudPcUserSettingsAsync();
 
             }
 
@@ -1748,6 +1862,34 @@ public partial class MainWindowViewModel : ViewModelBase
 
         }
 
+        if (value?.Name == "VPP Tokens" && !_vppTokensLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<VppToken>(CacheKeyVppTokens, rows =>
+
+            {
+
+                VppTokens = new ObservableCollection<VppToken>(rows);
+
+                _vppTokensLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} VPP token(s) from cache";
+
+            }))
+
+            {
+
+                _vppTokensLoaded = true;
+
+                _ = LoadVppTokensAsync();
+
+            }
+
+        }
+
         if (value?.Name == "Notification Templates" && !_notificationTemplatesLoaded)
 
         {
@@ -1771,6 +1913,34 @@ public partial class MainWindowViewModel : ViewModelBase
                 _notificationTemplatesLoaded = true;
 
                 _ = LoadNotificationTemplatesAsync();
+
+            }
+
+        }
+
+        if (value?.Name == "Role Assignments" && !_roleAssignmentsLoaded)
+
+        {
+
+            if (!TryLoadLazyCacheEntry<DeviceAndAppManagementRoleAssignment>(CacheKeyRoleAssignments, rows =>
+
+            {
+
+                RoleAssignments = new ObservableCollection<DeviceAndAppManagementRoleAssignment>(rows);
+
+                _roleAssignmentsLoaded = true;
+
+                ApplyFilter();
+
+                StatusText = $"Loaded {rows.Count} role assignment(s) from cache";
+
+            }))
+
+            {
+
+                _roleAssignmentsLoaded = true;
+
+                _ = LoadRoleAssignmentsAsync();
 
             }
 

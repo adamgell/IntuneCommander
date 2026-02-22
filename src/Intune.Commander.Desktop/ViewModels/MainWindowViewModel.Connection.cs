@@ -190,6 +190,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
             ExportConditionalAccessPowerPointCommand.NotifyCanExecuteChanged();
 
+            _cloudPcProvisioningService = new CloudPcProvisioningService(_graphClient);
+            _cloudPcUserSettingsService = new CloudPcUserSettingsService(_graphClient);
+            _vppTokenService = new VppTokenService(_graphClient);
+
             _importService = new ImportService(
 
                 _configProfileService,
@@ -508,6 +512,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _deviceCategoriesLoaded = false;
 
+        _cloudPcProvisioningPoliciesLoaded = false;
+
+        _cloudPcUserSettingsLoaded = false;
+
+        _vppTokensLoaded = false;
+
+        _roleAssignmentsLoaded = false;
+
         SettingsCatalogPolicies.Clear();
 
         SelectedSettingsCatalogPolicy = null;
@@ -621,6 +633,23 @@ public partial class MainWindowViewModel : ViewModelBase
         FilteredDeviceCategories.Clear();
 
         SelectedDeviceCategory = null;
+
+        CloudPcProvisioningPolicies.Clear();
+
+        SelectedCloudPcProvisioningPolicy = null;
+
+        CloudPcUserSettings.Clear();
+
+        SelectedCloudPcUserSetting = null;
+
+        VppTokens.Clear();
+
+        SelectedVppToken = null;
+
+        RoleAssignments.Clear();
+
+        SelectedRoleAssignment = null;
+
         QualityUpdateProfiles.Clear();
 
         SelectedQualityUpdateProfile = null;
@@ -632,6 +661,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedDriverUpdateProfile = null;
 
         _driverUpdateProfilesLoaded = false;
+
         AdmxFiles.Clear();
 
         SelectedAdmxFile = null;
@@ -740,6 +770,12 @@ public partial class MainWindowViewModel : ViewModelBase
         _appleDepService = null;
 
         _deviceCategoryService = null;
+
+        _cloudPcProvisioningService = null;
+
+        _cloudPcUserSettingsService = null;
+
+        _vppTokenService = null;
 
         _importService = null;
 

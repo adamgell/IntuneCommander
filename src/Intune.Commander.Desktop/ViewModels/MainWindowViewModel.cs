@@ -137,6 +137,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private const string CacheKeyDeviceCategories = "DeviceCategories";
 
+    private const string CacheKeyCloudPcProvisioningPolicies = "CloudPcProvisioningPolicies";
+
+    private const string CacheKeyCloudPcUserSettings = "CloudPcUserSettings";
+
+    private const string CacheKeyVppTokens = "VppTokens";
+
+    private const string CacheKeyRoleAssignments = "RoleAssignments";
+
 
 
     private GraphServiceClient? _graphClient;
@@ -207,6 +215,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private IUserService? _userService;
     private IAppleDepService? _appleDepService;
     private IDeviceCategoryService? _deviceCategoryService;
+    private ICloudPcProvisioningService? _cloudPcProvisioningService;
+    private ICloudPcUserSettingsService? _cloudPcUserSettingsService;
+    private IVppTokenService? _vppTokenService;
 
 
 
@@ -655,6 +666,43 @@ public partial class MainWindowViewModel : ViewModelBase
     private DeviceCategory? _selectedDeviceCategory;
 
     private bool _deviceCategoriesLoaded;
+
+    // --- Cloud PC Provisioning Policies ---
+    [ObservableProperty]
+    private ObservableCollection<CloudPcProvisioningPolicy> _cloudPcProvisioningPolicies = [];
+
+    [ObservableProperty]
+    private CloudPcProvisioningPolicy? _selectedCloudPcProvisioningPolicy;
+
+    private bool _cloudPcProvisioningPoliciesLoaded;
+
+    // --- Cloud PC User Settings ---
+    [ObservableProperty]
+    private ObservableCollection<CloudPcUserSetting> _cloudPcUserSettings = [];
+
+    [ObservableProperty]
+    private CloudPcUserSetting? _selectedCloudPcUserSetting;
+
+    private bool _cloudPcUserSettingsLoaded;
+
+    // --- VPP Tokens ---
+    [ObservableProperty]
+    private ObservableCollection<VppToken> _vppTokens = [];
+
+    [ObservableProperty]
+    private VppToken? _selectedVppToken;
+
+    private bool _vppTokensLoaded;
+
+    // --- Role Assignments ---
+    [ObservableProperty]
+    private ObservableCollection<DeviceAndAppManagementRoleAssignment> _roleAssignments = [];
+
+    [ObservableProperty]
+    private DeviceAndAppManagementRoleAssignment? _selectedRoleAssignment;
+
+    private bool _roleAssignmentsLoaded;
+
     // --- Quality Update Profiles ---
     [ObservableProperty]
     private ObservableCollection<WindowsQualityUpdateProfile> _qualityUpdateProfiles = [];
@@ -1720,6 +1768,46 @@ public partial class MainWindowViewModel : ViewModelBase
 
         new() { Header = "Notes", BindingPath = "Notes", Width = 200, IsVisible = false }
 
+    ];
+
+    public ObservableCollection<DataGridColumnConfig> CloudPcProvisioningColumns { get; } =
+    [
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+        new() { Header = "Provisioning Type", BindingPath = "ProvisioningType", Width = 140, IsVisible = true },
+        new() { Header = "Image Display Name", BindingPath = "ImageDisplayName", Width = 200, IsVisible = true },
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+    ];
+
+    public ObservableCollection<DataGridColumnConfig> CloudPcUserSettingColumns { get; } =
+    [
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+        new() { Header = "Local Admin Enabled", BindingPath = "LocalAdminEnabled", Width = 140, IsVisible = true },
+        new() { Header = "Reset Enabled", BindingPath = "ResetEnabled", Width = 120, IsVisible = true },
+        new() { Header = "Self-Service Enabled", BindingPath = "SelfServiceEnabled", Width = 140, IsVisible = true },
+        new() { Header = "Last Modified", BindingPath = "LastModifiedDateTime", Width = 150, IsVisible = true },
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+    ];
+
+    public ObservableCollection<DataGridColumnConfig> VppTokenColumns { get; } =
+    [
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+        new() { Header = "Apple ID", BindingPath = "AppleId", Width = 220, IsVisible = true },
+        new() { Header = "Organization", BindingPath = "OrganizationName", Width = 160, IsVisible = true },
+        new() { Header = "State", BindingPath = "State", Width = 100, IsVisible = true },
+        new() { Header = "Token Account Type", BindingPath = "VppTokenAccountType", Width = 150, IsVisible = true },
+        new() { Header = "Expiration", BindingPath = "ExpirationDateTime", Width = 150, IsVisible = true },
+        new() { Header = "Last Sync", BindingPath = "LastSyncDateTime", Width = 150, IsVisible = false },
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+    ];
+
+    public ObservableCollection<DataGridColumnConfig> RoleAssignmentColumns { get; } =
+    [
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+        new() { Header = "Scope Type", BindingPath = "ScopeType", Width = 120, IsVisible = true },
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
     ];
 
     // --- Profile switcher ---
