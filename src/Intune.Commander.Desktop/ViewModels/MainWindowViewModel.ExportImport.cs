@@ -114,7 +114,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string CsvEscape(string? value)
     {
         if (string.IsNullOrEmpty(value)) return "\"\"";
-        return "\"" + value.Replace("\"", "\"\"") + "\"";
+        // Neutralize spreadsheet formula injection: prefix formula-starting chars with a tab
+        var sanitized = value;
+        if (sanitized.Length > 0 && (sanitized[0] == '=' || sanitized[0] == '+' || sanitized[0] == '-' || sanitized[0] == '@'))
+            sanitized = "\t" + sanitized;
+        return "\"" + sanitized.Replace("\"", "\"\"") + "\"";
     }
 
     // --- Group CSV Export ---
@@ -226,7 +230,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var sb = new StringBuilder();
             sb.AppendLine("\"Name\",\"ID\",\"Description\",\"Platforms\",\"Technologies\"," +
                           "\"Created Date\",\"Last Modified\",\"Setting Count\",\"Is Assigned\"," +
-                          "\"Template Family\"");
+                          "\"Template Display Name\"");
 
             foreach (var policy in SettingsCatalogPolicies)
             {
@@ -656,21 +660,39 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
 
-            // Export settings catalog policies with settings and assignments
+            // Export settings catalog policies with settings and assignments (bounded parallelism)
             if (SettingsCatalogPolicies.Any() && _settingsCatalogService != null)
             {
                 StatusText = "Exporting settings catalog policies...";
+                const int maxDegreeOfParallelism = 4;
+                using var semaphore = new SemaphoreSlim(maxDegreeOfParallelism);
+                var policyExportTasks = new List<Task>();
+
                 foreach (var policy in SettingsCatalogPolicies)
                 {
-                    var settings = policy.Id != null
-                        ? await _settingsCatalogService.GetPolicySettingsAsync(policy.Id, cancellationToken)
-                        : [];
-                    var assignments = policy.Id != null
-                        ? await _settingsCatalogService.GetAssignmentsAsync(policy.Id, cancellationToken)
-                        : [];
-                    await _exportService.ExportSettingsCatalogPolicyAsync(policy, settings, assignments, outputPath, migrationTable, cancellationToken);
-                    count++;
+                    var capturedPolicy = policy;
+                    policyExportTasks.Add(Task.Run(async () =>
+                    {
+                        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        try
+                        {
+                            var settings = capturedPolicy.Id != null
+                                ? await _settingsCatalogService.GetPolicySettingsAsync(capturedPolicy.Id, cancellationToken).ConfigureAwait(false)
+                                : [];
+                            var assignments = capturedPolicy.Id != null
+                                ? await _settingsCatalogService.GetAssignmentsAsync(capturedPolicy.Id, cancellationToken).ConfigureAwait(false)
+                                : [];
+                            await _exportService.ExportSettingsCatalogPolicyAsync(capturedPolicy, settings, assignments, outputPath, migrationTable, cancellationToken).ConfigureAwait(false);
+                            Interlocked.Increment(ref count);
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    }, cancellationToken));
                 }
+
+                await Task.WhenAll(policyExportTasks).ConfigureAwait(false);
             }
 
             // Export enrollment configurations
