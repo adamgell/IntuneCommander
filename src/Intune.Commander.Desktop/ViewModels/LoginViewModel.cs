@@ -167,10 +167,11 @@ public partial class LoginViewModel : ViewModelBase
             else
             {
                 // Create new profile
+                var trimmedTenantId = TenantId.Trim();
                 var profile = new TenantProfile
                 {
-                    Name = string.IsNullOrWhiteSpace(ProfileName) ? $"Tenant-{TenantId.Trim()[..Math.Min(8, TenantId.Trim().Length)]}" : ProfileName.Trim(),
-                    TenantId = TenantId.Trim(),
+                    Name = string.IsNullOrWhiteSpace(ProfileName) ? $"Tenant-{trimmedTenantId[..Math.Min(8, trimmedTenantId.Length)]}" : ProfileName.Trim(),
+                    TenantId = trimmedTenantId,
                     ClientId = ClientId.Trim(),
                     ClientSecret = ClientSecret.Trim(),
                     Cloud = SelectedCloud,
