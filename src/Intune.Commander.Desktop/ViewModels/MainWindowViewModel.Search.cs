@@ -242,6 +242,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<DeviceCategory> _filteredDeviceCategories = [];
 
+    [ObservableProperty]
+
     private ObservableCollection<GroupPolicyUploadedDefinitionFile> _filteredAdmxFiles = [];
 
 

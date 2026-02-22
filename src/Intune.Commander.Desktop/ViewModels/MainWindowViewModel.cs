@@ -1394,6 +1394,13 @@ public partial class MainWindowViewModel : ViewModelBase
         new() { Header = "Token Expiry", BindingPath = "TokenExpirationDateTime", Width = 160, IsVisible = true },
 
         new() { Header = "Last Sync", BindingPath = "LastSuccessfulSyncDateTime", Width = 160, IsVisible = true },
+
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+
+    ];
+
+
+
     public ObservableCollection<DataGridColumnConfig> AdmxFileColumns { get; } =
 
     [
@@ -1435,6 +1442,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     public ObservableCollection<DataGridColumnConfig> DeviceCategoryColumns { get; } =
+
+    [
+
+        new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
+
+        new() { Header = "Description", BindingPath = "Description", Width = 260, IsVisible = true },
+
+        new() { Header = "ID", BindingPath = "Id", Width = 280, IsVisible = false }
+
+    ];
+
     public ObservableCollection<DataGridColumnConfig> NotificationTemplateColumns { get; } =
 
     [

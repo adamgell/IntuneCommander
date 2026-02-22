@@ -1612,6 +1612,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 _deviceCategoriesLoaded = true;
                 _ = LoadDeviceCategoriesAsync();
             }
+        }
+
         if (value?.Name == "ADMX Files" && !_admxFilesLoaded)
 
         {
