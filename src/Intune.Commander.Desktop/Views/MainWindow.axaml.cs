@@ -467,6 +467,27 @@ public partial class MainWindow : Window
             _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
                 new Binding(nameof(_vm.SelectedComplianceScript)) { Source = _vm, Mode = BindingMode.TwoWay });
         }
+        else if (_vm.IsAdmxFilesCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredAdmxFiles)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedAdmxFile)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
+        else if (_vm.IsReusablePolicySettingsCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredReusablePolicySettings)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedReusablePolicySetting)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
+        else if (_vm.IsNotificationTemplatesCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredNotificationTemplates)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedNotificationTemplate)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
         else if (_vm.IsDynamicGroupsCategory)
         {
             _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
