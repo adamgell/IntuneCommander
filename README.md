@@ -91,7 +91,7 @@ Valid `authMethod` values: `Interactive` (browser popup), `ClientSecret` (includ
 
 1. Go to **Azure Portal → Entra ID → App Registrations → New registration**
 2. Name your app (e.g. `IntuneCommander-Dev`)
-3. Set **Redirect URI** to `http://localhost` (Mobile and desktop applications)
+3. Set **Redirect URI** to `http://localhost:45132` (Mobile and desktop applications)
 4. Under **API permissions**, add `Microsoft Graph → Delegated → DeviceManagementConfiguration.ReadWrite.All` and related Intune scopes
 5. Grant admin consent for the tenant
 
