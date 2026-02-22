@@ -1452,6 +1452,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
+        if (value?.Id != null)
+
+            _ = LoadDeviceManagementScriptAssignmentsAsync(value.Id);
+
     }
 
 
@@ -1467,6 +1471,10 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemPlatform = "";
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
+
+        if (value?.Id != null)
+
+            _ = LoadDeviceShellScriptAssignmentsAsync(value.Id);
 
     }
 
@@ -1933,6 +1941,86 @@ public partial class MainWindowViewModel : ViewModelBase
         _groupNameCache[groupId] = groupId;
 
         return groupId;
+
+    }
+
+
+
+    private async Task LoadDeviceManagementScriptAssignmentsAsync(string scriptId)
+
+    {
+
+        if (_deviceManagementScriptService == null) return;
+
+        IsLoadingDetails = true;
+
+        try
+
+        {
+
+            var assignments = await _deviceManagementScriptService.GetAssignmentsAsync(scriptId);
+
+            var items = new List<AssignmentDisplayItem>();
+
+            foreach (var a in assignments)
+
+                items.Add(await MapAssignmentAsync(a.Target));
+
+            if (SelectedDeviceManagementScript?.Id == scriptId)
+
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+
+        }
+
+        catch (Exception ex)
+
+        {
+
+            DebugLog.LogError($"Failed to load device management script assignments: {FormatGraphError(ex)}", ex);
+
+        }
+
+        finally { IsLoadingDetails = false; }
+
+    }
+
+
+
+    private async Task LoadDeviceShellScriptAssignmentsAsync(string scriptId)
+
+    {
+
+        if (_deviceShellScriptService == null) return;
+
+        IsLoadingDetails = true;
+
+        try
+
+        {
+
+            var assignments = await _deviceShellScriptService.GetAssignmentsAsync(scriptId);
+
+            var items = new List<AssignmentDisplayItem>();
+
+            foreach (var a in assignments)
+
+                items.Add(await MapAssignmentAsync(a.Target));
+
+            if (SelectedDeviceShellScript?.Id == scriptId)
+
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+
+        }
+
+        catch (Exception ex)
+
+        {
+
+            DebugLog.LogError($"Failed to load device shell script assignments: {FormatGraphError(ex)}", ex);
+
+        }
+
+        finally { IsLoadingDetails = false; }
 
     }
 
