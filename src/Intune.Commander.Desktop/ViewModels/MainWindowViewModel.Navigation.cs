@@ -154,10 +154,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 new() { Name = "Feature Updates", Icon = "🪟" },
 
-                new() { Name = "Quality Updates", Icon = "🔄" },
-
-                new() { Name = "Driver Updates", Icon = "🖥️" },
-
                 new() { Name = "Device Management Scripts", Icon = "📜" },
 
                 new() { Name = "Device Shell Scripts", Icon = "🐚" },
