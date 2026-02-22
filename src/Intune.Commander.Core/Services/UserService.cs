@@ -81,6 +81,7 @@ public class UserService(GraphServiceClient graphClient) : IUserService
         {
             req.QueryParameters.Top = 999;
             req.QueryParameters.Select = UserSelect;
+            
         }, cancellationToken);
 
         while (response != null)
