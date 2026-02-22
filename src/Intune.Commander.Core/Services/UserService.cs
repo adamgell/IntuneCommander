@@ -79,7 +79,7 @@ public class UserService(GraphServiceClient graphClient) : IUserService
 
         var response = await _graphClient.Users.GetAsync(requestConfiguration =>
         {
-            requestConfiguration.QueryParameters.Top = 200;
+            requestConfiguration.QueryParameters.Top = 999;
             requestConfiguration.QueryParameters.Select = ["id", "displayName", "userPrincipalName", "mail", "jobTitle", "department"];
         }, cancellationToken);
 
