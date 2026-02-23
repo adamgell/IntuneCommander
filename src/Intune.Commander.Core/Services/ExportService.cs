@@ -61,10 +61,14 @@ public class ExportService : IExportService
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
     }
 
+    // Use a fixed set of Windows-invalid filename chars so sanitization is
+    // consistent regardless of the OS where tests or exports are run.
+    private static readonly char[] _invalidFileNameChars =
+        ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0'];
+
     private static string SanitizeFileName(string name)
     {
-        var invalid = Path.GetInvalidFileNameChars();
-        var sanitized = string.Join("_", name.Split(invalid, StringSplitOptions.RemoveEmptyEntries)).Trim();
+        var sanitized = string.Join("_", name.Split(_invalidFileNameChars, StringSplitOptions.RemoveEmptyEntries)).Trim();
         return string.IsNullOrEmpty(sanitized) ? "unnamed" : sanitized;
     }
 
