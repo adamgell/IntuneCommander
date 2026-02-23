@@ -35,6 +35,7 @@ A cross-platform Intune management tool built with .NET 10 and Avalonia UI, desi
 - Visual Studio 2022, JetBrains Rider, or VS Code with C# Dev Kit
 - An Azure AD app registration with appropriate Microsoft Graph permissions (for use with the beta Microsoft Graph SDK/endpoint)
 - (Optional) Syncfusion license key for PowerPoint export feature - see [Syncfusion Licensing](#syncfusion-licensing)
+- (Optional) Avalonia Accelerate community license. 
 
 ### Build & Run
 

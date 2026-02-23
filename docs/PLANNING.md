@@ -22,12 +22,13 @@ All core functionality is implemented and building cleanly. The original 6-phase
 | Overview dashboard with charts | ✅ Done |
 | Debug log window | ✅ Done |
 | CA PowerPoint export (Syncfusion, open-after-export prompt) | ✅ Done |
+| Permission check service (JWT decode, PermissionsWindow) | ✅ Done |
 | CI/CD (unit tests, integration tests, build release) | ✅ Done |
 | Integration tests against live tenant | ✅ Done |
 
 ### Implemented Object Types
 
-Device Configurations, Configuration Policies, Compliance Policies, Applications, Conditional Access, Named Locations, Auth Strengths, Auth Contexts, Assignment Filters, Policy Sets, Endpoint Security, Admin Templates, Enrollment Configurations, App Protection, Managed App Configs, Terms and Conditions, Scope Tags, Role Definitions, Intune Branding, Azure Branding, Terms of Use, Autopilot, Device Health Scripts, Mac Custom Attributes, Feature Updates, Groups
+Device Configurations, Configuration Policies (Settings Catalog), Compliance Policies, Applications, Conditional Access, Named Locations, Auth Strengths, Auth Contexts, Assignment Filters, Policy Sets, Endpoint Security, Admin Templates, Enrollment Configurations, App Protection, Managed App Configs, Terms and Conditions, Scope Tags, Role Definitions, Intune Branding, Azure Branding, Terms of Use, Autopilot, Device Health Scripts, Mac Custom Attributes, Feature Updates, Groups, PowerShell Scripts, Shell Scripts (macOS), Compliance Scripts, ADMX Uploaded Definitions, Reusable Policy Settings, Notification Templates, Quality Update Profiles, Driver Update Profiles, Apple DEP Onboarding, Device Categories, Cloud PC Provisioning Policies, Cloud PC User Settings, VPP Tokens
 
 ---
 
@@ -37,16 +38,10 @@ Device Configurations, Configuration Policies, Compliance Policies, Applications
 
 | Priority | Type | Graph Endpoint |
 |----------|------|----------------|
-| High | PowerShell Scripts | `/deviceManagement/deviceManagementScripts` |
-| High | Shell Scripts | `/deviceManagement/deviceShellScripts` |
-| High | Compliance Scripts | `/deviceManagement/deviceComplianceScripts` |
-| Medium | Notification Templates | `/deviceManagement/notificationMessageTemplates` |
-| Medium | Reusable Policy Settings | `/deviceManagement/reusablePolicySettings` |
-| Medium | ADMX Uploaded Definitions | `/deviceManagement/groupPolicyUploadedDefinitionFiles` |
-| Low | Windows Quality Update Profiles | `/deviceManagement/windowsQualityUpdateProfiles` |
-| Low | Windows Driver Update Profiles | `/deviceManagement/windowsDriverUpdateProfiles` |
-| Low | Cloud PC Provisioning | `/virtualEndpoint/provisioningPolicies` |
-| Low | Cloud PC User Settings | `/virtualEndpoint/userSettings` |
+| Medium | Android OEM Config | `/deviceManagement/deviceConfigurations` (filtered) |
+| Medium | Compliance Policies V2 | `/deviceManagement/compliancePolicies` |
+| Low | Inventory Policies | `/deviceManagement/hardwareConfigurations` |
+| Low | Apple Enrollment Types | `/deviceManagement/appleEnrollmentTypes` |
 
 ### Advanced Features
 

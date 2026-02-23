@@ -1,5 +1,6 @@
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
+using Microsoft.Graph.Beta.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
 
 namespace Intune.Commander.Core.Services;
@@ -7,6 +8,12 @@ namespace Intune.Commander.Core.Services;
 public class SettingsCatalogService : ISettingsCatalogService
 {
     private readonly GraphServiceClient _graphClient;
+
+    // The configurationPolicies endpoint can return HTTP 500 on certain Cosmos DB
+    // skip-token page boundaries. Use smaller pages to reduce the chance of hitting
+    // a broken cursor, and retry on transient 500s before returning partial results.
+    private const int PageSize = 100;
+    private const int MaxRetries = 3;
 
     public SettingsCatalogService(GraphServiceClient graphClient)
     {
@@ -20,7 +27,7 @@ public class SettingsCatalogService : ISettingsCatalogService
         var response = await _graphClient.DeviceManagement.ConfigurationPolicies
             .GetAsync(req =>
             {
-                req.QueryParameters.Top = 999;
+                req.QueryParameters.Top = PageSize;
                 req.QueryParameters.Select = new[]
                 {
                     "id", "name", "description", "platforms", "technologies",
@@ -34,15 +41,32 @@ public class SettingsCatalogService : ISettingsCatalogService
             if (response.Value != null)
                 result.AddRange(response.Value);
 
-            if (!string.IsNullOrEmpty(response.OdataNextLink))
-            {
-                response = await _graphClient.DeviceManagement.ConfigurationPolicies
-                    .WithUrl(response.OdataNextLink)
-                    .GetAsync(cancellationToken: cancellationToken);
-            }
-            else
-            {
+            if (string.IsNullOrEmpty(response.OdataNextLink))
                 break;
+
+            // Retry on transient 500s — the Cosmos DB backend can fail on specific
+            // skip-token cursors; retrying with backoff often succeeds on the same URL.
+            var nextLink = response.OdataNextLink;
+            response = null;
+            for (int attempt = 1; attempt <= MaxRetries; attempt++)
+            {
+                try
+                {
+                    response = await _graphClient.DeviceManagement.ConfigurationPolicies
+                        .WithUrl(nextLink)
+                        .GetAsync(cancellationToken: cancellationToken);
+                    break; // success — exit retry loop
+                }
+                catch (ODataError odataErr) when (odataErr.ResponseStatusCode == 500 && attempt < MaxRetries)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)), cancellationToken);
+                }
+                catch (ODataError odataErr) when (odataErr.ResponseStatusCode == 500)
+                {
+                    // All retries exhausted — return the items collected so far rather
+                    // than throwing and losing all previously fetched pages.
+                    return result;
+                }
             }
         }
 

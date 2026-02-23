@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private MainWindowViewModel? _vm;
     private bool _pendingGridRebuild;
     private DebugLogWindow? _debugLogWindow;
+    private PermissionsWindow? _permissionsWindow;
 
     public MainWindow()
     {
@@ -747,6 +748,21 @@ public partial class MainWindow : Window
         else
         {
             _debugLogWindow.Activate();
+        }
+    }
+
+    private void OnPermissionsButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (_permissionsWindow == null || !_permissionsWindow.IsVisible)
+        {
+            if (_vm == null) return;
+            _permissionsWindow = new PermissionsWindow(_vm);
+            _permissionsWindow.Closed += (_, _) => _permissionsWindow = null;
+            _permissionsWindow.Show(this);
+        }
+        else
+        {
+            _permissionsWindow.Activate();
         }
     }
 

@@ -152,6 +152,9 @@ $requiredPermissions = @(
     "DeviceManagementManagedDevices.Read.All"
     "DeviceManagementScripts.ReadWrite.All"
 
+    # Windows 365 -- Cloud PC (requires Windows 365 licence on tenant)
+    "CloudPC.ReadWrite.All"
+
     # Entra ID -- Conditional Access & Identity
     "Policy.ReadWrite.ConditionalAccess"
     "Policy.Read.All"
