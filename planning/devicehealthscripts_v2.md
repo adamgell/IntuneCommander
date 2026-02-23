@@ -475,6 +475,44 @@ Same step added to `codesign.yml` for signed releases.
 
 ---
 
+## Distribution & Cost Controls
+
+### Why not pull directly from GitHub at runtime?
+GitHub's unauthenticated raw-content API is rate-limited to 60 requests per hour per IP. An app with
+many concurrent users would immediately start hitting `429` errors. The Azure Blob CDN approach avoids
+this entirely — no GitHub API calls at runtime.
+
+### Protecting the Azure Storage account from excessive costs
+The content bundle is JSON (~50 KB for ~200 scripts). Even without caching, a 50 KB download per user
+per week is negligible. However, defensive measures are still warranted:
+
+| Layer | Mechanism |
+|-------|-----------|
+| **Client-side cache** | Bundle cached in LiteDB for 7 days; typical user makes ≤4 fetches/month |
+| **Azure CDN** | Place Azure CDN in front of Blob Storage; edge nodes serve most requests from cache (origin hit only on CDN miss or after TTL expiry). CDN bandwidth is cheaper than origin egress. |
+| **Azure Cost Alert** | Set a monthly budget alert (e.g. $10/month) on the Storage Account via Azure Cost Management. Alert fires before charges become significant. |
+| **CDN rate-limiting rule** | Azure CDN Premium (Verizon) supports rate-limiting rules by IP. Standard CDN (Akamai/Microsoft) can redirect to an error page when traffic spikes via custom rules. |
+| **Immutable URL design** | The blob URL is a `private const string` in `ScriptCatalogService` — users cannot redirect it to another host (prevents SSRF and cost-shifting). |
+| **Restricted CORS** | Blob container CORS policy allows only `GET` from `https://intunecommander.app` (if a web companion ever exists); desktop app traffic is origin-less and still permitted. |
+
+### GitHub Action: `update-catalog.yml`
+`.github/workflows/update-catalog.yml` was added to automate the weekly catalog refresh:
+- Fetches scripts from `JayRHa/EndpointAnalyticsRemediationScripts` via `scripts/Fetch-CatalogScripts.ps1`
+- Regenerates `script-catalog.json` (metadata, embedded in exe) and `script-content-bundle.json` (PS1 content for CDN)
+- Commits updated `script-catalog.json` back to the branch if changed (`[skip ci]` to avoid infinite loop)
+- Uploads content bundle to Azure Blob Storage
+- Optionally purges Azure CDN edge cache (configure via `AZURE_CDN_PROFILE` / `AZURE_CDN_ENDPOINT` secrets)
+
+Required secrets:
+| Secret | Purpose |
+|--------|---------|
+| `AZURE_CREDENTIALS` | Service principal JSON; needs `Storage Blob Data Contributor` on container only |
+| `AZURE_CDN_RESOURCE_GROUP` | (Optional) Azure CDN resource group |
+| `AZURE_CDN_PROFILE` | (Optional) Azure CDN profile name; omit to skip cache-purge step |
+| `AZURE_CDN_ENDPOINT` | (Optional) Azure CDN endpoint name |
+
+---
+
 ## Open Questions
 
 1. **Azure subscription**: existing subscription or new one? Needs Storage Account name for the `BlobUrl` constant.
@@ -482,3 +520,4 @@ Same step added to `codesign.yml` for signed releases.
 3. **Bundle versioning**: should the app reject a bundle whose `version` doesn't match a minimum supported version?
 4. **Offline mode**: if Azure blob is unreachable and LiteDB cache is expired, show "Catalog content unavailable — check network" vs. silently show metadata-only with disabled Deploy button?
 5. **Script signing**: should scripts deployed to Intune via the catalog be signed? (Intune can enforce PS signing policies)
+| **Azure CDN tier** | Standard Microsoft CDN is sufficient for this use case (no IP-based rate limiting needed unless abuse is detected). Start with Standard; upgrade to Premium Verizon only if cost alerts fire. |
