@@ -513,7 +513,7 @@
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Platform / Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
@@ -537,6 +537,20 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Configuration Details-->
+                                <TextBlock Text="Configuration Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="OMA-URI Settings" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemOmaSettingsCount}" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -600,7 +614,7 @@
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Platform / Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
@@ -624,6 +638,41 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Compliance Details -->
+                                <TextBlock Text="Compliance Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Grace Period (Days)" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemGracePeriodDays}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Non-Compliance Actions" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <ItemsControl ItemsSource="{Binding SelectedItemNonComplianceActions}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4"
+                                                                Padding="6,2" Margin="0,0,4,4">
+                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                            <TextBlock Text="No actions"
+                                                       Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                       IsVisible="{Binding !SelectedItemNonComplianceActions.Count}" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -723,6 +772,41 @@
                                                 <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Catalog Details -->
+                                <TextBlock Text="Catalog Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Settings Count" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemSettingsCount}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Template Families" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <ItemsControl ItemsSource="{Binding SelectedItemTemplateFamilies}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4"
+                                                                Padding="6,2" Margin="0,0,4,4">
+                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                            <TextBlock Text="No families"
+                                                       Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                       IsVisible="{Binding !SelectedItemTemplateFamilies.Count}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 
@@ -1002,6 +1086,73 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- Section: Application Details -->
+                                <TextBlock Text="Application Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6"
+                                           IsVisible="{Binding SelectedItemVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=false, TargetNullValue=false}" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12"
+                                        IsVisible="{Binding SelectedItemVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=false, TargetNullValue=false}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemVersion}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Bundle ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemBundleId}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Minimum OS" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemMinimumOS}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Install Command" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemInstallCommand}" TextWrapping="Wrap" FontSize="12" FontFamily="Consolas,Courier New,monospace" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Uninstall Command" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemUninstallCommand}" TextWrapping="Wrap" FontSize="12" FontFamily="Consolas,Courier New,monospace" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Install Context" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemInstallContext}" FontSize="12" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Size (MB)" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding SelectedItemSizeMB}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Superseded" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding SelectedItemSupersededCount}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Categories" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <ItemsControl ItemsSource="{Binding SelectedItemCategories}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4"
+                                                                Padding="6,2" Margin="0,0,4,4">
+                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                            <TextBlock Text="No categories"
+                                                       Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                       IsVisible="{Binding !SelectedItemCategories.Count}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
                                 <!-- Section: Assignments -->
                                 <TextBlock Text="Assignments" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1081,6 +1232,22 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Security Details -->
+                                <TextBlock Text="Security Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6"
+                                           IsVisible="{Binding SelectedItemTemplateDisplayName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12"
+                                        IsVisible="{Binding SelectedItemTemplateDisplayName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Template Display Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding SelectedItemTemplateDisplayName}" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -1265,7 +1432,7 @@
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
@@ -1302,6 +1469,24 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
+                                
+                                <!-- Section: Version Requirements -->
+                                <TextBlock Text="Version Requirements" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <Grid ColumnDefinitions="*,*">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="Min App Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemMinAppVersion}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="Min OS Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemMinOSVersion}" FontSize="12" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </ScrollViewer>
 
@@ -1322,7 +1507,7 @@
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
@@ -1691,6 +1876,20 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
+                                
+                                <!-- Section: Profile Details -->
+                                <TextBlock Text="Profile Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,12,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Language" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemLanguage}" FontSize="12" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </ScrollViewer>
 
@@ -1698,13 +1897,13 @@
                         <!-- Device Health Script details               -->
                         <!-- ═══════════════════════════════════════════ -->
                         <ScrollViewer IsVisible="{Binding SelectedDeviceHealthScript, Converter={x:Static ObjectConverters.IsNotNull}}">
-                            <StackPanel Spacing="4" DataContext="{Binding SelectedDeviceHealthScript}">
+                            <StackPanel Spacing="4">
                                 <TextBlock Text="Device Health Script" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
                                            Margin="0,0,0,6" />
                                 <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                                         CornerRadius="4" Padding="10" Margin="0,0,0,12">
-                                    <StackPanel Spacing="10">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedDeviceHealthScript}">
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Display Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
@@ -1717,6 +1916,87 @@
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
                                         </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Script Details -->
+                                <TextBlock Text="Script Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,12,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10" DataContext="{Binding SelectedDeviceHealthScript}">
+                                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Publisher" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemPublisher}" FontSize="12" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Created Date" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Run As Account" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRunAsAccount}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Run As 32-bit" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRunAs32BitText}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Detection Script -->
+                                <Expander Header="Detection Script" IsExpanded="False">
+                                    <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemDetectionScript}"
+                                                         FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
+                                                         Margin="4" />
+                                </Expander>
+
+                                <!-- Section: Remediation Script -->
+                                <Expander Header="Remediation Script" IsExpanded="False" Margin="0,4,0,0">
+                                    <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRemediationScript}"
+                                                         FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
+                                                         Margin="4" />
+                                </Expander>
+
+                                <!-- Section: Assignments -->
+                                <TextBlock Text="Assignments" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,12,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="No assignments"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                   IsVisible="{Binding !SelectedItemAssignments.Count}" />
+                                        <ItemsControl ItemsSource="{Binding SelectedItemAssignments}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="4,3" Margin="0,0,0,4">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Left"
+                                                                    Background="{DynamicResource SystemAccentColor}"
+                                                                    CornerRadius="2" Padding="5,1" Margin="0,2,6,0"
+                                                                    VerticalAlignment="Top">
+                                                                <SelectableTextBlock Text="{Binding TargetKind}"
+                                                                           FontSize="10" Foreground="White" />
+                                                            </Border>
+                                                            <StackPanel Spacing="1">
+                                                                <SelectableTextBlock Text="{Binding Target}"
+                                                                           FontSize="12" TextWrapping="Wrap" />
+                                                                <SelectableTextBlock Text="{Binding GroupId}"
+                                                                           FontSize="10" Foreground="{DynamicResource AppTextSecondaryBrush}" Opacity="0.7"
+                                                                           IsVisible="{Binding GroupId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -1747,6 +2027,7 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
+                                
                             </StackPanel>
                         </ScrollViewer>
 
@@ -1775,6 +2056,20 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
+                                
+                                <!-- Section: Update Details -->
+                                <TextBlock Text="Update Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,12,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Feature Update Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemFeatureUpdateVersion}" FontSize="12" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </ScrollViewer>
 
@@ -1794,12 +2089,59 @@
                                             <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
-                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Section: Location Details -->
+                                <TextBlock Text="Location Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,12,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <!-- IP Ranges (shown when it's an IpNamedLocation) -->
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="IP Ranges" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <ItemsControl ItemsSource="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemIpRanges}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4" Padding="6,2" Margin="0,0,4,4">
+                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                        <!-- Country Codes (shown when it's a CountryNamedLocation) -->
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Countries and Regions" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <ItemsControl ItemsSource="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemCountryCodes}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4" Padding="6,2" Margin="0,0,4,4">
+                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                        <!-- Fallback OData type -->
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Location Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding OdataType, Converter={x:Static conv:ODataTypeConverter.Instance}}" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -1828,6 +2170,33 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Section: Policy Details -->
+                                <TextBlock Text="Policy Details" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,12,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Allowed Combinations" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <ItemsControl ItemsSource="{Binding AllowedCombinations}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4" Padding="6,2" Margin="0,0,4,4">
+                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -1876,10 +2245,6 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Display Name" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />

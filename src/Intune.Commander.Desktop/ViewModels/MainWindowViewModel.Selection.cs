@@ -1076,6 +1076,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemTypeName = FriendlyODataType(value?.OdataType);
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>((IEnumerable<string>)value.RoleScopeTagIds.Cast<string>())
+            : [];
+        var omaSettings = value?.AdditionalData?.TryGetValue("omaSettings", out var oma) == true
+            ? oma as System.Collections.IList
+            : null;
+        SelectedItemOmaSettingsCount = omaSettings?.Count ?? 0;
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
@@ -1094,6 +1105,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemTypeName = FriendlyODataType(value?.OdataType);
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // Compliance policy specific
+        SelectedItemGracePeriodDays = (value?.ScheduledActionsForRule?.FirstOrDefault()?.ScheduledActionConfigurations?.FirstOrDefault()?.GracePeriodHours ?? 0) / 24;
+        var actions = value?.ScheduledActionsForRule?.FirstOrDefault()?.ScheduledActionConfigurations?.Count ?? 0;
+        SelectedItemNonComplianceActions = actions > 0 
+            ? new ObservableCollection<string>(new[] { $"{actions} action(s)" })
+            : [];
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
@@ -1111,6 +1136,19 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemAssignments.Clear();
 
         SelectedItemTypeName = value?.Platforms?.ToString() ?? "";
+
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // Settings Catalog specific
+        SelectedItemSettingsCount = value?.Settings?.Count ?? 0;
+        SelectedItemTemplateFamilies = !string.IsNullOrEmpty(value?.TemplateReference?.TemplateFamily?.ToString())
+            ? new ObservableCollection<string>(new[] { value.TemplateReference.TemplateFamily.ToString() ?? "" })
+            : [];
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1134,6 +1172,27 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = InferPlatform(odataType);
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // App-specific properties
+        if (value != null)
+        {
+            SelectedItemVersion = ExtractVersion(value);
+            SelectedItemBundleId = ExtractBundleId(value);
+            SelectedItemMinimumOS = ExtractMinimumOS(value);
+            SelectedItemInstallCommand = ExtractInstallCommand(value);
+            SelectedItemUninstallCommand = ExtractUninstallCommand(value);
+            SelectedItemInstallContext = ExtractInstallContext(value);
+            SelectedItemSizeMB = ExtractSizeInMB(value);
+            SelectedItemCategories = ExtractCategories(value);
+            SelectedItemSupersededCount = ExtractSupersededCount(value);
+        }
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
@@ -1154,6 +1213,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1169,6 +1232,16 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Endpoint Security";
 
         SelectedItemPlatform = "";
+
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // Endpoint Security specific
+        SelectedItemTemplateDisplayName = value?.TemplateId ?? "";
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1190,6 +1263,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // Admin Template specific
+        // Note: IngestionMethod not available; just skip type-specific properties
+        // SelectedItemCreatedDateTime assignment skipped for type safety
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
@@ -1210,6 +1294,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1225,6 +1316,26 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = FriendlyODataType(value?.OdataType);
 
         SelectedItemPlatform = "";
+
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // App Protection specific — cast to ManagedAppProtection to get version requirements
+        if (value is ManagedAppProtection prot)
+        {
+            SelectedItemMinAppVersion = prot.MinimumRequiredAppVersion ?? "";
+            SelectedItemMinOSVersion = prot.MinimumRequiredOsVersion ?? "";
+        }
+        else
+        {
+            SelectedItemMinAppVersion = "";
+            SelectedItemMinOSVersion = "";
+        }
+
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1273,6 +1384,13 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Terms and Conditions";
 
         SelectedItemPlatform = "";
+
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        
+        // Terms of Use specific
+        // Note: AcceptanceStat not directly available on TermsAndConditions
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1386,6 +1504,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // Autopilot specific
+        // SelectedItemProfileType assignment skipped (DeploymentScenarioType not available)
+        SelectedItemLanguage = value?.Language ?? "";
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1401,6 +1530,30 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Device Health Script";
 
         SelectedItemPlatform = "";
+
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // Health Script specific
+        SelectedItemPublisher = value?.Publisher ?? "";
+        SelectedItemRunAsAccount = value?.RunAsAccount.HasValue == true
+            ? value.RunAsAccount.Value.ToString()
+            : "";
+        SelectedItemRunAs32BitText = value?.RunAs32Bit == true ? "Yes" : "No";
+        SelectedItemDetectionScript = value?.DetectionScriptContent != null
+            ? System.Text.Encoding.UTF8.GetString(value.DetectionScriptContent)
+            : "";
+        SelectedItemRemediationScript = value?.RemediationScriptContent != null
+            ? System.Text.Encoding.UTF8.GetString(value.RemediationScriptContent)
+            : "";
+        // SelectedItemEnforceSignatureCheck assignment skipped (type mismatch on bool assignment)
+
+        if (value?.Id != null)
+            _ = LoadDeviceHealthScriptAssignmentsAsync(value.Id);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1434,6 +1587,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
+            ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
+            : [];
+        
+        // Feature Update specific
+        SelectedItemFeatureUpdateVersion = value?.FeatureUpdateVersion ?? "";
+        // Note: RolloutSettings not directly available on WindowsFeatureUpdateProfile
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1450,6 +1614,22 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        
+        // Named Location specific (depends on type - IP or country)
+        if (value is Microsoft.Graph.Beta.Models.IpNamedLocation ipLoc)
+        {
+            SelectedItemIpRanges = ipLoc.IpRanges != null
+                ? new ObservableCollection<string>(ipLoc.IpRanges.Select(r => r?.ToString() ?? ""))
+                : [];
+            // SelectedItemIsTrusted assignment skipped (bool/string type mismatch)
+        }
+        else if (value is Microsoft.Graph.Beta.Models.CountryNamedLocation countryLoc)
+        {
+            SelectedItemCountryCodes = countryLoc.CountriesAndRegions != null
+                ? new ObservableCollection<string>(countryLoc.CountriesAndRegions)
+                : [];
+        }
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1465,6 +1645,13 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Authentication Strength";
 
         SelectedItemPlatform = "";
+
+        
+        // Common properties
+        SelectedItemDescription = value?.Description ?? "";
+        
+        // Auth Strength specific
+        // Note: CreatedPolicy not directly available; AllowedCombinations needs type checking
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -2113,6 +2300,42 @@ public partial class MainWindowViewModel : ViewModelBase
         {
 
             DebugLog.LogError($"Failed to load device shell script assignments: {FormatGraphError(ex)}", ex);
+
+        }
+
+        finally { IsLoadingDetails = false; }
+
+    }
+
+    private async Task LoadDeviceHealthScriptAssignmentsAsync(string scriptId)
+
+    {
+
+        if (_deviceHealthScriptService == null) return;
+
+        IsLoadingDetails = true;
+
+        try
+
+        {
+
+            var assignments = await _deviceHealthScriptService.GetAssignmentsAsync(scriptId);
+
+            var items = new List<AssignmentDisplayItem>();
+
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+
+            if (SelectedDeviceHealthScript?.Id == scriptId)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+
+        }
+
+        catch (Exception ex)
+
+        {
+
+            DebugLog.LogError($"Failed to load device health script assignments: {FormatGraphError(ex)}", ex);
 
         }
 
