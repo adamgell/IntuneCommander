@@ -6,6 +6,7 @@ public interface IMacCustomAttributeService
 {
     Task<List<DeviceCustomAttributeShellScript>> ListMacCustomAttributesAsync(CancellationToken cancellationToken = default);
     Task<DeviceCustomAttributeShellScript?> GetMacCustomAttributeAsync(string id, CancellationToken cancellationToken = default);
+    Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default);
     Task<DeviceCustomAttributeShellScript> CreateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default);
     Task<DeviceCustomAttributeShellScript> UpdateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default);
     Task DeleteMacCustomAttributeAsync(string id, CancellationToken cancellationToken = default);

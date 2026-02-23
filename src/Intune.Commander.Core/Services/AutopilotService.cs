@@ -49,6 +49,14 @@ public class AutopilotService : IAutopilotService
             .GetAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<List<WindowsAutopilotDeploymentProfileAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceManagement.WindowsAutopilotDeploymentProfiles[id]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
+
     public async Task<WindowsAutopilotDeploymentProfile> CreateAutopilotProfileAsync(WindowsAutopilotDeploymentProfile profile, CancellationToken cancellationToken = default)
     {
         var result = await _graphClient.DeviceManagement.WindowsAutopilotDeploymentProfiles

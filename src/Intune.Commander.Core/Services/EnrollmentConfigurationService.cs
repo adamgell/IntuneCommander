@@ -67,6 +67,14 @@ public class EnrollmentConfigurationService : IEnrollmentConfigurationService
             .GetAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<List<EnrollmentConfigurationAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceManagement.DeviceEnrollmentConfigurations[id]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
+
     public async Task<DeviceEnrollmentConfiguration> CreateEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, CancellationToken cancellationToken = default)
     {
         var result = await _graphClient.DeviceManagement.DeviceEnrollmentConfigurations

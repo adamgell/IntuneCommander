@@ -49,6 +49,14 @@ public class MacCustomAttributeService : IMacCustomAttributeService
             .GetAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceManagement.DeviceCustomAttributeShellScripts[id]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
+
     public async Task<DeviceCustomAttributeShellScript> CreateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default)
     {
         var result = await _graphClient.DeviceManagement.DeviceCustomAttributeShellScripts

@@ -49,6 +49,14 @@ public class TermsAndConditionsService : ITermsAndConditionsService
             .GetAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<List<TermsAndConditionsAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceManagement.TermsAndConditions[id]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
+
     public async Task<TermsAndConditions> CreateTermsAndConditionsAsync(TermsAndConditions termsAndConditions, CancellationToken cancellationToken = default)
     {
         var result = await _graphClient.DeviceManagement.TermsAndConditions

@@ -104,9 +104,19 @@ public class EnrollmentConfigurationServiceTests
     }
 
     [Fact]
-    public void Interface_HasEightMethods()
+    public void Interface_DefinesGetAssignmentsMethod()
+    {
+        var method = typeof(IEnrollmentConfigurationService).GetMethod("GetAssignmentsAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<EnrollmentConfigurationAssignment>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+    }
+
+    [Fact]
+    public void Interface_HasNineMethods()
     {
         var methods = typeof(IEnrollmentConfigurationService).GetMethods();
-        Assert.Equal(8, methods.Length);
+        Assert.Equal(9, methods.Length);
     }
 }

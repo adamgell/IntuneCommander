@@ -80,10 +80,20 @@ public class FeatureUpdateProfileServiceTests
     }
 
     [Fact]
-    public void Interface_HasFiveMethods()
+    public void Interface_DefinesGetAssignmentsMethod()
+    {
+        var method = typeof(IFeatureUpdateProfileService).GetMethod("GetAssignmentsAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<WindowsFeatureUpdateProfileAssignment>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+    }
+
+    [Fact]
+    public void Interface_HasSixMethods()
     {
         var methods = typeof(IFeatureUpdateProfileService).GetMethods();
-        Assert.Equal(5, methods.Length);
+        Assert.Equal(6, methods.Length);
     }
 
     [Fact]

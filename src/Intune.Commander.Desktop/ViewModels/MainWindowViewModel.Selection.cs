@@ -1301,6 +1301,9 @@ public partial class MainWindowViewModel : ViewModelBase
             ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
             : [];
 
+        if (value?.Id != null)
+            _ = LoadEnrollmentConfigAssignmentsAsync(value.Id);
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1353,6 +1356,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        if (value?.Id != null)
+            _ = LoadManagedDeviceAppConfigAssignmentsAsync(value.Id);
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1368,6 +1374,9 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = FriendlyODataType(value?.OdataType);
 
         SelectedItemPlatform = "";
+
+        if (value?.Id != null)
+            _ = LoadTargetedManagedAppConfigAssignmentsAsync(value.Id);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1391,6 +1400,9 @@ public partial class MainWindowViewModel : ViewModelBase
         
         // Terms of Use specific
         // Note: AcceptanceStat not directly available on TermsAndConditions
+
+        if (value?.Id != null)
+            _ = LoadTermsAndConditionsAssignmentsAsync(value.Id);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1515,6 +1527,9 @@ public partial class MainWindowViewModel : ViewModelBase
         // SelectedItemProfileType assignment skipped (DeploymentScenarioType not available)
         SelectedItemLanguage = value?.Language ?? "";
 
+        if (value?.Id != null)
+            _ = LoadAutopilotProfileAssignmentsAsync(value.Id);
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1571,6 +1586,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        if (value?.Id != null)
+            _ = LoadMacCustomAttributeAssignmentsAsync(value.Id);
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
     }
@@ -1597,6 +1615,9 @@ public partial class MainWindowViewModel : ViewModelBase
         // Feature Update specific
         SelectedItemFeatureUpdateVersion = value?.FeatureUpdateVersion ?? "";
         // Note: RolloutSettings not directly available on WindowsFeatureUpdateProfile
+
+        if (value?.Id != null)
+            _ = LoadFeatureUpdateProfileAssignmentsAsync(value.Id);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -2341,6 +2362,146 @@ public partial class MainWindowViewModel : ViewModelBase
 
         finally { IsLoadingDetails = false; }
 
+    }
+
+    private async Task LoadEnrollmentConfigAssignmentsAsync(string id)
+    {
+        if (_enrollmentConfigurationService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _enrollmentConfigurationService.GetAssignmentsAsync(id);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            if (SelectedEnrollmentConfiguration?.Id == id)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load enrollment configuration assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadAutopilotProfileAssignmentsAsync(string id)
+    {
+        if (_autopilotService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _autopilotService.GetAssignmentsAsync(id);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            if (SelectedAutopilotProfile?.Id == id)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load Autopilot profile assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadMacCustomAttributeAssignmentsAsync(string id)
+    {
+        if (_macCustomAttributeService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _macCustomAttributeService.GetAssignmentsAsync(id);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            if (SelectedMacCustomAttribute?.Id == id)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load Mac custom attribute assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadFeatureUpdateProfileAssignmentsAsync(string id)
+    {
+        if (_featureUpdateProfileService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _featureUpdateProfileService.GetAssignmentsAsync(id);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            if (SelectedFeatureUpdateProfile?.Id == id)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load feature update profile assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadTermsAndConditionsAssignmentsAsync(string id)
+    {
+        if (_termsAndConditionsService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _termsAndConditionsService.GetAssignmentsAsync(id);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            if (SelectedTermsAndConditions?.Id == id)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load terms and conditions assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadManagedDeviceAppConfigAssignmentsAsync(string id)
+    {
+        if (_managedAppConfigurationService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _managedAppConfigurationService.GetManagedDeviceAppConfigAssignmentsAsync(id);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            if (SelectedManagedDeviceAppConfiguration?.Id == id)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load managed device app configuration assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadTargetedManagedAppConfigAssignmentsAsync(string id)
+    {
+        if (_managedAppConfigurationService == null) return;
+        IsLoadingDetails = true;
+        try
+        {
+            var assignments = await _managedAppConfigurationService.GetTargetedManagedAppConfigAssignmentsAsync(id);
+            var items = new List<AssignmentDisplayItem>();
+            foreach (var a in assignments)
+                items.Add(await MapAssignmentAsync(a.Target));
+            if (SelectedTargetedManagedAppConfiguration?.Id == id)
+                SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load targeted managed app configuration assignments: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
     }
 
 }

@@ -135,9 +135,29 @@ public class ManagedAppConfigurationServiceTests
     }
 
     [Fact]
-    public void Interface_HasTenMethods()
+    public void Interface_DefinesGetManagedDeviceAppConfigAssignmentsMethod()
+    {
+        var method = typeof(IManagedAppConfigurationService).GetMethod("GetManagedDeviceAppConfigAssignmentsAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<ManagedDeviceMobileAppConfigurationAssignment>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+    }
+
+    [Fact]
+    public void Interface_DefinesGetTargetedManagedAppConfigAssignmentsMethod()
+    {
+        var method = typeof(IManagedAppConfigurationService).GetMethod("GetTargetedManagedAppConfigAssignmentsAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<TargetedManagedAppPolicyAssignment>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+    }
+
+    [Fact]
+    public void Interface_HasTwelveMethods()
     {
         var methods = typeof(IManagedAppConfigurationService).GetMethods();
-        Assert.Equal(10, methods.Length);
+        Assert.Equal(12, methods.Length);
     }
 }

@@ -2010,6 +2010,9 @@ public class ImportServiceTests : IDisposable
         public Task<DeviceEnrollmentConfiguration?> GetEnrollmentConfigurationAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<DeviceEnrollmentConfiguration?>(null);
 
+        public Task<List<EnrollmentConfigurationAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<EnrollmentConfigurationAssignment>());
+
         public Task<DeviceEnrollmentConfiguration> CreateEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, CancellationToken cancellationToken = default)
         {
             LastCreatedConfiguration = configuration;
@@ -2060,6 +2063,9 @@ public class ImportServiceTests : IDisposable
         public Task<ManagedDeviceMobileAppConfiguration?> GetManagedDeviceAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<ManagedDeviceMobileAppConfiguration?>(null);
 
+        public Task<List<ManagedDeviceMobileAppConfigurationAssignment>> GetManagedDeviceAppConfigAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<ManagedDeviceMobileAppConfigurationAssignment>());
+
         public Task<ManagedDeviceMobileAppConfiguration> CreateManagedDeviceAppConfigurationAsync(ManagedDeviceMobileAppConfiguration configuration, CancellationToken cancellationToken = default)
         {
             LastCreatedManagedDeviceConfiguration = configuration;
@@ -2077,6 +2083,9 @@ public class ImportServiceTests : IDisposable
 
         public Task<TargetedManagedAppConfiguration?> GetTargetedManagedAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<TargetedManagedAppConfiguration?>(null);
+
+        public Task<List<TargetedManagedAppPolicyAssignment>> GetTargetedManagedAppConfigAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<TargetedManagedAppPolicyAssignment>());
 
         public Task<TargetedManagedAppConfiguration> CreateTargetedManagedAppConfigurationAsync(TargetedManagedAppConfiguration configuration, CancellationToken cancellationToken = default)
         {
@@ -2101,6 +2110,9 @@ public class ImportServiceTests : IDisposable
 
         public Task<TermsAndConditions?> GetTermsAndConditionsAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<TermsAndConditions?>(null);
+
+        public Task<List<TermsAndConditionsAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<TermsAndConditionsAssignment>());
 
         public Task<TermsAndConditions> CreateTermsAndConditionsAsync(TermsAndConditions termsAndConditions, CancellationToken cancellationToken = default)
         {
@@ -2227,6 +2239,9 @@ public class ImportServiceTests : IDisposable
         public Task<WindowsAutopilotDeploymentProfile?> GetAutopilotProfileAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<WindowsAutopilotDeploymentProfile?>(null);
 
+        public Task<List<WindowsAutopilotDeploymentProfileAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<WindowsAutopilotDeploymentProfileAssignment>());
+
         public Task<WindowsAutopilotDeploymentProfile> CreateAutopilotProfileAsync(WindowsAutopilotDeploymentProfile profile, CancellationToken cancellationToken = default)
         {
             LastCreatedProfile = profile;
@@ -2302,6 +2317,9 @@ public class ImportServiceTests : IDisposable
         public Task<DeviceCustomAttributeShellScript?> GetMacCustomAttributeAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<DeviceCustomAttributeShellScript?>(null);
 
+        public Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceManagementScriptAssignment>());
+
         public Task<DeviceCustomAttributeShellScript> CreateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default)
         {
             LastCreatedScript = script;
@@ -2325,6 +2343,9 @@ public class ImportServiceTests : IDisposable
 
         public Task<WindowsFeatureUpdateProfile?> GetFeatureUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<WindowsFeatureUpdateProfile?>(null);
+
+        public Task<List<WindowsFeatureUpdateProfileAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<WindowsFeatureUpdateProfileAssignment>());
 
         public Task<WindowsFeatureUpdateProfile> CreateFeatureUpdateProfileAsync(WindowsFeatureUpdateProfile profile, CancellationToken cancellationToken = default)
         {

@@ -49,6 +49,14 @@ public class ManagedAppConfigurationService : IManagedAppConfigurationService
             .GetAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<List<ManagedDeviceMobileAppConfigurationAssignment>> GetManagedDeviceAppConfigAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceAppManagement.MobileAppConfigurations[id]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
+
     public async Task<ManagedDeviceMobileAppConfiguration> CreateManagedDeviceAppConfigurationAsync(ManagedDeviceMobileAppConfiguration configuration, CancellationToken cancellationToken = default)
     {
         var result = await _graphClient.DeviceAppManagement.MobileAppConfigurations
@@ -108,6 +116,14 @@ public class ManagedAppConfigurationService : IManagedAppConfigurationService
     {
         return await _graphClient.DeviceAppManagement.TargetedManagedAppConfigurations[id]
             .GetAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<List<TargetedManagedAppPolicyAssignment>> GetTargetedManagedAppConfigAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceAppManagement.TargetedManagedAppConfigurations[id]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
     }
 
     public async Task<TargetedManagedAppConfiguration> CreateTargetedManagedAppConfigurationAsync(TargetedManagedAppConfiguration configuration, CancellationToken cancellationToken = default)

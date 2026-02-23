@@ -49,6 +49,14 @@ public class FeatureUpdateProfileService : IFeatureUpdateProfileService
             .GetAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<List<WindowsFeatureUpdateProfileAssignment>> GetAssignmentsAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceManagement.WindowsFeatureUpdateProfiles[id]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
+
     public async Task<WindowsFeatureUpdateProfile> CreateFeatureUpdateProfileAsync(WindowsFeatureUpdateProfile profile, CancellationToken cancellationToken = default)
     {
         var result = await _graphClient.DeviceManagement.WindowsFeatureUpdateProfiles
