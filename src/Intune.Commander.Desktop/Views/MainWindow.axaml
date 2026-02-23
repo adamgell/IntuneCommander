@@ -595,8 +595,7 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Compliance Policy details                  -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedCompliancePolicy, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                      HorizontalScrollBarVisibility="Disabled">
+                        <ScrollViewer IsVisible="{Binding SelectedCompliancePolicy, Converter={x:Static ObjectConverters.IsNotNull}}">                              
                             <StackPanel Spacing="4">
 
                                 <!-- Section: Properties -->
