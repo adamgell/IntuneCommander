@@ -20,7 +20,7 @@ public class CloudPcProvisioningService : ICloudPcProvisioningService
         var response = await _graphClient.DeviceManagement.VirtualEndpoint.ProvisioningPolicies
             .GetAsync(req =>
             {
-                req.QueryParameters.Top = 999;
+                req.QueryParameters.Top = 200;
             }, cancellationToken);
 
         while (response != null)

@@ -218,6 +218,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private ICloudPcProvisioningService? _cloudPcProvisioningService;
     private ICloudPcUserSettingsService? _cloudPcUserSettingsService;
     private IVppTokenService? _vppTokenService;
+    private IPermissionCheckService? _permissionCheckService;
 
 
 
@@ -693,6 +694,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private VppToken? _selectedVppToken;
 
     private bool _vppTokensLoaded;
+
+    [ObservableProperty]
+    private PermissionCheckResult? _lastPermissionCheckResult;
 
     // --- Role Assignments ---
     [ObservableProperty]
