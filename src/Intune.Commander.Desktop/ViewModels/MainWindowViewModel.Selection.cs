@@ -1739,11 +1739,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
-        // Terms of Use specific (Agreement has no Description property)
+        // Terms of Use specific (Agreement has no Description or CreatedDateTime property)
         SelectedItemDescription = "";
+        SelectedItemCreatedDateTime = null;
         SelectedItemIsPerDeviceAcceptance = value?.IsPerDeviceAcceptanceRequired ?? false;
         SelectedItemExpirationFrequency = value?.UserReacceptRequiredFrequency?.ToString() ?? "Never";
-        SelectedItemCreatedDateTime = value?.CreatedDateTime;
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
