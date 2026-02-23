@@ -797,6 +797,9 @@ public partial class MainWindowViewModel : ViewModelBase
         DownloadProgress = "";
         DownloadProgressPercent = 0;
 
+        // Reset permissions state
+        LastPermissionCheckResult = null;
+        _permissionCheckService = null;
     }
 
     private async Task CheckAndLogPermissionsAsync()
