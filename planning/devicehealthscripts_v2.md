@@ -55,7 +55,7 @@ ships in .exe         fetched once at runtime,
 - Write `scripts/Fetch-CatalogScripts.ps1` — **one-time developer tool**:
   - `git clone https://github.com/JayRHa/EndpointAnalyticsRemediationScripts` to temp dir
   - Walk each sub-folder; find detection/remediation pair; normalize filenames
-  - Copy to `CatalogSource/{FolderName}/`; save as ASCII (per CLAUDE.md PowerShell encoding rule)
+  - Copy to `src/Intune.Commander.Core/CatalogSource/{FolderName}/`; save as ASCII (per CLAUDE.md PowerShell encoding rule)
 - Developer runs once; output .ps1 files committed to git
 
 ### Step 2 — `scripts/Build-ScriptCatalog.ps1`
@@ -136,8 +136,10 @@ public interface IScriptCatalogService
 Implementation notes:
 - Constructor: load metadata from `GetManifestResourceStream("Intune.Commander.Core.Assets.script-catalog.json")`
   (follows `ConditionalAccessPptExportService` pattern exactly — same `typeof(T).Assembly` approach)
-- `FetchContentBundleAsync`: check `ICacheService` with key `"ScriptContentBundle"` + 7-day TTL first;
-  on miss, `HttpClient.GetFromJsonAsync(BlobUrl, ct)`; store in cache; return
+- `FetchContentBundleAsync`: check `ICacheService` using `tenantId = "global"`, `dataType = "ScriptContentBundle"`, with 7-day TTL first.
+  `ICacheService` only supports `List<T>` values, so the bundle is wrapped as a single-item `List<ScriptContentBundle>` — use `cache.Get<ScriptContentBundle>("global", "ScriptContentBundle")?[0]` to read and `cache.Set("global", "ScriptContentBundle", new List<ScriptContentBundle> { bundle }, TimeSpan.FromDays(7))` to write.
+  The `"global"` tenantId is a documented convention for non-tenant-scoped, globally-shared cache artifacts (not a real AAD tenant ID).
+  On cache miss, call `HttpClient.GetFromJsonAsync(BlobUrl, ct)`; store in cache; return.
 - `BlobUrl`: **private const string** — not user-configurable (prevents SSRF):
   `const string BlobUrl = "https://{account}.blob.core.windows.net/intunecommander/catalog/script-content-bundle.json";`
 - `GetScriptContentAsync`: calls `FetchContentBundleAsync` then looks up by id
