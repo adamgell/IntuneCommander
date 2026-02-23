@@ -79,9 +79,9 @@
                     <TextBlock Text="{Binding StatusText}" FontSize="12" />
                     <TextBlock Text="{Binding CacheStatusText}" FontSize="11"
                                Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="11"
-                               TextWrapping="Wrap"
-                               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <SelectableTextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="11"
+                                         TextWrapping="Wrap"
+                                         IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </StackPanel>
             </DockPanel>
         </Border>
