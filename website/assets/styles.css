@@ -163,6 +163,18 @@ a:hover {
   font-size: 1.3rem;
 }
 
+.nav-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.footer-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .nav-links {
   list-style: none;
   display: flex;
@@ -254,11 +266,20 @@ a:hover {
   font-size: 0.85rem;
 }
 
-/* === Window Mockup === */
+/* === Window Mockup / Screenshot === */
 .hero-visual {
   flex: 1;
   min-width: 0;
-  max-width: 480px;
+  max-width: 520px;
+}
+
+.app-screenshot {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.03);
+  display: block;
 }
 
 .window-mockup {
@@ -656,14 +677,6 @@ a:hover {
   .hero-visual {
     max-width: 100%;
     width: 100%;
-  }
-
-  .window-body {
-    height: 220px;
-  }
-
-  .sidebar {
-    width: 140px;
   }
 
   .stats-bar {
