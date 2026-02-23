@@ -1663,10 +1663,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         
         // Named Location specific (depends on type - IP or country)
+        SelectedItemIpRanges = [];
+        SelectedItemCountryCodes = [];
+        SelectedItemIsTrusted = false;
         if (value is Microsoft.Graph.Beta.Models.IpNamedLocation ipLoc)
         {
             SelectedItemIpRanges = ipLoc.IpRanges != null
-                ? new ObservableCollection<string>(ipLoc.IpRanges.Select(r => r?.ToString() ?? ""))
+                ? new ObservableCollection<string>(ipLoc.IpRanges.Select(r => r switch {
+                    Microsoft.Graph.Beta.Models.IPv4CidrRange v4 => v4.CidrAddress ?? "",
+                    Microsoft.Graph.Beta.Models.IPv6CidrRange v6 => v6.CidrAddress ?? "",
+                    _ => ""
+                }).Where(s => s.Length > 0))
                 : [];
             SelectedItemIsTrusted = ipLoc.IsTrusted ?? false;
         }
