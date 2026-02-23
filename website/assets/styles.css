@@ -376,6 +376,50 @@ a:hover {
   color: var(--color-text);
 }
 
+/* === Preview Banner === */
+.preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: rgba(161, 98, 7, 0.12);
+  border-top: 1px solid rgba(217, 119, 6, 0.3);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.3);
+  font-size: 0.875rem;
+  color: #fbbf24;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.preview-banner-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.preview-banner-text {
+  color: #fcd34d;
+}
+
+.preview-banner-text strong {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.preview-banner-link {
+  color: #f59e0b;
+  font-weight: 500;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.4);
+  text-decoration: none;
+}
+
+.preview-banner-link:hover {
+  color: #fbbf24;
+  border-bottom-color: #fbbf24;
+  text-decoration: none;
+}
+
 /* === Stats Bar === */
 .stats-bar {
   display: flex;
