@@ -1,6 +1,10 @@
 using System;
 
+using System.Collections.Generic;
+
 using System.Linq;
+
+using System.Reflection;
 
 using System.Text;
 
@@ -310,8 +314,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Name", pol.DisplayName);
 
-            Append(sb, "Description", pol.Description);
-
             Append(sb, "Platform / Type", SelectedItemTypeName);
 
             Append(sb, "ID", pol.Id);
@@ -322,7 +324,69 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Version", pol.Version?.ToString());
 
-            AppendAssignments(sb);
+
+
+            // SETTINGS section
+
+            var settings = ExtractComplianceSettings(pol);
+
+            if (settings.Count > 0)
+
+            {
+
+                sb.AppendLine();
+
+                sb.AppendLine("SETTINGS");
+
+                foreach (var (label, value) in settings)
+
+                {
+
+                    sb.AppendLine($"  {label}: {value}");
+
+                }
+
+            }
+
+
+
+            // ACTIONS section
+
+            sb.AppendLine();
+
+            sb.AppendLine("ACTIONS");
+
+            if (SelectedItemNonComplianceActions.Count > 0)
+
+            {
+
+                foreach (var action in SelectedItemNonComplianceActions)
+                {
+                    sb.AppendLine($"  {action.ActionTypeDisplay}");
+                    sb.AppendLine($"    Schedule: {action.GracePeriodDisplay}");
+                    if (action.HasNotificationTemplate)
+                        sb.AppendLine($"    Notification Template: {action.NotificationTemplateId}");
+                }
+
+            }
+
+            else
+
+            {
+
+                sb.AppendLine("  No actions configured");
+
+            }
+
+
+
+            // ASSIGNMENTS section
+
+            sb.AppendLine();
+
+            sb.AppendLine("ASSIGNMENTS");
+
+            AppendAssignmentsList(sb);
 
         }
 
@@ -920,11 +984,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Description", cs.Description);
 
+            Append(sb, "ID", cs.Id);
+
+            Append(sb, "Publisher", cs.Publisher);
+
+            Append(sb, "Run As Account", cs.RunAsAccount?.ToString());
+
+            Append(sb, "Enforce Signature Check", cs.EnforceSignatureCheck?.ToString());
+
+            Append(sb, "Run As 32-bit", cs.RunAs32Bit?.ToString());
+
             Append(sb, "Created", cs.CreatedDateTime?.ToString("g"));
 
             Append(sb, "Last Modified", cs.LastModifiedDateTime?.ToString("g"));
-
-            Append(sb, "ID", cs.Id);
 
         }
 
@@ -1088,6 +1160,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
         sb.AppendLine("Assignments:");
 
+        AppendAssignmentsList(sb);
+
+    }
+
+
+
+    private void AppendAssignmentsList(StringBuilder sb)
+
+    {
+
+        if (SelectedItemAssignments.Count == 0)
+
+        {
+
+            sb.AppendLine("  None");
+
+            return;
+
+        }
+
+
+
         foreach (var a in SelectedItemAssignments)
 
         {
@@ -1104,9 +1198,96 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
+    /// <summary>
+    /// Extracts compliance policy settings by serializing the policy to JSON and
+    /// parsing the result. This approach reliably captures all derived type properties
+    /// (e.g., Windows10CompliancePolicy.PasswordRequired) regardless of the backing
+    /// store implementation.
+    /// </summary>
+    private List<(string Label, string Value)> ExtractComplianceSettings(DeviceCompliancePolicy policy)
+    {
+        var settings = new List<(string Label, string Value)>();
 
+        // Properties to exclude (metadata, organizational, actions — displayed elsewhere)
+        var excludedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Id", "DisplayName", "Description", "OdataType", "CreatedDateTime",
+            "LastModifiedDateTime", "Version", "RoleScopeTagIds", "Assignments",
+            "ScheduledActionsForRule", "AdditionalData", "BackingStore",
+            "@odata.context", "@odata.type"
+        };
 
+        try
+        {
+            // Serialize with the runtime type so all derived properties are included
+            var json = JsonSerializer.Serialize(policy, policy.GetType(), new JsonSerializerOptions
+            {
+                WriteIndented = false
+            });
 
+            using var doc = JsonDocument.Parse(json);
+            foreach (var prop in doc.RootElement.EnumerateObject())
+            {
+                if (excludedProperties.Contains(prop.Name))
+                    continue;
+
+                var label = FormatPropertyName(prop.Name);
+                var formattedValue = FormatJsonElementValue(prop.Value);
+                settings.Add((label, formattedValue));
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"ComplianceSettings: Failed to extract settings: {ex.Message}");
+        }
+
+        return settings;
+    }
+
+    /// <summary>
+    /// Converts camelCase property names to Human Readable format.
+    /// </summary>
+    private static string FormatPropertyName(string propertyName)
+    {
+        if (string.IsNullOrEmpty(propertyName))
+            return propertyName;
+
+        // Insert spaces before capital letters
+        var result = System.Text.RegularExpressions.Regex.Replace(
+            propertyName,
+            "([a-z])([A-Z])",
+            "$1 $2"
+        );
+
+        // Insert spaces before numbers
+        result = System.Text.RegularExpressions.Regex.Replace(
+            result,
+            "([a-zA-Z])([0-9])",
+            "$1 $2"
+        );
+
+        return result;
+    }
+
+    /// <summary>
+    /// Formats a JSON element value for human-readable display.
+    /// </summary>
+    private static string FormatJsonElementValue(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.True => "Yes",
+            JsonValueKind.False => "No",
+            JsonValueKind.Null or JsonValueKind.Undefined => "Not Configured",
+            JsonValueKind.String => element.GetString() is { Length: > 0 } s ? s : "Not Configured",
+            JsonValueKind.Number => element.ToString(),
+            JsonValueKind.Array => element.GetArrayLength() > 0
+                ? string.Join(", ", element.EnumerateArray().Select(e => e.ToString()))
+                : "None",
+            JsonValueKind.Object => "(complex)",
+            _ => element.ToString()
+        };
+    }
 
     private static string? TryReadStringProperty(object? instance, string propertyName)
 
@@ -1148,17 +1329,17 @@ public partial class MainWindowViewModel : ViewModelBase
     private string ResolveNamedLocationId(string? id)
     {
         if (string.IsNullOrEmpty(id)) return "";
-        
-        var location = NamedLocations.FirstOrDefault(nl => 
+
+        var location = NamedLocations.FirstOrDefault(nl =>
             TryReadStringProperty(nl, "Id") == id);
-        
+
         if (location != null)
         {
             var displayName = TryReadStringProperty(location, "DisplayName");
             if (!string.IsNullOrEmpty(displayName))
                 return displayName;
         }
-        
+
         return $"Unknown Location ({id})";
     }
 
@@ -1169,17 +1350,17 @@ public partial class MainWindowViewModel : ViewModelBase
     private string ResolveGroupId(string? id)
     {
         if (string.IsNullOrEmpty(id)) return "";
-        
+
         // Check DynamicGroupRows
         var dynamicGroup = DynamicGroupRows.FirstOrDefault(g => g.GroupId == id);
         if (dynamicGroup != null && !string.IsNullOrEmpty(dynamicGroup.GroupName))
             return dynamicGroup.GroupName;
-        
+
         // Check AssignedGroupRows
         var assignedGroup = AssignedGroupRows.FirstOrDefault(g => g.GroupId == id);
         if (assignedGroup != null && !string.IsNullOrEmpty(assignedGroup.GroupName))
             return assignedGroup.GroupName;
-        
+
         return $"Unknown Group ({id})";
     }
 
@@ -1226,10 +1407,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string ResolveApplicationId(string? id)
     {
         if (string.IsNullOrEmpty(id)) return "";
-        
+
         if (WellKnownApps.TryGetValue(id, out var appName))
             return appName;
-        
+
         return id;
     }
 
@@ -1239,7 +1420,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string DecodeBase64Script(string? base64Content)
     {
         if (string.IsNullOrEmpty(base64Content)) return "";
-        
+
         try
         {
             var bytes = System.Convert.FromBase64String(base64Content);

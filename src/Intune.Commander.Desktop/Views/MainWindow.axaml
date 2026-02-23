@@ -3,6 +3,7 @@
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
         xmlns:views="using:Intune.Commander.Desktop.Views"
         xmlns:conv="using:Intune.Commander.Desktop.Converters"
+        xmlns:models="using:Intune.Commander.Desktop.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="1050"
@@ -10,8 +11,8 @@
         x:Name="MainWin"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
-        Width="1100" Height="1050"
-        MinWidth="900" MinHeight="750">
+        WindowState="Maximized"
+        >
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
@@ -105,9 +106,6 @@
                         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="🔍 Group Lookup" x:Name="GroupLookupButton"
-                                    ToolTip.Tip="Find all Intune objects assigned to a group" />
-                            <Border Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="4,2" />
                             <Button Content="Refresh" Command="{Binding RefreshCommand}" />
                             <Button Content="Export Selected" Command="{Binding ExportSelectedCommand}" />
                             <Button Content="Export All" Command="{Binding ExportAllCommand}" />
@@ -163,7 +161,7 @@
                            Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
 
                 <!-- Body: Left Nav + Content + Details -->
-                <Grid ColumnDefinitions="220,Auto,*,Auto,350">
+                <Grid ColumnDefinitions="220,*,600">
 
                     <!-- Left Nav Panel -->
                     <Border Grid.Column="0"
@@ -303,12 +301,8 @@
                         </DockPanel>
                     </Border>
 
-                    <!-- Splitter: Nav | Content -->
-                    <GridSplitter Grid.Column="1" Width="4"
-                                  Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
-
                     <!-- Item List (center) -->
-                    <DockPanel Grid.Column="2" Margin="8"
+                    <DockPanel Grid.Column="1" Margin="8"
                                IsVisible="{Binding !IsOverviewCategory}">
 
                         <!-- Category header with column chooser -->
@@ -412,17 +406,12 @@
                     </DockPanel>
 
                     <!-- Overview Dashboard (spans center + detail columns) -->
-                    <views:OverviewView Grid.Column="2" Grid.ColumnSpan="3"
+                    <views:OverviewView Grid.Column="1" Grid.ColumnSpan="2"
                                         DataContext="{Binding Overview}"
                                         IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsOverviewCategory}" />
 
-                    <!-- Splitter: Content | Details -->
-                    <GridSplitter Grid.Column="3" Width="4"
-                                  IsVisible="{Binding !IsOverviewCategory}"
-                                  Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
-
                     <!-- Detail Pane (right) -->
-                    <DockPanel Grid.Column="4" Margin="8"
+                    <DockPanel Grid.Column="2" Margin="8"
                                IsVisible="{Binding !IsOverviewCategory}">
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
@@ -499,7 +488,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Device Configuration details               -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
 
                                 <!-- Section: Properties -->
@@ -605,7 +595,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Compliance Policy details                  -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedCompliancePolicy, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedCompliancePolicy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
 
                                 <!-- Section: Properties -->
@@ -654,43 +645,73 @@
                                     </StackPanel>
                                 </Border>
 
-                                <!-- Section: Compliance Details -->
-                                <TextBlock Text="Compliance Details" FontSize="14" FontWeight="SemiBold"
+                                <!-- Section: SETTINGS -->
+                                <TextBlock Text="SETTINGS" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
                                            Margin="0,0,0,6" />
                                 <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                                         CornerRadius="4" Padding="10" Margin="0,0,0,12">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Text="Grace Period (Days)" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding SelectedItemGracePeriodDays}" FontSize="12" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Text="Non-Compliance Actions" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <ItemsControl ItemsSource="{Binding SelectedItemNonComplianceActions}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4"
-                                                                Padding="6,2" Margin="0,0,4,4">
-                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapPanel />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                            </ItemsControl>
-                                            <TextBlock Text="No actions"
-                                                       Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
-                                                       IsVisible="{Binding !SelectedItemNonComplianceActions.Count}" />
-                                        </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="No settings"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                   IsVisible="{Binding !SelectedItemComplianceSettings.Count}" />
+                                        <ItemsControl ItemsSource="{Binding SelectedItemComplianceSettings}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="models:SettingItem">
+                                                    <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                                                            BorderThickness="0,0,0,1" Padding="4,6">
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12"
+                                                                       Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                                       TextWrapping="Wrap" VerticalAlignment="Center" />
+                                                            <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" FontSize="12"
+                                                                       FontWeight="SemiBold" HorizontalAlignment="Right"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="16,0,0,0" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- Section: Assignments -->
-                                <TextBlock Text="Assignments" FontSize="14" FontWeight="SemiBold"
+                                <!-- Section: ACTIONS -->
+                                <TextBlock Text="ACTIONS" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,0,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="No actions configured"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="12"
+                                                   IsVisible="{Binding !SelectedItemNonComplianceActions.Count}" />
+                                        <ItemsControl ItemsSource="{Binding SelectedItemNonComplianceActions}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="models:NonComplianceActionItem">
+                                                    <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                                                            BorderThickness="0,0,0,1" Padding="4,6">
+                                                        <StackPanel Spacing="4">
+                                                            <Grid ColumnDefinitions="*,Auto">
+                                                                <TextBlock Grid.Column="0" Text="{Binding ActionTypeDisplay}"
+                                                                           FontSize="12" FontWeight="SemiBold" />
+                                                                <TextBlock Grid.Column="1" Text="{Binding GracePeriodDisplay}"
+                                                                           FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                                           HorizontalAlignment="Right" />
+                                                            </Grid>
+                                                            <TextBlock Text="Notification template configured"
+                                                                       FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                                       IsVisible="{Binding HasNotificationTemplate}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: ASSIGNMENTS -->
+                                <TextBlock Text="ASSIGNMENTS" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
                                            Margin="0,0,0,6" />
                                 <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
@@ -732,7 +753,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Settings Catalog details                   -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedSettingsCatalogPolicy, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedSettingsCatalogPolicy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
 
                                 <!-- Section: Properties -->
@@ -865,7 +887,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Conditional Access details                 -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedConditionalAccessPolicy, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedConditionalAccessPolicy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
 
                                 <TextBlock Text="Policy Information" FontSize="14" FontWeight="SemiBold"
@@ -970,7 +993,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Assignment Filter details                  -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAssignmentFilter, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAssignmentFilter, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
 
                                 <TextBlock Text="Filter Information" FontSize="14" FontWeight="SemiBold"
@@ -1011,7 +1035,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Policy Set details                         -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedPolicySet, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedPolicySet, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
 
                                 <TextBlock Text="Policy Set Information" FontSize="14" FontWeight="SemiBold"
@@ -1055,7 +1080,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Application details                        -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedApplication, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedApplication, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
 
                                 <!-- Section: Properties -->
@@ -1255,7 +1281,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Endpoint Security details                  -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedEndpointSecurityIntent, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedEndpointSecurityIntent, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Policy Information" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1350,7 +1377,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Administrative Template details            -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAdministrativeTemplate, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAdministrativeTemplate, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Template Information" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1428,7 +1456,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Enrollment Configuration details           -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedEnrollmentConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedEnrollmentConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Enrollment Configuration" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1489,7 +1518,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- App Protection Policy details              -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAppProtectionPolicy, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAppProtectionPolicy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="App Protection Policy" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1564,7 +1594,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Managed Device App Configuration details   -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedManagedDeviceAppConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedManagedDeviceAppConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Managed Device App Configuration" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1621,7 +1652,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Targeted Managed App Configuration details -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedTargetedManagedAppConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedTargetedManagedAppConfiguration, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Targeted Managed App Configuration" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1678,7 +1710,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Terms and Conditions details               -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedTermsAndConditions, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedTermsAndConditions, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Terms and Conditions" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1735,7 +1768,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Scope Tag details                          -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedScopeTag, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedScopeTag, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Scope Tag" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1782,7 +1816,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Role Definition details                    -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedRoleDefinition, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedRoleDefinition, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Role Definition" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1833,7 +1868,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Intune Branding details                    -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedIntuneBrandingProfile, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedIntuneBrandingProfile, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Intune Branding Profile" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1880,7 +1916,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Azure Branding details                     -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAzureBrandingLocalization, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAzureBrandingLocalization, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Azure Branding Localization" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1925,7 +1962,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Autopilot Profile details                  -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAutopilotProfile, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAutopilotProfile, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedAutopilotProfile}">
                                 <TextBlock Text="Autopilot Profile" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -1995,7 +2033,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Device Health Script details               -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedDeviceHealthScript, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedDeviceHealthScript, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Device Health Script" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2114,7 +2153,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Mac Custom Attribute details               -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedMacCustomAttribute, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedMacCustomAttribute, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedMacCustomAttribute}">
                                 <TextBlock Text="Mac Custom Attribute" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2143,7 +2183,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Feature Update Profile details             -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedFeatureUpdateProfile, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedFeatureUpdateProfile, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedFeatureUpdateProfile}">
                                 <TextBlock Text="Feature Update Profile" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2199,7 +2240,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Named Location details                     -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedNamedLocation, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedNamedLocation, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedNamedLocation}">
                                 <TextBlock Text="Named Location" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2242,6 +2284,8 @@
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
                                             </ItemsControl>
+                                            <TextBlock Text="Not configured" FontSize="11" FontStyle="Italic" Opacity="0.6"
+                                                       IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemIpRanges.Count, Converter={x:Static conv:CountToVisibilityConverter.ZeroIsVisible}}" />
                                         </StackPanel>
                                         <!-- Country Codes (shown when it's a CountryNamedLocation) -->
                                         <StackPanel Spacing="2">
@@ -2260,6 +2304,8 @@
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
                                             </ItemsControl>
+                                            <TextBlock Text="Not configured" FontSize="11" FontStyle="Italic" Opacity="0.6"
+                                                       IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemCountryCodes.Count, Converter={x:Static conv:CountToVisibilityConverter.ZeroIsVisible}}" />
                                         </StackPanel>
                                         <!-- Fallback OData type -->
                                         <StackPanel Spacing="2">
@@ -2283,7 +2329,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Authentication Strength details            -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAuthenticationStrengthPolicy, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAuthenticationStrengthPolicy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedAuthenticationStrengthPolicy}">
                                 <TextBlock Text="Authentication Strength" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2349,7 +2396,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Authentication Context details             -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAuthenticationContextClassReference, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAuthenticationContextClassReference, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedAuthenticationContextClassReference}">
                                 <TextBlock Text="Authentication Context" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2377,7 +2425,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Terms of Use details                       -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedTermsOfUseAgreement, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedTermsOfUseAgreement, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedTermsOfUseAgreement}">
                                 <TextBlock Text="Terms of Use" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2411,7 +2460,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- application assignments Row details                  -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAppAssignmentRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAppAssignmentRow, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedAppAssignmentRow}">
 
                                 <!-- Section: App Information -->
@@ -2580,7 +2630,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Dynamic Group details                      -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedDynamicGroupRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedDynamicGroupRow, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedDynamicGroupRow}">
 
                                 <TextBlock Text="Group Properties" FontSize="14" FontWeight="SemiBold"
@@ -2719,7 +2770,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Assigned Group details                     -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedAssignedGroupRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedAssignedGroupRow, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4" DataContext="{Binding SelectedAssignedGroupRow}">
 
                                 <TextBlock Text="Group Properties" FontSize="14" FontWeight="SemiBold"
@@ -2843,7 +2895,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Device Management Script details           -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedDeviceManagementScript, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedDeviceManagementScript, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Properties" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -2949,7 +3002,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Device Shell Script details                -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedDeviceShellScript, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedDeviceShellScript, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Properties" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"
@@ -3061,7 +3115,8 @@
                         <!-- ═══════════════════════════════════════════ -->
                         <!-- Compliance Script details                  -->
                         <!-- ═══════════════════════════════════════════ -->
-                        <ScrollViewer IsVisible="{Binding SelectedComplianceScript, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <ScrollViewer IsVisible="{Binding SelectedComplianceScript, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Properties" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource SystemAccentColor}"

@@ -1001,10 +1001,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // Compliance Policy specific
     [ObservableProperty]
-    private int _selectedItemGracePeriodDays = 0;
+    private ObservableCollection<Models.SettingItem> _selectedItemComplianceSettings = [];
 
     [ObservableProperty]
-    private ObservableCollection<string> _selectedItemNonComplianceActions = [];
+    private ObservableCollection<Models.NonComplianceActionItem> _selectedItemNonComplianceActions = [];
 
     // Settings Catalog specific
     [ObservableProperty]

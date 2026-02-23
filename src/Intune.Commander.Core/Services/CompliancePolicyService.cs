@@ -21,6 +21,7 @@ public class CompliancePolicyService : ICompliancePolicyService
             .GetAsync(req =>
             {
                 req.QueryParameters.Top = 200;
+                req.QueryParameters.Expand = ["scheduledActionsForRule($expand=scheduledActionConfigurations)"];
             }, cancellationToken);
 
         while (response != null)
@@ -46,7 +47,10 @@ public class CompliancePolicyService : ICompliancePolicyService
     public async Task<DeviceCompliancePolicy?> GetCompliancePolicyAsync(string id, CancellationToken cancellationToken = default)
     {
         return await _graphClient.DeviceManagement.DeviceCompliancePolicies[id]
-            .GetAsync(cancellationToken: cancellationToken);
+            .GetAsync(req =>
+            {
+                req.QueryParameters.Expand = ["scheduledActionsForRule($expand=scheduledActionConfigurations)"];
+            }, cancellationToken);
     }
 
     public async Task<DeviceCompliancePolicy> CreateCompliancePolicyAsync(DeviceCompliancePolicy policy, CancellationToken cancellationToken = default)

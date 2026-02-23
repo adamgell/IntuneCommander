@@ -1112,12 +1112,27 @@ public partial class MainWindowViewModel : ViewModelBase
             ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
             : [];
         
-        // Compliance policy specific
-        SelectedItemGracePeriodDays = (value?.ScheduledActionsForRule?.FirstOrDefault()?.ScheduledActionConfigurations?.FirstOrDefault()?.GracePeriodHours ?? 0) / 24;
-        var actions = value?.ScheduledActionsForRule?.FirstOrDefault()?.ScheduledActionConfigurations?.Count ?? 0;
-        SelectedItemNonComplianceActions = actions > 0 
-            ? new ObservableCollection<string>(new[] { $"{actions} action(s)" })
-            : [];
+        // Compliance policy specific - extract settings
+        if (value != null)
+        {
+            var settings = ExtractComplianceSettings(value);
+            SelectedItemComplianceSettings = new ObservableCollection<Models.SettingItem>(
+                settings.Select(s => new Models.SettingItem(s.Label, s.Value)));
+        }
+        else
+        {
+            SelectedItemComplianceSettings = [];
+        }
+
+        // Compliance policy specific - extract non-compliance actions
+        var configs = value?.ScheduledActionsForRule
+            ?.SelectMany(r => r.ScheduledActionConfigurations ?? [])
+            .ToList() ?? [];
+        SelectedItemNonComplianceActions = new ObservableCollection<Models.NonComplianceActionItem>(
+            configs.Select(c => new Models.NonComplianceActionItem(
+                c.ActionType?.ToString() ?? "Unknown",
+                c.GracePeriodHours ?? 0,
+                c.NotificationTemplateId ?? "")));
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
