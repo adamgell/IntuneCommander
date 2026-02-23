@@ -1,6 +1,15 @@
 # Intune Commander - .NET Remake
 
-A cross-platform Intune management tool built with .NET 10 and Avalonia UI, designed to overcome PowerShell WPF limitations in threading, UI refresh, and data caching.
+![Intune Logo](docs/images/logo_small.png)
+
+Intune Commander is a cross-platform desktop application for managing Microsoft Intune configurations across Commercial, GCC, GCC-High, and DoD cloud environments. Built with .NET 10 and Avalonia UI, it reimagines the PowerShell-based IntuneManagement tool as a compiled, async-first application that eliminates the UI freezes, threading deadlocks, and data refresh issues common in PowerShell WPF tools.
+
+It supports multi-cloud and multi-tenant profiles with encrypted local storage, manages over 30 Intune object types (device configurations, compliance policies, conditional access policies, applications, and more), and provides bulk export/import in a JSON format compatible with the original PowerShell tool. Additional features include Conditional Access PowerPoint export, LiveCharts dashboards, debug logging, and raw JSON inspection.
+
+> **Platform Notes**
+> - **Windows** is the recommended and fully supported platform.
+> - **macOS** has significant Avalonia limitations that currently require Device Code authentication instead of an interactive browser popup.
+> - **Linux** support is planned but will initially be limited to headless/Core scenarios, with scheduled report generation as the primary target use case.
 
 ## Project Overview
 
