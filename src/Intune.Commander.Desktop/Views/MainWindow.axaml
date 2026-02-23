@@ -540,6 +540,11 @@
                                             <TextBlock Text="Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
                                         </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRoleScopeTags.Count}">
+                                            <TextBlock Text="Role Scope Tags" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRoleScopeTags, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 
@@ -640,6 +645,11 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Version}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRoleScopeTags.Count}">
+                                            <TextBlock Text="Role Scope Tags" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRoleScopeTags, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -910,6 +920,46 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section: Conditions -->
+                                <TextBlock Text="Conditions" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SystemAccentColor}"
+                                           Margin="0,12,0,6" />
+                                <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        CornerRadius="4" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyIncludeLocations.Count}">
+                                            <TextBlock Text="Include Locations" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyIncludeLocations, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyExcludeLocations.Count}">
+                                            <TextBlock Text="Exclude Locations" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyExcludeLocations, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyIncludeGroups.Count}">
+                                            <TextBlock Text="Include Groups" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyIncludeGroups, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyExcludeGroups.Count}">
+                                            <TextBlock Text="Exclude Groups" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyExcludeGroups, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyIncludeApps.Count}">
+                                            <TextBlock Text="Include Apps" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyIncludeApps, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyExcludeApps.Count}">
+                                            <TextBlock Text="Exclude Apps" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedCAPolicyExcludeApps, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -1235,6 +1285,11 @@
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
                                         </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRoleScopeTags.Count}">
+                                            <TextBlock Text="Role Scope Tags" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRoleScopeTags, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="12" TextWrapping="Wrap" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 
@@ -1308,19 +1363,23 @@
                                             <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
-                                            <TextBlock Text="Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
+                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
                                                 <TextBlock Text="Ingestion Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                                <SelectableTextBlock Text="{Binding PolicyConfigurationIngestionType}" FontSize="12" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemIngestionType}" FontSize="12" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Last Modified" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                                 <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Created" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemCreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                        </StackPanel>
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
@@ -1382,8 +1441,8 @@
                                             <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel Spacing="2">
-                                            <TextBlock Text="Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
+                                            <TextBlock Text="Description" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemDescription}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,*">
                                             <StackPanel Grid.Column="0" Spacing="2">
@@ -1393,6 +1452,16 @@
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Priority" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                                 <SelectableTextBlock Text="{Binding Priority}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Created" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Last Modified" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                         <StackPanel Spacing="2">
@@ -1886,9 +1955,37 @@
                                 <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                                         CornerRadius="4" Padding="10" Margin="0,0,0,12">
                                     <StackPanel Spacing="10">
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Profile Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemProfileType}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Language" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemLanguage}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
                                         <StackPanel Spacing="2">
-                                            <TextBlock Text="Language" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemLanguage}" FontSize="12" />
+                                            <TextBlock Text="Device Name Template" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemDeviceNameTemplate}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemOobeSkipFlags.Count}">
+                                            <TextBlock Text="OOBE Skip Flags" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <ItemsControl ItemsSource="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemOobeSkipFlags}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="10" Padding="8,2" Margin="0,0,4,4">
+                                                            <SelectableTextBlock Text="{Binding}" FontSize="11" Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -1946,6 +2043,16 @@
                                             <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="Run As 32-bit" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                                 <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRunAs32BitText}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemVersion}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Enforce Signature Check" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemEnforceSignatureCheck}" FontSize="12" />
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
@@ -2070,6 +2177,20 @@
                                             <TextBlock Text="Feature Update Version" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemFeatureUpdateVersion}" FontSize="12" />
                                         </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Rollout Start" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRolloutStartDate, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Rollout End" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRolloutEndDate, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Install Latest on EOL" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemInstallLatestOnEOL}" FontSize="12" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -2145,6 +2266,15 @@
                                             <TextBlock Text="Location Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding OdataType, Converter={x:Static conv:ODataTypeConverter.Instance}}" FontSize="12" />
                                         </StackPanel>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemIsTrusted}">
+                                            <TextBlock Text="Trust Status" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <WrapPanel>
+                                                <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="10" Padding="8,2" Margin="0,0,4,4">
+                                                    <SelectableTextBlock Text="Trusted" FontSize="11" Foreground="White" />
+                                                </Border>
+                                            </WrapPanel>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -2183,9 +2313,20 @@
                                 <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                                         CornerRadius="4" Padding="10" Margin="0,0,0,12">
                                     <StackPanel Spacing="10">
-                                        <StackPanel Spacing="2">
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Policy Type" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemPolicyType}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Created" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemCreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2"
+                                                    IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAllowedCombinations.Count}">
                                             <TextBlock Text="Allowed Combinations" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                                            <ItemsControl ItemsSource="{Binding AllowedCombinations}">
+                                            <ItemsControl ItemsSource="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAllowedCombinations}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4" Padding="6,2" Margin="0,0,4,4">
@@ -2251,6 +2392,20 @@
                                         <StackPanel Spacing="2">
                                             <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                                             <SelectableTextBlock Text="{Binding Id}" FontSize="11" Opacity="0.8" />
+                                        </StackPanel>
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="Per Device Acceptance" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemIsPerDeviceAcceptance}" FontSize="12" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="Expiration Frequency" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemExpirationFrequency}" FontSize="12" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Created" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemCreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="12" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>

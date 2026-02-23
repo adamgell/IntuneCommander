@@ -432,6 +432,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Ingestion Type", adminTemplate.PolicyConfigurationIngestionType?.ToString());
 
+            Append(sb, "Created", adminTemplate.CreatedDateTime?.ToString("g"));
+
             Append(sb, "Last Modified", adminTemplate.LastModifiedDateTime?.ToString("g"));
 
             AppendAssignments(sb);
@@ -620,9 +622,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "ID", autopilot.Id);
 
+            if (SelectedItemProfileType is { Length: > 0 })
+                Append(sb, "Profile Type", SelectedItemProfileType);
+
             if (SelectedItemLanguage is { Length: > 0 })
 
                 Append(sb, "Language", SelectedItemLanguage);
+
+            if (SelectedItemDeviceNameTemplate is { Length: > 0 })
+                Append(sb, "Device Name Template", SelectedItemDeviceNameTemplate);
+
+            if (SelectedItemOobeSkipFlags.Count > 0)
+                Append(sb, "OOBE Skip Flags", string.Join(", ", SelectedItemOobeSkipFlags));
 
         }
 
@@ -647,6 +658,12 @@ public partial class MainWindowViewModel : ViewModelBase
                 Append(sb, "Run As Account", SelectedItemRunAsAccount);
 
             Append(sb, "Run As 32-bit", SelectedItemRunAs32BitText);
+
+            if (SelectedItemEnforceSignatureCheck)
+                Append(sb, "Enforce Signature Check", "Yes");
+
+            if (SelectedItemVersion is { Length: > 0 })
+                Append(sb, "Version", SelectedItemVersion);
 
         }
 
@@ -680,6 +697,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 Append(sb, "Feature Update Version", SelectedItemFeatureUpdateVersion);
 
+            if (SelectedItemRolloutStartDate.HasValue)
+                Append(sb, "Rollout Start", SelectedItemRolloutStartDate.Value.ToLocalTime().ToString("g"));
+
+            if (SelectedItemRolloutEndDate.HasValue)
+                Append(sb, "Rollout End", SelectedItemRolloutEndDate.Value.ToLocalTime().ToString("g"));
+
+            if (SelectedItemInstallLatestOnEOL)
+                Append(sb, "Install Latest on EOL", "Yes");
+
         }
 
         else if (SelectedNamedLocation is { } namedLocation)
@@ -700,6 +726,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 Append(sb, "Country Codes", string.Join(", ", SelectedItemCountryCodes));
 
+            if (SelectedItemIsTrusted)
+                Append(sb, "Trusted", "Yes");
+
         }
 
         else if (SelectedAuthenticationStrengthPolicy is { } authStrength)
@@ -713,6 +742,12 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "Description", TryReadStringProperty(authStrength, "Description"));
 
             Append(sb, "ID", authStrength.Id);
+
+            if (SelectedItemPolicyType is { Length: > 0 })
+                Append(sb, "Policy Type", SelectedItemPolicyType);
+
+            if (SelectedItemCreatedDateTime.HasValue)
+                Append(sb, "Created", SelectedItemCreatedDateTime.Value.ToLocalTime().ToString("g"));
 
             if (SelectedItemAllowedCombinations.Count > 0)
 
@@ -742,9 +777,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Name", TryReadStringProperty(termsOfUse, "DisplayName"));
 
-            Append(sb, "Description", TryReadStringProperty(termsOfUse, "Description"));
-
             Append(sb, "ID", termsOfUse.Id);
+
+            if (SelectedItemIsPerDeviceAcceptance)
+                Append(sb, "Per Device Acceptance", "Yes");
+
+            if (SelectedItemExpirationFrequency is { Length: > 0 })
+                Append(sb, "Expiration Frequency", SelectedItemExpirationFrequency);
+
+            if (SelectedItemCreatedDateTime.HasValue)
+                Append(sb, "Created", SelectedItemCreatedDateTime.Value.ToLocalTime().ToString("g"));
 
         }
 
@@ -759,6 +801,24 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "State", cap.State?.ToString());
 
             Append(sb, "ID", cap.Id);
+
+            if (SelectedCAPolicyIncludeLocations.Count > 0)
+                Append(sb, "Include Locations", string.Join(", ", SelectedCAPolicyIncludeLocations));
+
+            if (SelectedCAPolicyExcludeLocations.Count > 0)
+                Append(sb, "Exclude Locations", string.Join(", ", SelectedCAPolicyExcludeLocations));
+
+            if (SelectedCAPolicyIncludeGroups.Count > 0)
+                Append(sb, "Include Groups", string.Join(", ", SelectedCAPolicyIncludeGroups));
+
+            if (SelectedCAPolicyExcludeGroups.Count > 0)
+                Append(sb, "Exclude Groups", string.Join(", ", SelectedCAPolicyExcludeGroups));
+
+            if (SelectedCAPolicyIncludeApps.Count > 0)
+                Append(sb, "Include Apps", string.Join(", ", SelectedCAPolicyIncludeApps));
+
+            if (SelectedCAPolicyExcludeApps.Count > 0)
+                Append(sb, "Exclude Apps", string.Join(", ", SelectedCAPolicyExcludeApps));
 
         }
 
@@ -1190,5 +1250,8 @@ public partial class MainWindowViewModel : ViewModelBase
             return "(Unable to decode script content)";
         }
     }
+
+    private static string FormatAuthMethodMode(AuthenticationMethodModes mode) =>
+        System.Text.RegularExpressions.Regex.Replace(mode.ToString(), "(?<=[a-z])(?=[A-Z])", " ");
 
 }

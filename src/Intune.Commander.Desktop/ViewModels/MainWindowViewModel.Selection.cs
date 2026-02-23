@@ -1213,9 +1213,43 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
-        
+
         // Common properties
         SelectedItemDescription = value?.Description ?? "";
+
+        // Resolve location names
+        var inclLocs = value?.Conditions?.Locations?.IncludeLocations ?? [];
+        SelectedCAPolicyIncludeLocations = new ObservableCollection<string>(
+            inclLocs.Select(id => id switch {
+                "All" => "All Locations",
+                "AllTrusted" => "All Trusted Locations",
+                _ => ResolveNamedLocationId(id)
+            }));
+        var exclLocs = value?.Conditions?.Locations?.ExcludeLocations ?? [];
+        SelectedCAPolicyExcludeLocations = new ObservableCollection<string>(
+            exclLocs.Select(id => id switch {
+                "All" => "All Locations",
+                "AllTrusted" => "All Trusted Locations",
+                _ => ResolveNamedLocationId(id)
+            }));
+
+        // Resolve group names
+        var inclGroups = value?.Conditions?.Users?.IncludeGroups ?? [];
+        SelectedCAPolicyIncludeGroups = new ObservableCollection<string>(inclGroups.Select(ResolveGroupId));
+        var exclGroups = value?.Conditions?.Users?.ExcludeGroups ?? [];
+        SelectedCAPolicyExcludeGroups = new ObservableCollection<string>(exclGroups.Select(ResolveGroupId));
+
+        // Resolve app names
+        var inclApps = value?.Conditions?.Applications?.IncludeApplications ?? [];
+        SelectedCAPolicyIncludeApps = new ObservableCollection<string>(
+            inclApps.Select(id => id switch {
+                "All" => "All Applications",
+                "Office365" => "Office 365",
+                _ => ResolveApplicationId(id)
+            }));
+        var exclApps = value?.Conditions?.Applications?.ExcludeApplications ?? [];
+        SelectedCAPolicyExcludeApps = new ObservableCollection<string>(
+            exclApps.Select(id => ResolveApplicationId(id)));
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1271,8 +1305,8 @@ public partial class MainWindowViewModel : ViewModelBase
             : [];
         
         // Admin Template specific
-        // Note: IngestionMethod not available; just skip type-specific properties
-        // SelectedItemCreatedDateTime assignment skipped for type safety
+        SelectedItemIngestionType = value?.PolicyConfigurationIngestionType?.ToString() ?? "";
+        SelectedItemCreatedDateTime = value?.CreatedDateTime;
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1512,8 +1546,17 @@ public partial class MainWindowViewModel : ViewModelBase
             : [];
         
         // Autopilot specific
-        // SelectedItemProfileType assignment skipped (DeploymentScenarioType not available)
+        SelectedItemProfileType = value?.DeviceType?.ToString() ?? "";
         SelectedItemLanguage = value?.Language ?? "";
+        SelectedItemDeviceNameTemplate = value?.DeviceNameTemplate ?? "";
+
+        var oobe = value?.OutOfBoxExperienceSettings;
+        var oobeFlags = new List<string>();
+        if (oobe?.HideEULA == true) oobeFlags.Add("Skip EULA");
+        if (oobe?.HidePrivacySettings == true) oobeFlags.Add("Skip Privacy");
+        if (oobe?.SkipKeyboardSelectionPage == true) oobeFlags.Add("Skip Keyboard");
+        if (oobe?.HideEscapeLink == true) oobeFlags.Add("No Escape Link");
+        SelectedItemOobeSkipFlags = new ObservableCollection<string>(oobeFlags);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1550,7 +1593,9 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemRemediationScript = value?.RemediationScriptContent != null
             ? System.Text.Encoding.UTF8.GetString(value.RemediationScriptContent)
             : "";
-        // SelectedItemEnforceSignatureCheck assignment skipped (type mismatch on bool assignment)
+        SelectedItemEnforceSignatureCheck = value?.EnforceSignatureCheck ?? false;
+        SelectedItemRunAs32Bit = value?.RunAs32Bit ?? false;
+        SelectedItemVersion = value?.Version ?? "";
 
         if (value?.Id != null)
             _ = LoadDeviceHealthScriptAssignmentsAsync(value.Id);
@@ -1596,7 +1641,9 @@ public partial class MainWindowViewModel : ViewModelBase
         
         // Feature Update specific
         SelectedItemFeatureUpdateVersion = value?.FeatureUpdateVersion ?? "";
-        // Note: RolloutSettings not directly available on WindowsFeatureUpdateProfile
+        SelectedItemRolloutStartDate = value?.RolloutSettings?.OfferStartDateTimeInUTC;
+        SelectedItemRolloutEndDate = value?.RolloutSettings?.OfferEndDateTimeInUTC;
+        SelectedItemInstallLatestOnEOL = value?.InstallLatestWindows10OnWindows11IneligibleDevice ?? false;
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1621,7 +1668,7 @@ public partial class MainWindowViewModel : ViewModelBase
             SelectedItemIpRanges = ipLoc.IpRanges != null
                 ? new ObservableCollection<string>(ipLoc.IpRanges.Select(r => r?.ToString() ?? ""))
                 : [];
-            // SelectedItemIsTrusted assignment skipped (bool/string type mismatch)
+            SelectedItemIsTrusted = ipLoc.IsTrusted ?? false;
         }
         else if (value is Microsoft.Graph.Beta.Models.CountryNamedLocation countryLoc)
         {
@@ -1651,7 +1698,14 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemDescription = value?.Description ?? "";
         
         // Auth Strength specific
-        // Note: CreatedPolicy not directly available; AllowedCombinations needs type checking
+        SelectedItemPolicyType = value?.PolicyType?.ToString() ?? "";
+        SelectedItemCreatedDateTime = value?.CreatedDateTime;
+        SelectedItemAllowedCombinations = value?.AllowedCombinations != null
+            ? new ObservableCollection<string>(
+                value.AllowedCombinations
+                    .Where(c => c.HasValue)
+                    .Select(c => FormatAuthMethodMode(c!.Value)))
+            : [];
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1684,6 +1738,12 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Terms of Use";
 
         SelectedItemPlatform = "";
+
+        // Terms of Use specific (Agreement has no Description property)
+        SelectedItemDescription = "";
+        SelectedItemIsPerDeviceAcceptance = value?.IsPerDeviceAcceptanceRequired ?? false;
+        SelectedItemExpirationFrequency = value?.UserReacceptRequiredFrequency?.ToString() ?? "Never";
+        SelectedItemCreatedDateTime = value?.CreatedDateTime;
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 

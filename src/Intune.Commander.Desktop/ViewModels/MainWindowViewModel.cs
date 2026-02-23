@@ -1115,6 +1115,25 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _selectedItemExpirationFrequency = "";
 
+    // Conditional Access Policy resolved names
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeLocations = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeLocations = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeGroups = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeGroups = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeApps = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeApps = [];
+
 
 
     [ObservableProperty]
