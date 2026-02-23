@@ -632,6 +632,161 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
+
+    private static string ExtractMinimumOS(MobileApp? app)
+    {
+        if (app == null) return "";
+
+        return app switch
+        {
+            IosLobApp ios => FormatIosMinVersion(ios.MinimumSupportedOperatingSystem),
+            IosStoreApp iosStore => FormatIosMinVersion(iosStore.MinimumSupportedOperatingSystem),
+            MacOSLobApp mac => FormatMacOSMinVersion(mac.MinimumSupportedOperatingSystem),
+            MacOSDmgApp macDmg => FormatMacOSMinVersion(macDmg.MinimumSupportedOperatingSystem),
+            AndroidStoreApp androidStore => FormatAndroidMinVersion(androidStore.MinimumSupportedOperatingSystem),
+            Win32LobApp win32 => FormatWindowsMinVersion(win32.MinimumSupportedWindowsRelease),
+            _ => ""
+        };
+    }
+
+    private static string FormatIosMinVersion(IosMinimumOperatingSystem? os)
+    {
+        if (os == null) return "";
+        if (os.V180 == true) return "iOS 18.0+";
+        if (os.V170 == true) return "iOS 17.0+";
+        if (os.V160 == true) return "iOS 16.0+";
+        if (os.V150 == true) return "iOS 15.0+";
+        if (os.V140 == true) return "iOS 14.0+";
+        if (os.V130 == true) return "iOS 13.0+";
+        if (os.V120 == true) return "iOS 12.0+";
+        if (os.V110 == true) return "iOS 11.0+";
+        if (os.V100 == true) return "iOS 10.0+";
+        if (os.V90 == true) return "iOS 9.0+";
+        if (os.V80 == true) return "iOS 8.0+";
+        return "";
+    }
+
+    private static string FormatMacOSMinVersion(MacOSMinimumOperatingSystem? os)
+    {
+        if (os == null) return "";
+        if (os.V150 == true) return "macOS 15.0+";
+        if (os.V140 == true) return "macOS 14.0+";
+        if (os.V130 == true) return "macOS 13.0+";
+        if (os.V120 == true) return "macOS 12.0+";
+        if (os.V110 == true) return "macOS 11.0+";
+        if (os.V1015 == true) return "macOS 10.15+";
+        if (os.V1014 == true) return "macOS 10.14+";
+        if (os.V1013 == true) return "macOS 10.13+";
+        if (os.V1012 == true) return "macOS 10.12+";
+        if (os.V1011 == true) return "macOS 10.11+";
+        if (os.V1010 == true) return "macOS 10.10+";
+        if (os.V109 == true) return "macOS 10.9+";
+        if (os.V108 == true) return "macOS 10.8+";
+        if (os.V107 == true) return "macOS 10.7+";
+        return "";
+    }
+
+    private static string FormatAndroidMinVersion(AndroidMinimumOperatingSystem? os)
+    {
+        if (os == null) return "";
+        if (os.V150 == true) return "Android 15.0+";
+        if (os.V140 == true) return "Android 14.0+";
+        if (os.V130 == true) return "Android 13.0+";
+        if (os.V120 == true) return "Android 12.0+";
+        if (os.V110 == true) return "Android 11.0+";
+        if (os.V100 == true) return "Android 10.0+";
+        if (os.V90 == true) return "Android 9.0+";
+        if (os.V81 == true) return "Android 8.1+";
+        if (os.V80 == true) return "Android 8.0+";
+        if (os.V71 == true) return "Android 7.1+";
+        if (os.V70 == true) return "Android 7.0+";
+        if (os.V60 == true) return "Android 6.0+";
+        if (os.V51 == true) return "Android 5.1+";
+        if (os.V50 == true) return "Android 5.0+";
+        if (os.V44 == true) return "Android 4.4+";
+        if (os.V43 == true) return "Android 4.3+";
+        if (os.V42 == true) return "Android 4.2+";
+        if (os.V41 == true) return "Android 4.1+";
+        if (os.V403 == true) return "Android 4.0.3+";
+        if (os.V40 == true) return "Android 4.0+";
+        return "";
+    }
+
+    private static string FormatWindowsMinVersion(string? minRelease)
+    {
+        if (string.IsNullOrEmpty(minRelease)) return "";
+        return $"Windows {minRelease}+";
+    }
+
+    private static string ExtractInstallCommand(MobileApp? app)
+    {
+        return app switch
+        {
+            Win32LobApp w => w.InstallCommandLine ?? "",
+            _ => ""
+        };
+    }
+
+    private static string ExtractUninstallCommand(MobileApp? app)
+    {
+        return app switch
+        {
+            Win32LobApp w => w.UninstallCommandLine ?? "",
+            _ => ""
+        };
+    }
+
+    private static string ExtractInstallContext(MobileApp? app)
+    {
+        return app switch
+        {
+            Win32LobApp w => w.InstallExperience?.RunAsAccount?.ToString() ?? "",
+            _ => ""
+        };
+    }
+
+    private static double ExtractSizeInMB(MobileApp? app)
+    {
+        if (app == null) return 0;
+        
+        var size = app switch
+        {
+            Win32LobApp w => w.Size,
+            IosLobApp i => i.Size,
+            MacOSLobApp m => m.Size,
+            _ => null
+        };
+        
+        if (size == null) return 0;
+        return size.Value / 1048576.0;
+    }
+
+    private static ObservableCollection<string> ExtractCategories(MobileApp? app)
+    {
+        if (app?.Categories == null || app.Categories.Count == 0)
+            return [];
+
+        var categories = app.Categories
+            .Where(c => !string.IsNullOrEmpty(c.DisplayName))
+            .Select(c => c.DisplayName!)
+            .ToList();
+
+        return new ObservableCollection<string>(categories);
+    }
+
+    private static int ExtractSupersededCount(MobileApp? app)
+    {
+        if (app?.AdditionalData == null) return 0;
+        
+        if (app.AdditionalData.TryGetValue("supersededAppCount", out var val))
+        {
+            if (val is int count) return count;
+            if (int.TryParse(val?.ToString(), out var parsed)) return parsed;
+        }
+        
+        return 0;
+    }
+
     // --- Dynamic Groups view ---
 
 

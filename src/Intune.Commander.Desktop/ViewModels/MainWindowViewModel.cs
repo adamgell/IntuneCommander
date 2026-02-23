@@ -956,6 +956,160 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
 
     private string _selectedItemPlatform = "";
+    // Application-specific properties
+    [ObservableProperty]
+    private string _selectedItemVersion = "";
+
+    [ObservableProperty]
+    private string _selectedItemBundleId = "";
+
+    [ObservableProperty]
+    private string _selectedItemMinimumOS = "";
+
+    [ObservableProperty]
+    private string _selectedItemInstallCommand = "";
+
+    [ObservableProperty]
+    private string _selectedItemUninstallCommand = "";
+
+    [ObservableProperty]
+    private string _selectedItemInstallContext = "";
+
+    [ObservableProperty]
+    private double _selectedItemSizeMB = 0;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemCategories = [];
+
+    [ObservableProperty]
+    private int _selectedItemSupersededCount = 0;
+
+    // Common properties for multiple types
+    [ObservableProperty]
+    private string _selectedItemDescription = "";
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemRoleScopeTags = [];
+
+    // Device Configuration specific
+    [ObservableProperty]
+    private int _selectedItemOmaSettingsCount = 0;
+
+    // Compliance Policy specific
+    [ObservableProperty]
+    private int _selectedItemGracePeriodDays = 0;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemNonComplianceActions = [];
+
+    // Settings Catalog specific
+    [ObservableProperty]
+    private int _selectedItemSettingsCount = 0;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemTemplateFamilies = [];
+
+    // Endpoint Security specific
+    [ObservableProperty]
+    private string _selectedItemTemplateDisplayName = "";
+
+    // Administrative Template specific
+    [ObservableProperty]
+    private string _selectedItemIngestionType = "";
+
+    [ObservableProperty]
+    private DateTimeOffset? _selectedItemCreatedDateTime;
+
+    // App Protection Policy specific
+    [ObservableProperty]
+    private string _selectedItemMinAppVersion = "";
+
+    [ObservableProperty]
+    private string _selectedItemMinOSVersion = "";
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemDataProtectionSettings = [];
+
+    [ObservableProperty]
+    private int _selectedItemExemptedAppsCount = 0;
+
+    // Autopilot Profile specific
+    [ObservableProperty]
+    private string _selectedItemProfileType = "";
+
+    [ObservableProperty]
+    private string _selectedItemLanguage = "";
+
+    [ObservableProperty]
+    private string _selectedItemRegion = "";
+
+    [ObservableProperty]
+    private string _selectedItemDeviceNameTemplate = "";
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemOobeSkipFlags = [];
+
+    // Device Health Script specific
+    [ObservableProperty]
+    private string _selectedItemPublisher = "";
+
+    [ObservableProperty]
+    private string _selectedItemRunAsAccount = "";
+
+    [ObservableProperty]
+    private bool _selectedItemEnforceSignatureCheck = false;
+
+    [ObservableProperty]
+    private bool _selectedItemRunAs32Bit = false;
+
+    [ObservableProperty]
+    private string _selectedItemRunAs32BitText = "";
+
+    [ObservableProperty]
+    private string _selectedItemExecutionFrequency = "";
+
+    [ObservableProperty]
+    private string _selectedItemDetectionScript = "";
+
+    [ObservableProperty]
+    private string _selectedItemRemediationScript = "";
+
+    // Feature Update Profile specific
+    [ObservableProperty]
+    private string _selectedItemFeatureUpdateVersion = "";
+
+    [ObservableProperty]
+    private DateTimeOffset? _selectedItemRolloutStartDate;
+
+    [ObservableProperty]
+    private DateTimeOffset? _selectedItemRolloutEndDate;
+
+    [ObservableProperty]
+    private bool _selectedItemInstallLatestOnEOL = false;
+
+    // Named Location specific
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemCountryCodes = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemIpRanges = [];
+
+    [ObservableProperty]
+    private bool _selectedItemIsTrusted = false;
+
+    // Authentication Strength specific
+    [ObservableProperty]
+    private string _selectedItemPolicyType = "";
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedItemAllowedCombinations = [];
+
+    // Terms of Use specific
+    [ObservableProperty]
+    private bool _selectedItemIsPerDeviceAcceptance = false;
+
+    [ObservableProperty]
+    private string _selectedItemExpirationFrequency = "";
 
 
 
