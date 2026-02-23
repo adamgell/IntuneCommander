@@ -5,6 +5,47 @@ All notable changes to this project are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Permission Check Service** — new `IPermissionCheckService` / `PermissionCheckService` in Core
+  - Acquires the current token via `TokenCredential`, base64url-decodes the JWT payload, and compares granted permissions against the 14 known-required Graph scopes
+  - Supports both application tokens (`roles` claim) and delegated tokens (`scp` claim)
+  - Returns a `PermissionCheckResult` model with `GrantedPermissions`, `MissingPermissions`, `ExtraPermissions`, `AllPermissionsGranted`, and `ClaimSource`
+  - Fire-and-forget check fired immediately after successful tenant connection; result logged to Debug Log and stored on `MainWindowViewModel.LastPermissionCheckResult`
+  - 15 unit tests covering JWT decoding, classification, interface contract, and edge cases (empty/malformed JWT, no permission claim)
+- **Permissions Window** — new non-modal `PermissionsWindow` displaying:
+  - Summary pill: green "All 15/15 Granted" or red "N/15 Granted"
+  - Token type badge (`roles` = application / `scp` = delegated)
+  - Missing permissions section (red ✗, only visible when there are gaps)
+  - Granted permissions section (green ✓)
+  - Collapsible Extra permissions expander
+  - "Not connected" placeholder when no check result is available
+  - Accessible via **Help → Permissions...** menu item (disabled when not connected)
+- Added `IntuneGraphClientFactory.CreateClientWithCredentialAsync` — returns a `(GraphServiceClient, TokenCredential, string[])` tuple so the credential used for authentication can be reused by `PermissionCheckService` without a second auth round-trip
+- Added three AXAML value converters in `Converters/PermissionConverters.cs`:
+  - `PermissionSummaryBrushConverter` — `bool → SolidColorBrush` (green / red)
+  - `PermissionSummaryTextConverter` — `PermissionCheckResult → "All N/N Granted"` summary string
+  - `CountGreaterThanZeroConverter` — `int → bool` for conditional visibility bindings
+
+### Changed
+- Moved **Permissions** toolbar button into the **Help** menu as "🔑 Permissions..." to reduce toolbar clutter; item is disabled when not connected
+
+### Fixed
+- **Settings Catalog HTTP 500** — Cosmos DB skip-token cursor failures caused by over-large page requests
+  - Reduced `$top` from 999 → 100 (more stable for Cosmos-backed stores)
+  - Added retry loop with exponential backoff (2 s / 4 s) for transient 500 errors
+  - Returns partial results instead of throwing on retry exhaustion
+- **Quality Update Profiles HTTP 400** — `$top=999` exceeded the endpoint's hard cap of 200; reduced to `$top=200`
+- **Driver Update Profiles HTTP 400** — same fix as Quality Update Profiles
+
+### Documentation
+- Updated `docs/GRAPH-PERMISSIONS.md`:
+  - Added "Windows 365 — Cloud PC" section (`CloudPC.ReadWrite.All` permission + notes on Windows 365 licence requirement)
+  - Added 9 previously missing service rows to the endpoint permission table (QualityUpdate, DriverUpdate, DeviceShellScript, ComplianceScript, AdmxFile, AppleDep, DeviceCategory, CloudPcProvisioning, CloudPcUserSettings)
+  - Expanded existing permission rows to document all services that rely on each scope
+- Updated `scripts/Setup-IntegrationTestApp.ps1`: added `CloudPC.ReadWrite.All` to `$requiredPermissions`
+
+---
+
+### Added
 - **Conditional Access PowerPoint Export** (Phase 1-5 complete)
   - New service: `IConditionalAccessPptExportService` / `ConditionalAccessPptExportService`
   - Generates comprehensive PowerPoint presentations with:

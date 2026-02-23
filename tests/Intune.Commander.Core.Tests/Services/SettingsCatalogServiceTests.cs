@@ -103,4 +103,26 @@ public class SettingsCatalogServiceTests
         var methods = typeof(ISettingsCatalogService).GetMethods();
         Assert.Equal(6, methods.Length);
     }
+
+    // The configurationPolicies endpoint returns HTTP 500 on certain Cosmos DB skip-token
+    // page boundaries when using large page sizes. Verify we use a safe small page size.
+    [Fact]
+    public void Service_UsesSmallPageSize()
+    {
+        var field = typeof(SettingsCatalogService)
+            .GetField("PageSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(field);
+        var value = (int)field.GetValue(null)!;
+        Assert.InRange(value, 1, 200);
+    }
+
+    [Fact]
+    public void Service_HasRetryConfig()
+    {
+        var field = typeof(SettingsCatalogService)
+            .GetField("MaxRetries", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(field);
+        var value = (int)field.GetValue(null)!;
+        Assert.True(value >= 2, "MaxRetries should be at least 2 to handle transient 500s");
+    }
 }

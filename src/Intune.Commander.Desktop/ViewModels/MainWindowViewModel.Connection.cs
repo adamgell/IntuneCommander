@@ -104,9 +104,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-            _graphClient = await _graphClientFactory.CreateClientAsync(profile);
+            var (client, credential, scopes) = await _graphClientFactory.CreateClientWithCredentialAsync(profile);
+            _graphClient = client;
 
             DebugLog.Log("Auth", "Graph client created successfully");
+
+            _permissionCheckService = new PermissionCheckService(credential, scopes);
+
+            // Fire-and-forget — log result; does not block connect flow
+            _ = CheckAndLogPermissionsAsync();
 
             _configProfileService = new ConfigurationProfileService(_graphClient);
 
@@ -791,6 +797,32 @@ public partial class MainWindowViewModel : ViewModelBase
         DownloadProgress = "";
         DownloadProgressPercent = 0;
 
+    }
+
+    private async Task CheckAndLogPermissionsAsync()
+    {
+        if (_permissionCheckService == null) return;
+        try
+        {
+            var result = await _permissionCheckService.CheckPermissionsAsync();
+            LastPermissionCheckResult = result;
+
+            // Always log the summary — this is purely informational.
+            // Missing permissions only means those features will return 403;
+            // they do not prevent the user from using everything else.
+            DebugLog.Log("Permissions",
+                $"Check complete (claim: {result.ClaimSource}) — " +
+                $"{result.GrantedPermissions.Count}/{result.RequiredPermissions.Count} granted" +
+                (result.MissingPermissions.Count > 0
+                    ? $"; missing: {string.Join(", ", result.MissingPermissions)}"
+                    : ""));
+        }
+        catch (Exception ex)
+        {
+            // Never surface permission-check failures to the user —
+            // log silently and let the app continue normally.
+            DebugLog.Log("Permissions", $"Permission check skipped: {ex.Message}");
+        }
     }
 
 }

@@ -192,8 +192,10 @@ Views/
   MainWindow.axaml
   LoginView.axaml
   OverviewView.axaml
+  AssignmentReportWindow.axaml
   GroupLookupWindow.axaml
   DebugLogWindow.axaml
+  PermissionsWindow.axaml       ← non-modal; shows JWT permission check results
   RawJsonWindow.axaml
 
 ViewModels/
@@ -203,6 +205,12 @@ ViewModels/
   GroupLookupViewModel.cs
   DebugLogViewModel.cs
   NavCategory.cs / DataGridColumnConfig.cs / row types
+
+Converters/
+  BoolToChevronConverter.cs
+  ComputedColumnConverters.cs   ← computed DataGrid column values (e.g. platform from OData type)
+  DebugLevelBrushConverter.cs
+  PermissionConverters.cs       ← PermissionSummaryBrushConverter, PermissionSummaryTextConverter, CountGreaterThanZeroConverter
 ```
 
 ### Dependency Injection
@@ -216,7 +224,7 @@ ViewModels/
 **Service Lifetime (actual):**
 - Singleton: `IAuthenticationProvider`, `IntuneGraphClientFactory`, `ProfileService`, `IProfileEncryptionService`, `ICacheService`
 - Transient: `IExportService`, `MainWindowViewModel`
-- **Not in DI:** Graph API services — created with `new XxxService(graphClient)` in `MainWindowViewModel.ConnectToProfile(...)` after authentication succeeds
+- **Not in DI:** Graph API services (`ConfigurationProfileService`, `CompliancePolicyService`, etc.) and `PermissionCheckService` — all created with `new XxxService(...)` in `MainWindowViewModel.ConnectToProfile(...)` after authentication succeeds. `IntuneGraphClientFactory.CreateClientWithCredentialAsync` returns a `(GraphServiceClient, TokenCredential, string[])` tuple so both the Graph client and the permission checker share the same credential object without a second auth round-trip.
 
 ---
 
@@ -231,8 +239,12 @@ ViewModels/
 | `Forbidden` (403) | "Missing permission: DeviceManagementConfiguration.ReadWrite.All" |
 | `TooManyRequests` (429) | "Request throttled. Retrying in X seconds..." |
 | `Unauthorized` (401) | "Session expired. Please sign in again." |
-| `NotFound` (404) | "Object not found. It may have been deleted." |
+| `NotFound` (404) | "Object not found. It may have been deleted." || `InternalServerError` (500) | Cosmos DB skip-token cursor bug on large page requests; mitigated with smaller `$top` and exponential-backoff retry (see `SettingsCatalogService`) |
 
+**Endpoint-specific page size limits** (enforced by Graph API):
+- `configurationPolicies` (Settings Catalog): `$top=100` (Cosmos DB cursor stability)
+- `windowsQualityUpdateProfiles`, `windowsDriverUpdateProfiles`: `$top=200` (hard API cap)
+- All other list endpoints: `$top=999`
 ### Retry Strategy
 - Exponential backoff: 1s, 2s, 4s, 8s, 16s
 - Respect `Retry-After` headers

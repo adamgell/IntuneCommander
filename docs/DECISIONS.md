@@ -480,3 +480,31 @@ Decisions can be revisited if new information emerges or requirements change.
 - Profile file is now encrypted at rest via DataProtection, providing baseline protection
 - OS credential store integration (Windows Credential Manager, macOS Keychain) planned for a future phase
 - Current approach works for development; production hardening will follow
+
+---
+
+## Decision 020: Permission Introspection — JWT Decode (No Signature Verification)
+
+**Date:** 2026-02-23
+**Status:** Approved
+**Context:** Need to inform the user which Graph API permissions are present in their current token without blocking the UI or requiring an additional Graph API call.
+
+**Decision:** Base64url-decode the JWT payload locally using `System.Text.Json`; compare `roles` (app token) or `scp` (delegated token) claims against a static list of required permissions
+
+**Rationale:**
+- No network round-trip: token is already in memory after `TokenCredential.GetTokenAsync`
+- No signature verification required — the token was just issued by AAD; integrity is assumed
+- `roles` and `scp` are stable, well-documented JWT claim names for Microsoft identity tokens
+- Result is informational only — check failure never blocks the user or raises an error dialog
+- 15 unit tests verify decoding, classification, and edge cases (empty/malformed JWT)
+
+**Consequences:**
+- `PermissionCheckService` receives `TokenCredential` + scopes in its constructor — post-auth only
+- If the check throws (e.g. network error), the exception is swallowed and logged to Debug Log as "Permission check skipped: ..."
+- `LastPermissionCheckResult` on `MainWindowViewModel` is null until a successful check; `PermissionsWindow` shows a "Not connected" placeholder in that state
+- Token expiry: the check runs once at connect time; stale results remain until next connect
+
+**Alternatives Rejected:**
+- `me/getMemberObjects` or similar Graph call: Extra network round-trip, adds latency, requires an extra permission
+- Blocking UI until check completes: Violates async-first startup rule
+- No permission check at all: Makes troubleshooting 403 errors harder for users

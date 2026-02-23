@@ -11,12 +11,20 @@ All permissions below are **Application** type (not Delegated) and require **adm
 
 | Permission | Access | Services |
 |---|---|---|
-| `DeviceManagementConfiguration.ReadWrite.All` | Read & write | ConfigurationProfile, Compliance, AdministrativeTemplate, EndpointSecurity, SettingsCatalog, FeatureUpdate, AssignmentFilter |
-| `DeviceManagementScripts.ReadWrite.All` | Read & write | DeviceHealthScript, MacCustomAttribute |
+| `DeviceManagementConfiguration.ReadWrite.All` | Read & write | ConfigurationProfile, Compliance, AdministrativeTemplate, EndpointSecurity, SettingsCatalog, FeatureUpdate, AssignmentFilter, QualityUpdateProfile, DriverUpdateProfile, ComplianceScript, AdmxFile |
+| `DeviceManagementScripts.ReadWrite.All` | Read & write | DeviceHealthScript, MacCustomAttribute, DeviceShellScript |
 | `DeviceManagementApps.ReadWrite.All` | Read & write | Application, AppProtectionPolicy, ManagedAppConfiguration, PolicySet |
-| `DeviceManagementServiceConfig.ReadWrite.All` | Read & write | EnrollmentConfiguration, Autopilot, IntuneBranding, TermsAndConditions |
+| `DeviceManagementServiceConfig.ReadWrite.All` | Read & write | EnrollmentConfiguration, Autopilot, IntuneBranding, TermsAndConditions, AppleDep |
 | `DeviceManagementRBAC.ReadWrite.All` | Read & write | RoleDefinition, ScopeTag |
-| `DeviceManagementManagedDevices.Read.All` | Read | Device queries (future) |
+| `DeviceManagementManagedDevices.Read.All` | Read | Device queries (future), DeviceCategory |
+
+### Windows 365 — Cloud PC
+
+| Permission | Access | Services |
+|---|---|---|
+| `CloudPC.ReadWrite.All` | Read & write | CloudPcProvisioningService, CloudPcUserSettingsService |
+
+> **Note:** Cloud PC permissions require the tenant to have an active Windows 365 licence. Without a licence the endpoints return HTTP 403 regardless of app permissions.
 
 ### Entra ID — Conditional Access & Identity
 
@@ -59,13 +67,22 @@ All permissions below are **Application** type (not Delegated) and require **adm
 | EnrollmentConfigurationService | `/deviceManagement/deviceEnrollmentConfigurations` | List (x4 variants), Get, Create, Update, Delete |
 | AutopilotService | `/deviceManagement/windowsAutopilotDeploymentProfiles` | List, Get, Create, Update, Delete |
 | FeatureUpdateProfileService | `/deviceManagement/windowsFeatureUpdateProfiles` | List, Get, Create, Update, Delete |
+| QualityUpdateProfileService | `/deviceManagement/windowsQualityUpdateProfiles` | List, Get, Create, Update |
+| DriverUpdateProfileService | `/deviceManagement/windowsDriverUpdateProfiles` | List, Get, Create, Update, Delete |
 | DeviceHealthScriptService | `/deviceManagement/deviceHealthScripts` | List, Get, Create, Update, Delete |
 | MacCustomAttributeService | `/deviceManagement/deviceCustomAttributeShellScripts` | List, Get, Create, Update, Delete |
+| DeviceShellScriptService | `/deviceManagement/deviceShellScripts` | List, Get (via AssignmentChecker) |
+| ComplianceScriptService | `/deviceManagement/deviceComplianceScripts` | List, Get (via AssignmentChecker) |
+| AdmxFileService | `/deviceManagement/groupPolicyUploadedDefinitionFiles` | List, Get, Create, Delete |
+| AppleDepService | `/deviceManagement/depOnboardingSettings` | List, Get, ListEnrollmentProfiles |
+| DeviceCategoryService | `/deviceManagement/deviceCategories` | List, Get |
 | IntuneBrandingService | `/deviceManagement/intuneBrandingProfiles` | List, Get, Create, Update, Delete |
 | TermsAndConditionsService | `/deviceManagement/termsAndConditions` | List, Get, Create, Update, Delete |
 | RoleDefinitionService | `/deviceManagement/roleDefinitions` | List, Get, Create, Update, Delete |
 | ScopeTagService | `/deviceManagement/roleScopeTags` | List, Get, Create, Update, Delete |
 | AssignmentFilterService | `/deviceManagement/assignmentFilters` | List, Get |
+| CloudPcProvisioningService | `/deviceManagement/virtualEndpoint/provisioningPolicies` | List, Get |
+| CloudPcUserSettingsService | `/deviceManagement/virtualEndpoint/userSettings` | List, Get |
 | ManagedAppConfigurationService | `/deviceAppManagement/mobileAppConfigurations` + `/targetedManagedAppConfigurations` | List, Get, Create, Update, Delete (both) |
 | PolicySetService | `/deviceAppManagement/policySets` | List, Get |
 | ConditionalAccessPolicyService | `/identity/conditionalAccess/policies` | List, Get |
