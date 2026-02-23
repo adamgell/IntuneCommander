@@ -49,6 +49,14 @@ public class DeviceHealthScriptService : IDeviceHealthScriptService
             .GetAsync(cancellationToken: cancellationToken);
     }
 
+    public async Task<List<DeviceHealthScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default)
+    {
+        var response = await _graphClient.DeviceManagement.DeviceHealthScripts[scriptId]
+            .Assignments.GetAsync(cancellationToken: cancellationToken);
+
+        return response?.Value ?? [];
+    }
+
     public async Task<DeviceHealthScript> CreateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default)
     {
         var result = await _graphClient.DeviceManagement.DeviceHealthScripts

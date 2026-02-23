@@ -2275,6 +2275,9 @@ public class ImportServiceTests : IDisposable
         public Task<DeviceHealthScript?> GetDeviceHealthScriptAsync(string id, CancellationToken cancellationToken = default)
             => Task.FromResult<DeviceHealthScript?>(null);
 
+        public Task<List<DeviceHealthScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default)
+            => Task.FromResult(new List<DeviceHealthScriptAssignment>());
+
         public Task<DeviceHealthScript> CreateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default)
         {
             LastCreatedScript = script;

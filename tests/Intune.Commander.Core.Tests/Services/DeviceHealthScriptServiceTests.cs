@@ -80,10 +80,10 @@ public class DeviceHealthScriptServiceTests
     }
 
     [Fact]
-    public void Interface_HasFiveMethods()
+    public void Interface_HasSixMethods()
     {
         var methods = typeof(IDeviceHealthScriptService).GetMethods();
-        Assert.Equal(5, methods.Length);
+        Assert.Equal(6, methods.Length);
     }
 
     [Fact]
@@ -117,6 +117,19 @@ public class DeviceHealthScriptServiceTests
         Assert.Equal(2, parameters.Length);
         Assert.Equal(typeof(string), parameters[0].ParameterType);
         Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+    }
+
+    [Fact]
+    public void GetAssignmentsMethod_AcceptsScriptIdAndCancellationToken()
+    {
+        var method = typeof(IDeviceHealthScriptService).GetMethod("GetAssignmentsAsync");
+        Assert.NotNull(method);
+        var parameters = method.GetParameters();
+        Assert.Equal(2, parameters.Length);
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+        Assert.True(parameters[1].HasDefaultValue);
+        Assert.Equal(typeof(Task<List<DeviceHealthScriptAssignment>>), method.ReturnType);
     }
 
     [Fact]
