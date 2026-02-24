@@ -10,16 +10,38 @@
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#5E5E5E" />
-                    <SolidColorBrush x:Key="AppNavTextBrush" Color="#202020" />
+                    <!-- App custom brushes -->
+                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#71717A" />
+                    <SolidColorBrush x:Key="AppNavTextBrush" Color="#09090B" />
                     <SolidColorBrush x:Key="AppErrorTextBrush" Color="#B00020" />
                     <SolidColorBrush x:Key="AppErrorBackgroundBrush" Color="#1AFF0000" />
+                    <!-- Shadcn-compatible replacements for Fluent SystemControl resources -->
+                    <Color x:Key="SystemAccentColor">#2563EB</Color>
+                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="#F4F4F5" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#E4E4E7" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumLowBrush" Color="#D4D4D8" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#09090B" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#71717A" />
+                    <SolidColorBrush x:Key="SystemControlForegroundAccentBrush" Color="#2563EB" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#D0D0D0" />
-                    <SolidColorBrush x:Key="AppNavTextBrush" Color="#F2F2F2" />
+                    <!-- App custom brushes -->
+                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#A1A1AA" />
+                    <SolidColorBrush x:Key="AppNavTextBrush" Color="#FAFAFA" />
                     <SolidColorBrush x:Key="AppErrorTextBrush" Color="#FFB3B3" />
                     <SolidColorBrush x:Key="AppErrorBackgroundBrush" Color="#33FF6B6B" />
+                    <!-- Shadcn-compatible replacements for Fluent SystemControl resources -->
+                    <Color x:Key="SystemAccentColor">#3B82F6</Color>
+                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="#18181B" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#09090B" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#27272A" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumLowBrush" Color="#3F3F46" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#A1A1AA" />
+                    <SolidColorBrush x:Key="SystemControlForegroundAccentBrush" Color="#3B82F6" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
