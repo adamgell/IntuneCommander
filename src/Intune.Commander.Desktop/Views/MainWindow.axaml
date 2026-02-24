@@ -1,9 +1,10 @@
-<Window xmlns="https://github.com/avaloniaui"
+<suki:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
         xmlns:views="using:Intune.Commander.Desktop.Views"
         xmlns:conv="using:Intune.Commander.Desktop.Converters"
         xmlns:models="using:Intune.Commander.Desktop.Models"
+        xmlns:suki="using:SukiUI.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="1050"
@@ -160,149 +161,104 @@
                            Margin="0,2,0,0"
                            Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
 
-                <!-- Body: Left Nav + Content + Details -->
-                <Grid ColumnDefinitions="220,*,600">
+                <!-- Body: SukiSideMenu with nav + content -->
+                <suki:SukiSideMenu x:Name="SideMenu"
+                                   IsSearchEnabled="True"
+                                   SidebarToggleEnabled="True"
+                                   IsMenuExpanded="True"
+                                   UseCustomContent="True"
+                                   SelectionChanged="OnSideMenuSelectionChanged">
 
-                    <!-- Left Nav Panel -->
-                    <Border Grid.Column="0"
-                            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                            Padding="0,8">
-                        <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="Categories"
-                                       FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource AppNavTextBrush}"
-                                       Margin="12,0,0,8" />
+                    <!-- Menu Items -->
+                    <suki:SukiSideMenuItem Header="Overview" Tag="Overview">
+                        <suki:SukiSideMenuItem.Icon>
+                            <TextBlock Text="📊" FontSize="16" />
+                        </suki:SukiSideMenuItem.Icon>
+                    </suki:SukiSideMenuItem>
 
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <StackPanel Spacing="0">
+                    <suki:SukiSideMenuItem Header="Devices" IsExpanded="False">
+                        <suki:SukiSideMenuItem.Icon>
+                            <TextBlock Text="💻" FontSize="16" />
+                        </suki:SukiSideMenuItem.Icon>
+                        <suki:SukiSideMenuItem Header="Device Configurations" Tag="Device Configurations" />
+                        <suki:SukiSideMenuItem Header="Compliance Policies" Tag="Compliance Policies" />
+                        <suki:SukiSideMenuItem Header="Settings Catalog" Tag="Settings Catalog" />
+                        <suki:SukiSideMenuItem Header="Administrative Templates" Tag="Administrative Templates" />
+                        <suki:SukiSideMenuItem Header="Endpoint Security" Tag="Endpoint Security" />
+                        <suki:SukiSideMenuItem Header="Device Categories" Tag="Device Categories" />
+                        <suki:SukiSideMenuItem Header="Device Health Scripts" Tag="Device Health Scripts" />
+                        <suki:SukiSideMenuItem Header="Compliance Scripts" Tag="Compliance Scripts" />
+                        <suki:SukiSideMenuItem Header="Feature Updates" Tag="Feature Updates" />
+                        <suki:SukiSideMenuItem Header="Device Management Scripts" Tag="Device Management Scripts" />
+                        <suki:SukiSideMenuItem Header="Device Shell Scripts" Tag="Device Shell Scripts" />
+                    </suki:SukiSideMenuItem>
 
-                                    <!-- Overview (top-level, always visible) -->
-                                    <Button x:Name="OverviewNavButton"
-                                            HorizontalAlignment="Stretch"
-                                            HorizontalContentAlignment="Left"
-                                            Padding="0,8"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Cursor="Hand">
-                                        <DockPanel LastChildFill="True">
-                                            <Panel DockPanel.Dock="Left" Width="3">
-                                                <Border Background="{DynamicResource SystemAccentColor}"
-                                                        IsVisible="{Binding IsOverviewCategory}"
-                                                        CornerRadius="0,2,2,0" />
-                                            </Panel>
-                                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="9,0,0,0">
-                                                <TextBlock Text="📊" FontSize="14" VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource AppNavTextBrush}" />
-                                                <TextBlock Text="Overview" FontSize="13" FontWeight="SemiBold"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource AppNavTextBrush}" />
-                                            </StackPanel>
-                                        </DockPanel>
-                                        <Button.Styles>
-                                            <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
-                                            </Style>
-                                        </Button.Styles>
-                                    </Button>
+                    <suki:SukiSideMenuItem Header="Applications" IsExpanded="False">
+                        <suki:SukiSideMenuItem.Icon>
+                            <TextBlock Text="📦" FontSize="16" />
+                        </suki:SukiSideMenuItem.Icon>
+                        <suki:SukiSideMenuItem Header="Applications" Tag="Applications" />
+                        <suki:SukiSideMenuItem Header="Application Assignments" Tag="Application Assignments" />
+                        <suki:SukiSideMenuItem Header="App Protection Policies" Tag="App Protection Policies" />
+                        <suki:SukiSideMenuItem Header="Managed Device App Configurations" Tag="Managed Device App Configurations" />
+                        <suki:SukiSideMenuItem Header="Targeted Managed App Configurations" Tag="Targeted Managed App Configurations" />
+                        <suki:SukiSideMenuItem Header="VPP Tokens" Tag="VPP Tokens" />
+                    </suki:SukiSideMenuItem>
 
-                                    <Border Height="1"
-                                            Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                                            Margin="12,4" />
+                    <suki:SukiSideMenuItem Header="Enrollment" IsExpanded="False">
+                        <suki:SukiSideMenuItem.Icon>
+                            <TextBlock Text="🪪" FontSize="16" />
+                        </suki:SukiSideMenuItem.Icon>
+                        <suki:SukiSideMenuItem Header="Enrollment Configurations" Tag="Enrollment Configurations" />
+                        <suki:SukiSideMenuItem Header="Autopilot Profiles" Tag="Autopilot Profiles" />
+                        <suki:SukiSideMenuItem Header="Apple DEP" Tag="Apple DEP" />
+                        <suki:SukiSideMenuItem Header="Cloud PC Provisioning Policies" Tag="Cloud PC Provisioning Policies" />
+                    </suki:SukiSideMenuItem>
 
-                                    <!-- Grouped categories -->
-                                    <ItemsControl ItemsSource="{Binding NavGroups}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:NavCategoryGroup">
-                                                <StackPanel>
-                                                    <!-- Group header (toggle expand/collapse) -->
-                                                    <ToggleButton IsChecked="{Binding IsExpanded}"
-                                                                  HorizontalAlignment="Stretch"
-                                                                  HorizontalContentAlignment="Left"
-                                                                  Padding="0,6"
-                                                                  Background="Transparent"
-                                                                  BorderThickness="0"
-                                                                  Cursor="Hand">
-                                                        <DockPanel LastChildFill="True">
-                                                            <Panel DockPanel.Dock="Left" Width="3" />
-                                                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="9,0,0,0">
-                                                                <TextBlock Text="{Binding Icon}" FontSize="13" VerticalAlignment="Center"
-                                                                           Foreground="{DynamicResource AppNavTextBrush}" />
-                                                                <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
-                                                                           VerticalAlignment="Center"
-                                                                           Foreground="{DynamicResource AppNavTextBrush}" />
-                                                                <TextBlock FontSize="10" VerticalAlignment="Center"
-                                                                           Foreground="{DynamicResource AppNavTextBrush}" Opacity="0.6"
-                                                                           Margin="4,0,0,0">
-                                                                    <TextBlock.Text>
-                                                                        <Binding Path="IsExpanded" StringFormat="">
-                                                                            <Binding.Converter>
-                                                                                <conv:BoolToChevronConverter />
-                                                                            </Binding.Converter>
-                                                                        </Binding>
-                                                                    </TextBlock.Text>
-                                                                </TextBlock>
-                                                            </StackPanel>
-                                                        </DockPanel>
-                                                        <ToggleButton.Styles>
-                                                            <Style Selector="ToggleButton">
-                                                                <Setter Property="Foreground" Value="{DynamicResource AppNavTextBrush}" />
-                                                            </Style>
-                                                            <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
-                                                                <Setter Property="Background" Value="Transparent" />
-                                                            </Style>
-                                                            <Style Selector="ToggleButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
-                                                            </Style>
-                                                        </ToggleButton.Styles>
-                                                    </ToggleButton>
+                    <suki:SukiSideMenuItem Header="Identity &amp; Access" IsExpanded="False">
+                        <suki:SukiSideMenuItem.Icon>
+                            <TextBlock Text="🔐" FontSize="16" />
+                        </suki:SukiSideMenuItem.Icon>
+                        <suki:SukiSideMenuItem Header="Conditional Access" Tag="Conditional Access" />
+                        <suki:SukiSideMenuItem Header="Named Locations" Tag="Named Locations" />
+                        <suki:SukiSideMenuItem Header="Authentication Strengths" Tag="Authentication Strengths" />
+                        <suki:SukiSideMenuItem Header="Authentication Contexts" Tag="Authentication Contexts" />
+                        <suki:SukiSideMenuItem Header="Terms of Use" Tag="Terms of Use" />
+                    </suki:SukiSideMenuItem>
 
-                                                    <!-- Child categories (visible when expanded) -->
-                                                    <ItemsControl ItemsSource="{Binding Children}"
-                                                                  IsVisible="{Binding IsExpanded}">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate x:DataType="vm:NavCategory">
-                                                                <Button Tag="{Binding}"
-                                                                        x:Name="NavItemButton"
-                                                                        HorizontalAlignment="Stretch"
-                                                                        HorizontalContentAlignment="Left"
-                                                                        Padding="0,0,12,0"
-                                                                        Background="Transparent"
-                                                                        BorderThickness="0"
-                                                                        Cursor="Hand"
-                                                                        Click="OnNavItemClick">
-                                                                    <DockPanel LastChildFill="True">
-                                                                        <Panel DockPanel.Dock="Left" Width="3">
-                                                                            <Border Background="{DynamicResource SystemAccentColor}"
-                                                                                    IsVisible="{Binding IsSelected}"
-                                                                                    CornerRadius="0,2,2,0" />
-                                                                        </Panel>
-                                                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="21,6,0,6">
-                                                                            <TextBlock Text="{Binding Icon}" FontSize="13" VerticalAlignment="Center"
-                                                                                       Foreground="{DynamicResource AppNavTextBrush}" />
-                                                                            <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"
-                                                                                       Foreground="{DynamicResource AppNavTextBrush}" />
-                                                                        </StackPanel>
-                                                                    </DockPanel>
-                                                                    <Button.Styles>
-                                                                        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                                                            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
-                                                                        </Style>
-                                                                    </Button.Styles>
-                                                                </Button>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </ScrollViewer>
-                        </DockPanel>
-                    </Border>
+                    <suki:SukiSideMenuItem Header="Tenant Admin" IsExpanded="False">
+                        <suki:SukiSideMenuItem.Icon>
+                            <TextBlock Text="🏢" FontSize="16" />
+                        </suki:SukiSideMenuItem.Icon>
+                        <suki:SukiSideMenuItem Header="Scope Tags" Tag="Scope Tags" />
+                        <suki:SukiSideMenuItem Header="Role Definitions" Tag="Role Definitions" />
+                        <suki:SukiSideMenuItem Header="Role Assignments" Tag="Role Assignments" />
+                        <suki:SukiSideMenuItem Header="Assignment Filters" Tag="Assignment Filters" />
+                        <suki:SukiSideMenuItem Header="Policy Sets" Tag="Policy Sets" />
+                        <suki:SukiSideMenuItem Header="Intune Branding" Tag="Intune Branding" />
+                        <suki:SukiSideMenuItem Header="Azure Branding" Tag="Azure Branding" />
+                        <suki:SukiSideMenuItem Header="Terms and Conditions" Tag="Terms and Conditions" />
+                        <suki:SukiSideMenuItem Header="Cloud PC User Settings" Tag="Cloud PC User Settings" />
+                        <suki:SukiSideMenuItem Header="ADMX Files" Tag="ADMX Files" />
+                        <suki:SukiSideMenuItem Header="Reusable Policy Settings" Tag="Reusable Policy Settings" />
+                    </suki:SukiSideMenuItem>
+
+                    <suki:SukiSideMenuItem Header="Groups &amp; Monitoring" IsExpanded="False">
+                        <suki:SukiSideMenuItem.Icon>
+                            <TextBlock Text="👥" FontSize="16" />
+                        </suki:SukiSideMenuItem.Icon>
+                        <suki:SukiSideMenuItem Header="Dynamic Groups" Tag="Dynamic Groups" />
+                        <suki:SukiSideMenuItem Header="Assigned Groups" Tag="Assigned Groups" />
+                        <suki:SukiSideMenuItem Header="Mac Custom Attributes" Tag="Mac Custom Attributes" />
+                        <suki:SukiSideMenuItem Header="Notification Templates" Tag="Notification Templates" />
+                    </suki:SukiSideMenuItem>
+
+                    <!-- Content area -->
+                    <suki:SukiSideMenu.Content>
+                        <Grid ColumnDefinitions="*,600">
 
                     <!-- Item List (center) -->
-                    <DockPanel Grid.Column="1" Margin="8"
+                    <DockPanel Margin="8"
                                IsVisible="{Binding !IsOverviewCategory}">
 
                         <!-- Category header with column chooser -->
@@ -406,12 +362,12 @@
                     </DockPanel>
 
                     <!-- Overview Dashboard (spans center + detail columns) -->
-                    <views:OverviewView Grid.Column="1" Grid.ColumnSpan="2"
+                    <views:OverviewView Grid.ColumnSpan="2"
                                         DataContext="{Binding Overview}"
-                                        IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsOverviewCategory}" />
+                                        IsVisible="{Binding $parent[suki:SukiWindow].((vm:MainWindowViewModel)DataContext).IsOverviewCategory}" />
 
                     <!-- Detail Pane (right) -->
-                    <DockPanel Grid.Column="2" Margin="8"
+                    <DockPanel Grid.Column="1" Margin="8"
                                IsVisible="{Binding !IsOverviewCategory}">
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
@@ -3163,9 +3119,11 @@
                             </StackPanel>
                         </ScrollViewer>
                     </DockPanel>
-                </Grid>
+                        </Grid>
+                    </suki:SukiSideMenu.Content>
+                </suki:SukiSideMenu>
             </DockPanel>
 
         </Panel>
     </DockPanel>
-</Window>
+</suki:SukiWindow>

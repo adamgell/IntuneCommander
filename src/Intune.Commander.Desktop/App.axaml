@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Intune.Commander.Desktop.App"
              xmlns:local="using:Intune.Commander.Desktop"
+             xmlns:suki="https://github.com/kikipoulet/SukiUI"
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -29,7 +30,7 @@
     </Application.DataTemplates>
   
     <Application.Styles>
-        <FluentTheme />
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <suki:SukiTheme ThemeColor="Red" />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Simple.xaml"/>
     </Application.Styles>
 </Application>

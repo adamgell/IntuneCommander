@@ -11,10 +11,11 @@ using Avalonia.Platform.Storage;
 using Intune.Commander.Desktop.Services;
 using Intune.Commander.Desktop.ViewModels;
 using Microsoft.Graph.Beta.Models;
+using SukiUI.Controls;
 
 namespace Intune.Commander.Desktop.Views;
 
-public partial class AssignmentReportWindow : Window
+public partial class AssignmentReportWindow : SukiWindow
 {
     private DataGrid? _grid;
 

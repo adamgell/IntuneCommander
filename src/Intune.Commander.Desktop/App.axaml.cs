@@ -4,10 +4,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
 using Intune.Commander.Core.Extensions;
 using Intune.Commander.Desktop.ViewModels;
 using Intune.Commander.Desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
+using SukiUI.Theme.Shadcn;
 using Syncfusion.Licensing;
 using System;
 
@@ -44,6 +46,8 @@ public partial class App : Application
             {
                 DataContext = Services.GetRequiredService<MainWindowViewModel>(),
             };
+
+            Shadcn.Configure(this, ThemeVariant.Dark);
         }
 
         base.OnFrameworkInitializationCompleted();

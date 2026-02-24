@@ -5,10 +5,11 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Intune.Commander.Desktop.ViewModels;
+using SukiUI.Controls;
 
 namespace Intune.Commander.Desktop.Views;
 
-public partial class GroupLookupWindow : Window
+public partial class GroupLookupWindow : SukiWindow
 {
     private readonly Dictionary<string, Button> _filterButtons = new();
     private static readonly IBrush ActiveBrush = new SolidColorBrush(Color.Parse("#3366FF"), 0.45);

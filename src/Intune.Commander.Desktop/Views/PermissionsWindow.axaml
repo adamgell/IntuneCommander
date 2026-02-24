@@ -1,7 +1,8 @@
-<Window xmlns="https://github.com/avaloniaui"
+<suki:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
         xmlns:conv="using:Intune.Commander.Desktop.Converters"
+        xmlns:suki="using:SukiUI.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="540" d:DesignHeight="640"
@@ -158,4 +159,4 @@
         </ScrollViewer>
 
     </DockPanel>
-</Window>
+</suki:SukiWindow>
