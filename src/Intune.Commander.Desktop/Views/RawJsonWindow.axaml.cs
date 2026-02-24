@@ -2,10 +2,11 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using SukiUI.Controls;
 
 namespace Intune.Commander.Desktop.Views;
 
-public partial class RawJsonWindow : Window
+public partial class RawJsonWindow : SukiWindow
 {
     public RawJsonWindow()
     {

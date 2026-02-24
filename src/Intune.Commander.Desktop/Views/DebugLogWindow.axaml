@@ -1,8 +1,9 @@
-<Window xmlns="https://github.com/avaloniaui"
+<suki:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
         xmlns:models="using:Intune.Commander.Desktop.Models"
         xmlns:conv="using:Intune.Commander.Desktop.Converters"
+        xmlns:suki="https://github.com/kikipoulet/SukiUI"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="600"
@@ -139,4 +140,4 @@
 
         </Grid>
     </DockPanel>
-</Window>
+</suki:SukiWindow>
