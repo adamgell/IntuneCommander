@@ -1147,7 +1147,6 @@ public partial class MainWindowViewModel : ViewModelBase
         ["1fec8e78-bce4-4aaf-ab1b-5451cc387264"] = "Microsoft Teams Web Client",
         ["27922004-5251-4030-b22d-91ecd9a37ea4"] = "Outlook Mobile",
         ["57fb890c-0dab-4253-a5e0-7188c88b2bb4"] = "SharePoint Android",
-        ["d3590ed6-52b3-4102-aeff-aad2292ab01c"] = "Office UWP PWA",
         ["93d53678-613d-4013-afc1-62e9e444a0a5"] = "Power Platform Admin Center",
         ["871c010f-5e61-4fb1-83ac-98610a7e9110"] = "Power Apps",
         ["4e291c71-d680-4d0e-9640-0a3358e31177"] = "Power Automate",
