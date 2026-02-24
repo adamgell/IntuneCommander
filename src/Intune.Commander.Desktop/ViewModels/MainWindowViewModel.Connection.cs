@@ -804,16 +804,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task CheckAndLogPermissionsAsync()
     {
-        var svc = _permissionCheckService;
-        if (svc == null) return;
+        // Capture the current service instance to avoid updating permissions
+        // for a stale connection/profile if it changes while we await.
+        var service = _permissionCheckService;
+        if (service == null) return;
+
         try
         {
-            var result = await svc.CheckPermissionsAsync();
+            var result = await service.CheckPermissionsAsync();
 
-            // Guard against stale results: if the service instance was replaced
-            // (e.g., during a profile switch) while we were awaiting, discard.
-            if (!ReferenceEquals(svc, _permissionCheckService)) return;
-
+            // If the permission check service has changed (e.g., profile switched)
+            // while we were awaiting, do not apply this result to the current state.
+            if (!ReferenceEquals(service, _permissionCheckService))
+            {
+                return;
+            }
             LastPermissionCheckResult = result;
 
             // Always log the summary — this is purely informational.
