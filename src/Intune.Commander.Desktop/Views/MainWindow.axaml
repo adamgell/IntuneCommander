@@ -1,4 +1,4 @@
-<suki:SukiWindow xmlns="https://github.com/avaloniaui"
+﻿<suki:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
         xmlns:views="using:Intune.Commander.Desktop.Views"
@@ -6,6 +6,7 @@
         xmlns:models="using:Intune.Commander.Desktop.Models"
         xmlns:suki="https://github.com/kikipoulet/SukiUI"
         xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        xmlns:icons="clr-namespace:Material.Icons;assembly=Material.Icons"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="1050"
@@ -23,20 +24,20 @@
     <DockPanel>
         <!-- Menu Bar -->
         <Menu DockPanel.Dock="Top">
-                <MenuItem Header="_File">
-                    <MenuItem Header="_Refresh" Command="{Binding RefreshCommand}" InputGesture="F5" />
+                <MenuItem Header="File">
+                    <MenuItem Header="Refresh" Command="{Binding RefreshCommand}" InputGesture="F5" />
                     <Separator />
-                    <MenuItem Header="_Disconnect" Command="{Binding DisconnectCommand}" />
+                    <MenuItem Header="Disconnect" Command="{Binding DisconnectCommand}" />
                 </MenuItem>
-                <MenuItem Header="_Reports">
-                    <MenuItem Header="_Assignment Report..." x:Name="MenuAssignmentReport" Click="OnAssignmentReportClick" IsEnabled="{Binding IsConnected}" />
+                <MenuItem Header="Reports">
+                    <MenuItem Header="Assignment Report..." x:Name="MenuAssignmentReport" Click="OnAssignmentReportClick" IsEnabled="{Binding IsConnected}" />
                 </MenuItem>
-                <MenuItem Header="_Help">
-                    <MenuItem Header="Check for _Updates..." x:Name="MenuCheckUpdates" Click="OnCheckForUpdatesClick" />
+                <MenuItem Header="Help">
+                    <MenuItem Header="Check for Updates..." x:Name="MenuCheckUpdates" Click="OnCheckForUpdatesClick" />
                     <Separator />
-                    <MenuItem Header="&#x1F511; _Permissions..." x:Name="MenuPermissions" Click="OnPermissionsButtonClick" IsEnabled="{Binding IsConnected}" />
+                    <MenuItem Header="&#x1F511; Permissions..." x:Name="MenuPermissions" Click="OnPermissionsButtonClick" IsEnabled="{Binding IsConnected}" />
                     <Separator />
-                    <MenuItem Header="_About Intune Commander" x:Name="MenuAbout" Click="OnAboutClick" />
+                    <MenuItem Header="About Intune Commander" x:Name="MenuAbout" Click="OnAboutClick" />
                 </MenuItem>
 
         </Menu>
@@ -46,7 +47,7 @@
                 Padding="8,6" MinHeight="36">
             <DockPanel>
                 <!-- Right side: Debug Log link + progress bar -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12"
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2"
                             VerticalAlignment="Center" HorizontalAlignment="Right">
                     <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"
                                  Width="200" Height="12"
@@ -108,24 +109,27 @@
                         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="Refresh" Command="{Binding RefreshCommand}" />
-                            <Button Content="Export Selected" Command="{Binding ExportSelectedCommand}" />
-                            <Button Content="Export All" Command="{Binding ExportAllCommand}" />
-                            <Button Content="Import" x:Name="ImportButton" />
+                            <Button Content="Refresh" Classes="Outlined" Command="{Binding RefreshCommand}" />
+                            <Button Content="Export Selected" Classes="Flat Accent" Command="{Binding ExportSelectedCommand}" />
+                            <Button Content="Export All" Classes="Flat Accent" Command="{Binding ExportAllCommand}" />
+                            <Button Content="Import" x:Name="ImportButton" Classes="Flat Accent" />
+                            
                             <Border Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="4,2" />
                             <Button Content="&#9660; Download All to Cache"
                                     Command="{Binding DownloadAllToCacheCommand}"
                                     IsVisible="{Binding !IsDownloadingAll}"
                                     ToolTip.Tip="Downloads all Intune data types into the local cache"
-                                    Padding="16,6"
-                                    FontSize="13"
+                                    Padding="2,5"
+                                    FontSize="12"
                                     FontWeight="SemiBold"
                                     Background="#1A6B3C"
-                                    Foreground="White" />
+                                    Foreground="White" 
+                                    Classes="Flat Accent" />
                             <Button Content="⬛ Cancel Download"
                                     Command="{Binding CancelDownloadAllCommand}"
                                     IsVisible="{Binding IsDownloadingAll}"
-                                    Padding="12,6" />
+                                    Padding="12,6"
+                                    Classes="Flat Accent" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <ComboBox ItemsSource="{Binding SwitcherProfiles}"
@@ -164,7 +168,7 @@
 
                 <!-- Body: SukiSideMenu with nav + content -->
                 <suki:SukiSideMenu x:Name="SideMenu"
-                                   IsSearchEnabled="True"
+                                   IsSearchEnabled="False"
                                    SidebarToggleEnabled="True"
                                    IsMenuExpanded="True"
                                    UseCustomContent="True"
@@ -173,13 +177,13 @@
                     <!-- Menu Items -->
                     <suki:SukiSideMenuItem Header="Overview" Tag="Overview" Classes="Compact">
                         <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="ViewDashboard" />
+                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ViewDashboard}" />
                         </suki:SukiSideMenuItem.Icon>
                     </suki:SukiSideMenuItem>
 
                     <suki:SukiSideMenuItem Header="Devices" IsExpanded="False" Classes="Compact">
                         <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="Laptop" />
+                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.Laptop}" />
                         </suki:SukiSideMenuItem.Icon>
                         <suki:SukiSideMenuItem Header="Device Configurations" Tag="Device Configurations" Classes="Compact" />
                         <suki:SukiSideMenuItem Header="Compliance Policies" Tag="Compliance Policies" Classes="Compact" />
@@ -196,7 +200,7 @@
 
                     <suki:SukiSideMenuItem Header="Applications" IsExpanded="False" Classes="Compact">
                         <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="Apps" />
+                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.Apps}" />
                         </suki:SukiSideMenuItem.Icon>
                         <suki:SukiSideMenuItem Header="Applications" Tag="Applications" Classes="Compact" />
                         <suki:SukiSideMenuItem Header="Application Assignments" Tag="Application Assignments" Classes="Compact" />
@@ -208,7 +212,7 @@
 
                     <suki:SukiSideMenuItem Header="Enrollment" IsExpanded="False" Classes="Compact">
                         <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="ClipboardAccount" />
+                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ClipboardTextOutline}" />
                         </suki:SukiSideMenuItem.Icon>
                         <suki:SukiSideMenuItem Header="Enrollment Configurations" Tag="Enrollment Configurations" Classes="Compact" />
                         <suki:SukiSideMenuItem Header="Autopilot Profiles" Tag="Autopilot Profiles" Classes="Compact" />
@@ -218,7 +222,7 @@
 
                     <suki:SukiSideMenuItem Header="Identity &amp; Access" IsExpanded="False" Classes="Compact">
                         <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="ShieldAccount" />
+                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ShieldLockOutline}" />
                         </suki:SukiSideMenuItem.Icon>
                         <suki:SukiSideMenuItem Header="Conditional Access" Tag="Conditional Access" Classes="Compact" />
                         <suki:SukiSideMenuItem Header="Named Locations" Tag="Named Locations" Classes="Compact" />
@@ -229,7 +233,7 @@
 
                     <suki:SukiSideMenuItem Header="Tenant Admin" IsExpanded="False" Classes="Compact">
                         <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="Domain" />
+                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.CogOutline}" />
                         </suki:SukiSideMenuItem.Icon>
                         <suki:SukiSideMenuItem Header="Scope Tags" Tag="Scope Tags" Classes="Compact" />
                         <suki:SukiSideMenuItem Header="Role Definitions" Tag="Role Definitions" Classes="Compact" />
@@ -246,7 +250,7 @@
 
                     <suki:SukiSideMenuItem Header="Groups &amp; Monitoring" IsExpanded="False" Classes="Compact">
                         <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="AccountGroup" />
+                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.AccountGroupOutline}" />
                         </suki:SukiSideMenuItem.Icon>
                         <suki:SukiSideMenuItem Header="Dynamic Groups" Tag="Dynamic Groups" Classes="Compact" />
                         <suki:SukiSideMenuItem Header="Assigned Groups" Tag="Assigned Groups" Classes="Compact" />

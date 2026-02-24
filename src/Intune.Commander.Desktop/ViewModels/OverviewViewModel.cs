@@ -50,6 +50,27 @@ public partial class OverviewViewModel : ObservableObject
     private int _unassignedAppCount;
 
     [ObservableProperty]
+    private int _totalSettingsCatalog;
+
+    [ObservableProperty]
+    private int _totalEndpointSecurity;
+
+    [ObservableProperty]
+    private int _totalAdministrativeTemplates;
+
+    [ObservableProperty]
+    private int _totalConditionalAccess;
+
+    [ObservableProperty]
+    private int _totalEnrollmentConfigs;
+
+    [ObservableProperty]
+    private int _totalScripts;
+
+    [ObservableProperty]
+    private int _totalAppProtection;
+
+    [ObservableProperty]
     private bool _isLoading;
 
     // --- Charts ---
@@ -80,7 +101,14 @@ public partial class OverviewViewModel : ObservableObject
         IReadOnlyList<DeviceConfiguration> configs,
         IReadOnlyList<DeviceCompliancePolicy> policies,
         IReadOnlyList<MobileApp> apps,
-        IReadOnlyList<AppAssignmentRow> assignmentRows)
+        IReadOnlyList<AppAssignmentRow> assignmentRows,
+        int settingsCatalogCount = 0,
+        int endpointSecurityCount = 0,
+        int administrativeTemplatesCount = 0,
+        int conditionalAccessCount = 0,
+        int enrollmentConfigsCount = 0,
+        int scriptsCount = 0,
+        int appProtectionCount = 0)
     {
         // Tenant info
         TenantName = profile?.Name ?? "";
@@ -93,6 +121,13 @@ public partial class OverviewViewModel : ObservableObject
         TotalCompliancePolicies = policies.Count;
         TotalApplications = apps.Count;
         TotalAppAssignmentRows = assignmentRows.Count;
+        TotalSettingsCatalog = settingsCatalogCount;
+        TotalEndpointSecurity = endpointSecurityCount;
+        TotalAdministrativeTemplates = administrativeTemplatesCount;
+        TotalConditionalAccess = conditionalAccessCount;
+        TotalEnrollmentConfigs = enrollmentConfigsCount;
+        TotalScripts = scriptsCount;
+        TotalAppProtection = appProtectionCount;
 
         // Unassigned apps
         var appsWithAssignments = new HashSet<string>(
@@ -183,6 +218,27 @@ public partial class OverviewViewModel : ObservableObject
 
     [RelayCommand]
     private void NavigateToUnassignedApps() => NavigateToCategory?.Invoke("Applications");
+
+    [RelayCommand]
+    private void NavigateToSettingsCatalog() => NavigateToCategory?.Invoke("Settings Catalog");
+
+    [RelayCommand]
+    private void NavigateToEndpointSecurity() => NavigateToCategory?.Invoke("Endpoint Security");
+
+    [RelayCommand]
+    private void NavigateToAdministrativeTemplates() => NavigateToCategory?.Invoke("Administrative Templates");
+
+    [RelayCommand]
+    private void NavigateToConditionalAccess() => NavigateToCategory?.Invoke("Conditional Access");
+
+    [RelayCommand]
+    private void NavigateToEnrollmentConfigs() => NavigateToCategory?.Invoke("Enrollment Configurations");
+
+    [RelayCommand]
+    private void NavigateToScripts() => NavigateToCategory?.Invoke("Device Management Scripts");
+
+    [RelayCommand]
+    private void NavigateToAppProtection() => NavigateToCategory?.Invoke("App Protection Policies");
 
     private void BuildRecentlyModified(
         IReadOnlyList<DeviceConfiguration> configs,
