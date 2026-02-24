@@ -26,6 +26,7 @@
     </PackageReference>
 <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc6.1" />
+    <PackageReference Include="Material.Icons.Avalonia" Version="2.1.0" />
 
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
     <PackageReference Include="SukiUI" Version="6.0.3" />
