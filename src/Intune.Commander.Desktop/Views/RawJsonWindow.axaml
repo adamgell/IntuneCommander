@@ -1,6 +1,6 @@
 <suki:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:suki="using:SukiUI.Controls"
+        xmlns:suki="https://github.com/kikipoulet/SukiUI"
         x:Class="Intune.Commander.Desktop.Views.RawJsonWindow"
         Title="Raw JSON"
         Width="700" Height="600"

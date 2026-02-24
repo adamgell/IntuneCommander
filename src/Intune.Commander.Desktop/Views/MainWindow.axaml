@@ -4,7 +4,7 @@
         xmlns:views="using:Intune.Commander.Desktop.Views"
         xmlns:conv="using:Intune.Commander.Desktop.Converters"
         xmlns:models="using:Intune.Commander.Desktop.Models"
-        xmlns:suki="using:SukiUI.Controls"
+        xmlns:suki="https://github.com/kikipoulet/SukiUI"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="1050"
