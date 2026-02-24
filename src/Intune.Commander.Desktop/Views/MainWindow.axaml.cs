@@ -763,7 +763,7 @@ public partial class MainWindow : SukiWindow
 
     private void OnCheckForUpdatesClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl("https://github.com/adamgell/IntuneCommader/releases");
+        OpenUrl("https://github.com/adamgell/IntuneCommander/releases");
     }
 
     private async void OnAboutClick(object? sender, RoutedEventArgs e)
@@ -777,7 +777,7 @@ public partial class MainWindow : SukiWindow
             Content = $"Intune Commander {versionText}\n\n" +
                 "A .NET 8 / Avalonia desktop app for managing\n" +
                 "Microsoft Intune configurations across clouds.\n\n" +
-                "https://github.com/adamgell/IntuneCommader",
+                "https://github.com/adamgell/IntuneCommander",
             ActionButtonsPreset = SukiMessageBoxButtons.OK
         });
     }

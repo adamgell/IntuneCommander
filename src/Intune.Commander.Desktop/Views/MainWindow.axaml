@@ -221,7 +221,7 @@
                                                         <DataTemplate x:DataType="vm:NavCategory">
                                                             <Button Tag="{Binding Name}" Click="OnNavItemClick"
                                                                     Classes="NavItem"
-                                                                    Classes.active="{Binding Name, Converter={StaticResource SelectedCategoryNameEqualsConverter}}">
+                                                                    Classes.active="{Binding IsSelected}">
                                                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                                                     <TextBlock Text="{Binding Icon}" FontSize="13"
                                                                                Width="18" TextAlignment="Center"
