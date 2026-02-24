@@ -1,6 +1,5 @@
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
-using Microsoft.Graph.Beta.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
 
 namespace Intune.Commander.Core.Services;
@@ -57,11 +56,11 @@ public class SettingsCatalogService : ISettingsCatalogService
                         .GetAsync(cancellationToken: cancellationToken);
                     break; // success — exit retry loop
                 }
-                catch (ODataError odataErr) when (odataErr.ResponseStatusCode == 500 && attempt < MaxRetries)
+                catch (ApiException apiEx) when (apiEx.ResponseStatusCode == 500 && attempt < MaxRetries)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)), cancellationToken);
                 }
-                catch (ODataError odataErr) when (odataErr.ResponseStatusCode == 500)
+                catch (ApiException apiEx) when (apiEx.ResponseStatusCode == 500)
                 {
                     // All retries exhausted — return the items collected so far rather
                     // than throwing and losing all previously fetched pages.
