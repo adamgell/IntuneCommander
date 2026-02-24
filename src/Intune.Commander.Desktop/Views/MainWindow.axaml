@@ -212,7 +212,7 @@
                                         <DataTemplate x:DataType="vm:NavCategoryGroup">
                                             <StackPanel Margin="0,10,0,0">
                                                 <!-- Section header label -->
-                                                <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold"
+                                                <TextBlock Text="{Binding NameUpper}" FontSize="10" FontWeight="SemiBold"
                                                            Foreground="{DynamicResource AppTextSecondaryBrush}"
                                                            Margin="18,4,0,2" />
                                                 <!-- Child nav items -->

@@ -10,6 +10,7 @@ public partial class NavCategoryGroup : ObservableObject
 {
     public required string Name { get; init; }
     public required string Icon { get; init; }
+    public string NameUpper => Name.ToUpperInvariant();
 
     [ObservableProperty]
     private bool _isExpanded = true;
