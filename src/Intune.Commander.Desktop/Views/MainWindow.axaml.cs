@@ -782,14 +782,10 @@ public partial class MainWindow : SukiWindow
         });
     }
 
-    private void OnSideMenuSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void OnNavItemClick(object? sender, RoutedEventArgs e)
     {
         if (_vm == null) return;
-        if (e.AddedItems.Count == 0) return;
-        if (e.AddedItems[0] is not SukiSideMenuItem item) return;
-        // Only navigate for leaf items (no children) or the Overview item
-        if (item.Items.Count > 0) return;
-        if (item.Tag is string categoryName)
+        if (sender is Button { Tag: string categoryName })
             _vm.ActivateCategoryByName(categoryName);
     }
 

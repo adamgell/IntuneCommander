@@ -23,232 +23,156 @@
         <StackPanel Margin="16" Spacing="16">
 
             <!-- ═══════════════════════════════════════════ -->
-            <!-- Tenant Banner                              -->
+            <!-- Welcome Banner                             -->
             <!-- ═══════════════════════════════════════════ -->
-            <suki:GlassCard Padding="16">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding TenantName}" FontSize="20" FontWeight="Bold" />
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock FontSize="12" Foreground="{DynamicResource SukiLowText}">
-                                <Run Text="Tenant ID:" />
-                                <Run Text="{Binding TenantId}" />
-                            </TextBlock>
-                            <TextBlock FontSize="12" Foreground="{DynamicResource SukiLowText}">
-                                <Run Text="Cloud:" />
-                                <Run Text="{Binding CloudEnvironment}" />
-                            </TextBlock>
-                        </StackPanel>
-                    </StackPanel>
-                    <TextBlock Grid.Column="1" Text="📊" FontSize="32"
-                               VerticalAlignment="Center" Opacity="0.5" />
-                </Grid>
-            </suki:GlassCard>
+            <StackPanel Spacing="4" Margin="0,4,0,4">
+                <TextBlock FontSize="24" FontWeight="Bold">
+                    <Run Text="Welcome, " />
+                    <Run Text="{Binding TenantName}" Foreground="{DynamicResource SystemControlForegroundAccentBrush}" />
+                </TextBlock>
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock FontSize="13" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                        <Run Text="Tenant ID:" />
+                        <Run Text="{Binding TenantId}" />
+                    </TextBlock>
+                    <TextBlock FontSize="13" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                        <Run Text="Cloud:" />
+                        <Run Text="{Binding CloudEnvironment}" />
+                    </TextBlock>
+                </StackPanel>
+            </StackPanel>
 
             <!-- ═══════════════════════════════════════════ -->
-            <!-- Summary Cards Row                          -->
+            <!-- Quick Stats Row (compact, like mockup)     -->
             <!-- ═══════════════════════════════════════════ -->
-            <UniformGrid Columns="3" Margin="0,0,0,0">
-                <!-- Device Configs -->
-                <Button Command="{Binding NavigateToDeviceConfigsCommand}"
-                        Padding="0" Margin="0,0,8,0"
+            <Grid ColumnDefinitions="*,*,*,*" Margin="0,0,0,0">
+                <Button Grid.Column="0" Command="{Binding NavigateToDeviceConfigsCommand}"
+                        Padding="0" Margin="0,0,6,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Device Configurations">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.Cog}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#2196F3" />
-                            <TextBlock Text="{Binding TotalDeviceConfigs}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#2196F3" />
-                            <TextBlock Text="Device Configs" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding TotalDeviceConfigs}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#2196F3" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#2196F3" /><Run Text="DEVICE CONFIGS" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-                <!-- Compliance Policies -->
-                <Button Command="{Binding NavigateToCompliancePoliciesCommand}"
-                        Padding="0" Margin="4,0,4,0"
+                <Button Grid.Column="1" Command="{Binding NavigateToCompliancePoliciesCommand}"
+                        Padding="0" Margin="3,0,3,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Compliance Policies">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ShieldCheck}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#4CAF50" />
-                            <TextBlock Text="{Binding TotalCompliancePolicies}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#4CAF50" />
-                            <TextBlock Text="Compliance Policies" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding TotalCompliancePolicies}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#4CAF50" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#4CAF50" /><Run Text="COMPLIANCE" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-                <!-- Applications -->
-                <Button Command="{Binding NavigateToApplicationsCommand}"
-                        Padding="0" Margin="8,0,0,0"
+                <Button Grid.Column="2" Command="{Binding NavigateToApplicationsCommand}"
+                        Padding="0" Margin="3,0,3,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Applications">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.Apps}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#FF9800" />
-                            <TextBlock Text="{Binding TotalApplications}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#FF9800" />
-                            <TextBlock Text="Applications" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding TotalApplications}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#FF9800" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#FF9800" /><Run Text="APPLICATIONS" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-            </UniformGrid>
-
-            <!-- ═══════════════════════════════════════════ -->
-            <!-- Summary Cards Row 2                        -->
-            <!-- ═══════════════════════════════════════════ -->
-            <UniformGrid Columns="4" Margin="0,0,0,0">
-                <!-- Settings Catalog -->
-                <Button Command="{Binding NavigateToSettingsCatalogCommand}"
-                        Padding="0" Margin="0,0,8,0"
+                <Button Grid.Column="3" Command="{Binding NavigateToSettingsCatalogCommand}"
+                        Padding="0" Margin="6,0,0,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Settings Catalog Policies">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.TuneVariant}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#9C27B0" />
-                            <TextBlock Text="{Binding TotalSettingsCatalog}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#9C27B0" />
-                            <TextBlock Text="Settings Catalog" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding TotalSettingsCatalog}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#9C27B0" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#9C27B0" /><Run Text="SETTINGS CATALOG" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-                <!-- Endpoint Security -->
-                <Button Command="{Binding NavigateToEndpointSecurityCommand}"
-                        Padding="0" Margin="4,0,4,0"
+            </Grid>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!-- Quick Stats Row 2                          -->
+            <!-- ═══════════════════════════════════════════ -->
+            <Grid ColumnDefinitions="*,*,*,*" Margin="0,0,0,0">
+                <Button Grid.Column="0" Command="{Binding NavigateToEndpointSecurityCommand}"
+                        Padding="0" Margin="0,0,6,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Endpoint Security Policies">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.Security}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#00BCD4" />
-                            <TextBlock Text="{Binding TotalEndpointSecurity}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#00BCD4" />
-                            <TextBlock Text="Endpoint Security" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding TotalEndpointSecurity}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#00BCD4" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#00BCD4" /><Run Text="ENDPOINT SECURITY" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-                <!-- Conditional Access -->
-                <Button Command="{Binding NavigateToConditionalAccessCommand}"
-                        Padding="0" Margin="4,0,4,0"
+                <Button Grid.Column="1" Command="{Binding NavigateToConditionalAccessCommand}"
+                        Padding="0" Margin="3,0,3,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Conditional Access Policies">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ShieldLockOutline}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#E91E63" />
-                            <TextBlock Text="{Binding TotalConditionalAccess}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#E91E63" />
-                            <TextBlock Text="Conditional Access" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding TotalConditionalAccess}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#E91E63" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#E91E63" /><Run Text="CONDITIONAL ACCESS" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-                <!-- App Protection -->
-                <Button Command="{Binding NavigateToAppProtectionCommand}"
-                        Padding="0" Margin="8,0,0,0"
-                        Background="Transparent" BorderThickness="0"
-                        Cursor="Hand" HorizontalAlignment="Stretch"
-                        ToolTip.Tip="View App Protection Policies">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.CellphoneLock}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#795548" />
-                            <TextBlock Text="{Binding TotalAppProtection}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#795548" />
-                            <TextBlock Text="App Protection" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </suki:GlassCard>
-                </Button>
-            </UniformGrid>
-
-            <!-- ═══════════════════════════════════════════ -->
-            <!-- Summary Cards Row 3                        -->
-            <!-- ═══════════════════════════════════════════ -->
-            <UniformGrid Columns="4" Margin="0,0,0,0">
-                <!-- Administrative Templates -->
-                <Button Command="{Binding NavigateToAdministrativeTemplatesCommand}"
-                        Padding="0" Margin="0,0,8,0"
-                        Background="Transparent" BorderThickness="0"
-                        Cursor="Hand" HorizontalAlignment="Stretch"
-                        ToolTip.Tip="View Administrative Templates">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.FileDocumentOutline}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#607D8B" />
-                            <TextBlock Text="{Binding TotalAdministrativeTemplates}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#607D8B" />
-                            <TextBlock Text="Admin Templates" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </suki:GlassCard>
-                </Button>
-                <!-- Enrollment Configurations -->
-                <Button Command="{Binding NavigateToEnrollmentConfigsCommand}"
-                        Padding="0" Margin="4,0,4,0"
-                        Background="Transparent" BorderThickness="0"
-                        Cursor="Hand" HorizontalAlignment="Stretch"
-                        ToolTip.Tip="View Enrollment Configurations">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.AccountPlusOutline}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#3F51B5" />
-                            <TextBlock Text="{Binding TotalEnrollmentConfigs}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#3F51B5" />
-                            <TextBlock Text="Enrollment Configs" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </suki:GlassCard>
-                </Button>
-                <!-- Scripts -->
-                <Button Command="{Binding NavigateToScriptsCommand}"
-                        Padding="0" Margin="4,0,4,0"
+                <Button Grid.Column="2" Command="{Binding NavigateToScriptsCommand}"
+                        Padding="0" Margin="3,0,3,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Device Scripts">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ScriptTextOutline}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#009688" />
-                            <TextBlock Text="{Binding TotalScripts}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#009688" />
-                            <TextBlock Text="Scripts" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding TotalScripts}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#009688" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#009688" /><Run Text="SCRIPTS" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-                <!-- Unassigned Apps -->
-                <Button Command="{Binding NavigateToUnassignedAppsCommand}"
-                        Padding="0" Margin="8,0,0,0"
+                <Button Grid.Column="3" Command="{Binding NavigateToUnassignedAppsCommand}"
+                        Padding="0" Margin="6,0,0,0"
                         Background="Transparent" BorderThickness="0"
                         Cursor="Hand" HorizontalAlignment="Stretch"
                         ToolTip.Tip="View Unassigned Applications">
-                    <suki:GlassCard Padding="16">
-                        <StackPanel HorizontalAlignment="Center">
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.AlertOutline}" Width="24" Height="24" HorizontalAlignment="Center"
-                                             Foreground="#F44336" />
-                            <TextBlock Text="{Binding UnassignedAppCount}" FontSize="28" FontWeight="Bold"
-                                       HorizontalAlignment="Center" Foreground="#F44336" />
-                            <TextBlock Text="Unassigned Apps" FontSize="12" Foreground="{DynamicResource SukiLowText}"
-                                       HorizontalAlignment="Center" />
+                    <suki:GlassCard Padding="14,12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding UnassignedAppCount}" FontSize="26" FontWeight="Bold"
+                                       Foreground="#F44336" />
+                            <TextBlock FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                <Run Text="● " Foreground="#F44336" /><Run Text="UNASSIGNED APPS" />
+                            </TextBlock>
                         </StackPanel>
                     </suki:GlassCard>
                 </Button>
-            </UniformGrid>
+            </Grid>
 
             <!-- ═══════════════════════════════════════════ -->
             <!-- Charts Row: Pie charts side by side        -->
@@ -286,23 +210,20 @@
                                FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
                     <ItemsControl ItemsSource="{Binding RecentlyModified}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Padding="6,4" Margin="0,0,0,2"
-                                        CornerRadius="4">
-                                    <Grid ColumnDefinitions="*,Auto,Auto">
-                                        <TextBlock Text="{Binding Name}" FontSize="13"
-                                                   TextTrimming="CharacterEllipsis"
+                            <DataTemplate x:DataType="vm:RecentItem">
+                                <Border Padding="8,6" Margin="0,0,0,2" CornerRadius="4">
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding ModifiedText}"
+                                                   FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}"
                                                    VerticalAlignment="Center" />
-                                        <Border Grid.Column="1" Background="{DynamicResource SukiPrimaryColor}"
-                                                CornerRadius="2" Padding="6,1" Margin="8,0"
-                                                VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Category}" FontSize="10"
-                                                       Foreground="White" />
-                                        </Border>
-                                        <TextBlock Grid.Column="2" Text="{Binding ModifiedText}"
-                                                   FontSize="11" Foreground="{DynamicResource SukiLowText}"
-                                                   VerticalAlignment="Center" />
-                                    </Grid>
+                                        <StackPanel Spacing="1">
+                                            <TextBlock Text="{Binding Name}" FontSize="13"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       FontWeight="Medium" />
+                                            <TextBlock Text="{Binding Category}" FontSize="11"
+                                                       Foreground="{DynamicResource SystemControlForegroundAccentBrush}" />
+                                        </StackPanel>
+                                    </DockPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

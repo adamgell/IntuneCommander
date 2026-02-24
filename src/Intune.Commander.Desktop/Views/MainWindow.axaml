@@ -166,101 +166,85 @@
                            Margin="0,2,0,0"
                            Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
 
-                <!-- Body: SukiSideMenu with nav + content -->
-                <suki:SukiSideMenu x:Name="SideMenu"
-                                   IsSearchEnabled="False"
-                                   SidebarToggleEnabled="True"
-                                   IsMenuExpanded="True"
-                                   UseCustomContent="True"
-                                   SelectionChanged="OnSideMenuSelectionChanged">
+                <!-- Body: custom sidebar + content -->
+                <Grid ColumnDefinitions="220,*">
 
-                    <!-- Menu Items -->
-                    <suki:SukiSideMenuItem Header="Overview" Tag="Overview" Classes="Compact">
-                        <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ViewDashboard}" />
-                        </suki:SukiSideMenuItem.Icon>
-                    </suki:SukiSideMenuItem>
+                    <!-- Sidebar -->
+                    <DockPanel Grid.Column="0"
+                               Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
 
-                    <suki:SukiSideMenuItem Header="Devices" IsExpanded="False" Classes="Compact">
-                        <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.Laptop}" />
-                        </suki:SukiSideMenuItem.Icon>
-                        <suki:SukiSideMenuItem Header="Device Configurations" Tag="Device Configurations" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Compliance Policies" Tag="Compliance Policies" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Settings Catalog" Tag="Settings Catalog" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Administrative Templates" Tag="Administrative Templates" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Endpoint Security" Tag="Endpoint Security" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Device Categories" Tag="Device Categories" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Device Health Scripts" Tag="Device Health Scripts" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Compliance Scripts" Tag="Compliance Scripts" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Feature Updates" Tag="Feature Updates" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Device Management Scripts" Tag="Device Management Scripts" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Device Shell Scripts" Tag="Device Shell Scripts" Classes="Compact" />
-                    </suki:SukiSideMenuItem>
+                        <!-- App title header -->
+                        <Border DockPanel.Dock="Top" Padding="16,14,16,10"
+                                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                BorderThickness="0,0,0,1">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ShieldKey}"
+                                                 Width="20" Height="20"
+                                                 Foreground="{DynamicResource SystemControlForegroundAccentBrush}" />
+                                <TextBlock Text="Intune Commander" FontSize="14" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
 
-                    <suki:SukiSideMenuItem Header="Applications" IsExpanded="False" Classes="Compact">
-                        <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.Apps}" />
-                        </suki:SukiSideMenuItem.Icon>
-                        <suki:SukiSideMenuItem Header="Applications" Tag="Applications" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Application Assignments" Tag="Application Assignments" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="App Protection Policies" Tag="App Protection Policies" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Managed Device App Configurations" Tag="Managed Device App Configurations" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Targeted Managed App Configurations" Tag="Targeted Managed App Configurations" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="VPP Tokens" Tag="VPP Tokens" Classes="Compact" />
-                    </suki:SukiSideMenuItem>
+                        <!-- Scrollable nav list -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="0" Margin="0,8,0,16">
 
-                    <suki:SukiSideMenuItem Header="Enrollment" IsExpanded="False" Classes="Compact">
-                        <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ClipboardTextOutline}" />
-                        </suki:SukiSideMenuItem.Icon>
-                        <suki:SukiSideMenuItem Header="Enrollment Configurations" Tag="Enrollment Configurations" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Autopilot Profiles" Tag="Autopilot Profiles" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Apple DEP" Tag="Apple DEP" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Cloud PC Provisioning Policies" Tag="Cloud PC Provisioning Policies" Classes="Compact" />
-                    </suki:SukiSideMenuItem>
+                                <!-- OVERVIEW section label -->
+                                <TextBlock Text="OVERVIEW" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                           Margin="18,4,0,2" />
 
-                    <suki:SukiSideMenuItem Header="Identity &amp; Access" IsExpanded="False" Classes="Compact">
-                        <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ShieldLockOutline}" />
-                        </suki:SukiSideMenuItem.Icon>
-                        <suki:SukiSideMenuItem Header="Conditional Access" Tag="Conditional Access" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Named Locations" Tag="Named Locations" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Authentication Strengths" Tag="Authentication Strengths" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Authentication Contexts" Tag="Authentication Contexts" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Terms of Use" Tag="Terms of Use" Classes="Compact" />
-                    </suki:SukiSideMenuItem>
+                                <!-- Overview nav item -->
+                                <Button Tag="Overview" Click="OnNavItemClick"
+                                        Classes="NavItem"
+                                        Classes.active="{Binding IsOverviewCategory}">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ViewDashboard}"
+                                                         Width="16" Height="16" VerticalAlignment="Center" />
+                                        <TextBlock Text="Overview" FontSize="13" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
 
-                    <suki:SukiSideMenuItem Header="Tenant Admin" IsExpanded="False" Classes="Compact">
-                        <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.CogOutline}" />
-                        </suki:SukiSideMenuItem.Icon>
-                        <suki:SukiSideMenuItem Header="Scope Tags" Tag="Scope Tags" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Role Definitions" Tag="Role Definitions" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Role Assignments" Tag="Role Assignments" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Assignment Filters" Tag="Assignment Filters" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Policy Sets" Tag="Policy Sets" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Intune Branding" Tag="Intune Branding" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Azure Branding" Tag="Azure Branding" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Terms and Conditions" Tag="Terms and Conditions" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Cloud PC User Settings" Tag="Cloud PC User Settings" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="ADMX Files" Tag="ADMX Files" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Reusable Policy Settings" Tag="Reusable Policy Settings" Classes="Compact" />
-                    </suki:SukiSideMenuItem>
+                                <!-- Nav groups (each group becomes a section) -->
+                                <ItemsControl ItemsSource="{Binding NavGroups}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:NavCategoryGroup">
+                                            <StackPanel Margin="0,10,0,0">
+                                                <!-- Section header label -->
+                                                <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                           Margin="18,4,0,2" />
+                                                <!-- Child nav items -->
+                                                <ItemsControl ItemsSource="{Binding Children}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:NavCategory">
+                                                            <Button Tag="{Binding Name}" Click="OnNavItemClick"
+                                                                    Classes="NavItem"
+                                                                    Classes.active="{Binding IsSelected}">
+                                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                                    <TextBlock Text="{Binding Icon}" FontSize="13"
+                                                                               Width="18" TextAlignment="Center"
+                                                                               VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                                                               VerticalAlignment="Center"
+                                                                               TextTrimming="CharacterEllipsis" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
 
-                    <suki:SukiSideMenuItem Header="Groups &amp; Monitoring" IsExpanded="False" Classes="Compact">
-                        <suki:SukiSideMenuItem.Icon>
-                            <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.AccountGroupOutline}" />
-                        </suki:SukiSideMenuItem.Icon>
-                        <suki:SukiSideMenuItem Header="Dynamic Groups" Tag="Dynamic Groups" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Assigned Groups" Tag="Assigned Groups" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Mac Custom Attributes" Tag="Mac Custom Attributes" Classes="Compact" />
-                        <suki:SukiSideMenuItem Header="Notification Templates" Tag="Notification Templates" Classes="Compact" />
-                    </suki:SukiSideMenuItem>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </DockPanel>
 
                     <!-- Content area -->
-                    <suki:SukiSideMenu.Content>
-                        <Grid ColumnDefinitions="*,600">
+                    <Grid Grid.Column="1" ColumnDefinitions="*,600">
 
                     <!-- Item List (center) -->
                     <DockPanel Margin="8"
@@ -3125,8 +3109,7 @@
                         </ScrollViewer>
                     </DockPanel>
                         </Grid>
-                    </suki:SukiSideMenu.Content>
-                </suki:SukiSideMenu>
+                    </Grid>
             </DockPanel>
 
         </Panel>
