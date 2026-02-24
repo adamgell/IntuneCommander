@@ -18,7 +18,7 @@ env:
   PROJECT: src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj
   PUBLISH_DIR: src/Intune.Commander.Desktop/bin/Release/net10.0/win-x64/publish
   DOTNET_VERSION: '10.0.x'
-  GH_REPO: adamgell/IntuneCommader
+  GH_REPO: adamgell/IntuneCommander
 
 jobs:
   release:

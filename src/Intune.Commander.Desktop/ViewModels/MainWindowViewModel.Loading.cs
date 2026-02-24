@@ -1231,7 +1231,14 @@ public partial class MainWindowViewModel : ViewModelBase
                     (IReadOnlyList<DeviceConfiguration>)DeviceConfigurations,
                     (IReadOnlyList<DeviceCompliancePolicy>)CompliancePolicies,
                     (IReadOnlyList<MobileApp>)Applications,
-                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows);
+                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows,
+                    SettingsCatalogPolicies.Count,
+                    EndpointSecurityIntents.Count,
+                    AdministrativeTemplates.Count,
+                    ConditionalAccessPolicies.Count,
+                    EnrollmentConfigurations.Count,
+                    DeviceManagementScripts.Count + DeviceShellScripts.Count,
+                    AppProtectionPolicies.Count);
                 DebugLog.Log("Cache", "Updated Overview dashboard from cache");
             }
         }

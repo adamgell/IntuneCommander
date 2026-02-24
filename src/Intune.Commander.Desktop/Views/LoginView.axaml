@@ -149,7 +149,7 @@
                     Command="{Binding LoginCommand}"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
-                    Classes="accent"
+                    Classes="Flat"
                     Margin="0,4,0,0" />
 
             <!-- Device Code instructions -->

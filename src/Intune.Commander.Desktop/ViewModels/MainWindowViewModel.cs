@@ -1001,10 +1001,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // Compliance Policy specific
     [ObservableProperty]
-    private int _selectedItemGracePeriodDays = 0;
+    private ObservableCollection<Models.SettingItem> _selectedItemComplianceSettings = [];
 
     [ObservableProperty]
-    private ObservableCollection<string> _selectedItemNonComplianceActions = [];
+    private ObservableCollection<Models.NonComplianceActionItem> _selectedItemNonComplianceActions = [];
 
     // Settings Catalog specific
     [ObservableProperty]
@@ -1114,6 +1114,25 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _selectedItemExpirationFrequency = "";
+
+    // Conditional Access Policy resolved names
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeLocations = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeLocations = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeGroups = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeGroups = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeApps = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeApps = [];
 
 
 

@@ -54,9 +54,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 new() { Name = "Endpoint Security", Icon = "🛡" },
 
-                new() { Name = "Enrollment Configurations", Icon = "🪪" },
-
                 new() { Name = "Device Categories", Icon = "🗂" },
+
+                new() { Name = "Device Health Scripts", Icon = "🩺" },
+
+                new() { Name = "Compliance Scripts", Icon = "✅" },
+
+                new() { Name = "Feature Updates", Icon = "🪟" },
+
+                new() { Name = "Device Management Scripts", Icon = "📜" },
+
+                new() { Name = "Device Shell Scripts", Icon = "🐚" },
 
             }
 
@@ -83,6 +91,28 @@ public partial class MainWindowViewModel : ViewModelBase
                 new() { Name = "Targeted Managed App Configurations", Icon = "🎯" },
 
                 new() { Name = "VPP Tokens", Icon = "🎟" },
+
+            }
+
+        },
+
+        new NavCategoryGroup
+
+        {
+
+            Name = "Enrollment", Icon = "🪪",
+
+            Children = new ObservableCollection<NavCategory>
+
+            {
+
+                new() { Name = "Enrollment Configurations", Icon = "🪪" },
+
+                new() { Name = "Autopilot Profiles", Icon = "🚀" },
+
+                new() { Name = "Apple DEP", Icon = "📱" },
+
+                new() { Name = "Cloud PC Provisioning Policies", Icon = "🖥" },
 
             }
 
@@ -138,58 +168,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 new() { Name = "Terms and Conditions", Icon = "📜" },
 
-                new() { Name = "Autopilot Profiles", Icon = "🚀" },
-
-            }
-
-        },
-
-        new NavCategoryGroup
-
-        {
-
-            Name = "Cloud PC", Icon = "🖥",
-
-            Children = new ObservableCollection<NavCategory>
-
-            {
-
-                new() { Name = "Cloud PC Provisioning Policies", Icon = "🖥" },
-
                 new() { Name = "Cloud PC User Settings", Icon = "👤" },
-
-            }
-
-        },
-
-        new NavCategoryGroup
-
-        {
-
-            Name = "Monitoring", Icon = "🩺",
-
-            Children = new ObservableCollection<NavCategory>
-
-            {
-
-                new() { Name = "Device Health Scripts", Icon = "🩺" },
-
-                new() { Name = "Mac Custom Attributes", Icon = "🍎" },
-
-                new() { Name = "Feature Updates", Icon = "🪟" },
-
-                new() { Name = "Device Management Scripts", Icon = "📜" },
-
-                new() { Name = "Device Shell Scripts", Icon = "🐚" },
-
-                new() { Name = "Compliance Scripts", Icon = "✅" },
 
                 new() { Name = "ADMX Files", Icon = "📁" },
 
                 new() { Name = "Reusable Policy Settings", Icon = "🔗" },
 
-                new() { Name = "Notification Templates", Icon = "🔔" },
-
             }
 
         },
@@ -198,23 +182,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
-            Name = "Apple", Icon = "🍎",
-
-            Children = new ObservableCollection<NavCategory>
-
-            {
-
-                new() { Name = "Apple DEP", Icon = "📱" },
-
-            }
-
-        },
-
-        new NavCategoryGroup
-
-        {
-
-            Name = "Groups", Icon = "👥",
+            Name = "Groups & Monitoring", Icon = "👥",
 
             Children = new ObservableCollection<NavCategory>
 
@@ -223,6 +191,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 new() { Name = "Dynamic Groups", Icon = "🔄" },
 
                 new() { Name = "Assigned Groups", Icon = "👥" },
+
+                new() { Name = "Mac Custom Attributes", Icon = "🍎" },
+
+                new() { Name = "Notification Templates", Icon = "🔔" },
 
             }
 
@@ -842,7 +814,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     (IReadOnlyList<MobileApp>)Applications,
 
-                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows);
+                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows,
+
+                    SettingsCatalogPolicies.Count,
+
+                    EndpointSecurityIntents.Count,
+
+                    AdministrativeTemplates.Count,
+
+                    ConditionalAccessPolicies.Count,
+
+                    EnrollmentConfigurations.Count,
+
+                    DeviceManagementScripts.Count + DeviceShellScripts.Count,
+
+                    AppProtectionPolicies.Count);
 
             }))
 
