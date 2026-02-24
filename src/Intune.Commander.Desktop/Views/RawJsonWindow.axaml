@@ -10,10 +10,10 @@
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <Button DockPanel.Dock="Right" x:Name="CopyButton" Content="📋 Copy to Clipboard"
                     Click="OnCopyClick"
-                    FontSize="12" Padding="8,4"
+                    Classes="Small"
                     VerticalAlignment="Center" />
             <TextBlock x:Name="TitleText"
-                       FontSize="16" FontWeight="SemiBold"
+                       FontSize="{StaticResource FontSizeSubheading}" FontWeight="SemiBold"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis" />
         </DockPanel>
@@ -24,7 +24,7 @@
                  FontFamily="Cascadia Code, Consolas, Menlo, monospace"
                  FontSize="12"
                  BorderThickness="1"
-                 CornerRadius="4"
+                 CornerRadius="{StaticResource RadiusSmall}"
                  Padding="8" />
     </DockPanel>
 </suki:SukiWindow>

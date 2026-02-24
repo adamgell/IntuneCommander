@@ -25,14 +25,14 @@
                        Margin="0,0,0,4" />
 
             <TextBlock Text="Connect to your Intune tenant"
-                       FontSize="14"
+                       FontSize="{StaticResource FontSizeSubheading}"
                        HorizontalAlignment="Center"
                        Foreground="{DynamicResource AppTextSecondaryBrush}"
                        Margin="0,0,0,8" />
 
             <!-- Saved Profiles -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Saved Profiles" FontSize="12" />
+                <TextBlock Text="Saved Profiles" FontSize="{StaticResource FontSizeBody}" />
                 <ComboBox ItemsSource="{Binding SavedProfiles}"
                           SelectedItem="{Binding SelectedProfile}"
                           HorizontalAlignment="Stretch"
@@ -50,7 +50,7 @@
 
             <!-- Profile Name -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Profile Name (optional)" FontSize="12" />
+                <TextBlock Text="Profile Name (optional)" FontSize="{StaticResource FontSizeBody}" />
                 <TextBox Text="{Binding ProfileName}"
                          Watermark="e.g. Contoso-Prod"
                          IsEnabled="{Binding !IsBusy}" />
@@ -58,26 +58,26 @@
 
             <!-- Tenant ID -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Tenant ID" FontSize="12" />
+                <TextBlock Text="Tenant ID" FontSize="{StaticResource FontSizeBody}" />
                 <TextBox Text="{Binding TenantId}"
                          Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                          IsEnabled="{Binding !IsBusy}" />
                 <TextBlock Text="{Binding TenantIdError}"
-                           Foreground="{DynamicResource AppErrorTextBrush}" FontSize="11"
+                           Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
                            IsVisible="{Binding TenantIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
 
             <!-- Cloud Environment + Auth Method side by side -->
             <Grid ColumnDefinitions="*,12,*">
                 <StackPanel Spacing="4" Grid.Column="0">
-                    <TextBlock Text="Cloud Environment" FontSize="12" />
+                    <TextBlock Text="Cloud Environment" FontSize="{StaticResource FontSizeBody}" />
                     <ComboBox ItemsSource="{Binding AvailableClouds}"
                               SelectedItem="{Binding SelectedCloud}"
                               HorizontalAlignment="Stretch"
                               IsEnabled="{Binding !IsBusy}" />
                 </StackPanel>
                 <StackPanel Spacing="4" Grid.Column="2">
-                    <TextBlock Text="Auth Method" FontSize="12" />
+                    <TextBlock Text="Auth Method" FontSize="{StaticResource FontSizeBody}" />
                     <ComboBox ItemsSource="{Binding AvailableAuthMethods}"
                               SelectedItem="{Binding SelectedAuthMethod}"
                               HorizontalAlignment="Stretch"
@@ -87,18 +87,18 @@
 
             <!-- Client ID -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Client ID (App Registration)" FontSize="12" />
+                <TextBlock Text="Client ID (App Registration)" FontSize="{StaticResource FontSizeBody}" />
                 <TextBox Text="{Binding ClientId}"
                          Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                          IsEnabled="{Binding !IsBusy}" />
                 <TextBlock Text="{Binding ClientIdError}"
-                           Foreground="{DynamicResource AppErrorTextBrush}" FontSize="11"
+                           Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
                            IsVisible="{Binding ClientIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
 
             <!-- Client Secret (conditional) -->
             <StackPanel Spacing="4" IsVisible="{Binding IsClientSecretVisible}">
-                <TextBlock Text="Client Secret" FontSize="12" />
+                <TextBlock Text="Client Secret" FontSize="{StaticResource FontSizeBody}" />
                 <TextBox Text="{Binding ClientSecret}"
                          PasswordChar="●"
                          Watermark="Enter client secret value"
@@ -106,19 +106,19 @@
             </StackPanel>
 
             <!-- Help expander -->
-            <Expander Header="Where do I find these values?" FontSize="12" Padding="0">
+            <Expander Header="Where do I find these values?" FontSize="{StaticResource FontSizeBody}" Padding="0">
                 <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                        CornerRadius="4" Padding="12,8" Margin="0,4,0,0">
+                        CornerRadius="{StaticResource RadiusSmall}" Padding="12,8" Margin="0,4,0,0">
                     <StackPanel Spacing="6">
-                        <TextBlock FontSize="12" TextWrapping="Wrap">
+                        <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap">
                             <Run FontWeight="SemiBold">Tenant ID: </Run>
                             <Run>Azure Portal → Azure Active Directory → Overview → Tenant ID</Run>
                         </TextBlock>
-                        <TextBlock FontSize="12" TextWrapping="Wrap">
+                        <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap">
                             <Run FontWeight="SemiBold">Client ID: </Run>
                             <Run>Azure Portal → App Registrations → your app → Application (client) ID</Run>
                         </TextBlock>
-                        <TextBlock FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                        <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" Foreground="{DynamicResource AppTextSecondaryBrush}">
                             For Interactive auth, only Tenant ID and Client ID are required.
                             Client Secret is only needed for Client Credentials / service accounts.
                         </TextBlock>
@@ -131,16 +131,20 @@
                         Margin="0,4,0,0">
                 <Button Content="New"
                         Command="{Binding NewProfileCommand}"
+                        Classes="Medium"
                         MinWidth="80" />
                 <Button Content="Save Profile"
                         Command="{Binding SaveProfileCommand}"
+                        Classes="Medium"
                         MinWidth="100" />
                 <Button Content="Delete"
                         Command="{Binding DeleteProfileCommand}"
+                        Classes="Medium"
                         MinWidth="80" />
                 <Button Content="Import Profiles"
                         Command="{Binding ImportProfilesCommand}"
                         IsEnabled="{Binding !IsBusy}"
+                        Classes="Medium"
                         MinWidth="100" />
             </StackPanel>
 
@@ -156,11 +160,11 @@
             <Border BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}"
                     BorderThickness="1"
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    CornerRadius="8" Padding="16"
+                    CornerRadius="{StaticResource RadiusLarge}" Padding="16"
                     IsVisible="{Binding IsDeviceCodeMessageVisible}">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Enter this code at the sign-in page:"
-                               FontSize="12"
+                               FontSize="{StaticResource FontSizeBody}"
                                HorizontalAlignment="Center"
                                Foreground="{DynamicResource AppTextSecondaryBrush}" />
 
@@ -176,13 +180,12 @@
                                 Content="Copy Code"
                                 Click="OnCopyDeviceCodeClick"
                                 VerticalAlignment="Center"
-                                Padding="12,6"
-                                FontSize="12" />
+                                Classes="Medium" />
                     </StackPanel>
 
                     <!-- Verification URL -->
                     <SelectableTextBlock Text="{Binding DeviceVerificationUrl}"
-                                         FontSize="12"
+                                         FontSize="{StaticResource FontSizeBody}"
                                          HorizontalAlignment="Center"
                                          Foreground="{DynamicResource SystemControlForegroundAccentBrush}"
                                          FontFamily="Consolas, Courier New, monospace" />
@@ -192,7 +195,7 @@
             <!-- Status -->
             <TextBlock Text="{Binding StatusMessage}"
                        HorizontalAlignment="Center"
-                       FontSize="12"
+                       FontSize="{StaticResource FontSizeBody}"
                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
             <!-- Loading indicator -->
@@ -201,12 +204,12 @@
                          Margin="0,4,0,0" />
 
             <!-- Error -->
-            <Border Background="{DynamicResource AppErrorBackgroundBrush}" CornerRadius="4" Padding="8"
+            <Border Background="{DynamicResource AppErrorBackgroundBrush}" CornerRadius="{StaticResource RadiusSmall}" Padding="8"
                     IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                 <TextBlock Text="{Binding ErrorMessage}"
                            Foreground="{DynamicResource AppErrorTextBrush}"
                            TextWrapping="Wrap"
-                           FontSize="12" />
+                           FontSize="{StaticResource FontSizeBody}" />
             </Border>
         </StackPanel>
     </ScrollViewer>

@@ -34,30 +34,29 @@
                     <Button Content="⬛  Cancel"
                             Command="{Binding CancelReportCommand}"
                             IsVisible="{Binding IsRunning}"
-                            Padding="12,6" />
+                            Classes="Medium" />
                     <Button Content="&#128196; HTML Report"
                             x:Name="ExportHtmlButton"
                             Click="OnExportHtmlClick"
                             IsEnabled="{Binding CanExport}"
-                            Padding="12,6" />
+                            Classes="Medium" />
                     <Button Content="⬇ Export CSV"
                             x:Name="ExportCsvButton"
                             Click="OnExportCsvClick"
                             IsEnabled="{Binding CanExport}"
-                            Padding="12,6" />
+                            Classes="Medium" />
                     <Button Content="&#9660; Download All to Cache"
                             Command="{Binding PrefetchAllCommand}"
                             IsEnabled="{Binding !IsRunning}"
                             ToolTip.Tip="Pre-downloads all policy lists from Graph into the local cache so reports run faster"
-                            Padding="16,6"
-                            FontSize="13"
+                            Classes="Medium"
                             FontWeight="SemiBold"
-                            Background="#1A6B3C"
+                            Background="{DynamicResource SuccessBadgeBrush}"
                             Foreground="White" />
                     <Button Content="▶  Run Report"
                             Command="{Binding RunReportCommand}"
                             IsEnabled="{Binding !IsRunning}"
-                            Padding="16,6" />
+                            Classes="Large" />
                 </StackPanel>
 
             </DockPanel>
@@ -68,7 +67,7 @@
                      IsIndeterminate="True"
                      IsVisible="{Binding IsRunning}"
                      Height="4" 
-                     Foreground="#00CC55" Background="#224400"
+                     Foreground="{DynamicResource ProgressBarForegroundBrush}" Background="{DynamicResource ProgressBarBackgroundBrush}"
                      CornerRadius="0" />
 
         <!-- ── Status bar ──── ... -->
@@ -80,10 +79,10 @@
             <DockPanel>
                 <TextBlock DockPanel.Dock="Right"
                            Text="{Binding ResultSummary}"
-                           FontSize="12" Opacity="0.7"
+                           FontSize="{StaticResource FontSizeBody}" Opacity="0.7"
                            VerticalAlignment="Center" Margin="12,0,0,0" />
                 <TextBlock Text="{Binding StatusText}"
-                           FontSize="12" VerticalAlignment="Center"
+                           FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" />
             </DockPanel>
         </Border>
@@ -95,7 +94,7 @@
                 Padding="12,6">
             <TextBlock Text="{Binding ErrorMessage}"
                        Foreground="{DynamicResource AppErrorTextBrush}"
-                       FontSize="12" TextWrapping="Wrap" />
+                       FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" />
         </Border>
 
         <!-- ── Input panel ──────────────────────────────────────────── -->
@@ -119,11 +118,11 @@
                     </DockPanel>
                     <TextBlock Text="No users found — try a different name or full UPN."
                                IsVisible="{Binding ShowNoUserResults}"
-                               FontSize="12" Opacity="0.6" FontStyle="Italic" Margin="64,0,0,0" />
+                               FontSize="{StaticResource FontSizeBody}" Opacity="0.6" FontStyle="Italic" Margin="64,0,0,0" />
                     <Border IsVisible="{Binding UserSearchResults.Count}"
                             MaxHeight="150" BorderThickness="1"
                             BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                            CornerRadius="4">
+                            CornerRadius="{StaticResource RadiusSmall}">
                         <ListBox x:Name="UserResultsList"
                                  ItemsSource="{Binding UserSearchResults}"
                                  SelectionMode="Multiple"
@@ -135,7 +134,7 @@
                                         <TextBlock Text="{Binding DisplayName}"
                                                    FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding UserPrincipalName}"
-                                                   Opacity="0.6" FontSize="11" />
+                                                   Opacity="0.6" FontSize="{StaticResource FontSizeCaption}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -143,7 +142,7 @@
                     </Border>
                     <TextBlock Text="{Binding SelectedUsersInfo}"
                                IsVisible="{Binding SelectedUsersInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               FontSize="12" Opacity="0.8" TextWrapping="Wrap" />
+                               FontSize="{StaticResource FontSizeBody}" Opacity="0.8" TextWrapping="Wrap" />
                 </StackPanel>
 
                 <!-- Device input (mode 2) -->
@@ -173,7 +172,7 @@
                     <Border IsVisible="{Binding GroupSearchResults.Count}"
                             MaxHeight="120" BorderThickness="1"
                             BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                            CornerRadius="4">
+                            CornerRadius="{StaticResource RadiusSmall}">
                         <ListBox ItemsSource="{Binding GroupSearchResults}"
                                  SelectedItem="{Binding SelectedGroup}"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -183,7 +182,7 @@
                                         <TextBlock Text="{Binding DisplayName}"
                                                    FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding Id}"
-                                                   Opacity="0.4" FontSize="11" />
+                                                   Opacity="0.4" FontSize="{StaticResource FontSizeCaption}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -191,7 +190,7 @@
                     </Border>
                     <TextBlock Text="{Binding SelectedGroupInfo}"
                                IsVisible="{Binding SelectedGroupInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               FontSize="12" Opacity="0.8" />
+                               FontSize="{StaticResource FontSizeBody}" Opacity="0.8" />
                 </StackPanel>
 
                 <!-- Compare Groups inputs (mode 8) -->
@@ -214,7 +213,7 @@
                         <Border IsVisible="{Binding CompareGroup1Results.Count}"
                                 MaxHeight="100" BorderThickness="1"
                                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                                CornerRadius="4">
+                                CornerRadius="{StaticResource RadiusSmall}">
                             <ListBox ItemsSource="{Binding CompareGroup1Results}"
                                      SelectedItem="{Binding SelectedCompareGroup1}">
                                 <ListBox.ItemTemplate>
@@ -223,7 +222,7 @@
                                             <TextBlock Text="{Binding DisplayName}"
                                                        FontWeight="SemiBold" />
                                             <TextBlock Text="{Binding Id}"
-                                                       Opacity="0.4" FontSize="11" />
+                                                       Opacity="0.4" FontSize="{StaticResource FontSizeCaption}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -231,7 +230,7 @@
                         </Border>
                         <TextBlock Text="{Binding SelectedCompareGroup1Info}"
                                    IsVisible="{Binding SelectedCompareGroup1Info, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                   FontSize="11" Opacity="0.8" />
+                                   FontSize="{StaticResource FontSizeCaption}" Opacity="0.8" />
                     </StackPanel>
 
                     <TextBlock Grid.Row="0" Grid.Column="1"
@@ -255,7 +254,7 @@
                         <Border IsVisible="{Binding CompareGroup2Results.Count}"
                                 MaxHeight="100" BorderThickness="1"
                                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                                CornerRadius="4">
+                                CornerRadius="{StaticResource RadiusSmall}">
                             <ListBox ItemsSource="{Binding CompareGroup2Results}"
                                      SelectedItem="{Binding SelectedCompareGroup2}">
                                 <ListBox.ItemTemplate>
@@ -264,7 +263,7 @@
                                             <TextBlock Text="{Binding DisplayName}"
                                                        FontWeight="SemiBold" />
                                             <TextBlock Text="{Binding Id}"
-                                                       Opacity="0.4" FontSize="11" />
+                                                       Opacity="0.4" FontSize="{StaticResource FontSizeCaption}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -272,7 +271,7 @@
                         </Border>
                         <TextBlock Text="{Binding SelectedCompareGroup2Info}"
                                    IsVisible="{Binding SelectedCompareGroup2Info, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                   FontSize="11" Opacity="0.8" />
+                                   FontSize="{StaticResource FontSizeCaption}" Opacity="0.8" />
                     </StackPanel>
                 </Grid>
 
