@@ -15,6 +15,7 @@
         x:Name="MainWin"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
+        FontSize="{StaticResource FontSizeBody}"
         WindowState="Maximized"
         >
 
@@ -110,10 +111,10 @@
                         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="Refresh" Classes="Outlined" Command="{Binding RefreshCommand}" />
-                            <Button Content="Export Selected" Classes="Flat Accent" Command="{Binding ExportSelectedCommand}" />
-                            <Button Content="Export All" Classes="Flat Accent" Command="{Binding ExportAllCommand}" />
-                            <Button Content="Import" x:Name="ImportButton" Classes="Flat Accent" />
+                            <Button Content="Refresh" Classes="Outlined Small" Command="{Binding RefreshCommand}" />
+                            <Button Content="Export Selected" Classes="Flat Accent Small" Command="{Binding ExportSelectedCommand}" />
+                            <Button Content="Export All" Classes="Flat Accent Small" Command="{Binding ExportAllCommand}" />
+                            <Button Content="Import" x:Name="ImportButton" Classes="Flat Accent Small" />
                             
                             <Border Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="4,2" />
                             <Button Content="&#9660; Download All to Cache"
@@ -123,11 +124,11 @@
                                     FontWeight="SemiBold"
                                     Background="{DynamicResource SuccessBadgeBrush}"
                                     Foreground="White" 
-                                    Classes="Flat Accent Medium" />
+                                    Classes="Flat Accent Small" />
                             <Button Content="⬛ Cancel Download"
                                     Command="{Binding CancelDownloadAllCommand}"
                                     IsVisible="{Binding IsDownloadingAll}"
-                                    Classes="Flat Accent Medium" />
+                                    Classes="Flat Accent Small" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <ComboBox ItemsSource="{Binding SwitcherProfiles}"
@@ -141,7 +142,7 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-                            <Button Content="Disconnect" Command="{Binding DisconnectCommand}" />
+                            <Button Content="Disconnect" Classes="Small" Command="{Binding DisconnectCommand}" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
@@ -316,6 +317,7 @@
                                   IsReadOnly="True"
                                   CanUserResizeColumns="True"
                                   GridLinesVisibility="Horizontal"
+                                  FontSize="{StaticResource FontSizeBody}"
                                   BorderThickness="1"
                                   BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
                             <DataGrid.ContextMenu>
