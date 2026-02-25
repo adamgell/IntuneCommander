@@ -6,6 +6,7 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Intune.Commander.Core.Extensions;
+using Intune.Commander.Desktop.Services;
 using Intune.Commander.Desktop.ViewModels;
 using Intune.Commander.Desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,8 +22,7 @@ public partial class App : Application
 
     public override void Initialize()
     {
-        // Register Syncfusion license using key from environment variable (see project documentation for licensing details)
-        var syncfusionLicense = Environment.GetEnvironmentVariable("SYNCFUSION_LICENSE_KEY");
+        var syncfusionLicense = SyncfusionLicenseResolver.ResolveLicenseKey();
         if (!string.IsNullOrEmpty(syncfusionLicense))
         {
             SyncfusionLicenseProvider.RegisterLicense(syncfusionLicense);

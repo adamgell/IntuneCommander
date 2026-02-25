@@ -1,10 +1,13 @@
 # App Registration Setup
 
-Before Intune Commander can connect to your tenant, you need an **Azure AD app registration** with the appropriate Microsoft Graph delegated permissions.
+Before Intune Commander can connect to your tenant, you need an **Entra ID app registration** with the appropriate Microsoft Graph permissions. The permission type depends on the authentication method you choose:
+
+- **Interactive Browser** or **Device Code** → add **Delegated** permissions
+- **Client Secret** → add **Application** permissions
 
 ## Commercial tenants
 
-1. Sign in to the [**Azure Portal**](https://portal.azure.com) and navigate to **Entra ID → App registrations → New registration**.
+1. Sign in to the [**Microsoft Entra**](https://entra.microsoft.com) and navigate to **App registrations → New registration**.
 2. Give it a name (e.g. `IntuneCommander`).
 3. Under **Supported account types**, select *Accounts in this organizational directory only*.
 4. Under **Redirect URI**, choose **Mobile and desktop applications** and enter:
@@ -14,6 +17,8 @@ Before Intune Commander can connect to your tenant, you need an **Azure AD app r
 5. Click **Register**.
 
 ### Add Graph permissions
+
+#### Interactive Browser / Device Code (Delegated permissions)
 
 1. In your new app registration, go to **API permissions → Add a permission → Microsoft Graph → Delegated permissions**.
 2. Add the following permissions:
@@ -35,6 +40,33 @@ Before Intune Commander can connect to your tenant, you need an **Azure AD app r
 | `CloudPC.ReadWrite.All` | Windows 365 Cloud PC *(requires W365 licence)* |
 
 3. Click **Grant admin consent** for your tenant.
+
+#### Client Secret (Application permissions)
+
+!!! warning "Application permissions"
+    Client Secret authentication uses an app-only (non-delegated) flow. You must add **Application** permissions — not Delegated — or the connection will fail.
+
+1. In your new app registration, go to **API permissions → Add a permission → Microsoft Graph → Application permissions**.
+2. Add the following permissions:
+
+| Permission | Purpose |
+|---|---|
+| `DeviceManagementConfiguration.ReadWrite.All` | Device Configs, Compliance, Settings Catalog, Endpoint Security |
+| `DeviceManagementScripts.ReadWrite.All` | Device Health Scripts, Mac Custom Attributes |
+| `DeviceManagementApps.ReadWrite.All` | Applications, App Protection Policies, Policy Sets |
+| `DeviceManagementServiceConfig.ReadWrite.All` | Enrollment, Autopilot, Branding, Terms & Conditions |
+| `DeviceManagementRBAC.ReadWrite.All` | Roles, Scope Tags |
+| `DeviceManagementManagedDevices.Read.All` | Device Categories |
+| `Policy.ReadWrite.ConditionalAccess` | Conditional Access Policies |
+| `Agreement.ReadWrite.All` | Terms of Use |
+| `Organization.Read.All` | Azure Branding (org ID resolution) |
+| `OrganizationalBranding.ReadWrite.All` | Azure Branding |
+| `Group.Read.All` | Group lookup |
+| `GroupMember.Read.All` | Group member enumeration |
+| `CloudPC.ReadWrite.All` | Windows 365 Cloud PC *(requires W365 licence)* |
+
+3. Click **Grant admin consent** for your tenant.
+4. Under **Certificates & secrets → New client secret**, create a secret and copy the value — you will enter this in the Intune Commander profile.
 
 !!! info "Full permissions reference"
     For a complete breakdown of every permission and which service uses it, see the [Graph Permissions reference](../reference/graph-permissions.md).

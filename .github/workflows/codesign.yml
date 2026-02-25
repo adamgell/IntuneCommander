@@ -67,6 +67,8 @@ jobs:
         run: dotnet restore ${{ env.PROJECT }} -r win-x64
 
       - name: Publish
+        env:
+          SYNCFUSION_LICENSE_KEY: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
         run: >
           dotnet publish ${{ env.PROJECT }}
           -c Release
@@ -76,6 +78,7 @@ jobs:
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:Version=${{ steps.version.outputs.version }}
+          "-p:SyncfusionLicenseKey=$env:SYNCFUSION_LICENSE_KEY"
 
       - name: Verify build output
         shell: bash

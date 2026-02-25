@@ -10,10 +10,10 @@ With the app installed and an app registration created, here's how to connect to
 | Field | Description |
 |---|---|
 | **Name** | A friendly label for this profile (e.g. `Contoso-Prod`) |
-| **Tenant ID** | Your Azure AD tenant ID (GUID) |
+| **Tenant ID** | Your Entra ID tenant ID (GUID) |
 | **Client ID** | The Application (client) ID from your app registration |
 | **Cloud** | `Commercial`, `GCC`, `GCCHigh`, or `DoD` |
-| **Auth Method** | `Interactive` (browser popup) or `Client Secret` |
+| **Auth Method** | `Interactive` (delegated permission) or `Client Secret` (application permission) |
 
 3. Click **Save Profile** — the profile is encrypted and stored locally.
 4. Select the profile and click **Connect**. A browser window will open for interactive sign-in.
@@ -46,6 +46,3 @@ Valid `authMethod` values: `Interactive` · `ClientSecret` (add `"clientSecret"`
 ## After connecting
 
 Once connected, Intune Commander loads your tenant's data asynchronously — the UI is immediately usable while background loading completes. Use the left-hand navigation to browse object types.
-
-!!! tip "Token caching"
-    Interactive logins cache the token using MSAL's persistent token cache. On subsequent launches you won't be prompted to sign in again unless the token has expired or been revoked.

@@ -171,7 +171,9 @@ Export Conditional Access policies to a comprehensive PowerPoint presentation wi
 
 ### Syncfusion Licensing
 
-The PowerPoint export feature uses Syncfusion.Presentation.Net.Core, which requires a license key:
+The PowerPoint export feature uses Syncfusion.Presentation.Net.Core, which requires a license key.
+
+**End users of the official `.exe` release do not need a key** — it is baked into the binary at build time.
 
 **Community License (FREE):**
 - For companies/individuals with < $1M annual revenue
@@ -182,10 +184,13 @@ The PowerPoint export feature uses Syncfusion.Presentation.Net.Core, which requi
 - Required for companies exceeding Community License thresholds
 - Visit: https://www.syncfusion.com/sales/products
 
-**Setup:**
+**Setup for local development or self-builds:**
 Set environment variable: `SYNCFUSION_LICENSE_KEY=your-license-key-here`
 
 The app will run without a license key but will display watermarks on exported PowerPoint files.
+
+**How the released binary gets the key:**
+The tag-triggered `codesign.yml` workflow reads the `SYNCFUSION_LICENSE_KEY` secret from the `codesigning` environment and passes it as `-p:SyncfusionLicenseKey=...` during `dotnet publish`. It is baked into the binary as assembly metadata before Azure Trusted Signing runs. The key never appears in source code or git history. Store it in your secret manager (e.g. 1Password) and add it as a secret in the `codesigning` GitHub Actions environment named `SYNCFUSION_LICENSE_KEY`.
 
 ## Acknowledgments
 
