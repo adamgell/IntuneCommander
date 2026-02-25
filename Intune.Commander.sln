@@ -1,0 +1,43 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8DC50F0D-5063-4560-B9FD-DAAFA03AD2E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intune.Commander.Core", "src\Intune.Commander.Core\Intune.Commander.Core.csproj", "{6B51342B-BF77-4DEB-B733-DA0AC4163677}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intune.Commander.Desktop", "src\Intune.Commander.Desktop\Intune.Commander.Desktop.csproj", "{39DB016D-BC1A-459F-9F06-429370C0693F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DFE65D82-4EC2-4749-9DA1-5E8A6FA9BD38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intune.Commander.Core.Tests", "tests\Intune.Commander.Core.Tests\Intune.Commander.Core.Tests.csproj", "{9A1B7C26-8F96-4736-81E9-D4E0AB685A5F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6B51342B-BF77-4DEB-B733-DA0AC4163677}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B51342B-BF77-4DEB-B733-DA0AC4163677}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B51342B-BF77-4DEB-B733-DA0AC4163677}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B51342B-BF77-4DEB-B733-DA0AC4163677}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39DB016D-BC1A-459F-9F06-429370C0693F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39DB016D-BC1A-459F-9F06-429370C0693F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39DB016D-BC1A-459F-9F06-429370C0693F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39DB016D-BC1A-459F-9F06-429370C0693F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A1B7C26-8F96-4736-81E9-D4E0AB685A5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A1B7C26-8F96-4736-81E9-D4E0AB685A5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A1B7C26-8F96-4736-81E9-D4E0AB685A5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A1B7C26-8F96-4736-81E9-D4E0AB685A5F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6B51342B-BF77-4DEB-B733-DA0AC4163677} = {8DC50F0D-5063-4560-B9FD-DAAFA03AD2E9}
+		{39DB016D-BC1A-459F-9F06-429370C0693F} = {8DC50F0D-5063-4560-B9FD-DAAFA03AD2E9}
+		{9A1B7C26-8F96-4736-81E9-D4E0AB685A5F} = {DFE65D82-4EC2-4749-9DA1-5E8A6FA9BD38}
+	EndGlobalSection
+EndGlobal
