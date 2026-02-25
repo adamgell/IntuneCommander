@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'website/**'
+      - 'docs-src/**'
+      - 'mkdocs.yml'
   workflow_dispatch:
 
 permissions:
@@ -28,6 +30,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install MkDocs Material
+        run: pip install "mkdocs-material>=9.0,<10.0"
+
+      - name: Build docs
+        run: python -m mkdocs build --strict
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
