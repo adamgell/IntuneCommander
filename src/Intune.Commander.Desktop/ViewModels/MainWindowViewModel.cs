@@ -2157,7 +2157,24 @@ public partial class MainWindowViewModel : ViewModelBase
 
     {
 
-        return ex is ODataError odata ? FormatODataError(odata) : ex.Message;
+        if (ex is ODataError odata)
+            return FormatODataError(odata);
+
+        // Walk the InnerException chain to find the most specific message.
+        // Azure.Identity wraps the real cause (e.g. HTTP 401, SSL error) inside
+        // AuthenticationFailedException.InnerException, so ex.Message alone gives
+        // "ClientSecretCredential authentication failed: " with nothing after the colon.
+        var messages = new List<string>();
+        Exception? current = ex;
+        while (current != null)
+        {
+            if (!string.IsNullOrWhiteSpace(current.Message) &&
+                (messages.Count == 0 || current.Message != messages[^1]))
+                messages.Add(current.Message);
+            current = current.InnerException;
+        }
+
+        return string.Join(" → ", messages);
 
     }
 
