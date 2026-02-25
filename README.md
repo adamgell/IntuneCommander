@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 # Intune Commander - .NET Remake
 
 ![Intune Logo](docs/images/logo_small.png)
@@ -213,6 +212,3 @@ Additional thanks to Merill Fernando for originally creating [idPowerToys](https
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting pull requests, code standards, and development workflow.
 
 For current PR status and organization, see [PR_STATUS.md](PR_STATUS.md).
-=======
-# dotfiles
->>>>>>> Stashed changes
