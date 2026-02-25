@@ -59,6 +59,9 @@ The tag-triggered `codesign.yml` workflow reads `SYNCFUSION_LICENSE_KEY` from th
 
 This bakes the key into the binary as assembly metadata **before** Azure Trusted Signing runs, so the signed `.exe` carries the key. No environment variable is required at runtime — your end users get watermark-free exports automatically.
 
+!!! info "Why embedding the key in the binary is safe"
+    The Syncfusion license key is **not a secret credential**. It is a JWT-style token that the Syncfusion library validates locally and offline against embedded product/version metadata. It does not authenticate to any Syncfusion service at runtime — there is no network call, no account access, and no API key exposure. Embedding it in a distributed binary is the pattern Syncfusion's own documentation explicitly describes (`SyncfusionLicenseProvider.RegisterLicense("YOUR_LICENSE_KEY")`). The `AssemblyMetadata` approach used here is strictly better than hardcoding the value in source because the key never appears in git history.
+
 ## Current limitations
 
 - Commercial cloud only — GCC-High/DoD support is planned.
