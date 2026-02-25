@@ -41,7 +41,7 @@ Before Intune Commander can connect to your tenant, you need an **Entra ID app r
 | `GroupMember.Read.All` | Group member enumeration |
 | `CloudPC.ReadWrite.All` | Windows 365 Cloud PC *(requires W365 licence)* |
 
-1. Click **Grant admin consent** for your tenant.
+3. Click **Grant admin consent** for your tenant.
 
 #### Client Secret (Application permissions)
 
