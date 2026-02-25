@@ -5,6 +5,7 @@ All notable changes to this project are documented in this file.
 ## [Unreleased]
 
 ### Added
+
 - **Permission Check Service** — new `IPermissionCheckService` / `PermissionCheckService` in Core
   - Acquires the current token via `TokenCredential`, base64url-decodes the JWT payload, and compares granted permissions against the 14 known-required Graph scopes
   - Supports both application tokens (`roles` claim) and delegated tokens (`scp` claim)
@@ -26,9 +27,11 @@ All notable changes to this project are documented in this file.
   - `CountGreaterThanZeroConverter` — `int → bool` for conditional visibility bindings
 
 ### Changed
+
 - Moved **Permissions** toolbar button into the **Help** menu as "🔑 Permissions..." to reduce toolbar clutter; item is disabled when not connected
 
 ### Fixed
+
 - **Settings Catalog HTTP 500** — Cosmos DB skip-token cursor failures caused by over-large page requests
   - Reduced `$top` from 999 → 100 (more stable for Cosmos-backed stores)
   - Added retry loop with exponential backoff (2 s / 4 s) for transient 500 errors
@@ -37,6 +40,7 @@ All notable changes to this project are documented in this file.
 - **Driver Update Profiles HTTP 400** — same fix as Quality Update Profiles
 
 ### Documentation
+
 - Updated `docs/GRAPH-PERMISSIONS.md`:
   - Added "Windows 365 — Cloud PC" section (`CloudPC.ReadWrite.All` permission + notes on Windows 365 licence requirement)
   - Added 9 previously missing service rows to the endpoint permission table (QualityUpdate, DriverUpdate, DeviceShellScript, ComplianceScript, AdmxFile, AppleDep, DeviceCategory, CloudPcProvisioning, CloudPcUserSettings)
@@ -46,6 +50,7 @@ All notable changes to this project are documented in this file.
 ---
 
 ### Added
+
 - **Conditional Access PowerPoint Export** (Phase 1-5 complete)
   - New service: `IConditionalAccessPptExportService` / `ConditionalAccessPptExportService`
   - Generates comprehensive PowerPoint presentations with:
@@ -64,6 +69,7 @@ All notable changes to this project are documented in this file.
 - Documented Syncfusion licensing requirements in README.md
 
 ### Documentation
+
 - Added `PR_STATUS.md` - comprehensive pull request organization and status tracking document
   - Categorizes all 9 open PRs by priority (P1/P2/P3) and type
   - Documents PR dependencies and recommended merge order
@@ -73,6 +79,7 @@ All notable changes to this project are documented in this file.
 ## [2026-02-18 Release]
 
 ### Added
+
 - Added new Graph-backed services and interfaces for:
   - Conditional Access Policies (`IConditionalAccessPolicyService`, `ConditionalAccessPolicyService`)
   - Assignment Filters (`IAssignmentFilterService`, `AssignmentFilterService`)
@@ -106,6 +113,7 @@ All notable changes to this project are documented in this file.
 - Added `Micke-K/IntuneManagement` as a Git submodule for endpoint parity and reference.
 
 ### Changed
+
 - Rebranded product/user-facing naming to **Intune Commander** across app surfaces and documentation.
 - Updated assembly metadata (`AssemblyTitle`, `Product`) to Intune Commander.
 - Updated repository URL references to the renamed remote.
@@ -117,6 +125,7 @@ All notable changes to this project are documented in this file.
 - Updated refresh behavior to keep new categories lazy (load on selected tab) instead of always eagerly fetching.
 
 ### Fixed
+
 - Fixed right-pane “no selection” placeholder logic to account for newly added selection types.
 - Fixed XAML issues introduced during detail card expansion:
   - invalid `WrapPanel` size setting (`ItemWidth="Auto"`)
@@ -126,6 +135,7 @@ All notable changes to this project are documented in this file.
 - Fixed remaining Avalonia compiled binding errors in detail panes by replacing invalid `Description` bindings for `NamedLocation` and `Agreement` with valid model properties.
 
 ### UX Improvements
+
 - Improved readability of secondary text and error text in dark theme.
 - Enhanced new detail cards with richer metadata:
   - Conditional Access: state, timestamps, control indicators
@@ -133,10 +143,12 @@ All notable changes to this project are documented in this file.
 - Standardized detail-pane timestamp formatting to human-readable local time.
 
 ### Documentation
+
 - Updated branding and links in key project docs (`README.md`, `CLAUDE.md`, planning docs, and Copilot instructions).
 - Documented Graph URI inventory and service expansion mapping.
 
 ### Build & Validation
+
 - Verified successful desktop project builds after each major implementation wave.
 - Validated no remaining compile diagnostics for impacted files at release cut.
 - Confirmed full core test pass (`175` passed) via `dotnet test` after Wave 4–5 integration.

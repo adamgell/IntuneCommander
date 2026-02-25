@@ -18,9 +18,11 @@ Wave 3 focuses on implementing tenant-level administrative services:
 **Interface:** `IScopeTagService`  
 **Class:** `ScopeTagService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/roleScopeTags`
 
 **Methods to Implement:**
+
 - [ ] `ListScopeTagsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<RoleScopeTag>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -44,9 +46,11 @@ Wave 3 focuses on implementing tenant-level administrative services:
 **Interface:** `IRoleDefinitionService`  
 **Class:** `RoleDefinitionService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/roleDefinitions`
 
 **Methods to Implement:**
+
 - [ ] `ListRoleDefinitionsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<RoleDefinition>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -70,9 +74,11 @@ Wave 3 focuses on implementing tenant-level administrative services:
 **Interface:** `IIntuneBrandingService`  
 **Class:** `IntuneBrandingService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/intuneBrandingProfiles`
 
 **Methods to Implement:**
+
 - [ ] `ListIntuneBrandingProfilesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<IntuneBrandingProfile>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -96,10 +102,12 @@ Wave 3 focuses on implementing tenant-level administrative services:
 **Interface:** `IAzureBrandingService`  
 **Class:** `AzureBrandingService`  
 **Graph Endpoints:**
+
 - Base collection: `/organization/{organizationId}/branding/localizations`
 - Note: May need to get organization ID first
 
 **Methods to Implement:**
+
 - [ ] `ListOrganizationBrandingsAsync(string organizationId, CancellationToken cancellationToken = default)`
   - Returns `List<OrganizationalBrandingLocalization>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -121,6 +129,7 @@ Wave 3 focuses on implementing tenant-level administrative services:
 ## Scaffolding Steps
 
 ### Core Service Setup
+
 - [ ] Add interface files in `src/Intune.Commander.Core/Services/`
 - [ ] Add implementation classes in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructors accept `GraphServiceClient`
@@ -130,6 +139,7 @@ Wave 3 focuses on implementing tenant-level administrative services:
 - [ ] Add null checks and throw on null responses for create/update/get
 
 ### Export/Import Integration
+
 - [ ] Extend `ExportService` to handle Wave 3 objects
 - [ ] Extend `ImportService` to handle Wave 3 objects
 - [ ] Create export wrapper models if needed
@@ -138,6 +148,7 @@ Wave 3 focuses on implementing tenant-level administrative services:
 - [ ] Consider special handling for organization-scoped resources
 
 ### Desktop UI Integration
+
 - [ ] Add collections in `MainWindowViewModel` for each type
 - [ ] Add selection properties for each type
 - [ ] Add DataGrid column configurations
@@ -147,6 +158,7 @@ Wave 3 focuses on implementing tenant-level administrative services:
 - [ ] Wire up export/import commands for new types
 
 ### Testing
+
 - [ ] Add `ScopeTagServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths

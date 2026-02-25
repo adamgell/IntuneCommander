@@ -8,7 +8,7 @@ With the app installed and an app registration created, here's how to connect to
 2. Fill in the required fields:
 
 | Field | Description |
-|---|---|
+| --- | --- |
 | **Name** | A friendly label for this profile (e.g. `Contoso-Prod`) |
 | **Tenant ID** | Your Entra ID tenant ID (GUID) |
 | **Client ID** | The Application (client) ID from your app registration |

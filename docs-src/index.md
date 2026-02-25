@@ -10,7 +10,7 @@ Intune Commander is a cross-platform desktop application for managing Microsoft 
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch: **Get Started**
+- :material-rocket-launch: **Get Started**
 
     ---
 
@@ -18,7 +18,7 @@ Intune Commander is a cross-platform desktop application for managing Microsoft 
 
     [:octicons-arrow-right-24: Installation](getting-started/installation.md)
 
--   :material-cloud-outline: **Multi-Cloud**
+- :material-cloud-outline: **Multi-Cloud**
 
     ---
 
@@ -26,7 +26,7 @@ Intune Commander is a cross-platform desktop application for managing Microsoft 
 
     [:octicons-arrow-right-24: Multi-Cloud guide](user-guide/multi-cloud.md)
 
--   :material-export: **Export & Import**
+- :material-export: **Export & Import**
 
     ---
 
@@ -34,7 +34,7 @@ Intune Commander is a cross-platform desktop application for managing Microsoft 
 
     [:octicons-arrow-right-24: Export & Import](user-guide/export-import.md)
 
--   :material-shield-key: **Graph Permissions**
+- :material-shield-key: **Graph Permissions**
 
     ---
 

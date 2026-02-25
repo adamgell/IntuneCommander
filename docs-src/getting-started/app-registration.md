@@ -11,9 +11,11 @@ Before Intune Commander can connect to your tenant, you need an **Entra ID app r
 2. Give it a name (e.g. `IntuneCommander`).
 3. Under **Supported account types**, select *Accounts in this organizational directory only*.
 4. Under **Redirect URI**, choose **Mobile and desktop applications** and enter:
-   ```
+
+   ```text
    http://localhost:45132
    ```
+
 5. Click **Register**.
 
 ### Add Graph permissions
@@ -24,7 +26,7 @@ Before Intune Commander can connect to your tenant, you need an **Entra ID app r
 2. Add the following permissions:
 
 | Permission | Purpose |
-|---|---|
+| --- | --- |
 | `DeviceManagementConfiguration.ReadWrite.All` | Device Configs, Compliance, Settings Catalog, Endpoint Security |
 | `DeviceManagementScripts.ReadWrite.All` | Device Health Scripts, Mac Custom Attributes |
 | `DeviceManagementApps.ReadWrite.All` | Applications, App Protection Policies, Policy Sets |
@@ -50,7 +52,7 @@ Before Intune Commander can connect to your tenant, you need an **Entra ID app r
 2. Add the following permissions:
 
 | Permission | Purpose |
-|---|---|
+| --- | --- |
 | `DeviceManagementConfiguration.ReadWrite.All` | Device Configs, Compliance, Settings Catalog, Endpoint Security |
 | `DeviceManagementScripts.ReadWrite.All` | Device Health Scripts, Mac Custom Attributes |
 | `DeviceManagementApps.ReadWrite.All` | Applications, App Protection Policies, Policy Sets |
@@ -76,7 +78,7 @@ Before Intune Commander can connect to your tenant, you need an **Entra ID app r
 Government clouds require **separate app registrations** in their own portals.
 
 | Cloud | Portal |
-|---|---|
+| --- | --- |
 | GCC | [portal.azure.com](https://portal.azure.com) (same as Commercial) |
 | GCC-High | [portal.azure.us](https://portal.azure.us) |
 | DoD | [portal.apps.mil](https://portal.apps.mil) |

@@ -5,7 +5,7 @@ Intune Commander supports 30+ Intune and Entra ID object types. All types can be
 ## Device Management
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Device Configurations | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Compliance Policies | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Settings Catalog | ✅ | ✅ | ✅ | ✅ | — | — |
@@ -21,7 +21,7 @@ Intune Commander supports 30+ Intune and Entra ID object types. All types can be
 ## Enrollment
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Enrollment Configurations | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Autopilot Profiles | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Apple DEP | ✅ | — | — | — | — | — |
@@ -30,7 +30,7 @@ Intune Commander supports 30+ Intune and Entra ID object types. All types can be
 ## Scripts & Compliance
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Device Health Scripts | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Device Shell Scripts (macOS) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Mac Custom Attributes | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -39,7 +39,7 @@ Intune Commander supports 30+ Intune and Entra ID object types. All types can be
 ## Apps & App Management
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Applications | ✅ | ✅ | — | — | — | — |
 | App Protection Policies | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Managed App Configurations | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -48,7 +48,7 @@ Intune Commander supports 30+ Intune and Entra ID object types. All types can be
 ## Tenant Administration
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Intune Branding | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Azure Branding | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Role Definitions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -57,7 +57,7 @@ Intune Commander supports 30+ Intune and Entra ID object types. All types can be
 ## Conditional Access & Identity
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Conditional Access Policies | ✅ | ✅ | — | — | — | — |
 | Authentication Strengths | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Authentication Contexts | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -67,14 +67,14 @@ Intune Commander supports 30+ Intune and Entra ID object types. All types can be
 ## Windows 365
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Cloud PC Provisioning Policies | ✅ | — | — | — | — | — |
 | Cloud PC User Settings | ✅ | — | — | — | — | — |
 
 ## Groups
 
 | Object Type | List | Export | Import | Create | Update | Delete |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Groups (lookup & members) | ✅ | — | — | — | — | — |
 
 !!! note "Import creates; it does not update"

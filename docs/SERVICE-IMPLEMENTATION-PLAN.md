@@ -1,6 +1,7 @@
 # Intune Commander Service Implementation Plan (Current)
 
 ## Scope
+
 - Keep migration from legacy PowerShell handlers to typed Core services + Avalonia UI.
 - Maintain service-per-type architecture using `Microsoft.Graph.Beta.Models`.
 - Preserve reliability rule for all list operations: manual `@odata.nextLink` pagination (`$top=999`, then `.WithUrl(nextLink)`).
@@ -12,6 +13,7 @@
 The original Wave 1–6 backlog plus Waves 7–10 have been fully implemented and integrated:
 
 ### Waves 1–6 (original plan)
+
 - Endpoint Security, Administrative Templates, Enrollment Configurations
 - App Protection, Managed Device App Configurations, Targeted Managed App Configurations, Terms and Conditions
 - Scope Tags, Role Definitions, Intune Branding, Azure Branding
@@ -22,6 +24,7 @@ The original Wave 1–6 backlog plus Waves 7–10 have been fully implemented an
 - Export/Import coverage in `ExportService` / `ImportService`
 
 ### Wave 7 — Scripts and Policy Dependencies
+
 - `IDeviceManagementScriptService` / `DeviceManagementScriptService` (PowerShell scripts)
 - `IDeviceShellScriptService` / `DeviceShellScriptService` (macOS shell scripts)
 - `IComplianceScriptService` / `ComplianceScriptService`
@@ -30,26 +33,31 @@ The original Wave 1–6 backlog plus Waves 7–10 have been fully implemented an
 - `INotificationTemplateService` / `NotificationTemplateService`
 
 ### Wave 8 — Update Plane Completion
+
 - `IQualityUpdateProfileService` / `QualityUpdateProfileService` — `$top=200` (hard API cap)
 - `IDriverUpdateProfileService` / `DriverUpdateProfileService` — `$top=200` (hard API cap)
 
 ### Wave 9 — Enrollment + Apple + Device Admin
+
 - `IAppleDepService` / `AppleDepService`
 - `IDeviceCategoryService` / `DeviceCategoryService`
 - `IVppTokenService` / `VppTokenService`
 - `IUserService` / `UserService`
 
 ### Wave 10 — Cloud PC
+
 - `ICloudPcProvisioningService` / `CloudPcProvisioningService` — requires `CloudPC.ReadWrite.All` + active Windows 365 licence
 - `ICloudPcUserSettingsService` / `CloudPcUserSettingsService`
 
 ### Cross-cutting additions
+
 - `IPermissionCheckService` / `PermissionCheckService` — JWT-based token introspection; returns `PermissionCheckResult` with granted/missing/extra permission sets; fire-and-forget at connect time; never blocks UI
 - `PermissionsWindow` in Desktop — non-modal window showing granted/missing Graph permissions; accessible via Help menu
 
 ## Remaining Gaps vs `EndpointManager.psm1`
 
 ### A) Missing Object Families
+
 1. Additional enrollment variants
    - `AppleEnrollmentTypes` (`/deviceManagement/deviceEnrollmentConfigurations` filtered)
 2. Legacy policy object variants
@@ -59,6 +67,7 @@ The original Wave 1–6 backlog plus Waves 7–10 have been fully implemented an
    - `InventoryPolicies` / `HardwareConfigurations`
 
 ### B) Feature Parity Gaps on Already-Migrated Objects
+
 - Object-specific pre/post transforms used by legacy import/update pipelines are only partially ported.
 - Assignment/update/delete behavior parity is incomplete for several categories.
 - Advanced exports (CSV/document/diagram) are not broadly available in the desktop app.
@@ -67,16 +76,19 @@ The original Wave 1–6 backlog plus Waves 7–10 have been fully implemented an
 ## Prioritized Delivery Plan
 
 ### Wave 11 — Behavior Parity Hardening
+
 1. Fill missing pre/post import and update transforms for currently migrated objects.
 2. Close assignment/delete parity gaps where Graph supports assignment endpoints/actions.
 3. Extend CSV/document exports for additional high-value categories.
 
 ### Wave 12 — Rich Detail Panes (in progress)
+
 - Full object-property detail panes for all types (replacing truncated card views).
 - Terms of Use enrichment: display Agreement model properties.
 - Conditional Access: GUID → display name resolution for group/app/location references.
 
 ## Implementation Checklist (apply to each new service)
+
 - [ ] Add `I<Type>Service` and `<Type>Service` in `src/Intune.Commander.Core/Services/`
 - [ ] Constructor receives `GraphServiceClient`
 - [ ] Async APIs accept `CancellationToken`
@@ -86,6 +98,7 @@ The original Wave 1–6 backlog plus Waves 7–10 have been fully implemented an
 - [ ] Add focused Core tests (pagination, CRUD, null/error handling)
 
 ## Definition of Done
+
 - Builds cleanly (`dotnet build`) and relevant tests pass (`dotnet test`).
 - No UI-thread blocking introduced (startup remains async-first).
 - New service is visible in desktop navigation and can load tenant data.
