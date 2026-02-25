@@ -5,8 +5,10 @@ This directory contains detailed tracking documents for implementing Intune Comm
 ## Wave Documents
 
 ### [Wave 1: Endpoint Security, Administrative Templates, and Enrollment Configurations](WAVE-1-ENDPOINT-SECURITY-TEMPLATES-ENROLLMENT.md)
+
 **Priority:** High — Core policy management services  
 **Services:**
+
 1. Endpoint Security Service (`/deviceManagement/intents`)
 2. Administrative Template Service (`/deviceManagement/groupPolicyConfigurations`)
 3. Enrollment Configuration Service (`/deviceManagement/deviceEnrollmentConfigurations`)
@@ -16,8 +18,10 @@ This directory contains detailed tracking documents for implementing Intune Comm
 ---
 
 ### [Wave 2: App Protection and Managed App Configurations](WAVE-2-APP-PROTECTION-CONFIGURATIONS.md)
+
 **Priority:** High — Application management plane  
 **Services:**
+
 1. App Protection Service (`/deviceAppManagement/managedAppPolicies`)
 2. Managed App Configuration Service (mobile + targeted configurations)
 3. Terms and Conditions Service (`/deviceManagement/termsAndConditions`)
@@ -27,8 +31,10 @@ This directory contains detailed tracking documents for implementing Intune Comm
 ---
 
 ### [Wave 3: Tenant Administration Services](WAVE-3-TENANT-ADMINISTRATION.md)
+
 **Priority:** Medium — Tenant-level administrative features  
 **Services:**
+
 1. Scope Tag Service (`/deviceManagement/roleScopeTags`)
 2. Role Definition Service (`/deviceManagement/roleDefinitions`)
 3. Intune Branding Service (`/deviceManagement/intuneBrandingProfiles`)
@@ -39,8 +45,10 @@ This directory contains detailed tracking documents for implementing Intune Comm
 ---
 
 ### [Wave 4: Enrollment and Device Management Services](WAVE-4-ENROLLMENT-DEVICE-MANAGEMENT.md)
+
 **Priority:** Medium — Device lifecycle management  
 **Services:**
+
 1. Autopilot Service (`/deviceManagement/windowsAutopilotDeploymentProfiles`)
 2. Device Health Script Service (`/deviceManagement/deviceHealthScripts`)
 3. Mac Custom Attribute Service (`/deviceManagement/deviceCustomAttributeShellScripts`)
@@ -51,8 +59,10 @@ This directory contains detailed tracking documents for implementing Intune Comm
 ---
 
 ### [Wave 5: Conditional Access and Identity Governance](WAVE-5-CONDITIONAL-ACCESS-IDENTITY.md)
+
 **Priority:** Low — Identity-adjacent features  
 **Services:**
+
 1. Named Location Service (`/identity/conditionalAccess/namedLocations`)
 2. Authentication Strength Service (`/identity/conditionalAccess/authenticationStrengths/policies`)
 3. Authentication Context Service (`/identity/conditionalAccess/authenticationContextClassReferences`)

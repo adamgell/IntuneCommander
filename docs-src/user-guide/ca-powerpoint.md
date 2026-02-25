@@ -29,7 +29,6 @@ The PowerPoint export feature uses [Syncfusion.Presentation.Net.Core](https://ww
 
 End users of the **official signed `.exe` release** do not need to do anything — the key is baked into the binary at build time.
 
-
 ### Community Licence (free)
 
 Syncfusion offers a free community licence for:

@@ -18,9 +18,11 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 **Interface:** `INamedLocationService`  
 **Class:** `NamedLocationService`  
 **Graph Endpoints:**
+
 - Base collection: `/identity/conditionalAccess/namedLocations`
 
 **Methods to Implement:**
+
 - [ ] `ListNamedLocationsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<NamedLocation>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -42,9 +44,11 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 **Interface:** `IAuthenticationStrengthService`  
 **Class:** `AuthenticationStrengthService`  
 **Graph Endpoints:**
+
 - Base collection: `/identity/conditionalAccess/authenticationStrength/policies`
 
 **Methods to Implement:**
+
 - [ ] `ListAuthenticationStrengthPoliciesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<AuthenticationStrengthPolicy>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -65,9 +69,11 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 **Interface:** `IAuthenticationContextService`  
 **Class:** `AuthenticationContextService`  
 **Graph Endpoints:**
+
 - Base collection: `/identity/conditionalAccess/authenticationContextClassReferences`
 
 **Methods to Implement:**
+
 - [ ] `ListAuthenticationContextClassReferencesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<AuthenticationContextClassReference>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -88,9 +94,11 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 **Interface:** `ITermsOfUseService`  
 **Class:** `TermsOfUseService`  
 **Graph Endpoints:**
+
 - Base collection: `/identityGovernance/termsOfUse/agreements`
 
 **Methods to Implement:**
+
 - [ ] `ListTermsOfUseAgreementsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<Agreement>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -113,6 +121,7 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 ## Scaffolding Steps
 
 ### Core Service Setup
+
 - [ ] Add interface files in `src/Intune.Commander.Core/Services/`
 - [ ] Add implementation classes in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructors accept `GraphServiceClient`
@@ -122,6 +131,7 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 - [ ] Add null checks and throw on null responses for create/update/get
 
 ### Export/Import Integration
+
 - [ ] Extend `ExportService` to handle Wave 5 objects
 - [ ] Extend `ImportService` to handle Wave 5 objects
 - [ ] Create export wrapper models if needed
@@ -130,6 +140,7 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 - [ ] Consider special handling for agreement files (binary content)
 
 ### Desktop UI Integration
+
 - [ ] Add collections in `MainWindowViewModel` for each type
 - [ ] Add selection properties for each type
 - [ ] Add DataGrid column configurations
@@ -139,6 +150,7 @@ Wave 5 focuses on implementing services for Conditional Access-adjacent identity
 - [ ] Wire up export/import commands for new types
 
 ### Testing
+
 - [ ] Add `NamedLocationServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths

@@ -63,4 +63,3 @@ Device Configurations, Configuration Policies (Settings Catalog), Compliance Pol
 4. **User feedback:** Test with real Intune environments frequently
 5. **Documentation:** Update docs as features are built
 6. **Git discipline:** Meaningful commits, no direct main commits
-

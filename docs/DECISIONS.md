@@ -11,6 +11,7 @@ This document records key architectural and technical decisions made during the 
 **Context:** Need to migrate from PowerShell/WPF to overcome threading, UI refresh, and caching limitations
 
 **Options Considered:**
+
 1. .NET + Avalonia UI
 2. .NET + WPF (Windows-only)
 3. Go + Fyne
@@ -19,6 +20,7 @@ This document records key architectural and technical decisions made during the 
 **Decision:** .NET 10 + Avalonia UI
 
 **Rationale:**
+
 - Natural migration path from PowerShell (both .NET ecosystem)
 - Avalonia XAML nearly identical to WPF (minimal XAML porting)
 - Cross-platform native support (future Linux/Docker deployment)
@@ -27,11 +29,13 @@ This document records key architectural and technical decisions made during the 
 - Strong typing eliminates runtime errors
 
 **Consequences:**
+
 - Requires learning C# for PowerShell developer
 - Avalonia has smaller community than WPF
 - Cross-platform adds complexity vs Windows-only WPF
 
 **Alternatives Rejected:**
+
 - WPF: Windows-only, doesn't support Docker requirement
 - Go+Fyne: No XAML reuse, weaker Graph ecosystem
 - Electron: Heavy runtime, not truly native
@@ -47,6 +51,7 @@ This document records key architectural and technical decisions made during the 
 **Decision:** Azure.Identity library
 
 **Rationale:**
+
 - Microsoft-recommended modern approach
 - Built-in multi-cloud support (Commercial, GCC, GCC-High, DoD)
 - Multiple credential types with automatic fallback
@@ -55,11 +60,13 @@ This document records key architectural and technical decisions made during the 
 - Supports Managed Identity for future Azure deployment
 
 **Consequences:**
+
 - Learning curve for Azure.Identity vs familiar MSAL
 - Must configure cloud-specific endpoints
 - Requires separate app registrations per cloud
 
 **Alternatives Rejected:**
+
 - MSAL directly: More manual configuration, less abstraction
 - Custom auth: Reinventing the wheel, security risks
 
@@ -74,6 +81,7 @@ This document records key architectural and technical decisions made during the 
 **Decision:** Separate app registration per cloud with profile-based configuration
 
 **Rationale:**
+
 - GCC-High and DoD require separate Azure portals for app registration
 - Isolates permissions between environments
 - Simpler to manage cloud-specific configurations
@@ -81,11 +89,13 @@ This document records key architectural and technical decisions made during the 
 - Profiles allow easy tenant switching
 
 **Consequences:**
+
 - User must register app in each cloud separately
 - More initial setup complexity
 - Documentation must cover all four cloud registration processes
 
 **Alternatives Rejected:**
+
 - Single app across clouds: Not technically feasible for gov clouds
 - Auto-detect cloud: Unreliable, requires undocumented APIs
 
@@ -100,17 +110,20 @@ This document records key architectural and technical decisions made during the 
 **Decision:** Read-only backward compatibility (import PowerShell exports only)
 
 **Rationale:**
+
 - Users may have existing PowerShell exports to migrate
 - Proven format structure reduces design work
 - One-way migration acceptable for new tool
 - PowerShell version doesn't need .NET export support
 
 **Consequences:**
+
 - Must validate against PowerShell JSON schema
 - Testing requires actual PowerShell exports
 - .NET version can introduce new format features
 
 **Alternatives Rejected:**
+
 - Full bidirectional compatibility: Unnecessary complexity
 - No compatibility: Breaks migration path for users
 - New format only: Ignores existing user data
@@ -126,6 +139,7 @@ This document records key architectural and technical decisions made during the 
 **Decision:** Iterative MVP approach with 6 phases
 
 **Rationale:**
+
 - Delivers working software early (Phase 1: 2 weeks)
 - Allows course correction between phases
 - Reduces risk of scope creep
@@ -133,11 +147,13 @@ This document records key architectural and technical decisions made during the 
 - Hobby project timeline allows methodical approach
 
 **Consequences:**
+
 - Some features delayed to later phases
 - May need refactoring as architecture evolves
 - Requires discipline to avoid mid-phase feature additions
 
 **Alternatives Rejected:**
+
 - Waterfall (full planning): Too rigid for hobby project
 - Complete chaos: High risk of never finishing
 - Feature-driven: Loses cohesion across object types
@@ -153,6 +169,7 @@ This document records key architectural and technical decisions made during the 
 **Decision:** Avalonia + MVVM (CommunityToolkit.Mvvm)
 
 **Rationale:**
+
 - MVVM is industry standard for XAML-based UIs
 - CommunityToolkit provides source generators (less boilerplate)
 - Clean separation enables unit testing ViewModels
@@ -160,11 +177,13 @@ This document records key architectural and technical decisions made during the 
 - Avalonia's data binding works well with MVVM
 
 **Consequences:**
+
 - Learning curve for MVVM if new to pattern
 - More classes/files than code-behind approach
 - Requires understanding of INotifyPropertyChanged
 
 **Alternatives Rejected:**
+
 - Code-behind: Not testable, tight coupling
 - MVC: Poor fit for desktop applications
 - Custom pattern: Reinventing established patterns
@@ -180,6 +199,7 @@ This document records key architectural and technical decisions made during the 
 **Decision:** Use Microsoft.Graph SDK models directly where possible
 
 **Rationale:**
+
 - Strongly typed, compile-time safety
 - Automatic updates when SDK updated
 - Built-in serialization support
@@ -187,11 +207,13 @@ This document records key architectural and technical decisions made during the 
 - Official Microsoft models
 
 **Consequences:**
+
 - Tied to SDK release schedule
 - Some models include non-serializable properties
 - May need custom DTOs for export/import edge cases
 
 **Alternatives Rejected:**
+
 - Custom models: High maintenance, error-prone mapping
 - Dynamic objects: Lose type safety
 - DTOs everywhere: Unnecessary duplication
@@ -207,6 +229,7 @@ This document records key architectural and technical decisions made during the 
 **Decision:** Windows-only for Phases 1-5, Linux Docker in Phase 6
 
 **Rationale:**
+
 - Developer's primary platform is Windows
 - Intune management typically Windows-centric
 - Reduces testing burden initially
@@ -214,11 +237,13 @@ This document records key architectural and technical decisions made during the 
 - Avalonia makes cross-platform easy when ready
 
 **Consequences:**
+
 - macOS/Linux desktop users wait until post-MVP
 - Can't test Linux deployment early
 - May discover platform-specific issues late
 
 **Alternatives Rejected:**
+
 - All platforms from start: Too much testing overhead
 - Linux-first: Not developer's platform
 - Skip cross-platform: Loses Avalonia value proposition
@@ -234,6 +259,7 @@ This document records key architectural and technical decisions made during the 
 **Original Decision:** Serilog (deferred to Phase 6)
 
 **Implementation Note (2026-02-16):** Serilog was not adopted. A custom `DebugLogService` singleton was implemented instead:
+
 - In-memory `ObservableCollection<string>` capped at 2 000 entries
 - All writes dispatched to the UI thread
 - Exposed via `DebugLogWindow` in the desktop app
@@ -252,6 +278,7 @@ File-based structured logging remains deferred. If added in the future, Microsof
 **Decision:** Unit tests for Core library (40% line coverage threshold enforced in CI), manual testing for UI
 
 **Rationale:**
+
 - Core business logic is most critical
 - UI testing in Avalonia is immature/complex
 - Manual testing acceptable for hobby project
@@ -259,11 +286,13 @@ File-based structured logging remains deferred. If added in the future, Microsof
 - Mocking Graph API is straightforward
 
 **Consequences:**
+
 - UI bugs may not be caught early
 - No automated regression testing for UI
 - Manual test effort increases with features
 
 **Alternatives Rejected:**
+
 - Full UI automation: Too much effort for MVP
 - No tests: Risky for refactoring
 - Only integration tests: Slow, fragile
@@ -279,6 +308,7 @@ File-based structured logging remains deferred. If added in the future, Microsof
 **Decision:** Git with feature branches, private GitHub repository
 
 **Rationale:**
+
 - Industry standard version control
 - GitHub provides free private repos
 - Feature branches enable clean history
@@ -286,11 +316,13 @@ File-based structured logging remains deferred. If added in the future, Microsof
 - GitHub Actions available for CI/CD future
 
 **Consequences:**
+
 - Overhead of branching for solo dev
 - Must maintain branch discipline
 - Merge conflicts unlikely but possible
 
 **Alternatives Rejected:**
+
 - Trunk-based: Too risky without CI
 - No VCS: Unacceptable for software project
 - GitLab/Bitbucket: GitHub more familiar
@@ -318,6 +350,7 @@ File-based structured logging remains deferred. If added in the future, Microsof
 **Decision:** Device Configurations as first object type
 
 **Rationale:**
+
 - Most commonly used Intune object type
 - Simpler than Applications (no .intunewin files)
 - Well-documented Graph API
@@ -325,11 +358,13 @@ File-based structured logging remains deferred. If added in the future, Microsof
 - PowerShell version handles this well (reference implementation)
 
 **Consequences:**
+
 - Other object types wait until Phase 3
 - Can't test cross-object dependencies yet
 - Users can't fully migrate tenant in Phase 1
 
 **Alternatives Rejected:**
+
 - Applications first: Too complex with app packages
 - All objects at once: Too ambitious for Phase 1
 
@@ -344,17 +379,20 @@ File-based structured logging remains deferred. If added in the future, Microsof
 **Decision:** Platform-native encryption (DPAPI on Windows)
 
 **Rationale:**
+
 - OS-level security guarantees
 - No custom encryption keys to manage
 - Per-user encryption (profile not readable by other users)
 - .NET has built-in DPAPI support
 
 **Consequences:**
+
 - Profiles not portable between users
 - Can't easily share profiles across team
 - Must implement different encryption per OS (future)
 
 **Alternatives Rejected:**
+
 - No encryption: Security risk
 - Custom encryption: Prone to implementation errors
 - Azure Key Vault: Overkill, requires connectivity
@@ -368,21 +406,25 @@ File-based structured logging remains deferred. If added in the future, Microsof
 **Context:** Original PowerShell version has many features; must prioritize
 
 **Decisions:**
+
 - **Included in MVP:** CRUD, export/import, multi-cloud, profiles, bulk operations
 - **Excluded from MVP:** ADMX import, object comparison, documentation generation, update/replace modes
 
 **Rationale:**
+
 - Focus on core workflow (CRUD + export/import)
 - ADMX tooling is niche, complex
 - Comparison/docs can be added iteratively
 - Update/replace modes are risky (test well before adding)
 
 **Consequences:**
+
 - Users migrating from PowerShell lose some features
 - May need to run PowerShell version for excluded features
 - Post-MVP roadmap already defined
 
 **Alternatives Rejected:**
+
 - Feature parity: Would delay MVP by months
 - No exclusions: Scope creep risk
 
@@ -421,6 +463,7 @@ Decisions can be revisited if new information emerges or requirements change.
 **Decision:** ASP.NET DataProtection API (`Microsoft.AspNetCore.DataProtection`)
 
 **Rationale:**
+
 - Cross-platform (Windows, macOS, Linux) — aligns with Avalonia's cross-platform story
 - Keys stored in `%LOCALAPPDATA%\Intune.Commander\keys\`
 - Automatic key rotation and management built-in
@@ -428,6 +471,7 @@ Decisions can be revisited if new information emerges or requirements change.
 - Graceful handling of corrupted/migrated data (falls back to empty store)
 
 **Consequences:**
+
 - Adds `Microsoft.AspNetCore.DataProtection` NuGet dependency to Core project
 - Profile file prefixed with `INTUNEMANAGER_ENC:` marker to distinguish encrypted from plaintext
 
@@ -442,11 +486,13 @@ Decisions can be revisited if new information emerges or requirements change.
 **Decision:** Confirm dialog before switching
 
 **Rationale:**
+
 - Prevents accidental disconnection from active tenant
 - Uses `MessageBox.Avalonia` for native-feeling dialog
 - ViewModel raises event, View handles dialog — clean MVVM separation
 
 **Consequences:**
+
 - Adds `MessageBox.Avalonia` NuGet dependency to Desktop project
 - Slightly more steps than auto-reconnect, but safer
 
@@ -461,6 +507,7 @@ Decisions can be revisited if new information emerges or requirements change.
 **Decision:** Basic format validation — GUID format for Tenant ID and Client ID, non-empty required fields
 
 **Rationale:**
+
 - Catches typos immediately without requiring network access
 - Inline error messages below each field
 - Validation state gates Save and Connect buttons via `CanExecute`
@@ -477,6 +524,7 @@ Decisions can be revisited if new information emerges or requirements change.
 **Decision:** Deferred — no changes to secret handling in Phase 2
 
 **Rationale:**
+
 - Profile file is now encrypted at rest via DataProtection, providing baseline protection
 - OS credential store integration (Windows Credential Manager, macOS Keychain) planned for a future phase
 - Current approach works for development; production hardening will follow
@@ -492,6 +540,7 @@ Decisions can be revisited if new information emerges or requirements change.
 **Decision:** Base64url-decode the JWT payload locally using `System.Text.Json`; compare `roles` (app token) or `scp` (delegated token) claims against a static list of required permissions
 
 **Rationale:**
+
 - No network round-trip: token is already in memory after `TokenCredential.GetTokenAsync`
 - No signature verification required — the token was just issued by AAD; integrity is assumed
 - `roles` and `scp` are stable, well-documented JWT claim names for Microsoft identity tokens
@@ -499,12 +548,14 @@ Decisions can be revisited if new information emerges or requirements change.
 - 15 unit tests verify decoding, classification, and edge cases (empty/malformed JWT)
 
 **Consequences:**
+
 - `PermissionCheckService` receives `TokenCredential` + scopes in its constructor — post-auth only
 - If the check throws (e.g. network error), the exception is swallowed and logged to Debug Log as "Permission check skipped: ..."
 - `LastPermissionCheckResult` on `MainWindowViewModel` is null until a successful check; `PermissionsWindow` shows a "Not connected" placeholder in that state
 - Token expiry: the check runs once at connect time; stale results remain until next connect
 
 **Alternatives Rejected:**
+
 - `me/getMemberObjects` or similar Graph call: Extra network round-trip, adds latency, requires an extra permission
 - Blocking UI until check completes: Violates async-first startup rule
 - No permission check at all: Makes troubleshooting 403 errors harder for users
