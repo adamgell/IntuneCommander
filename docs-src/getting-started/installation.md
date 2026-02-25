@@ -37,4 +37,4 @@ dotnet run --project src/Intune.Commander.Desktop
 
 ## Next steps
 
-Once the app is running, you'll need to [register an Azure AD app](app-registration.md) before you can connect to a tenant.
+Once the app is running, you'll need to [register an Entra ID app](app-registration.md) before you can connect to a tenant.

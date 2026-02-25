@@ -12,7 +12,7 @@ Intune Commander supports all four Microsoft cloud environments from a single ap
 | **DoD** | `dod-graph.microsoft.us` | `login.microsoftonline.us` |
 
 !!! note "GCC vs Commercial"
-    GCC tenants use the same Graph endpoint and authority as Commercial, but require a **separate app registration** created in the Commercial portal with GCC-specific admin consent.
+    GCC is essentially the Commercial cloud with additional compliance features. GCC tenants use the same Graph endpoint and authority as Commercial, and the app registration process is identical — you just create a **separate app registration** in the Commercial portal targeted to the GCC tenant with GCC-specific admin consent.
 
 ## App registrations per cloud
 
