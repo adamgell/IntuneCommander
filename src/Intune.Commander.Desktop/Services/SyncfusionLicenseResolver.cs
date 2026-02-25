@@ -21,7 +21,7 @@ public static class SyncfusionLicenseResolver
         if (!string.IsNullOrWhiteSpace(fromEnv))
             return fromEnv.Trim();
 
-        var fromAssembly = Assembly.GetExecutingAssembly()
+        var fromAssembly = typeof(SyncfusionLicenseResolver).Assembly
             .GetCustomAttributes<AssemblyMetadataAttribute>()
             .FirstOrDefault(a => a.Key == MetadataKey)
             ?.Value;
