@@ -39,7 +39,7 @@ Before Intune Commander can connect to your tenant, you need an **Azure AD app r
 !!! info "Full permissions reference"
     For a complete breakdown of every permission and which service uses it, see the [Graph Permissions reference](../reference/graph-permissions.md).
 
-!!! alert "Client secret permissions" 
+!!! warning "Client secret permissions" 
     Make sure you use application level permissions instead of delegated.
 
 ## Government clouds (GCC-High / DoD)
