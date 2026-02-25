@@ -1,5 +1,6 @@
 using Intune.Commander.Core.Services;
 using Microsoft.Graph.Beta.Models;
+using NSubstitute;
 
 namespace Intune.Commander.Core.Tests.Services;
 
@@ -31,20 +32,12 @@ public class ConditionalAccessPptExportServiceTests : IDisposable
     [Fact]
     public void Constructor_WithValidServices_DoesNotThrow()
     {
-        // Arrange
-        var caPolicyService = new MockConditionalAccessPolicyService();
-        var namedLocationService = new MockNamedLocationService();
-        var authStrengthService = new MockAuthenticationStrengthService();
-        var authContextService = new MockAuthenticationContextService();
-        var applicationService = new MockApplicationService();
-
-        // Act & Assert
         var service = new ConditionalAccessPptExportService(
-            caPolicyService,
-            namedLocationService,
-            authStrengthService,
-            authContextService,
-            applicationService);
+            Substitute.For<IConditionalAccessPolicyService>(),
+            Substitute.For<INamedLocationService>(),
+            Substitute.For<IAuthenticationStrengthService>(),
+            Substitute.For<IAuthenticationContextService>(),
+            Substitute.For<IApplicationService>());
 
         Assert.NotNull(service);
     }
@@ -274,11 +267,11 @@ public class ConditionalAccessPptExportServiceTests : IDisposable
         };
 
         var service = new ConditionalAccessPptExportService(
-            new MockConditionalAccessPolicyService(customPolicies: policies),
-            new MockNamedLocationService(),
-            new MockAuthenticationStrengthService(),
-            new MockAuthenticationContextService(),
-            new MockApplicationService());
+            PolicyServiceReturning(policies),
+            Substitute.For<INamedLocationService>(),
+            Substitute.For<IAuthenticationStrengthService>(),
+            Substitute.For<IAuthenticationContextService>(),
+            Substitute.For<IApplicationService>());
 
         var outputPath = Path.Combine(_tempDir, "complex-export.pptx");
 
@@ -304,194 +297,64 @@ public class ConditionalAccessPptExportServiceTests : IDisposable
             () => service.ExportAsync(outputPath, "Test Tenant", cts.Token));
     }
 
-    private ConditionalAccessPptExportService CreateService()
+    private static ConditionalAccessPptExportService CreateService()
     {
+        var caPolicySvc = Substitute.For<IConditionalAccessPolicyService>();
+        caPolicySvc.ListPoliciesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new List<ConditionalAccessPolicy>()));
         return new ConditionalAccessPptExportService(
-            new MockConditionalAccessPolicyService(),
-            new MockNamedLocationService(),
-            new MockAuthenticationStrengthService(),
-            new MockAuthenticationContextService(),
-            new MockApplicationService());
+            caPolicySvc,
+            Substitute.For<INamedLocationService>(),
+            Substitute.For<IAuthenticationStrengthService>(),
+            Substitute.For<IAuthenticationContextService>(),
+            Substitute.For<IApplicationService>());
     }
 
-    private ConditionalAccessPptExportService CreateServiceWithData()
+    private static ConditionalAccessPptExportService CreateServiceWithData()
     {
-        return new ConditionalAccessPptExportService(
-            new MockConditionalAccessPolicyService(withData: true),
-            new MockNamedLocationService(),
-            new MockAuthenticationStrengthService(),
-            new MockAuthenticationContextService(),
-            new MockApplicationService());
-    }
-
-    // Mock service implementations
-    private class MockConditionalAccessPolicyService : IConditionalAccessPolicyService
-    {
-        private readonly bool _withData;
-        private readonly List<ConditionalAccessPolicy>? _customPolicies;
-
-        public MockConditionalAccessPolicyService(bool withData = false, List<ConditionalAccessPolicy>? customPolicies = null)
-        {
-            _withData = withData;
-            _customPolicies = customPolicies;
-        }
-
-        public Task<List<ConditionalAccessPolicy>> ListPoliciesAsync(CancellationToken cancellationToken = default)
-        {
-            if (_customPolicies != null)
+        var caPolicySvc = Substitute.For<IConditionalAccessPolicyService>();
+        caPolicySvc.ListPoliciesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new List<ConditionalAccessPolicy>
             {
-                return Task.FromResult(_customPolicies);
-            }
-
-            if (_withData)
-            {
-                return Task.FromResult(new List<ConditionalAccessPolicy>
+                new()
                 {
-                    new ConditionalAccessPolicy
+                    Id = "policy-1",
+                    DisplayName = "Test Policy 1",
+                    State = ConditionalAccessPolicyState.Enabled,
+                    CreatedDateTime = DateTimeOffset.Now,
+                    Conditions = new ConditionalAccessConditionSet
                     {
-                        Id = "policy-1",
-                        DisplayName = "Test Policy 1",
-                        State = ConditionalAccessPolicyState.Enabled,
-                        CreatedDateTime = DateTimeOffset.Now,
-                        Conditions = new ConditionalAccessConditionSet
-                        {
-                            Users = new ConditionalAccessUsers
-                            {
-                                IncludeUsers = new List<string> { "All" }
-                            }
-                        },
-                        GrantControls = new ConditionalAccessGrantControls
-                        {
-                            Operator = "AND",
-                            BuiltInControls = new List<ConditionalAccessGrantControl?> 
-                            { 
-                                ConditionalAccessGrantControl.Mfa 
-                            }
-                        }
+                        Users = new ConditionalAccessUsers { IncludeUsers = ["All"] }
                     },
-                    new ConditionalAccessPolicy
+                    GrantControls = new ConditionalAccessGrantControls
                     {
-                        Id = "policy-2",
-                        DisplayName = "Test Policy 2",
-                        State = ConditionalAccessPolicyState.Disabled,
-                        CreatedDateTime = DateTimeOffset.Now.AddDays(-7)
+                        Operator = "AND",
+                        BuiltInControls = [ConditionalAccessGrantControl.Mfa]
                     }
-                });
-            }
-
-            return Task.FromResult(new List<ConditionalAccessPolicy>());
-        }
-
-        public Task<ConditionalAccessPolicy?> GetPolicyAsync(string id, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<ConditionalAccessPolicy?>(null);
-        }
+                },
+                new()
+                {
+                    Id = "policy-2",
+                    DisplayName = "Test Policy 2",
+                    State = ConditionalAccessPolicyState.Disabled,
+                    CreatedDateTime = DateTimeOffset.Now.AddDays(-7)
+                }
+            }));
+        return new ConditionalAccessPptExportService(
+            caPolicySvc,
+            Substitute.For<INamedLocationService>(),
+            Substitute.For<IAuthenticationStrengthService>(),
+            Substitute.For<IAuthenticationContextService>(),
+            Substitute.For<IApplicationService>());
     }
 
-    private class MockNamedLocationService : INamedLocationService
+    // Keep a minimal helper for tests that need custom policy lists
+    private static IConditionalAccessPolicyService PolicyServiceReturning(List<ConditionalAccessPolicy> policies)
     {
-        public Task<List<NamedLocation>> ListNamedLocationsAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new List<NamedLocation>());
-        }
-
-        public Task<NamedLocation?> GetNamedLocationAsync(string id, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<NamedLocation?>(null);
-        }
-
-        public Task<NamedLocation> CreateNamedLocationAsync(NamedLocation location, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<NamedLocation> UpdateNamedLocationAsync(NamedLocation location, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteNamedLocationAsync(string id, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    private class MockAuthenticationStrengthService : IAuthenticationStrengthService
-    {
-        public Task<List<AuthenticationStrengthPolicy>> ListAuthenticationStrengthPoliciesAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new List<AuthenticationStrengthPolicy>());
-        }
-
-        public Task<AuthenticationStrengthPolicy?> GetAuthenticationStrengthPolicyAsync(string id, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<AuthenticationStrengthPolicy?>(null);
-        }
-
-        public Task<AuthenticationStrengthPolicy> CreateAuthenticationStrengthPolicyAsync(AuthenticationStrengthPolicy policy, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthenticationStrengthPolicy> UpdateAuthenticationStrengthPolicyAsync(AuthenticationStrengthPolicy policy, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAuthenticationStrengthPolicyAsync(string id, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    private class MockAuthenticationContextService : IAuthenticationContextService
-    {
-        public Task<List<AuthenticationContextClassReference>> ListAuthenticationContextsAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new List<AuthenticationContextClassReference>());
-        }
-
-        public Task<AuthenticationContextClassReference?> GetAuthenticationContextAsync(string id, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<AuthenticationContextClassReference?>(null);
-        }
-
-        public Task<AuthenticationContextClassReference> CreateAuthenticationContextAsync(AuthenticationContextClassReference context, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthenticationContextClassReference> UpdateAuthenticationContextAsync(AuthenticationContextClassReference context, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAuthenticationContextAsync(string id, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    private class MockApplicationService : IApplicationService
-    {
-        public Task<List<MobileApp>> ListApplicationsAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new List<MobileApp>());
-        }
-
-        public Task<MobileApp?> GetApplicationAsync(string id, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<MobileApp?>(null);
-        }
-
-        public Task<List<MobileAppAssignment>> GetApplicationAssignmentsAsync(string appId, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new List<MobileAppAssignment>());
-        }
-
-        public Task<List<MobileAppAssignment>> GetAssignmentsAsync(string appId, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new List<MobileAppAssignment>());
-        }
+        var svc = Substitute.For<IConditionalAccessPolicyService>();
+        svc.ListPoliciesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(policies));
+        return svc;
     }
 }
+

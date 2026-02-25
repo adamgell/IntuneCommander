@@ -1,4 +1,5 @@
 using System.Text.Json;
+using NSubstitute;
 using Intune.Commander.Core.Models;
 using Intune.Commander.Core.Services;
 using Microsoft.Graph.Beta.Models;
@@ -28,7 +29,7 @@ public class ImportServiceTests : IDisposable
         var file = Path.Combine(_tempDir, "cfg.json");
         await File.WriteAllTextAsync(file, JsonSerializer.Serialize(config));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var read = await sut.ReadDeviceConfigurationAsync(file);
 
         Assert.NotNull(read);
@@ -39,7 +40,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadDeviceConfigurationsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
 
         var result = await sut.ReadDeviceConfigurationsFromFolderAsync(_tempDir);
 
@@ -57,7 +58,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "b.json"), JsonSerializer.Serialize(
             new DeviceConfiguration { Id = "b", DisplayName = "B" }));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDeviceConfigurationsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -68,7 +69,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadMigrationTableAsync_MissingFile_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
 
         var table = await sut.ReadMigrationTableAsync(_tempDir);
 
@@ -90,7 +91,7 @@ public class ImportServiceTests : IDisposable
         var path = Path.Combine(_tempDir, "migration-table.json");
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(table));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var read = await sut.ReadMigrationTableAsync(_tempDir);
 
         Assert.Single(read.Entries);
@@ -100,10 +101,12 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportDeviceConfigurationAsync_ClearsReadOnlyFields_AndUpdatesMigration()
     {
-        var cfgService = new StubConfigurationService
-        {
-            CreateResult = new DeviceConfiguration { Id = "new-cfg", DisplayName = "Created" }
-        };
+        DeviceConfiguration? capturedConfig = null;
+        var cfgService = Substitute.For<IConfigurationProfileService>();
+        cfgService.CreateDeviceConfigurationAsync(
+            Arg.Do<DeviceConfiguration>(c => capturedConfig = c),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceConfiguration { Id = "new-cfg", DisplayName = "Created" }));
         var sut = new ImportService(cfgService);
         var table = new MigrationTable();
 
@@ -119,11 +122,11 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportDeviceConfigurationAsync(source, table);
 
         Assert.Equal("new-cfg", created.Id);
-        Assert.NotNull(cfgService.LastCreatedConfig);
-        Assert.Null(cfgService.LastCreatedConfig!.Id);
-        Assert.Null(cfgService.LastCreatedConfig.CreatedDateTime);
-        Assert.Null(cfgService.LastCreatedConfig.LastModifiedDateTime);
-        Assert.Null(cfgService.LastCreatedConfig.Version);
+        Assert.NotNull(capturedConfig);
+        Assert.Null(capturedConfig!.Id);
+        Assert.Null(capturedConfig.CreatedDateTime);
+        Assert.Null(capturedConfig.LastModifiedDateTime);
+        Assert.Null(capturedConfig.Version);
         Assert.Single(table.Entries);
         Assert.Equal("old-cfg", table.Entries[0].OriginalId);
         Assert.Equal("new-cfg", table.Entries[0].NewId);
@@ -141,7 +144,7 @@ public class ImportServiceTests : IDisposable
         var file = Path.Combine(_tempDir, "policy.json");
         await File.WriteAllTextAsync(file, JsonSerializer.Serialize(export));
 
-        var sut = new ImportService(new StubConfigurationService(), new StubComplianceService());
+        var sut = new ImportService(DefaultCfgSvc(), DefaultComplianceSvc());
         var read = await sut.ReadCompliancePolicyAsync(file);
 
         Assert.NotNull(read);
@@ -151,7 +154,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadCompliancePoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService(), new StubComplianceService());
+        var sut = new ImportService(DefaultCfgSvc(), DefaultComplianceSvc());
 
         var result = await sut.ReadCompliancePoliciesFromFolderAsync(_tempDir);
 
@@ -170,7 +173,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), JsonSerializer.Serialize(p1));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), JsonSerializer.Serialize(p2));
 
-        var sut = new ImportService(new StubConfigurationService(), new StubComplianceService());
+        var sut = new ImportService(DefaultCfgSvc(), DefaultComplianceSvc());
         var result = await sut.ReadCompliancePoliciesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -179,7 +182,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportCompliancePolicyAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var export = new CompliancePolicyExport
         {
@@ -192,7 +195,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportEndpointSecurityIntentAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var export = new EndpointSecurityExport { Intent = new DeviceManagementIntent { Id = "old", DisplayName = "Old" } };
 
@@ -202,7 +205,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAdministrativeTemplateAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var export = new AdministrativeTemplateExport { Template = new GroupPolicyConfiguration { Id = "old", DisplayName = "Old" } };
 
@@ -212,7 +215,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportEnrollmentConfigurationAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var config = new DeviceEnrollmentConfiguration { Id = "old", DisplayName = "Old" };
 
@@ -222,7 +225,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAppProtectionPolicyAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var policy = new AndroidManagedAppProtection { Id = "old", DisplayName = "Old" };
 
@@ -232,7 +235,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportManagedDeviceAppConfigurationAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var config = new ManagedDeviceMobileAppConfiguration { Id = "old", DisplayName = "Old" };
 
@@ -242,7 +245,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportTargetedManagedAppConfigurationAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var config = new TargetedManagedAppConfiguration { Id = "old", DisplayName = "Old" };
 
@@ -252,7 +255,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportTermsAndConditionsAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var terms = new TermsAndConditions { Id = "old", DisplayName = "Old" };
 
@@ -262,7 +265,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportScopeTagAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var scopeTag = new RoleScopeTag { Id = "old", DisplayName = "Old" };
 
@@ -272,7 +275,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportRoleDefinitionAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var roleDefinition = new RoleDefinition { Id = "old", DisplayName = "Old" };
 
@@ -282,7 +285,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportIntuneBrandingProfileAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var profile = new IntuneBrandingProfile { Id = "old", ProfileName = "Old" };
 
@@ -292,7 +295,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAzureBrandingLocalizationAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var localization = new OrganizationalBrandingLocalization { Id = "old" };
 
@@ -302,7 +305,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAutopilotProfileAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var profile = new WindowsAutopilotDeploymentProfile { Id = "old", DisplayName = "Old" };
 
@@ -312,7 +315,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportDeviceHealthScriptAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var script = new DeviceHealthScript { Id = "old", DisplayName = "Old" };
 
@@ -322,7 +325,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportMacCustomAttributeAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var script = new DeviceCustomAttributeShellScript { Id = "old", DisplayName = "Old" };
 
@@ -332,7 +335,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportFeatureUpdateProfileAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var profile = new WindowsFeatureUpdateProfile { Id = "old", DisplayName = "Old" };
 
@@ -342,7 +345,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportNamedLocationAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var namedLocation = new NamedLocation { Id = "old" };
 
@@ -352,7 +355,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAuthenticationStrengthPolicyAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var policy = new AuthenticationStrengthPolicy { Id = "old", DisplayName = "Old" };
 
@@ -362,7 +365,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAuthenticationContextAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var context = new AuthenticationContextClassReference { Id = "old", DisplayName = "Old" };
 
@@ -372,7 +375,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportTermsOfUseAgreementAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var agreement = new Agreement { Id = "old", DisplayName = "Old" };
 
@@ -382,12 +385,21 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportCompliancePolicyAsync_AssignsAndUpdatesMigration()
     {
-        var complianceService = new StubComplianceService
-        {
-            CreateResult = new DeviceCompliancePolicy { Id = "new-pol", DisplayName = "Created Policy" }
-        };
+        DeviceCompliancePolicy? capturedPolicy = null;
+        string? assignedPolicyId = null;
+        List<DeviceCompliancePolicyAssignment>? assignedAssignments = null;
+        var complianceService = Substitute.For<ICompliancePolicyService>();
+        complianceService.CreateCompliancePolicyAsync(
+            Arg.Do<DeviceCompliancePolicy>(p => capturedPolicy = p),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceCompliancePolicy { Id = "new-pol", DisplayName = "Created Policy" }));
+        complianceService.AssignPolicyAsync(
+            Arg.Do<string>(id => assignedPolicyId = id),
+            Arg.Do<List<DeviceCompliancePolicyAssignment>>(a => assignedAssignments = a),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
 
-        var sut = new ImportService(new StubConfigurationService(), complianceService);
+        var sut = new ImportService(DefaultCfgSvc(), complianceService);
         var table = new MigrationTable();
 
         var export = new CompliancePolicyExport
@@ -410,15 +422,15 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportCompliancePolicyAsync(export, table);
 
         Assert.Equal("new-pol", created.Id);
-        Assert.NotNull(complianceService.LastCreatedPolicy);
-        Assert.Null(complianceService.LastCreatedPolicy!.Id);
-        Assert.Null(complianceService.LastCreatedPolicy.CreatedDateTime);
-        Assert.Null(complianceService.LastCreatedPolicy.LastModifiedDateTime);
-        Assert.Null(complianceService.LastCreatedPolicy.Version);
+        Assert.NotNull(capturedPolicy);
+        Assert.Null(capturedPolicy!.Id);
+        Assert.Null(capturedPolicy.CreatedDateTime);
+        Assert.Null(capturedPolicy.LastModifiedDateTime);
+        Assert.Null(capturedPolicy.Version);
 
-        Assert.True(complianceService.AssignCalled);
-        Assert.Equal("new-pol", complianceService.AssignedPolicyId);
-        Assert.All(complianceService.AssignedAssignments!, a => Assert.Null(a.Id));
+        Assert.NotNull(assignedPolicyId);
+        Assert.Equal("new-pol", assignedPolicyId);
+        Assert.All(assignedAssignments!, a => Assert.Null(a.Id));
 
         Assert.Single(table.Entries);
         Assert.Equal("old-pol", table.Entries[0].OriginalId);
@@ -428,11 +440,18 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportEndpointSecurityIntentAsync_AssignsAndUpdatesMigration()
     {
-        var endpointService = new StubEndpointSecurityService
-        {
-            CreateResult = new DeviceManagementIntent { Id = "new-intent", DisplayName = "Created Intent" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, endpointSecurityService: endpointService);
+        string? assignedIntentId = null;
+        List<DeviceManagementIntentAssignment>? assignedIntentAssignments = null;
+        var endpointService = Substitute.For<IEndpointSecurityService>();
+        endpointService.CreateEndpointSecurityIntentAsync(
+            Arg.Any<DeviceManagementIntent>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceManagementIntent { Id = "new-intent", DisplayName = "Created Intent" }));
+        endpointService.AssignIntentAsync(
+            Arg.Do<string>(id => assignedIntentId = id),
+            Arg.Do<List<DeviceManagementIntentAssignment>>(a => assignedIntentAssignments = a),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        var sut = new ImportService(DefaultCfgSvc(), null, endpointSecurityService: endpointService);
         var table = new MigrationTable();
 
         var export = new EndpointSecurityExport
@@ -444,9 +463,9 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportEndpointSecurityIntentAsync(export, table);
 
         Assert.Equal("new-intent", created.Id);
-        Assert.True(endpointService.AssignCalled);
-        Assert.Equal("new-intent", endpointService.AssignedIntentId);
-        Assert.All(endpointService.AssignedAssignments!, a => Assert.Null(a.Id));
+        Assert.NotNull(assignedIntentId);
+        Assert.Equal("new-intent", assignedIntentId);
+        Assert.All(assignedIntentAssignments!, a => Assert.Null(a.Id));
         Assert.Single(table.Entries);
         Assert.Equal("EndpointSecurityIntent", table.Entries[0].ObjectType);
         Assert.Equal("old-intent", table.Entries[0].OriginalId);
@@ -456,11 +475,20 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAdministrativeTemplateAsync_AssignsAndUpdatesMigration()
     {
-        var templateService = new StubAdministrativeTemplateService
-        {
-            CreateResult = new GroupPolicyConfiguration { Id = "new-template", DisplayName = "Created Template" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, administrativeTemplateService: templateService);
+        GroupPolicyConfiguration? capturedTemplate = null;
+        string? assignedTemplateId = null;
+        List<GroupPolicyConfigurationAssignment>? assignedTemplateAssignments = null;
+        var templateService = Substitute.For<IAdministrativeTemplateService>();
+        templateService.CreateAdministrativeTemplateAsync(
+            Arg.Do<GroupPolicyConfiguration>(t => capturedTemplate = t),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new GroupPolicyConfiguration { Id = "new-template", DisplayName = "Created Template" }));
+        templateService.AssignAdministrativeTemplateAsync(
+            Arg.Do<string>(id => assignedTemplateId = id),
+            Arg.Do<List<GroupPolicyConfigurationAssignment>>(a => assignedTemplateAssignments = a),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        var sut = new ImportService(DefaultCfgSvc(), null, administrativeTemplateService: templateService);
         var table = new MigrationTable();
 
         var export = new AdministrativeTemplateExport
@@ -478,13 +506,13 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportAdministrativeTemplateAsync(export, table);
 
         Assert.Equal("new-template", created.Id);
-        Assert.NotNull(templateService.LastCreatedTemplate);
-        Assert.Null(templateService.LastCreatedTemplate!.Id);
-        Assert.Null(templateService.LastCreatedTemplate.CreatedDateTime);
-        Assert.Null(templateService.LastCreatedTemplate.LastModifiedDateTime);
-        Assert.True(templateService.AssignCalled);
-        Assert.Equal("new-template", templateService.AssignedTemplateId);
-        Assert.All(templateService.AssignedAssignments!, a => Assert.Null(a.Id));
+        Assert.NotNull(capturedTemplate);
+        Assert.Null(capturedTemplate!.Id);
+        Assert.Null(capturedTemplate.CreatedDateTime);
+        Assert.Null(capturedTemplate.LastModifiedDateTime);
+        Assert.NotNull(assignedTemplateId);
+        Assert.Equal("new-template", assignedTemplateId);
+        Assert.All(assignedTemplateAssignments!, a => Assert.Null(a.Id));
         Assert.Single(table.Entries);
         Assert.Equal("AdministrativeTemplate", table.Entries[0].ObjectType);
         Assert.Equal("old-template", table.Entries[0].OriginalId);
@@ -494,11 +522,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportEnrollmentConfigurationAsync_UpdatesMigration()
     {
-        var enrollmentService = new StubEnrollmentConfigurationService
-        {
-            CreateResult = new DeviceEnrollmentConfiguration { Id = "new-enroll", DisplayName = "Created Enrollment" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, enrollmentConfigurationService: enrollmentService);
+        DeviceEnrollmentConfiguration? capturedEnrollment = null;
+        var enrollmentService = Substitute.For<IEnrollmentConfigurationService>();
+        enrollmentService.CreateEnrollmentConfigurationAsync(
+            Arg.Do<DeviceEnrollmentConfiguration>(c => capturedEnrollment = c),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceEnrollmentConfiguration { Id = "new-enroll", DisplayName = "Created Enrollment" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, enrollmentConfigurationService: enrollmentService);
         var table = new MigrationTable();
 
         var configuration = new DeviceEnrollmentConfiguration
@@ -513,10 +543,10 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportEnrollmentConfigurationAsync(configuration, table);
 
         Assert.Equal("new-enroll", created.Id);
-        Assert.NotNull(enrollmentService.LastCreatedConfiguration);
-        Assert.Null(enrollmentService.LastCreatedConfiguration!.Id);
-        Assert.Null(enrollmentService.LastCreatedConfiguration.CreatedDateTime);
-        Assert.Null(enrollmentService.LastCreatedConfiguration.LastModifiedDateTime);
+        Assert.NotNull(capturedEnrollment);
+        Assert.Null(capturedEnrollment!.Id);
+        Assert.Null(capturedEnrollment.CreatedDateTime);
+        Assert.Null(capturedEnrollment.LastModifiedDateTime);
         Assert.Single(table.Entries);
         Assert.Equal("EnrollmentConfiguration", table.Entries[0].ObjectType);
         Assert.Equal("old-enroll", table.Entries[0].OriginalId);
@@ -526,11 +556,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAppProtectionPolicyAsync_UpdatesMigration()
     {
-        var appProtectionService = new StubAppProtectionPolicyService
-        {
-            CreateResult = new AndroidManagedAppProtection { Id = "new-app-protect", DisplayName = "Created App Protection" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, appProtectionPolicyService: appProtectionService);
+        ManagedAppPolicy? capturedAppPolicy = null;
+        var appProtectionService = Substitute.For<IAppProtectionPolicyService>();
+        appProtectionService.CreateAppProtectionPolicyAsync(
+            Arg.Do<ManagedAppPolicy>(p => capturedAppPolicy = p),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ManagedAppPolicy>(new AndroidManagedAppProtection { Id = "new-app-protect", DisplayName = "Created App Protection" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, appProtectionPolicyService: appProtectionService);
         var table = new MigrationTable();
 
         var policy = new AndroidManagedAppProtection
@@ -542,8 +574,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportAppProtectionPolicyAsync(policy, table);
 
         Assert.Equal("new-app-protect", created.Id);
-        Assert.NotNull(appProtectionService.LastCreatedPolicy);
-        Assert.Null(appProtectionService.LastCreatedPolicy!.Id);
+        Assert.NotNull(capturedAppPolicy);
+        Assert.Null(capturedAppPolicy!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("AppProtectionPolicy", table.Entries[0].ObjectType);
         Assert.Equal("old-app-protect", table.Entries[0].OriginalId);
@@ -553,11 +585,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportManagedDeviceAppConfigurationAsync_UpdatesMigration()
     {
-        var managedConfigService = new StubManagedAppConfigurationService
-        {
-            CreateManagedDeviceResult = new ManagedDeviceMobileAppConfiguration { Id = "new-mdac", DisplayName = "Created MDAC" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, managedAppConfigurationService: managedConfigService);
+        ManagedDeviceMobileAppConfiguration? capturedMdac = null;
+        var managedConfigService = Substitute.For<IManagedAppConfigurationService>();
+        managedConfigService.CreateManagedDeviceAppConfigurationAsync(
+            Arg.Do<ManagedDeviceMobileAppConfiguration>(c => capturedMdac = c),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new ManagedDeviceMobileAppConfiguration { Id = "new-mdac", DisplayName = "Created MDAC" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, managedAppConfigurationService: managedConfigService);
         var table = new MigrationTable();
 
         var configuration = new ManagedDeviceMobileAppConfiguration
@@ -572,11 +606,11 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportManagedDeviceAppConfigurationAsync(configuration, table);
 
         Assert.Equal("new-mdac", created.Id);
-        Assert.NotNull(managedConfigService.LastCreatedManagedDeviceConfiguration);
-        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration!.Id);
-        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration.CreatedDateTime);
-        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration.LastModifiedDateTime);
-        Assert.Null(managedConfigService.LastCreatedManagedDeviceConfiguration.Version);
+        Assert.NotNull(capturedMdac);
+        Assert.Null(capturedMdac!.Id);
+        Assert.Null(capturedMdac.CreatedDateTime);
+        Assert.Null(capturedMdac.LastModifiedDateTime);
+        Assert.Null(capturedMdac.Version);
         Assert.Single(table.Entries);
         Assert.Equal("ManagedDeviceAppConfiguration", table.Entries[0].ObjectType);
         Assert.Equal("old-mdac", table.Entries[0].OriginalId);
@@ -586,11 +620,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportTargetedManagedAppConfigurationAsync_UpdatesMigration()
     {
-        var managedConfigService = new StubManagedAppConfigurationService
-        {
-            CreateTargetedResult = new TargetedManagedAppConfiguration { Id = "new-tmac", DisplayName = "Created TMAC" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, managedAppConfigurationService: managedConfigService);
+        TargetedManagedAppConfiguration? capturedTmac = null;
+        var managedConfigService = Substitute.For<IManagedAppConfigurationService>();
+        managedConfigService.CreateTargetedManagedAppConfigurationAsync(
+            Arg.Do<TargetedManagedAppConfiguration>(c => capturedTmac = c),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new TargetedManagedAppConfiguration { Id = "new-tmac", DisplayName = "Created TMAC" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, managedAppConfigurationService: managedConfigService);
         var table = new MigrationTable();
 
         var configuration = new TargetedManagedAppConfiguration
@@ -605,11 +641,11 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportTargetedManagedAppConfigurationAsync(configuration, table);
 
         Assert.Equal("new-tmac", created.Id);
-        Assert.NotNull(managedConfigService.LastCreatedTargetedConfiguration);
-        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration!.Id);
-        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration.CreatedDateTime);
-        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration.LastModifiedDateTime);
-        Assert.Null(managedConfigService.LastCreatedTargetedConfiguration.Version);
+        Assert.NotNull(capturedTmac);
+        Assert.Null(capturedTmac!.Id);
+        Assert.Null(capturedTmac.CreatedDateTime);
+        Assert.Null(capturedTmac.LastModifiedDateTime);
+        Assert.Null(capturedTmac.Version);
         Assert.Single(table.Entries);
         Assert.Equal("TargetedManagedAppConfiguration", table.Entries[0].ObjectType);
         Assert.Equal("old-tmac", table.Entries[0].OriginalId);
@@ -619,11 +655,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportTermsAndConditionsAsync_UpdatesMigration()
     {
-        var termsService = new StubTermsAndConditionsService
-        {
-            CreateResult = new TermsAndConditions { Id = "new-terms", DisplayName = "Created Terms" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, termsAndConditionsService: termsService);
+        TermsAndConditions? capturedTerms = null;
+        var termsService = Substitute.For<ITermsAndConditionsService>();
+        termsService.CreateTermsAndConditionsAsync(
+            Arg.Do<TermsAndConditions>(t => capturedTerms = t),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new TermsAndConditions { Id = "new-terms", DisplayName = "Created Terms" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, termsAndConditionsService: termsService);
         var table = new MigrationTable();
 
         var termsAndConditions = new TermsAndConditions
@@ -638,11 +676,11 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportTermsAndConditionsAsync(termsAndConditions, table);
 
         Assert.Equal("new-terms", created.Id);
-        Assert.NotNull(termsService.LastCreatedTerms);
-        Assert.Null(termsService.LastCreatedTerms!.Id);
-        Assert.Null(termsService.LastCreatedTerms.CreatedDateTime);
-        Assert.Null(termsService.LastCreatedTerms.LastModifiedDateTime);
-        Assert.Null(termsService.LastCreatedTerms.Version);
+        Assert.NotNull(capturedTerms);
+        Assert.Null(capturedTerms!.Id);
+        Assert.Null(capturedTerms.CreatedDateTime);
+        Assert.Null(capturedTerms.LastModifiedDateTime);
+        Assert.Null(capturedTerms.Version);
         Assert.Single(table.Entries);
         Assert.Equal("TermsAndConditions", table.Entries[0].ObjectType);
         Assert.Equal("old-terms", table.Entries[0].OriginalId);
@@ -652,11 +690,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportScopeTagAsync_UpdatesMigration()
     {
-        var scopeTagService = new StubScopeTagService
-        {
-            CreateResult = new RoleScopeTag { Id = "new-scope", DisplayName = "Created Scope" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, scopeTagService: scopeTagService);
+        RoleScopeTag? capturedScopeTag = null;
+        var scopeTagService = Substitute.For<IScopeTagService>();
+        scopeTagService.CreateScopeTagAsync(
+            Arg.Do<RoleScopeTag>(s => capturedScopeTag = s),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RoleScopeTag { Id = "new-scope", DisplayName = "Created Scope" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, scopeTagService: scopeTagService);
         var table = new MigrationTable();
 
         var scopeTag = new RoleScopeTag
@@ -668,8 +708,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportScopeTagAsync(scopeTag, table);
 
         Assert.Equal("new-scope", created.Id);
-        Assert.NotNull(scopeTagService.LastCreatedScopeTag);
-        Assert.Null(scopeTagService.LastCreatedScopeTag!.Id);
+        Assert.NotNull(capturedScopeTag);
+        Assert.Null(capturedScopeTag!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("ScopeTag", table.Entries[0].ObjectType);
         Assert.Equal("old-scope", table.Entries[0].OriginalId);
@@ -679,11 +719,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportRoleDefinitionAsync_UpdatesMigration()
     {
-        var roleDefinitionService = new StubRoleDefinitionService
-        {
-            CreateResult = new RoleDefinition { Id = "new-role", DisplayName = "Created Role" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, roleDefinitionService: roleDefinitionService);
+        RoleDefinition? capturedRoleDefinition = null;
+        var roleDefinitionService = Substitute.For<IRoleDefinitionService>();
+        roleDefinitionService.CreateRoleDefinitionAsync(
+            Arg.Do<RoleDefinition>(r => capturedRoleDefinition = r),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RoleDefinition { Id = "new-role", DisplayName = "Created Role" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, roleDefinitionService: roleDefinitionService);
         var table = new MigrationTable();
 
         var roleDefinition = new RoleDefinition
@@ -695,8 +737,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportRoleDefinitionAsync(roleDefinition, table);
 
         Assert.Equal("new-role", created.Id);
-        Assert.NotNull(roleDefinitionService.LastCreatedRoleDefinition);
-        Assert.Null(roleDefinitionService.LastCreatedRoleDefinition!.Id);
+        Assert.NotNull(capturedRoleDefinition);
+        Assert.Null(capturedRoleDefinition!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("RoleDefinition", table.Entries[0].ObjectType);
         Assert.Equal("old-role", table.Entries[0].OriginalId);
@@ -706,11 +748,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportIntuneBrandingProfileAsync_UpdatesMigration()
     {
-        var brandingService = new StubIntuneBrandingService
-        {
-            CreateResult = new IntuneBrandingProfile { Id = "new-branding", ProfileName = "Created Branding" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, intuneBrandingService: brandingService);
+        IntuneBrandingProfile? capturedBrandingProfile = null;
+        var brandingService = Substitute.For<IIntuneBrandingService>();
+        brandingService.CreateIntuneBrandingProfileAsync(
+            Arg.Do<IntuneBrandingProfile>(p => capturedBrandingProfile = p),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new IntuneBrandingProfile { Id = "new-branding", ProfileName = "Created Branding" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, intuneBrandingService: brandingService);
         var table = new MigrationTable();
 
         var profile = new IntuneBrandingProfile
@@ -722,8 +766,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportIntuneBrandingProfileAsync(profile, table);
 
         Assert.Equal("new-branding", created.Id);
-        Assert.NotNull(brandingService.LastCreatedProfile);
-        Assert.Null(brandingService.LastCreatedProfile!.Id);
+        Assert.NotNull(capturedBrandingProfile);
+        Assert.Null(capturedBrandingProfile!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("IntuneBrandingProfile", table.Entries[0].ObjectType);
         Assert.Equal("old-branding", table.Entries[0].OriginalId);
@@ -733,11 +777,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAzureBrandingLocalizationAsync_UpdatesMigration()
     {
-        var azureBrandingService = new StubAzureBrandingService
-        {
-            CreateResult = new OrganizationalBrandingLocalization { Id = "new-locale" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, azureBrandingService: azureBrandingService);
+        OrganizationalBrandingLocalization? capturedLocalization = null;
+        var azureBrandingService = Substitute.For<IAzureBrandingService>();
+        azureBrandingService.CreateBrandingLocalizationAsync(
+            Arg.Do<OrganizationalBrandingLocalization>(l => capturedLocalization = l),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new OrganizationalBrandingLocalization { Id = "new-locale" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, azureBrandingService: azureBrandingService);
         var table = new MigrationTable();
 
         var localization = new OrganizationalBrandingLocalization
@@ -748,8 +794,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportAzureBrandingLocalizationAsync(localization, table);
 
         Assert.Equal("new-locale", created.Id);
-        Assert.NotNull(azureBrandingService.LastCreatedLocalization);
-        Assert.Null(azureBrandingService.LastCreatedLocalization!.Id);
+        Assert.NotNull(capturedLocalization);
+        Assert.Null(capturedLocalization!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("AzureBrandingLocalization", table.Entries[0].ObjectType);
         Assert.Equal("old-locale", table.Entries[0].OriginalId);
@@ -759,11 +805,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAutopilotProfileAsync_UpdatesMigration()
     {
-        var autopilotService = new StubAutopilotService
-        {
-            CreateResult = new WindowsAutopilotDeploymentProfile { Id = "new-autopilot", DisplayName = "Created Autopilot" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, autopilotService: autopilotService);
+        WindowsAutopilotDeploymentProfile? capturedAutopilot = null;
+        var autopilotService = Substitute.For<IAutopilotService>();
+        autopilotService.CreateAutopilotProfileAsync(
+            Arg.Do<WindowsAutopilotDeploymentProfile>(p => capturedAutopilot = p),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new WindowsAutopilotDeploymentProfile { Id = "new-autopilot", DisplayName = "Created Autopilot" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, autopilotService: autopilotService);
         var table = new MigrationTable();
 
         var profile = new WindowsAutopilotDeploymentProfile
@@ -775,8 +823,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportAutopilotProfileAsync(profile, table);
 
         Assert.Equal("new-autopilot", created.Id);
-        Assert.NotNull(autopilotService.LastCreatedProfile);
-        Assert.Null(autopilotService.LastCreatedProfile!.Id);
+        Assert.NotNull(capturedAutopilot);
+        Assert.Null(capturedAutopilot!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("AutopilotProfile", table.Entries[0].ObjectType);
         Assert.Equal("old-autopilot", table.Entries[0].OriginalId);
@@ -786,11 +834,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportTermsOfUseAgreementAsync_UpdatesMigration()
     {
-        var termsOfUseService = new StubTermsOfUseService
-        {
-            CreateResult = new Agreement { Id = "new-tou", DisplayName = "Created Terms" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, termsOfUseService: termsOfUseService);
+        Agreement? capturedAgreement = null;
+        var termsOfUseService = Substitute.For<ITermsOfUseService>();
+        termsOfUseService.CreateTermsOfUseAgreementAsync(
+            Arg.Do<Agreement>(a => capturedAgreement = a),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new Agreement { Id = "new-tou", DisplayName = "Created Terms" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, termsOfUseService: termsOfUseService);
         var table = new MigrationTable();
 
         var agreement = new Agreement
@@ -802,8 +852,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportTermsOfUseAgreementAsync(agreement, table);
 
         Assert.Equal("new-tou", created.Id);
-        Assert.NotNull(termsOfUseService.LastCreatedAgreement);
-        Assert.Null(termsOfUseService.LastCreatedAgreement!.Id);
+        Assert.NotNull(capturedAgreement);
+        Assert.Null(capturedAgreement!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("TermsOfUseAgreement", table.Entries[0].ObjectType);
         Assert.Equal("old-tou", table.Entries[0].OriginalId);
@@ -816,7 +866,7 @@ public class ImportServiceTests : IDisposable
         var file = Path.Combine(_tempDir, "bad.json");
         await File.WriteAllTextAsync(file, "{ this is not valid json }}}");
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
 
         await Assert.ThrowsAsync<JsonException>(() => sut.ReadDeviceConfigurationAsync(file));
     }
@@ -824,11 +874,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportDeviceHealthScriptAsync_UpdatesMigration()
     {
-        var healthScriptService = new StubDeviceHealthScriptService
-        {
-            CreateResult = new DeviceHealthScript { Id = "new-dhs", DisplayName = "Created Script" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, deviceHealthScriptService: healthScriptService);
+        DeviceHealthScript? capturedHealthScript = null;
+        var healthScriptService = Substitute.For<IDeviceHealthScriptService>();
+        healthScriptService.CreateDeviceHealthScriptAsync(
+            Arg.Do<DeviceHealthScript>(s => capturedHealthScript = s),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceHealthScript { Id = "new-dhs", DisplayName = "Created Script" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, deviceHealthScriptService: healthScriptService);
         var table = new MigrationTable();
 
         var script = new DeviceHealthScript
@@ -842,8 +894,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportDeviceHealthScriptAsync(script, table);
 
         Assert.Equal("new-dhs", created.Id);
-        Assert.NotNull(healthScriptService.LastCreatedScript);
-        Assert.Null(healthScriptService.LastCreatedScript!.Id);
+        Assert.NotNull(capturedHealthScript);
+        Assert.Null(capturedHealthScript!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("DeviceHealthScript", table.Entries[0].ObjectType);
         Assert.Equal("old-dhs", table.Entries[0].OriginalId);
@@ -853,11 +905,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportMacCustomAttributeAsync_UpdatesMigration()
     {
-        var macAttributeService = new StubMacCustomAttributeService
-        {
-            CreateResult = new DeviceCustomAttributeShellScript { Id = "new-mac", DisplayName = "Created Attr" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, macCustomAttributeService: macAttributeService);
+        DeviceCustomAttributeShellScript? capturedMacAttribute = null;
+        var macAttributeService = Substitute.For<IMacCustomAttributeService>();
+        macAttributeService.CreateMacCustomAttributeAsync(
+            Arg.Do<DeviceCustomAttributeShellScript>(s => capturedMacAttribute = s),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceCustomAttributeShellScript { Id = "new-mac", DisplayName = "Created Attr" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, macCustomAttributeService: macAttributeService);
         var table = new MigrationTable();
 
         var script = new DeviceCustomAttributeShellScript
@@ -871,8 +925,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportMacCustomAttributeAsync(script, table);
 
         Assert.Equal("new-mac", created.Id);
-        Assert.NotNull(macAttributeService.LastCreatedScript);
-        Assert.Null(macAttributeService.LastCreatedScript!.Id);
+        Assert.NotNull(capturedMacAttribute);
+        Assert.Null(capturedMacAttribute!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("MacCustomAttribute", table.Entries[0].ObjectType);
         Assert.Equal("old-mac", table.Entries[0].OriginalId);
@@ -882,11 +936,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportFeatureUpdateProfileAsync_UpdatesMigration()
     {
-        var featureUpdateService = new StubFeatureUpdateProfileService
-        {
-            CreateResult = new WindowsFeatureUpdateProfile { Id = "new-fup", DisplayName = "Created Feature Update" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, featureUpdateProfileService: featureUpdateService);
+        WindowsFeatureUpdateProfile? capturedFeatureUpdate = null;
+        var featureUpdateService = Substitute.For<IFeatureUpdateProfileService>();
+        featureUpdateService.CreateFeatureUpdateProfileAsync(
+            Arg.Do<WindowsFeatureUpdateProfile>(p => capturedFeatureUpdate = p),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new WindowsFeatureUpdateProfile { Id = "new-fup", DisplayName = "Created Feature Update" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, featureUpdateProfileService: featureUpdateService);
         var table = new MigrationTable();
 
         var profile = new WindowsFeatureUpdateProfile
@@ -900,8 +956,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportFeatureUpdateProfileAsync(profile, table);
 
         Assert.Equal("new-fup", created.Id);
-        Assert.NotNull(featureUpdateService.LastCreatedProfile);
-        Assert.Null(featureUpdateService.LastCreatedProfile!.Id);
+        Assert.NotNull(capturedFeatureUpdate);
+        Assert.Null(capturedFeatureUpdate!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("FeatureUpdateProfile", table.Entries[0].ObjectType);
         Assert.Equal("old-fup", table.Entries[0].OriginalId);
@@ -911,15 +967,17 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportNamedLocationAsync_UpdatesMigration()
     {
-        var namedLocationService = new StubNamedLocationService
-        {
-            CreateResult = new NamedLocation
+        NamedLocation? capturedNamedLocation = null;
+        var namedLocationService = Substitute.For<INamedLocationService>();
+        namedLocationService.CreateNamedLocationAsync(
+            Arg.Do<NamedLocation>(l => capturedNamedLocation = l),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new NamedLocation
             {
                 Id = "new-nl",
                 AdditionalData = new Dictionary<string, object> { ["displayName"] = "Created Location" }
-            }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, namedLocationService: namedLocationService);
+            }));
+        var sut = new ImportService(DefaultCfgSvc(), null, namedLocationService: namedLocationService);
         var table = new MigrationTable();
 
         var namedLocation = new NamedLocation
@@ -931,8 +989,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportNamedLocationAsync(namedLocation, table);
 
         Assert.Equal("new-nl", created.Id);
-        Assert.NotNull(namedLocationService.LastCreatedNamedLocation);
-        Assert.Null(namedLocationService.LastCreatedNamedLocation!.Id);
+        Assert.NotNull(capturedNamedLocation);
+        Assert.Null(capturedNamedLocation!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("NamedLocation", table.Entries[0].ObjectType);
         Assert.Equal("old-nl", table.Entries[0].OriginalId);
@@ -942,11 +1000,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAuthenticationStrengthPolicyAsync_UpdatesMigration()
     {
-        var authStrengthService = new StubAuthenticationStrengthService
-        {
-            CreateResult = new AuthenticationStrengthPolicy { Id = "new-asp", DisplayName = "Created Strength" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, authenticationStrengthService: authStrengthService);
+        AuthenticationStrengthPolicy? capturedStrengthPolicy = null;
+        var authStrengthService = Substitute.For<IAuthenticationStrengthService>();
+        authStrengthService.CreateAuthenticationStrengthPolicyAsync(
+            Arg.Do<AuthenticationStrengthPolicy>(p => capturedStrengthPolicy = p),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AuthenticationStrengthPolicy { Id = "new-asp", DisplayName = "Created Strength" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, authenticationStrengthService: authStrengthService);
         var table = new MigrationTable();
 
         var policy = new AuthenticationStrengthPolicy
@@ -958,8 +1018,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportAuthenticationStrengthPolicyAsync(policy, table);
 
         Assert.Equal("new-asp", created.Id);
-        Assert.NotNull(authStrengthService.LastCreatedPolicy);
-        Assert.Null(authStrengthService.LastCreatedPolicy!.Id);
+        Assert.NotNull(capturedStrengthPolicy);
+        Assert.Null(capturedStrengthPolicy!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("AuthenticationStrengthPolicy", table.Entries[0].ObjectType);
         Assert.Equal("old-asp", table.Entries[0].OriginalId);
@@ -969,11 +1029,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAuthenticationContextAsync_UpdatesMigration()
     {
-        var authContextService = new StubAuthenticationContextService
-        {
-            CreateResult = new AuthenticationContextClassReference { Id = "new-ctx", DisplayName = "Created Context" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, authenticationContextService: authContextService);
+        AuthenticationContextClassReference? capturedAuthContext = null;
+        var authContextService = Substitute.For<IAuthenticationContextService>();
+        authContextService.CreateAuthenticationContextAsync(
+            Arg.Do<AuthenticationContextClassReference>(c => capturedAuthContext = c),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AuthenticationContextClassReference { Id = "new-ctx", DisplayName = "Created Context" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, authenticationContextService: authContextService);
         var table = new MigrationTable();
 
         var context = new AuthenticationContextClassReference
@@ -985,8 +1047,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportAuthenticationContextAsync(context, table);
 
         Assert.Equal("new-ctx", created.Id);
-        Assert.NotNull(authContextService.LastCreatedContext);
-        Assert.Null(authContextService.LastCreatedContext!.Id);
+        Assert.NotNull(capturedAuthContext);
+        Assert.Null(capturedAuthContext!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("AuthenticationContext", table.Entries[0].ObjectType);
         Assert.Equal("old-ctx", table.Entries[0].OriginalId);
@@ -999,7 +1061,7 @@ public class ImportServiceTests : IDisposable
     public void LegacyConstructor_12Params_IsCallable()
     {
         var sut = new ImportService(
-            new StubConfigurationService(), null, null, null, null, null, null, null, null, null, null, null);
+            DefaultCfgSvc(), null, null, null, null, null, null, null, null, null, null, null);
         Assert.NotNull(sut);
     }
 
@@ -1008,7 +1070,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadEndpointSecurityIntentsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadEndpointSecurityIntentsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1016,7 +1078,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadAdministrativeTemplatesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAdministrativeTemplatesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1024,7 +1086,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadEnrollmentConfigurationsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadEnrollmentConfigurationsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1032,7 +1094,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadAppProtectionPoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAppProtectionPoliciesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1040,7 +1102,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadManagedDeviceAppConfigurationsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadManagedDeviceAppConfigurationsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1048,7 +1110,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadTargetedManagedAppConfigurationsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadTargetedManagedAppConfigurationsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1056,7 +1118,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadTermsAndConditionsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadTermsAndConditionsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1064,7 +1126,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadScopeTagsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadScopeTagsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1072,7 +1134,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadRoleDefinitionsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadRoleDefinitionsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1080,7 +1142,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadIntuneBrandingProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadIntuneBrandingProfilesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1088,7 +1150,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadAzureBrandingLocalizationsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAzureBrandingLocalizationsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1096,7 +1158,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadAutopilotProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAutopilotProfilesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1104,7 +1166,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadDeviceHealthScriptsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDeviceHealthScriptsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1112,7 +1174,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadMacCustomAttributesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadMacCustomAttributesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1120,7 +1182,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadFeatureUpdateProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadFeatureUpdateProfilesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1128,7 +1190,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadNamedLocationsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadNamedLocationsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1136,7 +1198,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadAuthenticationStrengthPoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAuthenticationStrengthPoliciesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1144,7 +1206,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadAuthenticationContextsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAuthenticationContextsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1152,7 +1214,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadTermsOfUseAgreementsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadTermsOfUseAgreementsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1170,7 +1232,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "e1.json"), System.Text.Json.JsonSerializer.Serialize(e1));
         await File.WriteAllTextAsync(Path.Combine(folder, "e2.json"), System.Text.Json.JsonSerializer.Serialize(e2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadEndpointSecurityIntentsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1187,7 +1249,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "t1.json"), System.Text.Json.JsonSerializer.Serialize(t1));
         await File.WriteAllTextAsync(Path.Combine(folder, "t2.json"), System.Text.Json.JsonSerializer.Serialize(t2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAdministrativeTemplatesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1204,7 +1266,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "ec1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
         await File.WriteAllTextAsync(Path.Combine(folder, "ec2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadEnrollmentConfigurationsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1221,7 +1283,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAppProtectionPoliciesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1238,7 +1300,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "c1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
         await File.WriteAllTextAsync(Path.Combine(folder, "c2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadManagedDeviceAppConfigurationsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1255,7 +1317,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "c1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
         await File.WriteAllTextAsync(Path.Combine(folder, "c2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadTargetedManagedAppConfigurationsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1272,7 +1334,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "t1.json"), System.Text.Json.JsonSerializer.Serialize(t1));
         await File.WriteAllTextAsync(Path.Combine(folder, "t2.json"), System.Text.Json.JsonSerializer.Serialize(t2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadTermsAndConditionsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1289,7 +1351,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(s1));
         await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(s2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadScopeTagsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1306,7 +1368,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "r1.json"), System.Text.Json.JsonSerializer.Serialize(r1));
         await File.WriteAllTextAsync(Path.Combine(folder, "r2.json"), System.Text.Json.JsonSerializer.Serialize(r2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadRoleDefinitionsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1323,7 +1385,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "b1.json"), System.Text.Json.JsonSerializer.Serialize(b1));
         await File.WriteAllTextAsync(Path.Combine(folder, "b2.json"), System.Text.Json.JsonSerializer.Serialize(b2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadIntuneBrandingProfilesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1340,7 +1402,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "l1.json"), System.Text.Json.JsonSerializer.Serialize(l1));
         await File.WriteAllTextAsync(Path.Combine(folder, "l2.json"), System.Text.Json.JsonSerializer.Serialize(l2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAzureBrandingLocalizationsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1357,7 +1419,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAutopilotProfilesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1374,7 +1436,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(s1));
         await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(s2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDeviceHealthScriptsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1391,7 +1453,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "a1.json"), System.Text.Json.JsonSerializer.Serialize(a1));
         await File.WriteAllTextAsync(Path.Combine(folder, "a2.json"), System.Text.Json.JsonSerializer.Serialize(a2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadMacCustomAttributesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1408,7 +1470,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadFeatureUpdateProfilesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1425,7 +1487,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "n1.json"), System.Text.Json.JsonSerializer.Serialize(n1));
         await File.WriteAllTextAsync(Path.Combine(folder, "n2.json"), System.Text.Json.JsonSerializer.Serialize(n2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadNamedLocationsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1442,7 +1504,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAuthenticationStrengthPoliciesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1459,7 +1521,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "c1.json"), System.Text.Json.JsonSerializer.Serialize(c1));
         await File.WriteAllTextAsync(Path.Combine(folder, "c2.json"), System.Text.Json.JsonSerializer.Serialize(c2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadAuthenticationContextsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1476,7 +1538,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "a1.json"), System.Text.Json.JsonSerializer.Serialize(a1));
         await File.WriteAllTextAsync(Path.Combine(folder, "a2.json"), System.Text.Json.JsonSerializer.Serialize(a2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadTermsOfUseAgreementsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1487,11 +1549,11 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportNamedLocationAsync_NullAdditionalData_UsesUnknownName()
     {
-        var namedLocationService = new StubNamedLocationService
-        {
-            CreateResult = new NamedLocation { Id = "created-nl", AdditionalData = null }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, namedLocationService: namedLocationService);
+        var namedLocationService = Substitute.For<INamedLocationService>();
+        namedLocationService.CreateNamedLocationAsync(
+            Arg.Any<NamedLocation>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new NamedLocation { Id = "created-nl", AdditionalData = null }));
+        var sut = new ImportService(DefaultCfgSvc(), null, namedLocationService: namedLocationService);
         var table = new MigrationTable();
 
         var namedLocation = new NamedLocation { Id = "orig-nl" };
@@ -1504,7 +1566,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadDeviceManagementScriptsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDeviceManagementScriptsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1522,7 +1584,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(e1));
         await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(e2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDeviceManagementScriptsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1531,11 +1593,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportDeviceManagementScriptAsync_UpdatesMigration()
     {
-        var scriptService = new StubDeviceManagementScriptService
-        {
-            CreateResult = new DeviceManagementScript { Id = "new-dms", DisplayName = "Created Script" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, deviceManagementScriptService: scriptService);
+        DeviceManagementScript? capturedDmsScript = null;
+        var scriptService = Substitute.For<IDeviceManagementScriptService>();
+        scriptService.CreateDeviceManagementScriptAsync(
+            Arg.Do<DeviceManagementScript>(s => capturedDmsScript = s),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceManagementScript { Id = "new-dms", DisplayName = "Created Script" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, deviceManagementScriptService: scriptService);
         var table = new MigrationTable();
 
         var script = new DeviceManagementScript
@@ -1555,8 +1619,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportDeviceManagementScriptAsync(export.Script, table);
 
         Assert.Equal("new-dms", created.Id);
-        Assert.NotNull(scriptService.LastCreatedScript);
-        Assert.Null(scriptService.LastCreatedScript!.Id);
+        Assert.NotNull(capturedDmsScript);
+        Assert.Null(capturedDmsScript!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("DeviceManagementScript", table.Entries[0].ObjectType);
         Assert.Equal("old-dms", table.Entries[0].OriginalId);
@@ -1566,7 +1630,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadDeviceShellScriptsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDeviceShellScriptsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1584,7 +1648,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(e1));
         await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(e2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDeviceShellScriptsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1593,11 +1657,13 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportDeviceShellScriptAsync_UpdatesMigration()
     {
-        var scriptService = new StubDeviceShellScriptService
-        {
-            CreateResult = new DeviceShellScript { Id = "new-dss", DisplayName = "Created Shell" }
-        };
-        var sut = new ImportService(new StubConfigurationService(), null, deviceShellScriptService: scriptService);
+        DeviceShellScript? capturedDssScript = null;
+        var scriptService = Substitute.For<IDeviceShellScriptService>();
+        scriptService.CreateDeviceShellScriptAsync(
+            Arg.Do<DeviceShellScript>(s => capturedDssScript = s),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceShellScript { Id = "new-dss", DisplayName = "Created Shell" }));
+        var sut = new ImportService(DefaultCfgSvc(), null, deviceShellScriptService: scriptService);
         var table = new MigrationTable();
 
         var script = new DeviceShellScript
@@ -1617,8 +1683,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportDeviceShellScriptAsync(export.Script, table);
 
         Assert.Equal("new-dss", created.Id);
-        Assert.NotNull(scriptService.LastCreatedScript);
-        Assert.Null(scriptService.LastCreatedScript!.Id);
+        Assert.NotNull(capturedDssScript);
+        Assert.Null(capturedDssScript!.Id);
         Assert.Single(table.Entries);
         Assert.Equal("DeviceShellScript", table.Entries[0].ObjectType);
         Assert.Equal("old-dss", table.Entries[0].OriginalId);
@@ -1628,7 +1694,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadComplianceScriptsFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadComplianceScriptsFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1644,7 +1710,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "s1.json"), System.Text.Json.JsonSerializer.Serialize(s1));
         await File.WriteAllTextAsync(Path.Combine(folder, "s2.json"), System.Text.Json.JsonSerializer.Serialize(s2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadComplianceScriptsFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1653,7 +1719,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportQualityUpdateProfileAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var profile = new WindowsQualityUpdateProfile { Id = "old", DisplayName = "Old" };
 
@@ -1663,12 +1729,12 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportQualityUpdateProfileAsync_UpdatesMigration()
     {
-        var qualityUpdateService = new StubQualityUpdateProfileService
-        {
-            CreateResult = new WindowsQualityUpdateProfile { Id = "new-qup", DisplayName = "Created Quality Update" }
-        };
+        var qualityUpdateService = Substitute.For<IQualityUpdateProfileService>();
+        qualityUpdateService.CreateQualityUpdateProfileAsync(
+            Arg.Any<WindowsQualityUpdateProfile>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new WindowsQualityUpdateProfile { Id = "new-qup", DisplayName = "Created Quality Update" }));
 
-        var sut = new ImportService(new StubConfigurationService(),
+        var sut = new ImportService(DefaultCfgSvc(),
             qualityUpdateProfileService: qualityUpdateService);
 
         var table = new MigrationTable();
@@ -1690,7 +1756,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadQualityUpdateProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadQualityUpdateProfilesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1698,7 +1764,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadSettingsCatalogPoliciesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadSettingsCatalogPoliciesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1714,7 +1780,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadQualityUpdateProfilesFromFolderAsync(_tempDir);
         Assert.Equal(2, result.Count);
     }
@@ -1730,7 +1796,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(export1, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(export2, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadSettingsCatalogPoliciesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1739,7 +1805,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportDriverUpdateProfileAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService(), null);
+        var sut = new ImportService(DefaultCfgSvc(), null);
         var table = new MigrationTable();
         var profile = new WindowsDriverUpdateProfile { Id = "old", DisplayName = "Old" };
 
@@ -1749,12 +1815,12 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportDriverUpdateProfileAsync_UpdatesMigration()
     {
-        var driverUpdateService = new StubDriverUpdateProfileService
-        {
-            CreateResult = new WindowsDriverUpdateProfile { Id = "new-dup", DisplayName = "Created Driver Update" }
-        };
+        var driverUpdateService = Substitute.For<IDriverUpdateProfileService>();
+        driverUpdateService.CreateDriverUpdateProfileAsync(
+            Arg.Any<WindowsDriverUpdateProfile>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new WindowsDriverUpdateProfile { Id = "new-dup", DisplayName = "Created Driver Update" }));
 
-        var sut = new ImportService(new StubConfigurationService(),
+        var sut = new ImportService(DefaultCfgSvc(),
             driverUpdateProfileService: driverUpdateService);
 
         var table = new MigrationTable();
@@ -1776,7 +1842,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ReadDriverUpdateProfilesFromFolderAsync_MissingFolder_ReturnsEmpty()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDriverUpdateProfilesFromFolderAsync(_tempDir);
         Assert.Empty(result);
     }
@@ -1792,7 +1858,7 @@ public class ImportServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "p1.json"), System.Text.Json.JsonSerializer.Serialize(p1));
         await File.WriteAllTextAsync(Path.Combine(folder, "p2.json"), System.Text.Json.JsonSerializer.Serialize(p2));
 
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var result = await sut.ReadDriverUpdateProfilesFromFolderAsync(_tempDir);
 
         Assert.Equal(2, result.Count);
@@ -1801,7 +1867,7 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportSettingsCatalogPolicyAsync_WithoutService_Throws()
     {
-        var sut = new ImportService(new StubConfigurationService());
+        var sut = new ImportService(DefaultCfgSvc());
         var export = new SettingsCatalogExport { Policy = new DeviceManagementConfigurationPolicy { Id = "sc-id", Name = "Policy" } };
         var table = new MigrationTable();
 
@@ -1812,8 +1878,16 @@ public class ImportServiceTests : IDisposable
     [Fact]
     public async Task ImportSettingsCatalogPolicyAsync_UpdatesMigration()
     {
-        var stubSvc = new StubSettingsCatalogService();
-        var sut = new ImportService(new StubConfigurationService(), settingsCatalogService: stubSvc);
+        DeviceManagementConfigurationPolicy? capturedScPolicy = null;
+        var stubSvc = Substitute.For<ISettingsCatalogService>();
+        stubSvc.CreateSettingsCatalogPolicyAsync(
+            Arg.Do<DeviceManagementConfigurationPolicy>(p => capturedScPolicy = p),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceManagementConfigurationPolicy { Id = "created-sc", Name = "Created" }));
+        stubSvc.AssignSettingsCatalogPolicyAsync(
+            Arg.Any<string>(), Arg.Any<List<DeviceManagementConfigurationPolicyAssignment>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        var sut = new ImportService(DefaultCfgSvc(), settingsCatalogService: stubSvc);
         var export = new SettingsCatalogExport
         {
             Policy = new DeviceManagementConfigurationPolicy { Id = "orig-id", Name = "My Policy" }
@@ -1823,15 +1897,25 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportSettingsCatalogPolicyAsync(export, table);
 
         Assert.Equal("created-sc", created.Id);
-        Assert.Null(stubSvc.LastCreatedPolicy!.Id);
+        Assert.Null(capturedScPolicy!.Id);
         Assert.Contains(table.Entries, e => e.ObjectType == "SettingsCatalog" && e.OriginalId == "orig-id" && e.NewId == "created-sc");
     }
 
     [Fact]
     public async Task ImportSettingsCatalogPolicyAsync_WithAssignments_CallsAssign()
     {
-        var stubSvc = new StubSettingsCatalogService();
-        var sut = new ImportService(new StubConfigurationService(), settingsCatalogService: stubSvc);
+        string? lastAssignedPolicyId = null;
+        List<DeviceManagementConfigurationPolicyAssignment>? lastAssignments = null;
+        var stubSvc = Substitute.For<ISettingsCatalogService>();
+        stubSvc.CreateSettingsCatalogPolicyAsync(
+            Arg.Any<DeviceManagementConfigurationPolicy>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new DeviceManagementConfigurationPolicy { Id = "created-sc", Name = "Created" }));
+        stubSvc.AssignSettingsCatalogPolicyAsync(
+            Arg.Do<string>(id => lastAssignedPolicyId = id),
+            Arg.Do<List<DeviceManagementConfigurationPolicyAssignment>>(a => lastAssignments = a),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        var sut = new ImportService(DefaultCfgSvc(), settingsCatalogService: stubSvc);
         var export = new SettingsCatalogExport
         {
             Policy = new DeviceManagementConfigurationPolicy { Id = "orig-id", Name = "My Policy" },
@@ -1841,714 +1925,26 @@ public class ImportServiceTests : IDisposable
 
         await sut.ImportSettingsCatalogPolicyAsync(export, table);
 
-        Assert.Equal("created-sc", stubSvc.LastAssignedPolicyId);
-        Assert.NotNull(stubSvc.LastAssignments);
-        Assert.Null(stubSvc.LastAssignments![0].Id);
+        Assert.Equal("created-sc", lastAssignedPolicyId);
+        Assert.NotNull(lastAssignments);
+        Assert.Null(lastAssignments![0].Id);
     }
 
-    private sealed class StubConfigurationService : IConfigurationProfileService
+    private static IConfigurationProfileService DefaultCfgSvc()
     {
-        public DeviceConfiguration? LastCreatedConfig { get; private set; }
-        public DeviceConfiguration CreateResult { get; set; } = new() { Id = "created", DisplayName = "Created" };
-
-        public Task<List<DeviceConfiguration>> ListDeviceConfigurationsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceConfiguration>());
-
-        public Task<DeviceConfiguration?> GetDeviceConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceConfiguration?>(null);
-
-        public Task<DeviceConfiguration> CreateDeviceConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken = default)
-        {
-            LastCreatedConfig = config;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceConfiguration> UpdateDeviceConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken = default)
-            => Task.FromResult(config);
-
-        public Task DeleteDeviceConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<DeviceConfigurationAssignment>> GetAssignmentsAsync(string configId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceConfigurationAssignment>());
+        var svc = Substitute.For<IConfigurationProfileService>();
+        svc.CreateDeviceConfigurationAsync(Arg.Any<DeviceConfiguration>(), Arg.Any<CancellationToken>())
+           .Returns(Task.FromResult(new DeviceConfiguration { Id = "created", DisplayName = "Created" }));
+        return svc;
     }
 
-    private sealed class StubComplianceService : ICompliancePolicyService
+    private static ICompliancePolicyService DefaultComplianceSvc()
     {
-        public DeviceCompliancePolicy? LastCreatedPolicy { get; private set; }
-        public DeviceCompliancePolicy CreateResult { get; set; } = new() { Id = "created-policy", DisplayName = "Created" };
-
-        public bool AssignCalled { get; private set; }
-        public string? AssignedPolicyId { get; private set; }
-        public List<DeviceCompliancePolicyAssignment>? AssignedAssignments { get; private set; }
-
-        public Task<List<DeviceCompliancePolicy>> ListCompliancePoliciesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceCompliancePolicy>());
-
-        public Task<DeviceCompliancePolicy?> GetCompliancePolicyAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceCompliancePolicy?>(null);
-
-        public Task<DeviceCompliancePolicy> CreateCompliancePolicyAsync(DeviceCompliancePolicy policy, CancellationToken cancellationToken = default)
-        {
-            LastCreatedPolicy = policy;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceCompliancePolicy> UpdateCompliancePolicyAsync(DeviceCompliancePolicy policy, CancellationToken cancellationToken = default)
-            => Task.FromResult(policy);
-
-        public Task DeleteCompliancePolicyAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<DeviceCompliancePolicyAssignment>> GetAssignmentsAsync(string policyId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceCompliancePolicyAssignment>());
-
-        public Task AssignPolicyAsync(string policyId, List<DeviceCompliancePolicyAssignment> assignments, CancellationToken cancellationToken = default)
-        {
-            AssignCalled = true;
-            AssignedPolicyId = policyId;
-            AssignedAssignments = assignments;
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class StubEndpointSecurityService : IEndpointSecurityService
-    {
-        public DeviceManagementIntent? LastCreatedIntent { get; private set; }
-        public DeviceManagementIntent CreateResult { get; set; } = new() { Id = "created-intent", DisplayName = "Created" };
-
-        public bool AssignCalled { get; private set; }
-        public string? AssignedIntentId { get; private set; }
-        public List<DeviceManagementIntentAssignment>? AssignedAssignments { get; private set; }
-
-        public Task<List<DeviceManagementIntent>> ListEndpointSecurityIntentsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementIntent>());
-
-        public Task<DeviceManagementIntent?> GetEndpointSecurityIntentAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceManagementIntent?>(null);
-
-        public Task<DeviceManagementIntent> CreateEndpointSecurityIntentAsync(DeviceManagementIntent intent, CancellationToken cancellationToken = default)
-        {
-            LastCreatedIntent = intent;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceManagementIntent> UpdateEndpointSecurityIntentAsync(DeviceManagementIntent intent, CancellationToken cancellationToken = default)
-            => Task.FromResult(intent);
-
-        public Task DeleteEndpointSecurityIntentAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<DeviceManagementIntentAssignment>> GetAssignmentsAsync(string intentId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementIntentAssignment>());
-
-        public Task AssignIntentAsync(string intentId, List<DeviceManagementIntentAssignment> assignments, CancellationToken cancellationToken = default)
-        {
-            AssignCalled = true;
-            AssignedIntentId = intentId;
-            AssignedAssignments = assignments;
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class StubAdministrativeTemplateService : IAdministrativeTemplateService
-    {
-        public GroupPolicyConfiguration? LastCreatedTemplate { get; private set; }
-        public GroupPolicyConfiguration CreateResult { get; set; } = new() { Id = "created-template", DisplayName = "Created" };
-
-        public bool AssignCalled { get; private set; }
-        public string? AssignedTemplateId { get; private set; }
-        public List<GroupPolicyConfigurationAssignment>? AssignedAssignments { get; private set; }
-
-        public Task<List<GroupPolicyConfiguration>> ListAdministrativeTemplatesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<GroupPolicyConfiguration>());
-
-        public Task<GroupPolicyConfiguration?> GetAdministrativeTemplateAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<GroupPolicyConfiguration?>(null);
-
-        public Task<GroupPolicyConfiguration> CreateAdministrativeTemplateAsync(GroupPolicyConfiguration template, CancellationToken cancellationToken = default)
-        {
-            LastCreatedTemplate = template;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<GroupPolicyConfiguration> UpdateAdministrativeTemplateAsync(GroupPolicyConfiguration template, CancellationToken cancellationToken = default)
-            => Task.FromResult(template);
-
-        public Task DeleteAdministrativeTemplateAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<GroupPolicyConfigurationAssignment>> GetAssignmentsAsync(string templateId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<GroupPolicyConfigurationAssignment>());
-
-        public Task AssignAdministrativeTemplateAsync(string templateId, List<GroupPolicyConfigurationAssignment> assignments, CancellationToken cancellationToken = default)
-        {
-            AssignCalled = true;
-            AssignedTemplateId = templateId;
-            AssignedAssignments = assignments;
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class StubEnrollmentConfigurationService : IEnrollmentConfigurationService
-    {
-        public DeviceEnrollmentConfiguration? LastCreatedConfiguration { get; private set; }
-        public DeviceEnrollmentConfiguration CreateResult { get; set; } = new() { Id = "created-enroll", DisplayName = "Created" };
-
-        public Task<List<DeviceEnrollmentConfiguration>> ListEnrollmentConfigurationsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
-
-        public Task<List<DeviceEnrollmentConfiguration>> ListEnrollmentStatusPagesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
-
-        public Task<List<DeviceEnrollmentConfiguration>> ListEnrollmentRestrictionsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
-
-        public Task<List<DeviceEnrollmentConfiguration>> ListCoManagementSettingsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceEnrollmentConfiguration>());
-
-        public Task<DeviceEnrollmentConfiguration?> GetEnrollmentConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceEnrollmentConfiguration?>(null);
-
-        public Task<DeviceEnrollmentConfiguration> CreateEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, CancellationToken cancellationToken = default)
-        {
-            LastCreatedConfiguration = configuration;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceEnrollmentConfiguration> UpdateEnrollmentConfigurationAsync(DeviceEnrollmentConfiguration configuration, CancellationToken cancellationToken = default)
-            => Task.FromResult(configuration);
-
-        public Task DeleteEnrollmentConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubAppProtectionPolicyService : IAppProtectionPolicyService
-    {
-        public ManagedAppPolicy? LastCreatedPolicy { get; private set; }
-        public ManagedAppPolicy CreateResult { get; set; } = new AndroidManagedAppProtection { Id = "created-app-protect", DisplayName = "Created" };
-
-        public Task<List<ManagedAppPolicy>> ListAppProtectionPoliciesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<ManagedAppPolicy>());
-
-        public Task<ManagedAppPolicy?> GetAppProtectionPolicyAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<ManagedAppPolicy?>(null);
-
-        public Task<ManagedAppPolicy> CreateAppProtectionPolicyAsync(ManagedAppPolicy policy, CancellationToken cancellationToken = default)
-        {
-            LastCreatedPolicy = policy;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<ManagedAppPolicy> UpdateAppProtectionPolicyAsync(ManagedAppPolicy policy, CancellationToken cancellationToken = default)
-            => Task.FromResult(policy);
-
-        public Task DeleteAppProtectionPolicyAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubManagedAppConfigurationService : IManagedAppConfigurationService
-    {
-        public ManagedDeviceMobileAppConfiguration? LastCreatedManagedDeviceConfiguration { get; private set; }
-        public TargetedManagedAppConfiguration? LastCreatedTargetedConfiguration { get; private set; }
-        public ManagedDeviceMobileAppConfiguration CreateManagedDeviceResult { get; set; } = new() { Id = "created-mdac", DisplayName = "Created" };
-        public TargetedManagedAppConfiguration CreateTargetedResult { get; set; } = new() { Id = "created-tmac", DisplayName = "Created" };
-
-        public Task<List<ManagedDeviceMobileAppConfiguration>> ListManagedDeviceAppConfigurationsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<ManagedDeviceMobileAppConfiguration>());
-
-        public Task<ManagedDeviceMobileAppConfiguration?> GetManagedDeviceAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<ManagedDeviceMobileAppConfiguration?>(null);
-
-        public Task<ManagedDeviceMobileAppConfiguration> CreateManagedDeviceAppConfigurationAsync(ManagedDeviceMobileAppConfiguration configuration, CancellationToken cancellationToken = default)
-        {
-            LastCreatedManagedDeviceConfiguration = configuration;
-            return Task.FromResult(CreateManagedDeviceResult);
-        }
-
-        public Task<ManagedDeviceMobileAppConfiguration> UpdateManagedDeviceAppConfigurationAsync(ManagedDeviceMobileAppConfiguration configuration, CancellationToken cancellationToken = default)
-            => Task.FromResult(configuration);
-
-        public Task DeleteManagedDeviceAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<TargetedManagedAppConfiguration>> ListTargetedManagedAppConfigurationsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<TargetedManagedAppConfiguration>());
-
-        public Task<TargetedManagedAppConfiguration?> GetTargetedManagedAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<TargetedManagedAppConfiguration?>(null);
-
-        public Task<TargetedManagedAppConfiguration> CreateTargetedManagedAppConfigurationAsync(TargetedManagedAppConfiguration configuration, CancellationToken cancellationToken = default)
-        {
-            LastCreatedTargetedConfiguration = configuration;
-            return Task.FromResult(CreateTargetedResult);
-        }
-
-        public Task<TargetedManagedAppConfiguration> UpdateTargetedManagedAppConfigurationAsync(TargetedManagedAppConfiguration configuration, CancellationToken cancellationToken = default)
-            => Task.FromResult(configuration);
-
-        public Task DeleteTargetedManagedAppConfigurationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubTermsAndConditionsService : ITermsAndConditionsService
-    {
-        public TermsAndConditions? LastCreatedTerms { get; private set; }
-        public TermsAndConditions CreateResult { get; set; } = new() { Id = "created-terms", DisplayName = "Created" };
-
-        public Task<List<TermsAndConditions>> ListTermsAndConditionsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<TermsAndConditions>());
-
-        public Task<TermsAndConditions?> GetTermsAndConditionsAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<TermsAndConditions?>(null);
-
-        public Task<TermsAndConditions> CreateTermsAndConditionsAsync(TermsAndConditions termsAndConditions, CancellationToken cancellationToken = default)
-        {
-            LastCreatedTerms = termsAndConditions;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<TermsAndConditions> UpdateTermsAndConditionsAsync(TermsAndConditions termsAndConditions, CancellationToken cancellationToken = default)
-            => Task.FromResult(termsAndConditions);
-
-        public Task DeleteTermsAndConditionsAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubScopeTagService : IScopeTagService
-    {
-        public RoleScopeTag? LastCreatedScopeTag { get; private set; }
-        public RoleScopeTag CreateResult { get; set; } = new() { Id = "created-scope", DisplayName = "Created" };
-
-        public Task<List<RoleScopeTag>> ListScopeTagsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<RoleScopeTag>());
-
-        public Task<RoleScopeTag?> GetScopeTagAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<RoleScopeTag?>(null);
-
-        public Task<RoleScopeTag> CreateScopeTagAsync(RoleScopeTag scopeTag, CancellationToken cancellationToken = default)
-        {
-            LastCreatedScopeTag = scopeTag;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<RoleScopeTag> UpdateScopeTagAsync(RoleScopeTag scopeTag, CancellationToken cancellationToken = default)
-            => Task.FromResult(scopeTag);
-
-        public Task DeleteScopeTagAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubRoleDefinitionService : IRoleDefinitionService
-    {
-        public RoleDefinition? LastCreatedRoleDefinition { get; private set; }
-        public RoleDefinition CreateResult { get; set; } = new() { Id = "created-role", DisplayName = "Created" };
-
-        public Task<List<RoleDefinition>> ListRoleDefinitionsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<RoleDefinition>());
-
-        public Task<RoleDefinition?> GetRoleDefinitionAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<RoleDefinition?>(null);
-
-        public Task<RoleDefinition> CreateRoleDefinitionAsync(RoleDefinition roleDefinition, CancellationToken cancellationToken = default)
-        {
-            LastCreatedRoleDefinition = roleDefinition;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<RoleDefinition> UpdateRoleDefinitionAsync(RoleDefinition roleDefinition, CancellationToken cancellationToken = default)
-            => Task.FromResult(roleDefinition);
-
-        public Task DeleteRoleDefinitionAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<DeviceAndAppManagementRoleAssignment>> GetRoleAssignmentsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceAndAppManagementRoleAssignment>());
-        public Task<List<RoleAssignment>> GetRoleAssignmentsAsync(string roleDefinitionId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<RoleAssignment>());
-    }
-
-    private sealed class StubIntuneBrandingService : IIntuneBrandingService
-    {
-        public IntuneBrandingProfile? LastCreatedProfile { get; private set; }
-        public IntuneBrandingProfile CreateResult { get; set; } = new() { Id = "created-branding", ProfileName = "Created" };
-
-        public Task<List<IntuneBrandingProfile>> ListIntuneBrandingProfilesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<IntuneBrandingProfile>());
-
-        public Task<IntuneBrandingProfile?> GetIntuneBrandingProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<IntuneBrandingProfile?>(null);
-
-        public Task<IntuneBrandingProfile> CreateIntuneBrandingProfileAsync(IntuneBrandingProfile profile, CancellationToken cancellationToken = default)
-        {
-            LastCreatedProfile = profile;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<IntuneBrandingProfile> UpdateIntuneBrandingProfileAsync(IntuneBrandingProfile profile, CancellationToken cancellationToken = default)
-            => Task.FromResult(profile);
-
-        public Task DeleteIntuneBrandingProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubAzureBrandingService : IAzureBrandingService
-    {
-        public OrganizationalBrandingLocalization? LastCreatedLocalization { get; private set; }
-        public OrganizationalBrandingLocalization CreateResult { get; set; } = new() { Id = "created-locale" };
-
-        public Task<List<OrganizationalBrandingLocalization>> ListBrandingLocalizationsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<OrganizationalBrandingLocalization>());
-
-        public Task<OrganizationalBrandingLocalization?> GetBrandingLocalizationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<OrganizationalBrandingLocalization?>(null);
-
-        public Task<OrganizationalBrandingLocalization> CreateBrandingLocalizationAsync(OrganizationalBrandingLocalization localization, CancellationToken cancellationToken = default)
-        {
-            LastCreatedLocalization = localization;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<OrganizationalBrandingLocalization> UpdateBrandingLocalizationAsync(OrganizationalBrandingLocalization localization, CancellationToken cancellationToken = default)
-            => Task.FromResult(localization);
-
-        public Task DeleteBrandingLocalizationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubAutopilotService : IAutopilotService
-    {
-        public WindowsAutopilotDeploymentProfile? LastCreatedProfile { get; private set; }
-        public WindowsAutopilotDeploymentProfile CreateResult { get; set; } = new() { Id = "created-autopilot", DisplayName = "Created" };
-
-        public Task<List<WindowsAutopilotDeploymentProfile>> ListAutopilotProfilesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<WindowsAutopilotDeploymentProfile>());
-
-        public Task<WindowsAutopilotDeploymentProfile?> GetAutopilotProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<WindowsAutopilotDeploymentProfile?>(null);
-
-        public Task<WindowsAutopilotDeploymentProfile> CreateAutopilotProfileAsync(WindowsAutopilotDeploymentProfile profile, CancellationToken cancellationToken = default)
-        {
-            LastCreatedProfile = profile;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<WindowsAutopilotDeploymentProfile> UpdateAutopilotProfileAsync(WindowsAutopilotDeploymentProfile profile, CancellationToken cancellationToken = default)
-            => Task.FromResult(profile);
-
-        public Task DeleteAutopilotProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubTermsOfUseService : ITermsOfUseService
-    {
-        public Agreement? LastCreatedAgreement { get; private set; }
-        public Agreement CreateResult { get; set; } = new() { Id = "created-tou", DisplayName = "Created" };
-
-        public Task<List<Agreement>> ListTermsOfUseAgreementsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<Agreement>());
-
-        public Task<Agreement?> GetTermsOfUseAgreementAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<Agreement?>(null);
-
-        public Task<Agreement> CreateTermsOfUseAgreementAsync(Agreement agreement, CancellationToken cancellationToken = default)
-        {
-            LastCreatedAgreement = agreement;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<Agreement> UpdateTermsOfUseAgreementAsync(Agreement agreement, CancellationToken cancellationToken = default)
-            => Task.FromResult(agreement);
-
-        public Task DeleteTermsOfUseAgreementAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubDeviceHealthScriptService : IDeviceHealthScriptService
-    {
-        public DeviceHealthScript? LastCreatedScript { get; private set; }
-        public DeviceHealthScript CreateResult { get; set; } = new() { Id = "created-dhs", DisplayName = "Created" };
-
-        public Task<List<DeviceHealthScript>> ListDeviceHealthScriptsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceHealthScript>());
-
-        public Task<DeviceHealthScript?> GetDeviceHealthScriptAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceHealthScript?>(null);
-
-        public Task<List<DeviceHealthScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceHealthScriptAssignment>());
-
-        public Task<DeviceHealthScript> CreateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default)
-        {
-            LastCreatedScript = script;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceHealthScript> UpdateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default)
-            => Task.FromResult(script);
-
-        public Task DeleteDeviceHealthScriptAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubMacCustomAttributeService : IMacCustomAttributeService
-    {
-        public DeviceCustomAttributeShellScript? LastCreatedScript { get; private set; }
-        public DeviceCustomAttributeShellScript CreateResult { get; set; } = new() { Id = "created-mac", DisplayName = "Created" };
-
-        public Task<List<DeviceCustomAttributeShellScript>> ListMacCustomAttributesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceCustomAttributeShellScript>());
-
-        public Task<DeviceCustomAttributeShellScript?> GetMacCustomAttributeAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceCustomAttributeShellScript?>(null);
-
-        public Task<DeviceCustomAttributeShellScript> CreateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default)
-        {
-            LastCreatedScript = script;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceCustomAttributeShellScript> UpdateMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, CancellationToken cancellationToken = default)
-            => Task.FromResult(script);
-
-        public Task DeleteMacCustomAttributeAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubFeatureUpdateProfileService : IFeatureUpdateProfileService
-    {
-        public WindowsFeatureUpdateProfile? LastCreatedProfile { get; private set; }
-        public WindowsFeatureUpdateProfile CreateResult { get; set; } = new() { Id = "created-fup", DisplayName = "Created" };
-
-        public Task<List<WindowsFeatureUpdateProfile>> ListFeatureUpdateProfilesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<WindowsFeatureUpdateProfile>());
-
-        public Task<WindowsFeatureUpdateProfile?> GetFeatureUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<WindowsFeatureUpdateProfile?>(null);
-
-        public Task<WindowsFeatureUpdateProfile> CreateFeatureUpdateProfileAsync(WindowsFeatureUpdateProfile profile, CancellationToken cancellationToken = default)
-        {
-            LastCreatedProfile = profile;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<WindowsFeatureUpdateProfile> UpdateFeatureUpdateProfileAsync(WindowsFeatureUpdateProfile profile, CancellationToken cancellationToken = default)
-            => Task.FromResult(profile);
-
-        public Task DeleteFeatureUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubNamedLocationService : INamedLocationService
-    {
-        public NamedLocation? LastCreatedNamedLocation { get; private set; }
-        public NamedLocation CreateResult { get; set; } = new() { Id = "created-nl", AdditionalData = new Dictionary<string, object> { ["displayName"] = "Created" } };
-
-        public Task<List<NamedLocation>> ListNamedLocationsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<NamedLocation>());
-
-        public Task<NamedLocation?> GetNamedLocationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<NamedLocation?>(null);
-
-        public Task<NamedLocation> CreateNamedLocationAsync(NamedLocation namedLocation, CancellationToken cancellationToken = default)
-        {
-            LastCreatedNamedLocation = namedLocation;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<NamedLocation> UpdateNamedLocationAsync(NamedLocation namedLocation, CancellationToken cancellationToken = default)
-            => Task.FromResult(namedLocation);
-
-        public Task DeleteNamedLocationAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubAuthenticationStrengthService : IAuthenticationStrengthService
-    {
-        public AuthenticationStrengthPolicy? LastCreatedPolicy { get; private set; }
-        public AuthenticationStrengthPolicy CreateResult { get; set; } = new() { Id = "created-asp", DisplayName = "Created" };
-
-        public Task<List<AuthenticationStrengthPolicy>> ListAuthenticationStrengthPoliciesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<AuthenticationStrengthPolicy>());
-
-        public Task<AuthenticationStrengthPolicy?> GetAuthenticationStrengthPolicyAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<AuthenticationStrengthPolicy?>(null);
-
-        public Task<AuthenticationStrengthPolicy> CreateAuthenticationStrengthPolicyAsync(AuthenticationStrengthPolicy policy, CancellationToken cancellationToken = default)
-        {
-            LastCreatedPolicy = policy;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<AuthenticationStrengthPolicy> UpdateAuthenticationStrengthPolicyAsync(AuthenticationStrengthPolicy policy, CancellationToken cancellationToken = default)
-            => Task.FromResult(policy);
-
-        public Task DeleteAuthenticationStrengthPolicyAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubAuthenticationContextService : IAuthenticationContextService
-    {
-        public AuthenticationContextClassReference? LastCreatedContext { get; private set; }
-        public AuthenticationContextClassReference CreateResult { get; set; } = new() { Id = "created-ctx", DisplayName = "Created" };
-
-        public Task<List<AuthenticationContextClassReference>> ListAuthenticationContextsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<AuthenticationContextClassReference>());
-
-        public Task<AuthenticationContextClassReference?> GetAuthenticationContextAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<AuthenticationContextClassReference?>(null);
-
-        public Task<AuthenticationContextClassReference> CreateAuthenticationContextAsync(AuthenticationContextClassReference contextClassReference, CancellationToken cancellationToken = default)
-        {
-            LastCreatedContext = contextClassReference;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<AuthenticationContextClassReference> UpdateAuthenticationContextAsync(AuthenticationContextClassReference contextClassReference, CancellationToken cancellationToken = default)
-            => Task.FromResult(contextClassReference);
-
-        public Task DeleteAuthenticationContextAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubDeviceManagementScriptService : IDeviceManagementScriptService
-    {
-        public DeviceManagementScript? LastCreatedScript { get; private set; }
-        public DeviceManagementScript CreateResult { get; set; } = new() { Id = "created-dms", DisplayName = "Created" };
-
-        public Task<List<DeviceManagementScript>> ListDeviceManagementScriptsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementScript>());
-
-        public Task<DeviceManagementScript?> GetDeviceManagementScriptAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceManagementScript?>(null);
-
-        public Task<DeviceManagementScript> CreateDeviceManagementScriptAsync(DeviceManagementScript script, CancellationToken cancellationToken = default)
-        {
-            LastCreatedScript = script;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceManagementScript> UpdateDeviceManagementScriptAsync(DeviceManagementScript script, CancellationToken cancellationToken = default)
-            => Task.FromResult(script);
-
-        public Task DeleteDeviceManagementScriptAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementScriptAssignment>());
-
-        public Task AssignScriptAsync(string scriptId, List<DeviceManagementScriptAssignment> assignments, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubDeviceShellScriptService : IDeviceShellScriptService
-    {
-        public DeviceShellScript? LastCreatedScript { get; private set; }
-        public DeviceShellScript CreateResult { get; set; } = new() { Id = "created-dss", DisplayName = "Created" };
-
-        public Task<List<DeviceShellScript>> ListDeviceShellScriptsAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceShellScript>());
-
-        public Task<DeviceShellScript?> GetDeviceShellScriptAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceShellScript?>(null);
-
-        public Task<DeviceShellScript> CreateDeviceShellScriptAsync(DeviceShellScript script, CancellationToken cancellationToken = default)
-        {
-            LastCreatedScript = script;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<DeviceShellScript> UpdateDeviceShellScriptAsync(DeviceShellScript script, CancellationToken cancellationToken = default)
-            => Task.FromResult(script);
-
-        public Task DeleteDeviceShellScriptAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<List<DeviceManagementScriptAssignment>> GetAssignmentsAsync(string scriptId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementScriptAssignment>());
-
-        public Task AssignScriptAsync(string scriptId, List<DeviceManagementScriptAssignment> assignments, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubQualityUpdateProfileService : IQualityUpdateProfileService
-    {
-        public WindowsQualityUpdateProfile? LastCreatedProfile { get; private set; }
-        public WindowsQualityUpdateProfile CreateResult { get; set; } = new() { Id = "created-qup", DisplayName = "Created" };
-
-        public Task<List<WindowsQualityUpdateProfile>> ListQualityUpdateProfilesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<WindowsQualityUpdateProfile>());
-
-        public Task<WindowsQualityUpdateProfile?> GetQualityUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<WindowsQualityUpdateProfile?>(null);
-
-        public Task<WindowsQualityUpdateProfile> CreateQualityUpdateProfileAsync(WindowsQualityUpdateProfile profile, CancellationToken cancellationToken = default)
-        {
-            LastCreatedProfile = profile;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<WindowsQualityUpdateProfile> UpdateQualityUpdateProfileAsync(WindowsQualityUpdateProfile profile, CancellationToken cancellationToken = default)
-            => Task.FromResult(profile);
-
-        public Task DeleteQualityUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubDriverUpdateProfileService : IDriverUpdateProfileService
-    {
-        public WindowsDriverUpdateProfile? LastCreatedProfile { get; private set; }
-        public WindowsDriverUpdateProfile CreateResult { get; set; } = new() { Id = "created-dup", DisplayName = "Created" };
-
-        public Task<List<WindowsDriverUpdateProfile>> ListDriverUpdateProfilesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<WindowsDriverUpdateProfile>());
-
-        public Task<WindowsDriverUpdateProfile?> GetDriverUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<WindowsDriverUpdateProfile?>(null);
-
-        public Task<WindowsDriverUpdateProfile> CreateDriverUpdateProfileAsync(WindowsDriverUpdateProfile profile, CancellationToken cancellationToken = default)
-        {
-            LastCreatedProfile = profile;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<WindowsDriverUpdateProfile> UpdateDriverUpdateProfileAsync(WindowsDriverUpdateProfile profile, CancellationToken cancellationToken = default)
-            => Task.FromResult(profile);
-
-        public Task DeleteDriverUpdateProfileAsync(string id, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-    }
-
-    private sealed class StubSettingsCatalogService : ISettingsCatalogService
-    {
-        public DeviceManagementConfigurationPolicy? LastCreatedPolicy { get; private set; }
-        public string? LastAssignedPolicyId { get; private set; }
-        public List<DeviceManagementConfigurationPolicyAssignment>? LastAssignments { get; private set; }
-        public DeviceManagementConfigurationPolicy CreateResult { get; set; } = new() { Id = "created-sc", Name = "Created" };
-
-        public Task<List<DeviceManagementConfigurationPolicy>> ListSettingsCatalogPoliciesAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementConfigurationPolicy>());
-
-        public Task<DeviceManagementConfigurationPolicy?> GetSettingsCatalogPolicyAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult<DeviceManagementConfigurationPolicy?>(null);
-
-        public Task<List<DeviceManagementConfigurationPolicyAssignment>> GetAssignmentsAsync(string policyId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementConfigurationPolicyAssignment>());
-
-        public Task<List<DeviceManagementConfigurationSetting>> GetPolicySettingsAsync(string policyId, CancellationToken cancellationToken = default)
-            => Task.FromResult(new List<DeviceManagementConfigurationSetting>());
-
-        public Task<DeviceManagementConfigurationPolicy> CreateSettingsCatalogPolicyAsync(DeviceManagementConfigurationPolicy policy, CancellationToken cancellationToken = default)
-        {
-            LastCreatedPolicy = policy;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task AssignSettingsCatalogPolicyAsync(string policyId, List<DeviceManagementConfigurationPolicyAssignment> assignments, CancellationToken cancellationToken = default)
-        {
-            LastAssignedPolicyId = policyId;
-            LastAssignments = assignments;
-            return Task.CompletedTask;
-        }
+        var svc = Substitute.For<ICompliancePolicyService>();
+        svc.CreateCompliancePolicyAsync(Arg.Any<DeviceCompliancePolicy>(), Arg.Any<CancellationToken>())
+           .Returns(Task.FromResult(new DeviceCompliancePolicy { Id = "created-policy", DisplayName = "Created" }));
+        svc.AssignPolicyAsync(Arg.Any<string>(), Arg.Any<List<DeviceCompliancePolicyAssignment>>(), Arg.Any<CancellationToken>())
+           .Returns(Task.CompletedTask);
+        return svc;
     }
 }

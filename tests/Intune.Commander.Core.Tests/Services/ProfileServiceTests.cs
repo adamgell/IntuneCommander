@@ -1,5 +1,6 @@
 using Intune.Commander.Core.Models;
 using Intune.Commander.Core.Services;
+using NSubstitute;
 
 namespace Intune.Commander.Core.Tests.Services;
 
@@ -225,4 +226,80 @@ public class ProfileServiceTests : IDisposable
         ClientId = Guid.NewGuid().ToString(),
         Cloud = CloudEnvironment.Commercial
     };
+
+    // ── Encryption interaction tests ──────────────────────────────────────────
+
+    [Fact]
+    public async Task SaveAsync_WithEncryptionService_CallsEncryptAndWritesMarker()
+    {
+        var encryption = Substitute.For<IProfileEncryptionService>();
+        encryption.Encrypt(Arg.Any<string>()).Returns("encrypted-payload");
+
+        var path = Path.Combine(Path.GetTempPath(), $"enc-test-{Guid.NewGuid():N}.json");
+        try
+        {
+            var svc = new ProfileService(path, encryption: encryption);
+            svc.AddProfile(CreateTestProfile("Enc"));
+
+            await svc.SaveAsync();
+
+            encryption.Received(1).Encrypt(Arg.Any<string>());
+            var written = await File.ReadAllTextAsync(path);
+            Assert.StartsWith("INTUNEMANAGER_ENC:", written);
+            Assert.Contains("encrypted-payload", written);
+        }
+        finally { if (File.Exists(path)) File.Delete(path); }
+    }
+
+    [Fact]
+    public async Task LoadAsync_WithEncryptionService_CallsDecryptForEncryptedFile()
+    {
+        var encryption = Substitute.For<IProfileEncryptionService>();
+        encryption.Encrypt(Arg.Any<string>()).Returns("encrypted-payload");
+        // Decrypt should return valid JSON so load succeeds
+        var store = new ProfileStore();
+        store.Profiles.Add(CreateTestProfile("DecTest"));
+        var json = System.Text.Json.JsonSerializer.Serialize(store);
+        encryption.Decrypt("encrypted-payload").Returns(json);
+
+        var path = Path.Combine(Path.GetTempPath(), $"dec-test-{Guid.NewGuid():N}.json");
+        try
+        {
+            var svc = new ProfileService(path, encryption: encryption);
+            svc.AddProfile(CreateTestProfile("DecTest"));
+            await svc.SaveAsync();
+
+            var loader = new ProfileService(path, encryption: encryption);
+            await loader.LoadAsync();
+
+            encryption.Received(1).Decrypt("encrypted-payload");
+            Assert.Single(loader.Profiles);
+        }
+        finally { if (File.Exists(path)) File.Delete(path); }
+    }
+
+    [Fact]
+    public async Task LoadAsync_PlaintextFileWithEncryptionEnabled_LoadsWithoutDecrypt()
+    {
+        var encryption = Substitute.For<IProfileEncryptionService>();
+
+        // Write a plaintext profiles file (no marker)
+        var store = new ProfileStore();
+        store.Profiles.Add(CreateTestProfile("Plain"));
+        var json = System.Text.Json.JsonSerializer.Serialize(store);
+        var path = Path.Combine(Path.GetTempPath(), $"plain-test-{Guid.NewGuid():N}.json");
+        try
+        {
+            await File.WriteAllTextAsync(path, json);
+
+            var svc = new ProfileService(path, encryption: encryption);
+            await svc.LoadAsync();
+
+            // Decrypt should NOT be called for a plaintext file
+            encryption.DidNotReceive().Decrypt(Arg.Any<string>());
+            Assert.Single(svc.Profiles);
+            Assert.Equal("Plain", svc.Profiles[0].Name);
+        }
+        finally { if (File.Exists(path)) File.Delete(path); }
+    }
 }
