@@ -190,7 +190,7 @@ Set environment variable: `SYNCFUSION_LICENSE_KEY=your-license-key-here`
 The app will run without a license key but will display watermarks on exported PowerPoint files.
 
 **How the released binary gets the key:**
-The `SYNCFUSION_LICENSE_KEY` GitHub Actions secret is injected as `-p:SyncfusionLicenseKey=...` during `dotnet publish` and baked into the signed `.exe` as assembly metadata. The key never appears in source code or git history. Store it in your secret manager (e.g. 1Password) and add it as a [repository secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) named `SYNCFUSION_LICENSE_KEY`.
+The tag-triggered `codesign.yml` workflow reads the `SYNCFUSION_LICENSE_KEY` secret from the `codesigning` environment and passes it as `-p:SyncfusionLicenseKey=...` during `dotnet publish`. It is baked into the binary as assembly metadata before Azure Trusted Signing runs. The key never appears in source code or git history. Store it in your secret manager (e.g. 1Password) and add it as a secret in the `codesigning` GitHub Actions environment named `SYNCFUSION_LICENSE_KEY`.
 
 ## Acknowledgments
 

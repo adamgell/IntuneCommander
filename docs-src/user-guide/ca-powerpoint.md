@@ -51,13 +51,13 @@ The app works without a key but will display a watermark on exported slides.
 
 ### How the released `.exe` has the key embedded
 
-The GitHub Actions release workflow reads the `SYNCFUSION_LICENSE_KEY` repository secret and passes it as an MSBuild property during `dotnet publish`:
+The tag-triggered `codesign.yml` workflow reads `SYNCFUSION_LICENSE_KEY` from the `codesigning` GitHub Actions environment and passes it as an MSBuild property during `dotnet publish`:
 
 ```
 -p:SyncfusionLicenseKey="$env:SYNCFUSION_LICENSE_KEY"
 ```
 
-This bakes the key into the signed binary as assembly metadata at build time. No environment variable is required at runtime, so your end users get watermark-free exports automatically.
+This bakes the key into the binary as assembly metadata **before** Azure Trusted Signing runs, so the signed `.exe` carries the key. No environment variable is required at runtime — your end users get watermark-free exports automatically.
 
 ## Current limitations
 
