@@ -2,8 +2,8 @@
 
 This page lists every Microsoft Graph permission required by an Intune Commander app registration, mapped to the services that use them.
 
-!!! info "Delegated permissions"
-    All permissions listed here are **Delegated** (user context). They require **admin consent** in your tenant. The app uses the `https://graph.microsoft.com/.default` scope, which grants whatever permissions are consented on the registration.
+!!! info "Delegated vs Application permissions"
+    The permission names below apply to **both** auth flows. For **Interactive Browser** and **Device Code**, add them as **Delegated** permissions (user context). For **Client Secret**, add the same permission names as **Application** permissions (app-only context). Both types require **admin consent** in your tenant.
 
 ## Intune — Device Management
 
