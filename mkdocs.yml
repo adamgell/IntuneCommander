@@ -13,7 +13,6 @@ site_dir: website/docs
 
 theme:
   name: material
-  custom_dir: docs-src/overrides
   logo: assets/logo.png
   favicon: assets/logo.png
   palette:
