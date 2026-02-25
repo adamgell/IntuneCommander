@@ -9,7 +9,9 @@ Intune Commander is distributed as a **self-contained Windows x64 executable** �
 3. Run the executable — no installer needed.
 
 !!! tip "Windows SmartScreen"
-    The binary on the releases page should always be signed. 
+    The binary on the releases page is code-signed. If Windows SmartScreen still shows a warning on first run, it is because the certificate is building reputation over time — this is normal for a new signing certificate.
+
+    Click **More info → Run anyway** to proceed. Once the certificate has accumulated enough download and run history, the warning will stop appearing automatically.
 
 ## Build from source
 
@@ -26,6 +28,9 @@ If you prefer to build from source:
 # Clone the repository
 git clone https://github.com/adamgell/IntuneCommander.git
 cd IntuneCommander
+
+# restore all nuget packages
+dotnet restore
 
 # Build all projects
 dotnet build

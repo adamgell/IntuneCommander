@@ -4,7 +4,7 @@ Before Intune Commander can connect to your tenant, you need an **Azure AD app r
 
 ## Commercial tenants
 
-1. Sign in to the [**Azure Portal**](https://portal.azure.com) and navigate to **Entra ID → App registrations → New registration**.
+1. Sign in to the [**Microsoft Entra **](https://entra.microsoft.com) and navigate to **App registrations → New registration**.
 2. Give it a name (e.g. `IntuneCommander`).
 3. Under **Supported account types**, select *Accounts in this organizational directory only*.
 4. Under **Redirect URI**, choose **Mobile and desktop applications** and enter:
@@ -38,6 +38,9 @@ Before Intune Commander can connect to your tenant, you need an **Azure AD app r
 
 !!! info "Full permissions reference"
     For a complete breakdown of every permission and which service uses it, see the [Graph Permissions reference](../reference/graph-permissions.md).
+
+!!! alert "Client secret permissions" 
+    Make sure you use application level permissions instead of delegated.
 
 ## Government clouds (GCC-High / DoD)
 
