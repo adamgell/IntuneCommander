@@ -13,7 +13,7 @@ With the app installed and an app registration created, here's how to connect to
 | **Tenant ID** | Your Entra ID tenant ID (GUID) |
 | **Client ID** | The Application (client) ID from your app registration |
 | **Cloud** | `Commercial`, `GCC`, `GCCHigh`, or `DoD` |
-| **Auth Method** | `Interactive` (delegeted permission) or `Client Secret` (application permission) |
+| **Auth Method** | `Interactive` (delegated permission) or `Client Secret` (application permission) |
 
 3. Click **Save Profile** — the profile is encrypted and stored locally.
 4. Select the profile and click **Connect**. A browser window will open for interactive sign-in.
