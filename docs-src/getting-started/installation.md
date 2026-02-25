@@ -9,8 +9,7 @@ Intune Commander is distributed as a **self-contained Windows x64 executable** �
 3. Run the executable — no installer needed.
 
 !!! tip "Windows SmartScreen"
-    Because the binary is not yet code-signed, Windows SmartScreen may show a warning on first run.
-    Click **More info → Run anyway** to proceed. This will be resolved in a future release once code signing is in place.
+    The binary on the releases page should always be signed. 
 
 ## Build from source
 

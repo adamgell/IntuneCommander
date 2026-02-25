@@ -27,6 +27,9 @@ The generated presentation includes:
 
 The PowerPoint export feature uses [Syncfusion.Presentation.Net.Core](https://www.syncfusion.com/powerpoint-framework/net). A licence key is required to remove watermarks from exported files.
 
+End users of the **official signed `.exe` release** do not need to do anything — the key is baked into the binary at build time.
+
+
 ### Community Licence (free)
 
 Syncfusion offers a free community licence for:
@@ -36,7 +39,7 @@ Syncfusion offers a free community licence for:
 
 [Register for a community licence →](https://www.syncfusion.com/sales/communitylicense)
 
-### Setting your licence key
+### Setting your licence key (development / self-build)
 
 Set the environment variable before launching the app:
 
@@ -45,6 +48,16 @@ SYNCFUSION_LICENSE_KEY=your-key-here
 ```
 
 The app works without a key but will display a watermark on exported slides.
+
+### How the released `.exe` has the key embedded
+
+The GitHub Actions release workflow reads the `SYNCFUSION_LICENSE_KEY` repository secret and passes it as an MSBuild property during `dotnet publish`:
+
+```
+-p:SyncfusionLicenseKey="$env:SYNCFUSION_LICENSE_KEY"
+```
+
+This bakes the key into the signed binary as assembly metadata at build time. No environment variable is required at runtime, so your end users get watermark-free exports automatically.
 
 ## Current limitations
 

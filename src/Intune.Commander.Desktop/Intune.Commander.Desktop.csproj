@@ -10,6 +10,20 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
+  <!-- Bake the Syncfusion license key into the binary at publish time.
+       Pass -p:SyncfusionLicenseKey=<value> on the dotnet publish command (e.g. from a CI secret).
+       Never commit a real key here. -->
+  <PropertyGroup>
+    <SyncfusionLicenseKey Condition="'$(SyncfusionLicenseKey)' == ''"></SyncfusionLicenseKey>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(SyncfusionLicenseKey)' != ''">
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>SyncfusionLicenseKey</_Parameter1>
+      <_Parameter2>$(SyncfusionLicenseKey)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
