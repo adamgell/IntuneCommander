@@ -72,7 +72,7 @@ public sealed record DeviceUserEntry
             ExtensionAttribute14 = ext?.ExtensionAttribute14 ?? "",
             ExtensionAttribute15 = ext?.ExtensionAttribute15 ?? "",
             AccountEnabled = user?.AccountEnabled?.ToString() ?? "",
-            AssignedLicenseCount = user?.AssignedLicenses?.Count.ToString() ?? "0",
+            AssignedLicenseCount = (user?.AssignedLicenses?.Count ?? 0).ToString(),
             OperatingSystem = device.OperatingSystem ?? "",
             OsVersion = device.OsVersion ?? "",
             ComplianceState = device.ComplianceState?.ToString() ?? "",

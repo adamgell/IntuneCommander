@@ -274,6 +274,14 @@ public class CacheService : ICacheService
                    Encoding.UTF8.GetByteCount(json, start, charCount + 1) <= maxBytes)
                 charCount++;
 
+            if (charCount > 0 &&
+                start + charCount < json.Length &&
+                char.IsHighSurrogate(json[start + charCount - 1]) &&
+                char.IsLowSurrogate(json[start + charCount]))
+            {
+                charCount--;
+            }
+
             chunks.Add(json.Substring(start, charCount));
             start += charCount;
         }

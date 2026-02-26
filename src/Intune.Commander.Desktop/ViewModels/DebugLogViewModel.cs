@@ -88,15 +88,20 @@ public partial class DebugLogViewModel : ObservableObject
     /// </summary>
     private void ScheduleDebouncedRefresh()
     {
-        _debounceTimer?.Stop();
-        _debounceTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DebounceMs) };
-        _debounceTimer.Tick += (_, _) =>
+        if (_debounceTimer == null)
         {
-            _debounceTimer.Stop();
-            RefreshCategories();
-            ApplyFilters();
-        };
+            _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DebounceMs) };
+            _debounceTimer.Tick += DebounceTimerOnTick;
+        }
+        _debounceTimer.Stop();
         _debounceTimer.Start();
+    }
+
+    private void DebounceTimerOnTick(object? sender, EventArgs e)
+    {
+        _debounceTimer?.Stop();
+        RefreshCategories();
+        ApplyFilters();
     }
 
     private void RefreshCategories()
