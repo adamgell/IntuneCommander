@@ -86,7 +86,8 @@ jobs:
             --container-name intunecommander `
             --name catalog/script-content-bundle.json `
             --content-type "application/json" `
-            --overwrite true
+            --overwrite true `
+            --auth-mode login
           Write-Host "Content bundle uploaded successfully."
 
       - name: Purge Azure CDN cache for content bundle

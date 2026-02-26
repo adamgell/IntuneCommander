@@ -503,10 +503,25 @@ per week is negligible. However, defensive measures are still warranted:
 - Uploads content bundle to Azure Blob Storage
 - Optionally purges Azure CDN edge cache (configure via `AZURE_CDN_PROFILE` / `AZURE_CDN_ENDPOINT` secrets)
 
+> **Supply-chain risk**: `Fetch-CatalogScripts.ps1` pulls PowerShell content from an external repo
+> (`JayRHa/EndpointAnalyticsRemediationScripts`). If that upstream repo or account is compromised,
+> malicious scripts could be ingested into the bundle and shipped to managed devices.
+> Mitigations required before the workflow goes live:
+>
+> - **Pin to a specific commit SHA** in `Fetch-CatalogScripts.ps1` (not a branch head); record the
+>   verified SHA in the script and update it only after manual review.
+> - **Require human approval** before the catalog bundle is published: add a `workflow_dispatch`
+>   approval gate (GitHub Environments with required reviewers) so a maintainer signs off on every
+>   ingest run.
+> - **Checksum / signature verification**: compute a SHA-256 hash of each `.ps1` file after fetch
+>   and record it in `script-catalog.json`; the client-side `ScriptCatalogService` should reject
+>   any bundle entry whose content hash does not match.
+
 Required secrets:
 | Secret | Purpose |
 |--------|---------|
 | `AZURE_CREDENTIALS` | Service principal JSON; needs `Storage Blob Data Contributor` on container only |
+| `AZURE_STORAGE_ACCOUNT` | Storage account name used in `az storage blob upload --account-name` |
 | `AZURE_CDN_RESOURCE_GROUP` | (Optional) Azure CDN resource group |
 | `AZURE_CDN_PROFILE` | (Optional) Azure CDN profile name; omit to skip cache-purge step |
 | `AZURE_CDN_ENDPOINT` | (Optional) Azure CDN endpoint name |
@@ -520,4 +535,4 @@ Required secrets:
 3. **Bundle versioning**: should the app reject a bundle whose `version` doesn't match a minimum supported version?
 4. **Offline mode**: if Azure blob is unreachable and LiteDB cache is expired, show "Catalog content unavailable — check network" vs. silently show metadata-only with disabled Deploy button?
 5. **Script signing**: should scripts deployed to Intune via the catalog be signed? (Intune can enforce PS signing policies)
-| **Azure CDN tier** | Standard Microsoft CDN is sufficient for this use case (no IP-based rate limiting needed unless abuse is detected). Start with Standard; upgrade to Premium Verizon only if cost alerts fire. |
+6. **Azure CDN tier**: Standard Microsoft CDN is sufficient for this use case (no IP-based rate limiting needed unless abuse is detected). Start with Standard; upgrade to Premium Verizon only if cost alerts fire.
