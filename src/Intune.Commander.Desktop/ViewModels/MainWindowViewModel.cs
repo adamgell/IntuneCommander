@@ -145,6 +145,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private const string CacheKeyRoleAssignments = "RoleAssignments";
 
+    private const string CacheKeyManagedDevices = "ManagedDevices";
+
+    private const string CacheKeyEntraUsers = "EntraUsers";
+
 
 
     private GraphServiceClient? _graphClient;
@@ -213,6 +217,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private INotificationTemplateService? _notificationTemplateService;
     private IConditionalAccessPptExportService? _conditionalAccessPptExportService;
     private IUserService? _userService;
+    private IManagedDeviceService? _managedDeviceService;
+    private IEntraUserService? _entraUserService;
     private IAppleDepService? _appleDepService;
     private IDeviceCategoryService? _deviceCategoryService;
     private ICloudPcProvisioningService? _cloudPcProvisioningService;
@@ -255,6 +261,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
 
     private string _cacheStatusText = "";
+
+    [ObservableProperty]
+    private string _devicesAndUsersCacheStatusText = "";
 
 
 
@@ -892,6 +901,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     private bool _appAssignmentsLoaded;
+
+    // --- Devices & Users ---
+
+    [ObservableProperty]
+    private ObservableCollection<DeviceUserEntry> _deviceUserEntries = [];
+
+    [ObservableProperty]
+    private DeviceUserEntry? _selectedDeviceUserEntry;
+
+    private bool _deviceUserEntriesLoaded;
 
 
 
@@ -1947,6 +1966,27 @@ public partial class MainWindowViewModel : ViewModelBase
 
     ];
 
+    public ObservableCollection<DataGridColumnConfig> DevicesAndUsersColumns { get; } =
+    [
+        new() { Header = "Device Name", BindingPath = "DeviceName", IsStar = true, IsVisible = true },
+        new() { Header = "User Display Name", BindingPath = "UserDisplayName", Width = 180, IsVisible = true },
+        new() { Header = "UPN", BindingPath = "UserPrincipalName", Width = 220, IsVisible = true },
+        new() { Header = "Department", BindingPath = "Department", Width = 140, IsVisible = true },
+        new() { Header = "OS", BindingPath = "OperatingSystem", Width = 120, IsVisible = true },
+        new() { Header = "Compliance", BindingPath = "ComplianceState", Width = 120, IsVisible = true },
+        new() { Header = "Model", BindingPath = "DeviceModel", Width = 160, IsVisible = true },
+        new() { Header = "Manufacturer", BindingPath = "Manufacturer", Width = 160, IsVisible = false },
+        new() { Header = "Job Title", BindingPath = "JobTitle", Width = 180, IsVisible = false },
+        new() { Header = "Office", BindingPath = "OfficeLocation", Width = 140, IsVisible = false },
+        new() { Header = "Usage Location", BindingPath = "UsageLocation", Width = 120, IsVisible = false },
+        new() { Header = "On-Prem SAM", BindingPath = "OnPremisesSamAccountName", Width = 180, IsVisible = false },
+        new() { Header = "Serial Number", BindingPath = "SerialNumber", Width = 180, IsVisible = false },
+        new() { Header = "Device Category", BindingPath = "DeviceCategory", Width = 150, IsVisible = false },
+        new() { Header = "Ownership", BindingPath = "Ownership", Width = 120, IsVisible = false },
+        new() { Header = "Device ID", BindingPath = "DeviceId", Width = 280, IsVisible = false },
+        new() { Header = "User ID", BindingPath = "UserId", Width = 280, IsVisible = false }
+    ];
+
     public ObservableCollection<DataGridColumnConfig> CloudPcProvisioningColumns { get; } =
     [
         new() { Header = "Display Name", BindingPath = "DisplayName", IsStar = true, IsVisible = true },
@@ -2183,4 +2223,3 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 }
-

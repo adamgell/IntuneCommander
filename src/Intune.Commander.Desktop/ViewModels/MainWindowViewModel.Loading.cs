@@ -447,6 +447,98 @@ public partial class MainWindowViewModel : ViewModelBase
             CacheKeyNotificationTemplates,
             "notification template(s)");
 
+    [RelayCommand]
+    private async Task LoadDevicesAndUsersAsync(CancellationToken cancellationToken)
+    {
+        if (_managedDeviceService == null || _entraUserService == null || ActiveProfile?.TenantId == null)
+            return;
+
+        IsBusy = true;
+        StatusText = "Loading devices and users...";
+
+        try
+        {
+            var tenantId = ActiveProfile.TenantId;
+
+            var devices = _cacheService.Get<ManagedDevice>(tenantId, CacheKeyManagedDevices);
+            if (devices == null)
+            {
+                devices = await _managedDeviceService.ListManagedDevicesAsync(cancellationToken);
+                _cacheService.Set(tenantId, CacheKeyManagedDevices, devices);
+            }
+
+            var users = _cacheService.Get<User>(tenantId, CacheKeyEntraUsers);
+            if (users == null)
+            {
+                users = await _entraUserService.ListUsersAsync(cancellationToken);
+                _cacheService.Set(tenantId, CacheKeyEntraUsers, users);
+            }
+
+            DeviceUserEntries = new ObservableCollection<DeviceUserEntry>(BuildDeviceUserEntries(devices, users));
+            _deviceUserEntriesLoaded = true;
+            ApplyFilter();
+            UpdateDevicesAndUsersCacheStatus(tenantId);
+            StatusText = $"Loaded {DeviceUserEntries.Count} correlated device/user row(s)";
+        }
+        catch (Exception ex)
+        {
+            SetError($"Failed to load devices and users: {FormatGraphError(ex)}");
+            StatusText = "Error loading devices and users";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ForceRefreshDevicesAndUsersAsync(CancellationToken cancellationToken)
+    {
+        if (ActiveProfile?.TenantId == null)
+            return;
+
+        _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyManagedDevices);
+        _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyEntraUsers);
+        _deviceUserEntriesLoaded = false;
+        await LoadDevicesAndUsersAsync(cancellationToken);
+    }
+
+    private static List<DeviceUserEntry> BuildDeviceUserEntries(List<ManagedDevice> devices, List<User> users)
+    {
+        var userById = users
+            .Where(u => !string.IsNullOrEmpty(u.Id))
+            .GroupBy(u => u.Id!)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        return devices
+            .Select(device =>
+            {
+                userById.TryGetValue(device.UserId ?? "", out var user);
+                return DeviceUserEntry.From(device, user);
+            })
+            .OrderBy(r => r.DeviceName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private void UpdateDevicesAndUsersCacheStatus(string tenantId)
+    {
+        var deviceMeta = _cacheService.GetMetadata(tenantId, CacheKeyManagedDevices);
+        var userMeta = _cacheService.GetMetadata(tenantId, CacheKeyEntraUsers);
+
+        if (deviceMeta == null || userMeta == null)
+        {
+            DevicesAndUsersCacheStatusText = "";
+            return;
+        }
+
+        var lastRefreshed = deviceMeta.Value.CachedAt < userMeta.Value.CachedAt
+            ? deviceMeta.Value.CachedAt
+            : userMeta.Value.CachedAt;
+        DevicesAndUsersCacheStatusText =
+            $"Last refreshed: {FormatCacheAge(lastRefreshed)} ({deviceMeta.Value.ItemCount} devices, {userMeta.Value.ItemCount} users)";
+        CacheStatusText = DevicesAndUsersCacheStatusText;
+    }
+
     // ─── BuildGroupRow ─────────────────────────────────────────────────────
 
     private static GroupRow BuildGroupRow(Microsoft.Graph.Beta.Models.Group group, GroupMemberCounts counts)
@@ -1737,4 +1829,3 @@ public partial class MainWindowViewModel : ViewModelBase
         return rows;
     }
 }
-

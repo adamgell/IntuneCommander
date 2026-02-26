@@ -277,6 +277,16 @@
                                         </Button.IsVisible>
                                     </Button>
                                     <Button Content="Export CSV"
+                                            Command="{Binding ExportDevicesAndUsersCsvCommand}"
+                                            Classes="Small"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding IsDevicesAndUsersCategory}" />
+                                    <Button Content="Refresh"
+                                            Command="{Binding ForceRefreshDevicesAndUsersCommand}"
+                                            Classes="Small"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding IsDevicesAndUsersCategory}" />
+                                    <Button Content="Export CSV"
                                             Command="{Binding ExportSettingsCatalogCsvCommand}"
                                             Classes="Small"
                                             VerticalAlignment="Center"
@@ -308,6 +318,11 @@
                                 <TextBlock Text="{Binding SelectedCategory.Name, FallbackValue='Items'}"
                                            FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding DevicesAndUsersCacheStatusText}"
+                                           FontSize="{StaticResource FontSizeCaption}"
+                                           Margin="12,0,0,0"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding IsDevicesAndUsersCategory}" />
                             </DockPanel>
 
                             <!-- Search / filter box -->

@@ -182,6 +182,8 @@ public partial class MainWindowViewModel : ViewModelBase
             _notificationTemplateService = new NotificationTemplateService(_graphClient);
 
             _userService = new UserService(_graphClient);
+            _managedDeviceService = new ManagedDeviceService(_graphClient);
+            _entraUserService = new EntraUserService(_graphClient);
 
             _appleDepService = new AppleDepService(_graphClient);
 
@@ -525,6 +527,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _vppTokensLoaded = false;
 
         _roleAssignmentsLoaded = false;
+        _deviceUserEntriesLoaded = false;
 
         SettingsCatalogPolicies.Clear();
 
@@ -655,6 +658,10 @@ public partial class MainWindowViewModel : ViewModelBase
         RoleAssignments.Clear();
 
         SelectedRoleAssignment = null;
+        DeviceUserEntries.Clear();
+        FilteredDeviceUserEntries.Clear();
+        SelectedDeviceUserEntry = null;
+        DevicesAndUsersCacheStatusText = "";
 
         QualityUpdateProfiles.Clear();
 
@@ -772,6 +779,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _notificationTemplateService = null;
 
         _userService = null;
+        _managedDeviceService = null;
+        _entraUserService = null;
 
         _appleDepService = null;
 
@@ -840,4 +849,3 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
 }
-
