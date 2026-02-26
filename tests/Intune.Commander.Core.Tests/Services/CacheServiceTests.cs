@@ -274,4 +274,93 @@ public class CacheServiceTests : IDisposable
 
         Assert.Equal(0, removed);
     }
+
+    // --- Chunked caching tests ---
+
+    [Fact]
+    public void Set_and_Get_roundtrips_large_data_via_chunking()
+    {
+        // Create a list large enough to exceed the 8 MB chunk threshold
+        // Each item serialized is ~50 bytes, so ~200K items ≈ 10 MB
+        var items = Enumerable.Range(0, 200_000)
+            .Select(i => new TestItem($"Item_{i}", i))
+            .ToList();
+
+        _sut.Set("tenant1", "BigData", items);
+
+        var result = _sut.Get<TestItem>("tenant1", "BigData");
+
+        Assert.NotNull(result);
+        Assert.Equal(200_000, result.Count);
+        Assert.Equal("Item_0", result[0].Name);
+        Assert.Equal("Item_199999", result[199_999].Name);
+    }
+
+    [Fact]
+    public void GetMetadata_returns_correct_count_for_chunked_entry()
+    {
+        var items = Enumerable.Range(0, 200_000)
+            .Select(i => new TestItem($"Item_{i}", i))
+            .ToList();
+
+        _sut.Set("tenant1", "BigMeta", items);
+
+        var meta = _sut.GetMetadata("tenant1", "BigMeta");
+
+        Assert.NotNull(meta);
+        Assert.Equal(200_000, meta.Value.ItemCount);
+    }
+
+    [Fact]
+    public void Invalidate_removes_chunked_entry_and_chunks()
+    {
+        var items = Enumerable.Range(0, 200_000)
+            .Select(i => new TestItem($"Item_{i}", i))
+            .ToList();
+
+        _sut.Set("tenant1", "BigInvalidate", items);
+
+        _sut.Invalidate("tenant1", "BigInvalidate");
+
+        Assert.Null(_sut.Get<TestItem>("tenant1", "BigInvalidate"));
+        Assert.Null(_sut.GetMetadata("tenant1", "BigInvalidate"));
+    }
+
+    [Fact]
+    public void Set_overwrites_chunked_entry_with_small_entry()
+    {
+        // First write: large (chunked)
+        var bigItems = Enumerable.Range(0, 200_000)
+            .Select(i => new TestItem($"Big_{i}", i))
+            .ToList();
+        _sut.Set("tenant1", "Overwrite", bigItems);
+
+        // Overwrite with small (non-chunked)
+        var smallItems = new List<TestItem> { new("Small", 1) };
+        _sut.Set("tenant1", "Overwrite", smallItems);
+
+        var result = _sut.Get<TestItem>("tenant1", "Overwrite");
+
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal("Small", result[0].Name);
+    }
+
+    [Fact]
+    public void Set_overwrites_small_entry_with_chunked_entry()
+    {
+        // First write: small (non-chunked)
+        _sut.Set("tenant1", "GrowBig", new List<TestItem> { new("Tiny", 1) });
+
+        // Overwrite with large (chunked)
+        var bigItems = Enumerable.Range(0, 200_000)
+            .Select(i => new TestItem($"Big_{i}", i))
+            .ToList();
+        _sut.Set("tenant1", "GrowBig", bigItems);
+
+        var result = _sut.Get<TestItem>("tenant1", "GrowBig");
+
+        Assert.NotNull(result);
+        Assert.Equal(200_000, result.Count);
+    }
 }

@@ -1795,6 +1795,27 @@ public partial class MainWindowViewModel : ViewModelBase
             }));
         }
 
+        // --- Devices & Users (managed devices + Entra users → correlated view) ---
+        if (_managedDeviceService != null && _entraUserService != null)
+        {
+            tasks.Add(new DownloadTask("Managed Devices & Entra Users", async () =>
+            {
+                var devices = await _managedDeviceService.ListManagedDevicesAsync(ct);
+                _cacheService.Set(tenantId, CacheKeyManagedDevices, devices);
+
+                var entraUsers = await _entraUserService.ListUsersAsync(ct);
+                _cacheService.Set(tenantId, CacheKeyEntraUsers, entraUsers);
+
+                var entries = BuildDeviceUserEntries(devices, entraUsers);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    DeviceUserEntries = new ObservableCollection<DeviceUserEntry>(entries);
+                    _deviceUserEntriesLoaded = true;
+                    ApplyFilter();
+                });
+            }));
+        }
+
         return tasks;
     }
 
