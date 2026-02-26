@@ -430,7 +430,8 @@ public class ImportServiceTests : IDisposable
 
         Assert.NotNull(assignedPolicyId);
         Assert.Equal("new-pol", assignedPolicyId);
-        Assert.All(assignedAssignments!, a => Assert.Null(a.Id));
+        Assert.NotNull(assignedAssignments);
+        Assert.All(assignedAssignments, a => Assert.Null(a.Id));
 
         Assert.Single(table.Entries);
         Assert.Equal("old-pol", table.Entries[0].OriginalId);
@@ -465,7 +466,8 @@ public class ImportServiceTests : IDisposable
         Assert.Equal("new-intent", created.Id);
         Assert.NotNull(assignedIntentId);
         Assert.Equal("new-intent", assignedIntentId);
-        Assert.All(assignedIntentAssignments!, a => Assert.Null(a.Id));
+        Assert.NotNull(assignedIntentAssignments);
+        Assert.All(assignedIntentAssignments, a => Assert.Null(a.Id));
         Assert.Single(table.Entries);
         Assert.Equal("EndpointSecurityIntent", table.Entries[0].ObjectType);
         Assert.Equal("old-intent", table.Entries[0].OriginalId);
@@ -512,7 +514,8 @@ public class ImportServiceTests : IDisposable
         Assert.Null(capturedTemplate.LastModifiedDateTime);
         Assert.NotNull(assignedTemplateId);
         Assert.Equal("new-template", assignedTemplateId);
-        Assert.All(assignedTemplateAssignments!, a => Assert.Null(a.Id));
+        Assert.NotNull(assignedTemplateAssignments);
+        Assert.All(assignedTemplateAssignments, a => Assert.Null(a.Id));
         Assert.Single(table.Entries);
         Assert.Equal("AdministrativeTemplate", table.Entries[0].ObjectType);
         Assert.Equal("old-template", table.Entries[0].OriginalId);
@@ -1897,7 +1900,8 @@ public class ImportServiceTests : IDisposable
         var created = await sut.ImportSettingsCatalogPolicyAsync(export, table);
 
         Assert.Equal("created-sc", created.Id);
-        Assert.Null(capturedScPolicy!.Id);
+        Assert.NotNull(capturedScPolicy);
+        Assert.Null(capturedScPolicy.Id);
         Assert.Contains(table.Entries, e => e.ObjectType == "SettingsCatalog" && e.OriginalId == "orig-id" && e.NewId == "created-sc");
     }
 
