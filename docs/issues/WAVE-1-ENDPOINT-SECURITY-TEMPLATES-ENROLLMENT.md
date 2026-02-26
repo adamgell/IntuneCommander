@@ -17,11 +17,13 @@ Wave 1 focuses on implementing three core service types that are critical for In
 **Interface:** `IEndpointSecurityService`  
 **Class:** `EndpointSecurityService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/intents`
 - Assignments: `/deviceManagement/intents/{id}/assignments`
 - Assign action: `/deviceManagement/intents/{id}/assign`
 
 **Methods to Implement:**
+
 - [ ] `ListEndpointSecurityIntentsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<DeviceManagementIntent>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -48,11 +50,13 @@ Wave 1 focuses on implementing three core service types that are critical for In
 **Interface:** `IAdministrativeTemplateService`  
 **Class:** `AdministrativeTemplateService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/groupPolicyConfigurations`
 - Assignments: `/deviceManagement/groupPolicyConfigurations/{id}/assignments`
 - Assign action: `/deviceManagement/groupPolicyConfigurations/{id}/assign`
 
 **Methods to Implement:**
+
 - [ ] `ListAdministrativeTemplatesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<GroupPolicyConfiguration>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -79,9 +83,11 @@ Wave 1 focuses on implementing three core service types that are critical for In
 **Interface:** `IEnrollmentConfigurationService`  
 **Class:** `EnrollmentConfigurationService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/deviceEnrollmentConfigurations`
 
 **Methods to Implement:**
+
 - [ ] `ListEnrollmentConfigurationsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<DeviceEnrollmentConfiguration>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -109,6 +115,7 @@ Wave 1 focuses on implementing three core service types that are critical for In
 ## Scaffolding Steps
 
 ### Core Service Setup
+
 - [ ] Add interface file in `src/Intune.Commander.Core/Services/`
 - [ ] Add implementation class in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructor accepts `GraphServiceClient`
@@ -118,6 +125,7 @@ Wave 1 focuses on implementing three core service types that are critical for In
 - [ ] Add null checks and throw on null responses for create/update/get
 
 ### Export/Import Integration
+
 - [ ] Extend `ExportService` to handle Wave 1 objects
 - [ ] Extend `ImportService` to handle Wave 1 objects
 - [ ] Create export wrapper models if needed (e.g., with assignments)
@@ -125,6 +133,7 @@ Wave 1 focuses on implementing three core service types that are critical for In
 - [ ] Maintain migration-table compatibility
 
 ### Desktop UI Integration
+
 - [ ] Add collections in `MainWindowViewModel` for each type
 - [ ] Add selection properties (e.g., `SelectedEndpointSecurityIntent`)
 - [ ] Add DataGrid column configurations
@@ -134,6 +143,7 @@ Wave 1 focuses on implementing three core service types that are critical for In
 - [ ] Wire up export/import commands for new types
 
 ### Testing
+
 - [ ] Add `EndpointSecurityServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths

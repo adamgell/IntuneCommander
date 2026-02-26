@@ -236,7 +236,7 @@ public async Task MethodName_Scenario_ExpectedBehavior()
 
 ## PR Priorities and Merge Order
 
-See [PR_STATUS.md](PR_STATUS.md) for current PR organization and recommended merge order.
+See [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for current PR organization and recommended merge order.
 
 **General Priority Order:**
 
@@ -253,7 +253,7 @@ See [PR_STATUS.md](PR_STATUS.md) for current PR organization and recommended mer
 ## Getting Help
 
 - **Questions about implementation**: Check `CLAUDE.md` and `ARCHITECTURE.md`
-- **Questions about PR process**: See `PR_STATUS.md`
+- **Questions about PR process**: See [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues)
 - **Questions about code patterns**: See `.github/copilot-instructions.md`
 - **Stuck on something?**: Open a draft PR and ask for guidance
 
@@ -271,4 +271,4 @@ If contributing a new service, refer to the appropriate Wave document for detail
 
 ## License
 
-By contributing to Intune Commander, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing to Intune Commander, you agree that your contributions will be licensed under the [MIT License](https://github.com/adamgell/IntuneCommander/blob/main/LICENSE).

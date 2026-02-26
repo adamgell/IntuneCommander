@@ -7,6 +7,7 @@ Intune Commander is a cross-platform desktop application for managing Microsoft 
 It supports multi-cloud and multi-tenant profiles with encrypted local storage, manages over 30 Intune object types (device configurations, compliance policies, conditional access policies, applications, and more), and provides bulk export/import in a JSON format compatible with the original PowerShell tool. Additional features include Conditional Access PowerPoint export, LiveCharts dashboards, debug logging, and raw JSON inspection.
 
 > **Platform Notes**
+>
 > - **Windows** is the recommended and fully supported platform.
 > - **macOS** has significant Avalonia limitations that currently require Device Code authentication instead of an interactive browser popup.
 > - **Linux** support is planned but will initially be limited to headless/Core scenarios, with scheduled report generation as the primary target use case.
@@ -14,6 +15,7 @@ It supports multi-cloud and multi-tenant profiles with encrypted local storage, 
 ## Project Overview
 
 ### Goals
+
 - **Multi-cloud support:** Commercial, GCC, GCC-High, DoD tenants
 - **Multi-tenant:** Easy switching between tenant environments with profile management
 - **Native performance:** Compiled .NET code eliminates PowerShell threading issues
@@ -40,11 +42,12 @@ It supports multi-cloud and multi-tenant profiles with encrypted local storage, 
 ## Getting Started
 
 ### Prerequisites
+
 - .NET 10 SDK
 - Visual Studio 2022, JetBrains Rider, or VS Code with C# Dev Kit
 - An Azure AD app registration with appropriate Microsoft Graph permissions (for use with the beta Microsoft Graph SDK/endpoint)
 - (Optional) Syncfusion license key for PowerPoint export feature - see [Syncfusion Licensing](#syncfusion-licensing)
-- (Optional) Avalonia Accelerate community license. 
+- (Optional) Avalonia Accelerate community license.
 
 ### Build & Run
 
@@ -67,11 +70,13 @@ dotnet run --project src/Intune.Commander.Desktop
 Intune Commander stores connection details as **profiles** (tenant ID, client ID, cloud, auth method). Profiles are persisted locally in an encrypted file and never leave your machine.
 
 **Manually adding a profile:**
+
 1. Launch the app — you'll land on the login screen
 2. Fill in Tenant ID, Client ID, Cloud, and (optionally) Client Secret
 3. Click **Save Profile** to persist it for future sessions
 
 **Importing profiles from a JSON file:**
+
 1. Click **Import Profiles** on the login screen
 2. Select a `.json` file containing one or more profile definitions
 3. Profiles are merged in — duplicates (same Tenant ID + Client ID) are skipped automatically
@@ -152,12 +157,14 @@ Application Assignments · Dynamic Groups · Assigned Groups
 ### Conditional Access PowerPoint Export
 
 Export Conditional Access policies to a comprehensive PowerPoint presentation with:
+
 - Cover slide with tenant name and export timestamp
 - Tenant summary with policy counts
 - Policy inventory table showing all policies
 - Detailed slides for each policy (conditions, grant controls, assignments)
 
 **Usage:**
+
 1. Navigate to the Conditional Access category
 2. Load CA policies
 3. Click "📊 Export PowerPoint" button
@@ -165,27 +172,35 @@ Export Conditional Access policies to a comprehensive PowerPoint presentation wi
 5. Open the generated `.pptx` file
 
 **Current Limitations (v1):**
+
 - Commercial cloud only (GCC/GCC-High/DoD support planned for future release)
 - Basic policy details (advanced dependency lookups deferred)
 - Feature-level parity with idPowerToys CA decks (not pixel-perfect template matching)
 
 ### Syncfusion Licensing
 
-The PowerPoint export feature uses Syncfusion.Presentation.Net.Core, which requires a license key:
+The PowerPoint export feature uses Syncfusion.Presentation.Net.Core, which requires a license key.
+
+**End users of the official `.exe` release do not need a key** — it is baked into the binary at build time.
 
 **Community License (FREE):**
+
 - For companies/individuals with < $1M annual revenue
 - Maximum 5 developers
-- Register at: https://www.syncfusion.com/sales/communitylicense
+- Register at: <https://www.syncfusion.com/sales/communitylicense>
 
 **Commercial License:**
-- Required for companies exceeding Community License thresholds
-- Visit: https://www.syncfusion.com/sales/products
 
-**Setup:**
+- Required for companies exceeding Community License thresholds
+- Visit: <https://www.syncfusion.com/sales/products>
+
+**Setup for local development or self-builds:**
 Set environment variable: `SYNCFUSION_LICENSE_KEY=your-license-key-here`
 
 The app will run without a license key but will display watermarks on exported PowerPoint files.
+
+**How the released binary gets the key:**
+The tag-triggered `codesign.yml` workflow reads the `SYNCFUSION_LICENSE_KEY` secret from the `codesigning` environment and passes it as `-p:SyncfusionLicenseKey=...` during `dotnet publish`. It is baked into the binary as assembly metadata before Azure Trusted Signing runs. The key never appears in source code or git history. Store it in your secret manager (e.g. 1Password) and add it as a secret in the `codesigning` GitHub Actions environment named `SYNCFUSION_LICENSE_KEY`.
 
 ## Acknowledgments
 

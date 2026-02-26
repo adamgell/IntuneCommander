@@ -53,9 +53,10 @@ public partial class MainWindow : SukiWindow
 
         _mainDataGrid = this.FindControl<DataGrid>("MainDataGrid");
 
-        var importButton = this.FindControl<Button>("ImportButton");
-        if (importButton != null)
-            importButton.Click += OnImportClick;
+        // With this:
+        var importMenuItem = this.FindControl<MenuItem>("ImportMenuItem");
+        if (importMenuItem != null)
+            importMenuItem.Click += OnImportClick;
 
         var groupLookupButton = this.FindControl<Button>("GroupLookupButton");
         if (groupLookupButton != null)

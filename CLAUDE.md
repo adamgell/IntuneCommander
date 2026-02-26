@@ -73,6 +73,7 @@ tests/
 `App.axaml.cs` calls `services.AddIntuneCommanderCore()` then registers `MainWindowViewModel` as transient.
 
 `AddIntuneCommanderCore()` registers:
+
 - **Singleton:** `IAuthenticationProvider`, `IntuneGraphClientFactory`, `ProfileService`, `IProfileEncryptionService`, `ICacheService`
 - **Transient:** `IExportService`
 
@@ -83,6 +84,7 @@ tests/
 `IntuneGraphClientFactory.CreateClientAsync(profile)` creates a `GraphServiceClient` using `Azure.Identity` credentials and the correct endpoint from `CloudEndpoints.GetEndpoints(profile.Cloud)`.
 
 Cloud endpoints in `CloudEndpoints.cs`:
+
 - Commercial & GCC → `https://graph.microsoft.com`
 - GCC-High → `https://graph.microsoft.us`
 - DoD → `https://dod-graph.microsoft.us`
@@ -164,6 +166,7 @@ Each object type exports to its own subfolder under the chosen output directory 
 - **`GraphServiceClient` is NOT mockable** (sealed SDK) — services that directly call Graph keep their reflection-based contract tests; NSubstitute is used only for project-owned interfaces (`IXxxService`, `ICacheService`, etc.)
 
 ### Integration tests (`tests/Intune.Commander.Core.Tests/Integration/`)
+
 - Tagged with `[Trait("Category", "Integration")]` — **always** use this trait for any test hitting Graph API
 - Base class `GraphIntegrationTestBase` provides `GraphServiceClient` from env vars and `ShouldSkip()` for graceful no-op when credentials are missing
 - Read-only tests (List + Get) are safe for any tenant
