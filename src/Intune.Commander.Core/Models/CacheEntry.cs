@@ -40,4 +40,12 @@ public class CacheEntry
     /// Number of items in the cached collection, for logging/debugging.
     /// </summary>
     public int ItemCount { get; set; }
+
+    /// <summary>
+    /// When greater than zero, this entry is a chunked manifest.
+    /// The actual data is stored in sibling documents with IDs
+    /// "{Id}__chunk_0", "{Id}__chunk_1", etc.
+    /// <c>JsonData</c> is empty for manifest entries.
+    /// </summary>
+    public int ChunkCount { get; set; }
 }
