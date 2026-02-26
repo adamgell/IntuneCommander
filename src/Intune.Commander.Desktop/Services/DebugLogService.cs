@@ -24,9 +24,15 @@ public sealed class DebugLogService
     {
         var entry = new DebugLogEntry(DateTime.Now, category, level, message);
         if (Dispatcher.UIThread.CheckAccess())
+        {
             AddEntry(entry);
+        }
         else
-            Dispatcher.UIThread.Post(() => AddEntry(entry));
+        {
+            // Background priority so log writes never block UI interactions
+            // (e.g. opening windows, clicking buttons) during heavy caching.
+            Dispatcher.UIThread.Post(() => AddEntry(entry), DispatcherPriority.Background);
+        }
     }
 
     public void LogError(string message, Exception? ex = null)
@@ -40,7 +46,7 @@ public sealed class DebugLogService
         if (Dispatcher.UIThread.CheckAccess())
             Entries.Clear();
         else
-            Dispatcher.UIThread.Post(() => Entries.Clear());
+            Dispatcher.UIThread.Post(() => Entries.Clear(), DispatcherPriority.Background);
     }
 
     private void AddEntry(DebugLogEntry entry)

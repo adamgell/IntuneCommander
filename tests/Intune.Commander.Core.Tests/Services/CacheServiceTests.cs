@@ -363,4 +363,83 @@ public class CacheServiceTests : IDisposable
         Assert.NotNull(result);
         Assert.Equal(200_000, result.Count);
     }
+
+    // --- Async wrapper tests ---
+
+    [Fact]
+    public async Task SetAsync_and_GetAsync_roundtrips_data()
+    {
+        var items = new List<TestItem>
+        {
+            new("Alpha", 1),
+            new("Beta", 2)
+        };
+
+        await _sut.SetAsync("tenant1", "AsyncTest", items);
+
+        var result = await _sut.GetAsync<TestItem>("tenant1", "AsyncTest");
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+        Assert.Equal("Alpha", result[0].Name);
+        Assert.Equal(2, result[1].Value);
+    }
+
+    [Fact]
+    public async Task GetAsync_returns_null_for_missing_key()
+    {
+        var result = await _sut.GetAsync<TestItem>("tenant1", "NonExistent");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task InvalidateAsync_removes_entry()
+    {
+        await _sut.SetAsync("tenant1", "ToRemove", new List<TestItem> { new("X", 1) });
+
+        await _sut.InvalidateAsync("tenant1", "ToRemove");
+
+        var result = await _sut.GetAsync<TestItem>("tenant1", "ToRemove");
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetMetadataAsync_returns_info_for_valid_entry()
+    {
+        var items = new List<TestItem> { new("A", 1), new("B", 2) };
+        await _sut.SetAsync("tenant1", "MetaAsync", items);
+
+        var meta = await _sut.GetMetadataAsync("tenant1", "MetaAsync");
+
+        Assert.NotNull(meta);
+        Assert.Equal(2, meta.Value.ItemCount);
+    }
+
+    [Fact]
+    public async Task GetMetadataAsync_returns_null_for_missing_entry()
+    {
+        var meta = await _sut.GetMetadataAsync("tenant1", "Missing");
+
+        Assert.Null(meta);
+    }
+
+    [Fact]
+    public async Task Async_methods_run_on_thread_pool()
+    {
+        var items = new List<TestItem> { new("ThreadTest", 1) };
+
+        // SetAsync should not block the calling thread
+        var setTask = _sut.SetAsync("tenant1", "ThreadPool", items);
+        Assert.IsType<Task>(setTask);
+        await setTask;
+
+        // GetAsync should not block the calling thread
+        var getTask = _sut.GetAsync<TestItem>("tenant1", "ThreadPool");
+        Assert.IsType<Task<List<TestItem>?>>(getTask);
+        var result = await getTask;
+
+        Assert.NotNull(result);
+        Assert.Single(result);
+    }
 }

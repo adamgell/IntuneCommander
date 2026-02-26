@@ -44,7 +44,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (ActiveProfile?.TenantId != null)
             {
-                _cacheService.Set(ActiveProfile.TenantId, cacheKey, items);
+                await _cacheService.SetAsync(ActiveProfile.TenantId, cacheKey, items);
                 DebugLog.Log("Cache", $"Saved {items.Count} {displayName} to cache");
             }
 
@@ -94,31 +94,31 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>
     /// Tries to load a single collection from cache. Returns true if data was found.
     /// </summary>
-    private bool TryLoadCollectionFromCache<T>(
+    private async Task<(bool loaded, DateTime? oldestCacheTime)> TryLoadCollectionFromCacheAsync<T>(
         string tenantId,
         string cacheKey,
         Action<ObservableCollection<T>> setCollection,
         Action? setLoadedFlag,
         string displayName,
-        ref DateTime? oldestCacheTime)
+        DateTime? oldestCacheTime)
     {
-        var items = _cacheService.Get<T>(tenantId, cacheKey);
-        if (items == null) return false;
+        var items = await _cacheService.GetAsync<T>(tenantId, cacheKey);
+        if (items == null) return (false, oldestCacheTime);
 
         setCollection(new ObservableCollection<T>(items));
         setLoadedFlag?.Invoke();
         DebugLog.Log("Cache", $"Loaded {items.Count} {displayName} from cache");
-        UpdateOldestCacheTime(ref oldestCacheTime, tenantId, cacheKey);
-        return true;
+        oldestCacheTime = await UpdateOldestCacheTimeAsync(oldestCacheTime, tenantId, cacheKey);
+        return (true, oldestCacheTime);
     }
 
     /// <summary>
     /// Saves a single collection to cache if it contains items.
     /// </summary>
-    private void SaveCollectionToCache<T>(string tenantId, string cacheKey, ObservableCollection<T> collection)
+    private async Task SaveCollectionToCacheAsync<T>(string tenantId, string cacheKey, ObservableCollection<T> collection)
     {
         if (collection.Count > 0)
-            _cacheService.Set(tenantId, cacheKey, collection.ToList());
+            await _cacheService.SetAsync(tenantId, cacheKey, collection.ToList());
     }
 
     // ─── Lazy-load methods (called from navigation) ────────────────────────
@@ -460,24 +460,24 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var tenantId = ActiveProfile.TenantId;
 
-            var devices = _cacheService.Get<ManagedDevice>(tenantId, CacheKeyManagedDevices);
+            var devices = await _cacheService.GetAsync<ManagedDevice>(tenantId, CacheKeyManagedDevices);
             if (devices == null)
             {
                 devices = await _managedDeviceService.ListManagedDevicesAsync(cancellationToken);
-                _cacheService.Set(tenantId, CacheKeyManagedDevices, devices);
+                await _cacheService.SetAsync(tenantId, CacheKeyManagedDevices, devices);
             }
 
-            var users = _cacheService.Get<User>(tenantId, CacheKeyEntraUsers);
+            var users = await _cacheService.GetAsync<User>(tenantId, CacheKeyEntraUsers);
             if (users == null)
             {
                 users = await _entraUserService.ListUsersAsync(cancellationToken);
-                _cacheService.Set(tenantId, CacheKeyEntraUsers, users);
+                await _cacheService.SetAsync(tenantId, CacheKeyEntraUsers, users);
             }
 
             DeviceUserEntries = new ObservableCollection<DeviceUserEntry>(BuildDeviceUserEntries(devices, users));
             _deviceUserEntriesLoaded = true;
             ApplyFilter();
-            UpdateDevicesAndUsersCacheStatus(tenantId);
+            await UpdateDevicesAndUsersCacheStatusAsync(tenantId);
             StatusText = $"Loaded {DeviceUserEntries.Count} correlated device/user row(s)";
         }
         catch (Exception ex)
@@ -497,8 +497,8 @@ public partial class MainWindowViewModel : ViewModelBase
         if (ActiveProfile?.TenantId == null)
             return;
 
-        _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyManagedDevices);
-        _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyEntraUsers);
+        await _cacheService.InvalidateAsync(ActiveProfile.TenantId, CacheKeyManagedDevices);
+        await _cacheService.InvalidateAsync(ActiveProfile.TenantId, CacheKeyEntraUsers);
         _deviceUserEntriesLoaded = false;
         await LoadDevicesAndUsersAsync(cancellationToken);
     }
@@ -520,10 +520,10 @@ public partial class MainWindowViewModel : ViewModelBase
             .ToList();
     }
 
-    private void UpdateDevicesAndUsersCacheStatus(string tenantId)
+    private async Task UpdateDevicesAndUsersCacheStatusAsync(string tenantId)
     {
-        var deviceMeta = _cacheService.GetMetadata(tenantId, CacheKeyManagedDevices);
-        var userMeta = _cacheService.GetMetadata(tenantId, CacheKeyEntraUsers);
+        var deviceMeta = await _cacheService.GetMetadataAsync(tenantId, CacheKeyManagedDevices);
+        var userMeta = await _cacheService.GetMetadataAsync(tenantId, CacheKeyEntraUsers);
 
         if (deviceMeta == null || userMeta == null)
         {
@@ -971,7 +971,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             // Save successful loads to cache
             if (ActiveProfile?.TenantId != null)
-                SaveToCache(ActiveProfile.TenantId);
+                await SaveToCacheAsync(ActiveProfile.TenantId);
 
             ApplyFilter();
 
@@ -983,9 +983,9 @@ public partial class MainWindowViewModel : ViewModelBase
             // Invalidate lazy-load caches so they reload from Graph on next tab visit
             if (ActiveProfile?.TenantId != null)
             {
-                _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyAppAssignments);
-                _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyDynamicGroups);
-                _cacheService.Invalidate(ActiveProfile.TenantId, CacheKeyAssignedGroups);
+                await _cacheService.InvalidateAsync(ActiveProfile.TenantId, CacheKeyAppAssignments);
+                await _cacheService.InvalidateAsync(ActiveProfile.TenantId, CacheKeyDynamicGroups);
+                await _cacheService.InvalidateAsync(ActiveProfile.TenantId, CacheKeyAssignedGroups);
             }
         }
         catch (Exception ex)
@@ -1005,7 +1005,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Attempts to populate all collections from cached data.
     /// Returns how many data types were loaded.
     /// </summary>
-    private int TryLoadFromCache(string tenantId)
+    private async Task<int> TryLoadFromCacheAsync(string tenantId)
     {
         if (string.IsNullOrEmpty(tenantId)) return 0;
 
@@ -1014,283 +1014,176 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
+            // Helper to reduce repetition: calls TryLoadCollectionFromCacheAsync and increments counter
+            async Task TryLoad<T>(string cacheKey, Action<ObservableCollection<T>> setCollection,
+                Action? setLoadedFlag, string displayName)
+            {
+                var (loaded, updated) = await TryLoadCollectionFromCacheAsync(
+                    tenantId, cacheKey, setCollection, setLoadedFlag, displayName, oldestCacheTime);
+                if (loaded)
+                {
+                    typesLoaded++;
+                    oldestCacheTime = updated;
+                }
+            }
+
             // Core types (no loaded flag)
-            if (TryLoadCollectionFromCache<DeviceConfiguration>(
-                tenantId, CacheKeyDeviceConfigs,
-                items => DeviceConfigurations = items,
-                null, "device configuration(s)", ref oldestCacheTime))
-                typesLoaded++;
+            await TryLoad<DeviceConfiguration>(CacheKeyDeviceConfigs,
+                items => DeviceConfigurations = items, null, "device configuration(s)");
 
-            if (TryLoadCollectionFromCache<DeviceCompliancePolicy>(
-                tenantId, CacheKeyCompliancePolicies,
-                items => CompliancePolicies = items,
-                null, "compliance policy(ies)", ref oldestCacheTime))
-                typesLoaded++;
+            await TryLoad<DeviceCompliancePolicy>(CacheKeyCompliancePolicies,
+                items => CompliancePolicies = items, null, "compliance policy(ies)");
 
-            if (TryLoadCollectionFromCache<MobileApp>(
-                tenantId, CacheKeyApplications,
-                items => Applications = items,
-                null, "application(s)", ref oldestCacheTime))
-                typesLoaded++;
+            await TryLoad<MobileApp>(CacheKeyApplications,
+                items => Applications = items, null, "application(s)");
 
-            if (TryLoadCollectionFromCache<DeviceManagementConfigurationPolicy>(
-                tenantId, CacheKeySettingsCatalog,
-                items => SettingsCatalogPolicies = items,
-                null, "settings catalog policy(ies)", ref oldestCacheTime))
-                typesLoaded++;
+            await TryLoad<DeviceManagementConfigurationPolicy>(CacheKeySettingsCatalog,
+                items => SettingsCatalogPolicies = items, null, "settings catalog policy(ies)");
 
             // Lazy types (with loaded flag)
-            if (TryLoadCollectionFromCache<DeviceManagementIntent>(
-                tenantId, CacheKeyEndpointSecurity,
+            await TryLoad<DeviceManagementIntent>(CacheKeyEndpointSecurity,
                 items => EndpointSecurityIntents = items,
-                () => _endpointSecurityLoaded = true,
-                "endpoint security intent(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _endpointSecurityLoaded = true, "endpoint security intent(s)");
 
-            if (TryLoadCollectionFromCache<GroupPolicyConfiguration>(
-                tenantId, CacheKeyAdministrativeTemplates,
+            await TryLoad<GroupPolicyConfiguration>(CacheKeyAdministrativeTemplates,
                 items => AdministrativeTemplates = items,
-                () => _administrativeTemplatesLoaded = true,
-                "administrative template(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _administrativeTemplatesLoaded = true, "administrative template(s)");
 
-            if (TryLoadCollectionFromCache<DeviceEnrollmentConfiguration>(
-                tenantId, CacheKeyEnrollmentConfigurations,
+            await TryLoad<DeviceEnrollmentConfiguration>(CacheKeyEnrollmentConfigurations,
                 items => EnrollmentConfigurations = items,
-                () => _enrollmentConfigurationsLoaded = true,
-                "enrollment configuration(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _enrollmentConfigurationsLoaded = true, "enrollment configuration(s)");
 
-            if (TryLoadCollectionFromCache<ManagedAppPolicy>(
-                tenantId, CacheKeyAppProtectionPolicies,
+            await TryLoad<ManagedAppPolicy>(CacheKeyAppProtectionPolicies,
                 items => AppProtectionPolicies = items,
-                () => _appProtectionPoliciesLoaded = true,
-                "app protection policy(ies)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _appProtectionPoliciesLoaded = true, "app protection policy(ies)");
 
-            if (TryLoadCollectionFromCache<ManagedDeviceMobileAppConfiguration>(
-                tenantId, CacheKeyManagedDeviceAppConfigurations,
+            await TryLoad<ManagedDeviceMobileAppConfiguration>(CacheKeyManagedDeviceAppConfigurations,
                 items => ManagedDeviceAppConfigurations = items,
-                () => _managedDeviceAppConfigurationsLoaded = true,
-                "managed device app configuration(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _managedDeviceAppConfigurationsLoaded = true, "managed device app configuration(s)");
 
-            if (TryLoadCollectionFromCache<TargetedManagedAppConfiguration>(
-                tenantId, CacheKeyTargetedManagedAppConfigurations,
+            await TryLoad<TargetedManagedAppConfiguration>(CacheKeyTargetedManagedAppConfigurations,
                 items => TargetedManagedAppConfigurations = items,
-                () => _targetedManagedAppConfigurationsLoaded = true,
-                "targeted managed app configuration(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _targetedManagedAppConfigurationsLoaded = true, "targeted managed app configuration(s)");
 
-            if (TryLoadCollectionFromCache<TermsAndConditions>(
-                tenantId, CacheKeyTermsAndConditions,
+            await TryLoad<TermsAndConditions>(CacheKeyTermsAndConditions,
                 items => TermsAndConditionsCollection = items,
-                () => _termsAndConditionsLoaded = true,
-                "terms and conditions item(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _termsAndConditionsLoaded = true, "terms and conditions item(s)");
 
-            if (TryLoadCollectionFromCache<RoleScopeTag>(
-                tenantId, CacheKeyScopeTags,
+            await TryLoad<RoleScopeTag>(CacheKeyScopeTags,
                 items => ScopeTags = items,
-                () => _scopeTagsLoaded = true,
-                "scope tag(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _scopeTagsLoaded = true, "scope tag(s)");
 
-            if (TryLoadCollectionFromCache<RoleDefinition>(
-                tenantId, CacheKeyRoleDefinitions,
+            await TryLoad<RoleDefinition>(CacheKeyRoleDefinitions,
                 items => RoleDefinitions = items,
-                () => _roleDefinitionsLoaded = true,
-                "role definition(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _roleDefinitionsLoaded = true, "role definition(s)");
 
-            if (TryLoadCollectionFromCache<IntuneBrandingProfile>(
-                tenantId, CacheKeyIntuneBrandingProfiles,
+            await TryLoad<IntuneBrandingProfile>(CacheKeyIntuneBrandingProfiles,
                 items => IntuneBrandingProfiles = items,
-                () => _intuneBrandingProfilesLoaded = true,
-                "Intune branding profile(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _intuneBrandingProfilesLoaded = true, "Intune branding profile(s)");
 
-            if (TryLoadCollectionFromCache<OrganizationalBrandingLocalization>(
-                tenantId, CacheKeyAzureBrandingLocalizations,
+            await TryLoad<OrganizationalBrandingLocalization>(CacheKeyAzureBrandingLocalizations,
                 items => AzureBrandingLocalizations = items,
-                () => _azureBrandingLocalizationsLoaded = true,
-                "Azure branding localization(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _azureBrandingLocalizationsLoaded = true, "Azure branding localization(s)");
 
-            if (TryLoadCollectionFromCache<ConditionalAccessPolicy>(
-                tenantId, CacheKeyConditionalAccess,
+            await TryLoad<ConditionalAccessPolicy>(CacheKeyConditionalAccess,
                 items => ConditionalAccessPolicies = items,
-                () => _conditionalAccessLoaded = true,
-                "conditional access policy(ies)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _conditionalAccessLoaded = true, "conditional access policy(ies)");
 
-            if (TryLoadCollectionFromCache<DeviceAndAppManagementAssignmentFilter>(
-                tenantId, CacheKeyAssignmentFilters,
+            await TryLoad<DeviceAndAppManagementAssignmentFilter>(CacheKeyAssignmentFilters,
                 items => AssignmentFilters = items,
-                () => _assignmentFiltersLoaded = true,
-                "assignment filter(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _assignmentFiltersLoaded = true, "assignment filter(s)");
 
-            if (TryLoadCollectionFromCache<PolicySet>(
-                tenantId, CacheKeyPolicySets,
+            await TryLoad<PolicySet>(CacheKeyPolicySets,
                 items => PolicySets = items,
-                () => _policySetsLoaded = true,
-                "policy set(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _policySetsLoaded = true, "policy set(s)");
 
-            if (TryLoadCollectionFromCache<WindowsAutopilotDeploymentProfile>(
-                tenantId, CacheKeyAutopilotProfiles,
+            await TryLoad<WindowsAutopilotDeploymentProfile>(CacheKeyAutopilotProfiles,
                 items => AutopilotProfiles = items,
-                () => _autopilotProfilesLoaded = true,
-                "autopilot profile(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _autopilotProfilesLoaded = true, "autopilot profile(s)");
 
-            if (TryLoadCollectionFromCache<DeviceHealthScript>(
-                tenantId, CacheKeyDeviceHealthScripts,
+            await TryLoad<DeviceHealthScript>(CacheKeyDeviceHealthScripts,
                 items => DeviceHealthScripts = items,
-                () => _deviceHealthScriptsLoaded = true,
-                "device health script(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _deviceHealthScriptsLoaded = true, "device health script(s)");
 
-            if (TryLoadCollectionFromCache<DeviceCustomAttributeShellScript>(
-                tenantId, CacheKeyMacCustomAttributes,
+            await TryLoad<DeviceCustomAttributeShellScript>(CacheKeyMacCustomAttributes,
                 items => MacCustomAttributes = items,
-                () => _macCustomAttributesLoaded = true,
-                "mac custom attribute(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _macCustomAttributesLoaded = true, "mac custom attribute(s)");
 
-            if (TryLoadCollectionFromCache<WindowsFeatureUpdateProfile>(
-                tenantId, CacheKeyFeatureUpdateProfiles,
+            await TryLoad<WindowsFeatureUpdateProfile>(CacheKeyFeatureUpdateProfiles,
                 items => FeatureUpdateProfiles = items,
-                () => _featureUpdateProfilesLoaded = true,
-                "feature update profile(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _featureUpdateProfilesLoaded = true, "feature update profile(s)");
 
-            if (TryLoadCollectionFromCache<NamedLocation>(
-                tenantId, CacheKeyNamedLocations,
+            await TryLoad<NamedLocation>(CacheKeyNamedLocations,
                 items => NamedLocations = items,
-                () => _namedLocationsLoaded = true,
-                "named location(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _namedLocationsLoaded = true, "named location(s)");
 
-            if (TryLoadCollectionFromCache<AuthenticationStrengthPolicy>(
-                tenantId, CacheKeyAuthenticationStrengths,
+            await TryLoad<AuthenticationStrengthPolicy>(CacheKeyAuthenticationStrengths,
                 items => AuthenticationStrengthPolicies = items,
-                () => _authenticationStrengthPoliciesLoaded = true,
-                "authentication strength policy(ies)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _authenticationStrengthPoliciesLoaded = true, "authentication strength policy(ies)");
 
-            if (TryLoadCollectionFromCache<AuthenticationContextClassReference>(
-                tenantId, CacheKeyAuthenticationContexts,
+            await TryLoad<AuthenticationContextClassReference>(CacheKeyAuthenticationContexts,
                 items => AuthenticationContextClassReferences = items,
-                () => _authenticationContextClassReferencesLoaded = true,
-                "authentication context(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _authenticationContextClassReferencesLoaded = true, "authentication context(s)");
 
-            if (TryLoadCollectionFromCache<Agreement>(
-                tenantId, CacheKeyTermsOfUseAgreements,
+            await TryLoad<Agreement>(CacheKeyTermsOfUseAgreements,
                 items => TermsOfUseAgreements = items,
-                () => _termsOfUseAgreementsLoaded = true,
-                "terms of use agreement(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _termsOfUseAgreementsLoaded = true, "terms of use agreement(s)");
 
-            if (TryLoadCollectionFromCache<DeviceManagementScript>(
-                tenantId, CacheKeyDeviceManagementScripts,
+            await TryLoad<DeviceManagementScript>(CacheKeyDeviceManagementScripts,
                 items => DeviceManagementScripts = items,
-                () => _deviceManagementScriptsLoaded = true,
-                "device management script(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _deviceManagementScriptsLoaded = true, "device management script(s)");
 
-            if (TryLoadCollectionFromCache<DeviceShellScript>(
-                tenantId, CacheKeyDeviceShellScripts,
+            await TryLoad<DeviceShellScript>(CacheKeyDeviceShellScripts,
                 items => DeviceShellScripts = items,
-                () => _deviceShellScriptsLoaded = true,
-                "device shell script(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _deviceShellScriptsLoaded = true, "device shell script(s)");
 
-            if (TryLoadCollectionFromCache<DeviceComplianceScript>(
-                tenantId, CacheKeyComplianceScripts,
+            await TryLoad<DeviceComplianceScript>(CacheKeyComplianceScripts,
                 items => ComplianceScripts = items,
-                () => _complianceScriptsLoaded = true,
-                "compliance script(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _complianceScriptsLoaded = true, "compliance script(s)");
 
-            if (TryLoadCollectionFromCache<DepOnboardingSetting>(
-                tenantId, CacheKeyAppleDepSettings,
+            await TryLoad<DepOnboardingSetting>(CacheKeyAppleDepSettings,
                 items => AppleDepSettings = items,
-                () => _appleDepSettingsLoaded = true,
-                "Apple DEP onboarding setting(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _appleDepSettingsLoaded = true, "Apple DEP onboarding setting(s)");
 
-            if (TryLoadCollectionFromCache<DeviceCategory>(
-                tenantId, CacheKeyDeviceCategories,
+            await TryLoad<DeviceCategory>(CacheKeyDeviceCategories,
                 items => DeviceCategories = items,
-                () => _deviceCategoriesLoaded = true,
-                "device category(ies)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _deviceCategoriesLoaded = true, "device category(ies)");
 
-            if (TryLoadCollectionFromCache<CloudPcProvisioningPolicy>(
-                tenantId, CacheKeyCloudPcProvisioningPolicies,
+            await TryLoad<CloudPcProvisioningPolicy>(CacheKeyCloudPcProvisioningPolicies,
                 items => CloudPcProvisioningPolicies = items,
-                () => _cloudPcProvisioningPoliciesLoaded = true,
-                "Cloud PC provisioning policy(ies)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _cloudPcProvisioningPoliciesLoaded = true, "Cloud PC provisioning policy(ies)");
 
-            if (TryLoadCollectionFromCache<CloudPcUserSetting>(
-                tenantId, CacheKeyCloudPcUserSettings,
+            await TryLoad<CloudPcUserSetting>(CacheKeyCloudPcUserSettings,
                 items => CloudPcUserSettings = items,
-                () => _cloudPcUserSettingsLoaded = true,
-                "Cloud PC user setting(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _cloudPcUserSettingsLoaded = true, "Cloud PC user setting(s)");
 
-            if (TryLoadCollectionFromCache<VppToken>(
-                tenantId, CacheKeyVppTokens,
+            await TryLoad<VppToken>(CacheKeyVppTokens,
                 items => VppTokens = items,
-                () => _vppTokensLoaded = true,
-                "VPP token(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _vppTokensLoaded = true, "VPP token(s)");
 
-            if (TryLoadCollectionFromCache<DeviceAndAppManagementRoleAssignment>(
-                tenantId, CacheKeyRoleAssignments,
+            await TryLoad<DeviceAndAppManagementRoleAssignment>(CacheKeyRoleAssignments,
                 items => RoleAssignments = items,
-                () => _roleAssignmentsLoaded = true,
-                "role assignment(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _roleAssignmentsLoaded = true, "role assignment(s)");
 
-            if (TryLoadCollectionFromCache<WindowsQualityUpdateProfile>(
-                tenantId, CacheKeyQualityUpdateProfiles,
+            await TryLoad<WindowsQualityUpdateProfile>(CacheKeyQualityUpdateProfiles,
                 items => QualityUpdateProfiles = items,
-                () => _qualityUpdateProfilesLoaded = true,
-                "quality update profile(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _qualityUpdateProfilesLoaded = true, "quality update profile(s)");
 
-            if (TryLoadCollectionFromCache<WindowsDriverUpdateProfile>(
-                tenantId, CacheKeyDriverUpdateProfiles,
+            await TryLoad<WindowsDriverUpdateProfile>(CacheKeyDriverUpdateProfiles,
                 items => DriverUpdateProfiles = items,
-                () => _driverUpdateProfilesLoaded = true,
-                "driver update profile(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _driverUpdateProfilesLoaded = true, "driver update profile(s)");
 
-            if (TryLoadCollectionFromCache<GroupPolicyUploadedDefinitionFile>(
-                tenantId, CacheKeyAdmxFiles,
+            await TryLoad<GroupPolicyUploadedDefinitionFile>(CacheKeyAdmxFiles,
                 items => AdmxFiles = items,
-                () => _admxFilesLoaded = true,
-                "ADMX file(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _admxFilesLoaded = true, "ADMX file(s)");
 
-            if (TryLoadCollectionFromCache<DeviceManagementReusablePolicySetting>(
-                tenantId, CacheKeyReusablePolicySettings,
+            await TryLoad<DeviceManagementReusablePolicySetting>(CacheKeyReusablePolicySettings,
                 items => ReusablePolicySettings = items,
-                () => _reusablePolicySettingsLoaded = true,
-                "reusable policy setting(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _reusablePolicySettingsLoaded = true, "reusable policy setting(s)");
 
-            if (TryLoadCollectionFromCache<NotificationMessageTemplate>(
-                tenantId, CacheKeyNotificationTemplates,
+            await TryLoad<NotificationMessageTemplate>(CacheKeyNotificationTemplates,
                 items => NotificationTemplates = items,
-                () => _notificationTemplatesLoaded = true,
-                "notification template(s)", ref oldestCacheTime))
-                typesLoaded++;
+                () => _notificationTemplatesLoaded = true, "notification template(s)");
 
             if (typesLoaded > 0)
             {
@@ -1310,7 +1203,7 @@ public partial class MainWindowViewModel : ViewModelBase
             // If all primary overview types loaded, also populate Overview dashboard from cache
             if (typesLoaded >= 4)
             {
-                var cachedAssignments = _cacheService.Get<AppAssignmentRow>(tenantId, CacheKeyAppAssignments);
+                var cachedAssignments = await _cacheService.GetAsync<AppAssignmentRow>(tenantId, CacheKeyAppAssignments);
                 if (cachedAssignments != null && cachedAssignments.Count > 0)
                 {
                     AppAssignmentRows = new ObservableCollection<AppAssignmentRow>(cachedAssignments);
@@ -1342,14 +1235,15 @@ public partial class MainWindowViewModel : ViewModelBase
         return typesLoaded;
     }
 
-    private void UpdateOldestCacheTime(ref DateTime? oldest, string tenantId, string dataType)
+    private async Task<DateTime?> UpdateOldestCacheTimeAsync(DateTime? oldest, string tenantId, string dataType)
     {
-        var meta = _cacheService.GetMetadata(tenantId, dataType);
+        var meta = await _cacheService.GetMetadataAsync(tenantId, dataType);
         if (meta != null)
         {
             if (oldest == null || meta.Value.CachedAt < oldest.Value)
-                oldest = meta.Value.CachedAt;
+                return meta.Value.CachedAt;
         }
+        return oldest;
     }
 
     private static string FormatCacheAge(DateTime? cachedAtUtc)
@@ -1365,7 +1259,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>
     /// Saves all current collections to the cache.
     /// </summary>
-    private void SaveToCache(string tenantId)
+    private async Task SaveToCacheAsync(string tenantId)
     {
         if (string.IsNullOrEmpty(tenantId)) return;
 
@@ -1373,46 +1267,46 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
-            SaveCollectionToCache(tenantId, CacheKeyDeviceConfigs, DeviceConfigurations);
-            SaveCollectionToCache(tenantId, CacheKeyCompliancePolicies, CompliancePolicies);
-            SaveCollectionToCache(tenantId, CacheKeyApplications, Applications);
-            SaveCollectionToCache(tenantId, CacheKeySettingsCatalog, SettingsCatalogPolicies);
-            SaveCollectionToCache(tenantId, CacheKeyEndpointSecurity, EndpointSecurityIntents);
-            SaveCollectionToCache(tenantId, CacheKeyAdministrativeTemplates, AdministrativeTemplates);
-            SaveCollectionToCache(tenantId, CacheKeyEnrollmentConfigurations, EnrollmentConfigurations);
-            SaveCollectionToCache(tenantId, CacheKeyAppProtectionPolicies, AppProtectionPolicies);
-            SaveCollectionToCache(tenantId, CacheKeyManagedDeviceAppConfigurations, ManagedDeviceAppConfigurations);
-            SaveCollectionToCache(tenantId, CacheKeyTargetedManagedAppConfigurations, TargetedManagedAppConfigurations);
-            SaveCollectionToCache(tenantId, CacheKeyTermsAndConditions, TermsAndConditionsCollection);
-            SaveCollectionToCache(tenantId, CacheKeyScopeTags, ScopeTags);
-            SaveCollectionToCache(tenantId, CacheKeyRoleDefinitions, RoleDefinitions);
-            SaveCollectionToCache(tenantId, CacheKeyIntuneBrandingProfiles, IntuneBrandingProfiles);
-            SaveCollectionToCache(tenantId, CacheKeyAzureBrandingLocalizations, AzureBrandingLocalizations);
-            SaveCollectionToCache(tenantId, CacheKeyConditionalAccess, ConditionalAccessPolicies);
-            SaveCollectionToCache(tenantId, CacheKeyAssignmentFilters, AssignmentFilters);
-            SaveCollectionToCache(tenantId, CacheKeyPolicySets, PolicySets);
-            SaveCollectionToCache(tenantId, CacheKeyAutopilotProfiles, AutopilotProfiles);
-            SaveCollectionToCache(tenantId, CacheKeyDeviceHealthScripts, DeviceHealthScripts);
-            SaveCollectionToCache(tenantId, CacheKeyMacCustomAttributes, MacCustomAttributes);
-            SaveCollectionToCache(tenantId, CacheKeyFeatureUpdateProfiles, FeatureUpdateProfiles);
-            SaveCollectionToCache(tenantId, CacheKeyNamedLocations, NamedLocations);
-            SaveCollectionToCache(tenantId, CacheKeyAuthenticationStrengths, AuthenticationStrengthPolicies);
-            SaveCollectionToCache(tenantId, CacheKeyAuthenticationContexts, AuthenticationContextClassReferences);
-            SaveCollectionToCache(tenantId, CacheKeyTermsOfUseAgreements, TermsOfUseAgreements);
-            SaveCollectionToCache(tenantId, CacheKeyDeviceManagementScripts, DeviceManagementScripts);
-            SaveCollectionToCache(tenantId, CacheKeyDeviceShellScripts, DeviceShellScripts);
-            SaveCollectionToCache(tenantId, CacheKeyComplianceScripts, ComplianceScripts);
-            SaveCollectionToCache(tenantId, CacheKeyAppleDepSettings, AppleDepSettings);
-            SaveCollectionToCache(tenantId, CacheKeyDeviceCategories, DeviceCategories);
-            SaveCollectionToCache(tenantId, CacheKeyCloudPcProvisioningPolicies, CloudPcProvisioningPolicies);
-            SaveCollectionToCache(tenantId, CacheKeyCloudPcUserSettings, CloudPcUserSettings);
-            SaveCollectionToCache(tenantId, CacheKeyVppTokens, VppTokens);
-            SaveCollectionToCache(tenantId, CacheKeyRoleAssignments, RoleAssignments);
-            SaveCollectionToCache(tenantId, CacheKeyQualityUpdateProfiles, QualityUpdateProfiles);
-            SaveCollectionToCache(tenantId, CacheKeyDriverUpdateProfiles, DriverUpdateProfiles);
-            SaveCollectionToCache(tenantId, CacheKeyAdmxFiles, AdmxFiles);
-            SaveCollectionToCache(tenantId, CacheKeyReusablePolicySettings, ReusablePolicySettings);
-            SaveCollectionToCache(tenantId, CacheKeyNotificationTemplates, NotificationTemplates);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyDeviceConfigs, DeviceConfigurations);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyCompliancePolicies, CompliancePolicies);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyApplications, Applications);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeySettingsCatalog, SettingsCatalogPolicies);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyEndpointSecurity, EndpointSecurityIntents);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAdministrativeTemplates, AdministrativeTemplates);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyEnrollmentConfigurations, EnrollmentConfigurations);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAppProtectionPolicies, AppProtectionPolicies);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyManagedDeviceAppConfigurations, ManagedDeviceAppConfigurations);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyTargetedManagedAppConfigurations, TargetedManagedAppConfigurations);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyTermsAndConditions, TermsAndConditionsCollection);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyScopeTags, ScopeTags);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyRoleDefinitions, RoleDefinitions);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyIntuneBrandingProfiles, IntuneBrandingProfiles);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAzureBrandingLocalizations, AzureBrandingLocalizations);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyConditionalAccess, ConditionalAccessPolicies);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAssignmentFilters, AssignmentFilters);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyPolicySets, PolicySets);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAutopilotProfiles, AutopilotProfiles);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyDeviceHealthScripts, DeviceHealthScripts);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyMacCustomAttributes, MacCustomAttributes);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyFeatureUpdateProfiles, FeatureUpdateProfiles);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyNamedLocations, NamedLocations);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAuthenticationStrengths, AuthenticationStrengthPolicies);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAuthenticationContexts, AuthenticationContextClassReferences);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyTermsOfUseAgreements, TermsOfUseAgreements);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyDeviceManagementScripts, DeviceManagementScripts);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyDeviceShellScripts, DeviceShellScripts);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyComplianceScripts, ComplianceScripts);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAppleDepSettings, AppleDepSettings);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyDeviceCategories, DeviceCategories);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyCloudPcProvisioningPolicies, CloudPcProvisioningPolicies);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyCloudPcUserSettings, CloudPcUserSettings);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyVppTokens, VppTokens);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyRoleAssignments, RoleAssignments);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyQualityUpdateProfiles, QualityUpdateProfiles);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyDriverUpdateProfiles, DriverUpdateProfiles);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyAdmxFiles, AdmxFiles);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyReusablePolicySettings, ReusablePolicySettings);
+            await SaveCollectionToCacheAsync(tenantId, CacheKeyNotificationTemplates, NotificationTemplates);
 
             DebugLog.Log("Cache", "Saved data to disk cache");
         }
@@ -1556,7 +1450,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     setCollection(new ObservableCollection<T>(items));
                     setLoadedFlag?.Invoke();
                 });
-                _cacheService.Set(tenantId, cacheKey, items);
+                await _cacheService.SetAsync(tenantId, cacheKey, items);
             }));
         }
 
@@ -1769,7 +1663,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     DynamicGroupRows = new ObservableCollection<GroupRow>(rows);
                     _dynamicGroupsLoaded = true;
                 });
-                _cacheService.Set(tenantId, CacheKeyDynamicGroups, rows);
+                await _cacheService.SetAsync(tenantId, CacheKeyDynamicGroups, rows);
             }));
 
             tasks.Add(new DownloadTask("Assigned Groups", async () =>
@@ -1781,7 +1675,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     AssignedGroupRows = new ObservableCollection<GroupRow>(rows);
                     _assignedGroupsLoaded = true;
                 });
-                _cacheService.Set(tenantId, CacheKeyAssignedGroups, rows);
+                await _cacheService.SetAsync(tenantId, CacheKeyAssignedGroups, rows);
             }));
         }
 
@@ -1791,7 +1685,7 @@ public partial class MainWindowViewModel : ViewModelBase
             tasks.Add(new DownloadTask("Users", async () =>
             {
                 var users = await _userService.ListUsersAsync(ct);
-                _cacheService.Set(tenantId, CacheKeyUsers, users);
+                await _cacheService.SetAsync(tenantId, CacheKeyUsers, users);
             }));
         }
 
@@ -1801,10 +1695,10 @@ public partial class MainWindowViewModel : ViewModelBase
             tasks.Add(new DownloadTask("Managed Devices & Entra Users", async () =>
             {
                 var devices = await _managedDeviceService.ListManagedDevicesAsync(ct);
-                _cacheService.Set(tenantId, CacheKeyManagedDevices, devices);
+                await _cacheService.SetAsync(tenantId, CacheKeyManagedDevices, devices);
 
                 var entraUsers = await _entraUserService.ListUsersAsync(ct);
-                _cacheService.Set(tenantId, CacheKeyEntraUsers, entraUsers);
+                await _cacheService.SetAsync(tenantId, CacheKeyEntraUsers, entraUsers);
 
                 var entries = BuildDeviceUserEntries(devices, entraUsers);
                 Dispatcher.UIThread.Post(() =>

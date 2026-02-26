@@ -218,6 +218,20 @@ public class CacheService : ICacheService
         GC.SuppressFinalize(this);
     }
 
+    // ─── Async wrappers ────────────────────────────────────────────────────
+
+    public Task<List<T>?> GetAsync<T>(string tenantId, string dataType)
+        => Task.Run(() => Get<T>(tenantId, dataType));
+
+    public Task SetAsync<T>(string tenantId, string dataType, List<T> items, TimeSpan? ttl = null)
+        => Task.Run(() => Set(tenantId, dataType, items, ttl));
+
+    public Task InvalidateAsync(string tenantId, string? dataType = null)
+        => Task.Run(() => Invalidate(tenantId, dataType));
+
+    public Task<(DateTime CachedAt, int ItemCount)?> GetMetadataAsync(string tenantId, string dataType)
+        => Task.Run(() => GetMetadata(tenantId, dataType));
+
     private static string MakeKey(string tenantId, string dataType)
         => $"{tenantId}|{dataType}";
 

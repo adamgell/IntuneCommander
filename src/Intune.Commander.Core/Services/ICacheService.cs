@@ -33,4 +33,26 @@ public interface ICacheService : IDisposable
     /// Returns null if entry is missing or expired.
     /// </summary>
     (DateTime CachedAt, int ItemCount)? GetMetadata(string tenantId, string dataType);
+
+    // ─── Async wrappers (offload LiteDB I/O to the thread pool) ───────────
+
+    /// <summary>
+    /// Asynchronously retrieves cached data, offloading LiteDB disk I/O to the thread pool.
+    /// </summary>
+    Task<List<T>?> GetAsync<T>(string tenantId, string dataType);
+
+    /// <summary>
+    /// Asynchronously stores data in the cache, offloading LiteDB disk I/O to the thread pool.
+    /// </summary>
+    Task SetAsync<T>(string tenantId, string dataType, List<T> items, TimeSpan? ttl = null);
+
+    /// <summary>
+    /// Asynchronously removes cached data, offloading LiteDB disk I/O to the thread pool.
+    /// </summary>
+    Task InvalidateAsync(string tenantId, string? dataType = null);
+
+    /// <summary>
+    /// Asynchronously gets cache entry metadata, offloading LiteDB disk I/O to the thread pool.
+    /// </summary>
+    Task<(DateTime CachedAt, int ItemCount)?> GetMetadataAsync(string tenantId, string dataType);
 }

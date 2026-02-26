@@ -282,7 +282,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             // Try loading cached data — if all primary types are cached, skip Graph refresh
 
-            var cachedCount = TryLoadFromCache(profile.TenantId ?? "");
+            var cachedCount = await TryLoadFromCacheAsync(profile.TenantId ?? "");
 
             if (cachedCount >= 28)
 
