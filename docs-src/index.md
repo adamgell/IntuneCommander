@@ -6,6 +6,11 @@ Intune Commander is a cross-platform desktop application for managing Microsoft 
 
 ---
 
+!!! note "Early preview"
+    Intune Commander is under active development.
+    Expect rough edges and breaking changes between releases.
+    [Report issues on GitHub.](https://github.com/adamgell/IntuneCommander/issues)
+
 ## Quick Links
 
 <div class="grid cards" markdown>
@@ -71,6 +76,3 @@ Intune Commander is a ground-up .NET remake of [Micke-K/IntuneManagement](https:
 | **Windows** | ✅ Fully supported (recommended) |
 | **macOS** | ⚠️ Supported with limitations — requires Device Code auth instead of browser popup |
 | **Linux** | 🔜 Planned |
-
-!!! note "Early preview"
-    Intune Commander is under active development. Expect rough edges and breaking changes between releases. [Report issues on GitHub.](https://github.com/adamgell/IntuneCommander/issues)
