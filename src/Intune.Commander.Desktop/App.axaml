@@ -31,6 +31,16 @@
             <Thickness x:Key="CardPadding">12</Thickness>
             <Thickness x:Key="CardMargin">0,0,0,12</Thickness>
 
+            <!-- ═══ Brand Gradients ═══ -->
+            <LinearGradientBrush x:Key="PrimaryGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#2563EB" />
+                <GradientStop Offset="1" Color="#7C3AED" />
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="TextGradientBrush" StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Offset="0" Color="#60A5FA" />
+                <GradientStop Offset="1" Color="#A78BFA" />
+            </LinearGradientBrush>
+
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
                     <!-- App custom brushes -->
@@ -65,18 +75,18 @@
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <!-- App custom brushes -->
-                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#A1A1AA" />
-                    <SolidColorBrush x:Key="AppNavTextBrush" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#8B949E" />
+                    <SolidColorBrush x:Key="AppNavTextBrush" Color="#E6EDF3" />
                     <SolidColorBrush x:Key="AppErrorTextBrush" Color="#FFB3B3" />
                     <SolidColorBrush x:Key="AppErrorBackgroundBrush" Color="#33FF6B6B" />
                     <!-- Extracted shared colors -->
-                    <SolidColorBrush x:Key="ProgressBarForegroundBrush" Color="#00CC55" />
-                    <SolidColorBrush x:Key="ProgressBarBackgroundBrush" Color="#224400" />
-                    <SolidColorBrush x:Key="SuccessBadgeBrush" Color="#4ADE80" />
+                    <SolidColorBrush x:Key="ProgressBarForegroundBrush" Color="#2EA043" />
+                    <SolidColorBrush x:Key="ProgressBarBackgroundBrush" Color="#238636" />
+                    <SolidColorBrush x:Key="SuccessBadgeBrush" Color="#2EA043" />
                     <SolidColorBrush x:Key="ErrorBadgeBrush" Color="#E57373" />
                     <!-- Stat Card Colors -->
-                    <SolidColorBrush x:Key="StatCardBlueBrush" Color="#60A5FA" />
-                    <SolidColorBrush x:Key="StatCardGreenBrush" Color="#4ADE80" />
+                    <SolidColorBrush x:Key="StatCardBlueBrush" Color="#3B82F6" />
+                    <SolidColorBrush x:Key="StatCardGreenBrush" Color="#2EA043" />
                     <SolidColorBrush x:Key="StatCardOrangeBrush" Color="#FB923C" />
                     <SolidColorBrush x:Key="StatCardPurpleBrush" Color="#C084FC" />
                     <SolidColorBrush x:Key="StatCardCyanBrush" Color="#22D3EE" />
@@ -84,14 +94,14 @@
                     <SolidColorBrush x:Key="StatCardTealBrush" Color="#2DD4BF" />
                     <SolidColorBrush x:Key="StatCardRedBrush" Color="#F87171" />
                     <!-- Shadcn-compatible replacements for Fluent SystemControl resources -->
-                    <Color x:Key="SystemAccentColor">#3B82F6</Color>
-                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="#18181B" />
-                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#27272A" />
-                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#09090B" />
-                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#27272A" />
-                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumLowBrush" Color="#3F3F46" />
-                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#FAFAFA" />
-                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#A1A1AA" />
+                    <Color x:Key="SystemAccentColor">#2563EB</Color>
+                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="#161B22" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#1C2230" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#0D1117" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#30363D" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumLowBrush" Color="#30363D" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#E6EDF3" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#8B949E" />
                     <SolidColorBrush x:Key="SystemControlForegroundAccentBrush" Color="#3B82F6" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
