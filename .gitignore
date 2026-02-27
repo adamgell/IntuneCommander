@@ -3,6 +3,7 @@ bin/
 obj/
 [Dd]ebug/
 [Rr]elease/
+!.github/skills/release/
 
 # Visual Studio
 .vs/
