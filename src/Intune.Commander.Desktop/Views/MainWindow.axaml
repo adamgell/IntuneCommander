@@ -348,7 +348,13 @@
                                         Padding="32,20" CornerRadius="{StaticResource RadiusLarge}"
                                         Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                                     <StackPanel Spacing="10" HorizontalAlignment="Center">
-                                        <mi:MaterialIcon Kind="InboxOutline" Width="48" Height="48" Foreground="{DynamicResource AppTextSecondaryBrush}" HorizontalAlignment="Center" />
+                                        <mi:MaterialIcon Kind="InboxOutline"
+                                                         Width="48"
+                                                         Height="48"
+                                                         Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                         HorizontalAlignment="Center"
+                                                         AutomationProperties.Name="Empty inbox icon"
+                                                         ToolTip.Tip="Empty inbox" />
                                         <TextBlock Text="No items found"
                                                    FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
                                                    HorizontalAlignment="Center" />
