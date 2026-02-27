@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Intune Commander",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Intune.Commander.Desktop/bin/Debug/net10.0/Intune.Commander.Desktop.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Intune.Commander.Desktop",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Launch Intune Commander (Release)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-release",
+      "program": "${workspaceFolder}/src/Intune.Commander.Desktop/bin/Release/net10.0/Intune.Commander.Desktop.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Intune.Commander.Desktop",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}

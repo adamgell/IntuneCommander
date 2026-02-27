@@ -51,7 +51,11 @@ Desktop.ini
 *.swp
 *.swo
 *~
-.vscode/
+
+# VS Code — track shared config, ignore machine-specific files
+.vscode/settings.json
+.vscode/mcp.json
+.vscode/IntuneCommander.code-workspace
 
 # Temporary files
 *.tmp

@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--no-restore"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "build-release",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--configuration",
+        "Release",
+        "--no-restore"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "restore",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "restore",
+        "${workspaceFolder}/Intune.Commander.sln"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "test",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--filter",
+        "Category!=Integration"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "test-with-coverage",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "/p:CollectCoverage=true",
+        "/p:Threshold=40",
+        "/p:ThresholdType=line",
+        "/p:ThresholdStat=total",
+        "--filter",
+        "Category!=Integration"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "clean",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "clean",
+        "${workspaceFolder}/Intune.Commander.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}
