@@ -1,0 +1,17 @@
+{
+  "chat.agent.enabled": true,
+  "chat.agent.maxRequests": 64,
+  "chat.agentsControl.enabled": true,
+  "chat.customAgentInSubagent.enabled": true,
+  "chat.experimental.useSkillAdherencePrompt": true,
+  "chat.requestQueuing.defaultAction": "steer",
+  "chat.requestQueuing.enabled": true,
+  "chat.useAgentSkills": true,
+  "chat.useClaudeHooks": true,
+  "chat.useHooks": false,
+  "chat.useNestedAgentsMdFiles": true,
+  "chat.viewSessions.enabled": true,
+  "editor.aiStats.enabled": true,
+  "github.copilot.chat.agentCustomizationSkill.enabled": true,
+  "github.copilot.chat.askQuestions.enabled": true
+}
