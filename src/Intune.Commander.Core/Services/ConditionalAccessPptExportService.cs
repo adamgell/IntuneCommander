@@ -8,6 +8,7 @@ namespace Intune.Commander.Core.Services;
 /// Service for exporting Conditional Access policies to PowerPoint format.
 /// Generates one slide per policy using the embedded PolicyTemplate.pptx /
 /// PolicyTemplateImage.pptx templates, populating named shapes via PowerPointHelper.
+/// Resolves directory object GUIDs (users, groups, roles, apps) to display names.
 /// </summary>
 public class ConditionalAccessPptExportService : IConditionalAccessPptExportService
 {
@@ -16,19 +17,22 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
     private readonly IAuthenticationStrengthService _authStrengthService;
     private readonly IAuthenticationContextService _authContextService;
     private readonly IApplicationService _applicationService;
+    private readonly IDirectoryObjectResolver? _resolver;
 
     public ConditionalAccessPptExportService(
         IConditionalAccessPolicyService caPolicyService,
         INamedLocationService namedLocationService,
         IAuthenticationStrengthService authStrengthService,
         IAuthenticationContextService authContextService,
-        IApplicationService applicationService)
+        IApplicationService applicationService,
+        IDirectoryObjectResolver? resolver = null)
     {
         _caPolicyService = caPolicyService;
         _namedLocationService = namedLocationService;
         _authStrengthService = authStrengthService;
         _authContextService = authContextService;
         _applicationService = applicationService;
+        _resolver = resolver;
     }
 
     public async Task ExportAsync(
@@ -43,6 +47,9 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
             throw new ArgumentException("Tenant name must not be null, empty, or whitespace.", nameof(tenantName));
 
         var policies = await _caPolicyService.ListPoliciesAsync(cancellationToken);
+
+        // Batch-resolve all directory object GUIDs across all policies
+        var nameLookup = await ResolveAllDirectoryObjectsAsync(policies, cancellationToken);
 
         // Load both template variants from embedded resources
         // Template structure: Slides[0] = cover page, Slides[1] = per-policy detail template
@@ -71,7 +78,7 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var appAction = new AssignedCloudAppAction(policy);
+            var appAction = new AssignedCloudAppAction(policy, nameLookup);
             bool useImageTemplate = appAction.IsSelectedAppO365Only
                 || appAction.AccessType == AppAccessType.UserActionsRegSecInfo
                 || appAction.AccessType == AppAccessType.UserActionsRegDevice;
@@ -82,7 +89,7 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
 
             var slide = presentation.Slides[presentation.Slides.Count - 1];
             var pptHelper = new PowerPointHelper(slide);
-            PopulateSlide(pptHelper, policy, tenantName, appAction);
+            PopulateSlide(pptHelper, policy, tenantName, appAction, nameLookup);
         }
 
         // Remove the original per-policy template slide (at index 1; cover stays at index 0)
@@ -100,7 +107,8 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
         PowerPointHelper ppt,
         ConditionalAccessPolicy policy,
         string tenantName,
-        AssignedCloudAppAction appAction)
+        AssignedCloudAppAction appAction,
+        IReadOnlyDictionary<string, string> nameLookup)
     {
         // ── Header ──────────────────────────────────────────────────────────────
         ppt.SetText(Shape.PolicyName, policy.DisplayName);
@@ -114,7 +122,7 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
         ppt.Show(policy.State == ConditionalAccessPolicyState.EnabledForReportingButNotEnforced, Shape.StateReportOnly);
 
         // ── Users / workload identity ─────────────────────────────────────────
-        var userWorkload = new AssignedUserWorkload(policy);
+        var userWorkload = new AssignedUserWorkload(policy, nameLookup);
         ppt.SetText(Shape.UserWorkload, userWorkload.Name);
         ppt.SetTextFormatted(Shape.UserWorkloadIncExc, userWorkload.IncludeExclude);
         ppt.Show(userWorkload.IsWorkload, Shape.IconWorkloadIdentity);
@@ -151,7 +159,7 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
             ppt.SetTextFormatted(Shape.ClientAppTypes, clientAppTypes.IncludeExclude);
 
         // ── Conditions: locations ─────────────────────────────────────────────
-        var locations = new ConditionLocations(policy);
+        var locations = new ConditionLocations(policy, nameLookup);
         ppt.Show(locations.HasData, Shape.Locations, Shape.IconLocations, Shape.ShadeLocations);
         if (locations.HasData)
             ppt.SetTextFormatted(Shape.Locations, locations.IncludeExclude);
@@ -230,6 +238,80 @@ public class ConditionalAccessPptExportService : IConditionalAccessPptExportServ
         ppt.Show(session.DisableResilienceDefaults, Shape.ShadeSessionDisableResilience);
         ppt.Show(session.SecureSignInSession, Shape.ShadeSessionSecureSignIn);
         ppt.Show(session.ContinuousAccessEvaluation, Shape.IconSessionCaeDisable);
+    }
+
+    /// <summary>
+    /// Collects all directory object GUIDs referenced across all policies and resolves them
+    /// in a single batch call. Returns an empty dictionary if no resolver is configured.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<string, string>> ResolveAllDirectoryObjectsAsync(
+        List<ConditionalAccessPolicy> policies,
+        CancellationToken cancellationToken)
+    {
+        if (_resolver == null)
+            return new Dictionary<string, string>();
+
+        var allIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var policy in policies)
+        {
+            var conditions = policy.Conditions;
+            if (conditions == null) continue;
+
+            // Users: include/exclude users, groups, roles
+            var users = conditions.Users;
+            if (users != null)
+            {
+                AddAll(allIds, users.IncludeUsers);
+                AddAll(allIds, users.ExcludeUsers);
+                AddAll(allIds, users.IncludeGroups);
+                AddAll(allIds, users.ExcludeGroups);
+                AddAll(allIds, users.IncludeRoles);
+                AddAll(allIds, users.ExcludeRoles);
+            }
+
+            // Workload identities: service principals
+            var clientApps = conditions.ClientApplications;
+            if (clientApps != null)
+            {
+                AddAll(allIds, clientApps.IncludeServicePrincipals);
+                AddAll(allIds, clientApps.ExcludeServicePrincipals);
+            }
+
+            // Applications: include/exclude app IDs
+            var apps = conditions.Applications;
+            if (apps != null)
+            {
+                AddAll(allIds, apps.IncludeApplications);
+                AddAll(allIds, apps.ExcludeApplications);
+            }
+
+            // Locations: named location IDs
+            var locs = conditions.Locations;
+            if (locs != null)
+            {
+                AddAll(allIds, locs.IncludeLocations);
+                AddAll(allIds, locs.ExcludeLocations);
+            }
+        }
+
+        // Remove empty entries
+        allIds.Remove(string.Empty);
+
+        if (allIds.Count == 0)
+            return new Dictionary<string, string>();
+
+        return await _resolver.ResolveAsync(allIds, cancellationToken);
+    }
+
+    private static void AddAll(HashSet<string> target, List<string>? source)
+    {
+        if (source == null) return;
+        foreach (var id in source)
+        {
+            if (!string.IsNullOrEmpty(id))
+                target.Add(id);
+        }
     }
 
     private static byte[] LoadEmbeddedTemplateBytes(string templateName)

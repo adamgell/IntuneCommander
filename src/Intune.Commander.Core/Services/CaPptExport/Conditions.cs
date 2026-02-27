@@ -88,21 +88,36 @@ public class ConditionLocations
     public string? IncludeExclude { get; private set; }
     public bool HasData => !string.IsNullOrEmpty(IncludeExclude);
 
-    public ConditionLocations(ConditionalAccessPolicy policy)
+    /// <summary>
+    /// Creates a new <see cref="ConditionLocations"/> instance.
+    /// </summary>
+    /// <param name="policy">The Conditional Access policy to parse.</param>
+    /// <param name="nameLookup">
+    /// Optional dictionary mapping named location GUIDs to display names.
+    /// </param>
+    public ConditionLocations(
+        ConditionalAccessPolicy policy,
+        IReadOnlyDictionary<string, string>? nameLookup = null)
     {
         if (policy.Conditions?.Locations == null) return;
-        IncludeExclude = GetIncludes(policy.Conditions.Locations);
+        IncludeExclude = GetIncludes(policy.Conditions.Locations, nameLookup ?? new Dictionary<string, string>());
     }
 
-    private static string GetIncludes(ConditionalAccessLocations locations)
+    private static string GetIncludes(
+        ConditionalAccessLocations locations,
+        IReadOnlyDictionary<string, string> nameLookup)
     {
         var sb = new StringBuilder();
-        AppendLocations(sb, locations.IncludeLocations, "✅ Include");
-        AppendLocations(sb, locations.ExcludeLocations, "🚫 Exclude");
+        AppendLocations(sb, locations.IncludeLocations, "✅ Include", nameLookup);
+        AppendLocations(sb, locations.ExcludeLocations, "🚫 Exclude", nameLookup);
         return sb.ToString();
     }
 
-    private static void AppendLocations(StringBuilder sb, List<string>? locations, string title)
+    private static void AppendLocations(
+        StringBuilder sb,
+        List<string>? locations,
+        string title,
+        IReadOnlyDictionary<string, string> nameLookup)
     {
         if (locations?.Count > 0)
         {
@@ -114,7 +129,7 @@ public class ConditionLocations
                     "All" => "Any location",
                     "AllTrusted" => "All trusted locations",
                     "00000000-0000-0000-0000-000000000000" => "MFA Trusted IPs",
-                    _ => loc
+                    _ => nameLookup.TryGetValue(loc, out var resolved) ? resolved : loc
                 };
                 sb.AppendLine($" - {name}");
             }

@@ -5,9 +5,12 @@ namespace Intune.Commander.Core.Services.CaPptExport;
 
 /// <summary>
 /// Parses assigned users/workload from a CA policy into include/exclude text.
+/// Accepts an optional name lookup dictionary to resolve GUIDs to display names.
 /// </summary>
 public class AssignedUserWorkload
 {
+    private readonly IReadOnlyDictionary<string, string> _nameLookup;
+
     public string? Name { get; private set; }
     public string? IncludeExclude { get; private set; }
     public bool IsWorkload { get; private set; }
@@ -16,8 +19,20 @@ public class AssignedUserWorkload
     public bool HasIncludeExternalTenant { get; private set; }
     public bool HasData => !string.IsNullOrEmpty(IncludeExclude);
 
-    public AssignedUserWorkload(ConditionalAccessPolicy policy)
+    /// <summary>
+    /// Creates a new <see cref="AssignedUserWorkload"/> instance.
+    /// </summary>
+    /// <param name="policy">The Conditional Access policy to parse.</param>
+    /// <param name="nameLookup">
+    /// Optional dictionary mapping directory object GUIDs to display names.
+    /// When provided, user, group, role, and service principal GUIDs are resolved to readable names.
+    /// </param>
+    public AssignedUserWorkload(
+        ConditionalAccessPolicy policy,
+        IReadOnlyDictionary<string, string>? nameLookup = null)
     {
+        _nameLookup = nameLookup ?? new Dictionary<string, string>();
+
         var conditions = policy.Conditions;
         if (conditions == null) return;
 
@@ -46,7 +61,7 @@ public class AssignedUserWorkload
         HasIncludeExternalTenant = users.IncludeGuestsOrExternalUsers?.ExternalTenants != null;
     }
 
-    private static string GetWorkloadIncludeExclude(ConditionalAccessConditionSet conditions)
+    private string GetWorkloadIncludeExclude(ConditionalAccessConditionSet conditions)
     {
         var apps = conditions.ClientApplications;
         if (apps == null) return string.Empty;
@@ -59,18 +74,18 @@ public class AssignedUserWorkload
                 sb.AppendLine("  - All owned service principals");
             else
                 foreach (var sp in apps.IncludeServicePrincipals)
-                    sb.AppendLine($"  - {sp}");
+                    sb.AppendLine($"  - {ResolveName(sp)}");
         }
         if (apps.ExcludeServicePrincipals?.Count > 0)
         {
             sb.AppendLine("🚫 Exclude:");
             foreach (var sp in apps.ExcludeServicePrincipals)
-                sb.AppendLine($"  - {sp}");
+                sb.AppendLine($"  - {ResolveName(sp)}");
         }
         return sb.ToString();
     }
 
-    private static string GetUserIncludeExclude(ConditionalAccessConditionSet conditions)
+    private string GetUserIncludeExclude(ConditionalAccessConditionSet conditions)
     {
         var users = conditions.Users;
         if (users == null) return string.Empty;
@@ -90,19 +105,19 @@ public class AssignedUserWorkload
             {
                 sb.AppendLine("  Directory roles");
                 foreach (var id in users.IncludeRoles)
-                    sb.AppendLine($"    - {id}");
+                    sb.AppendLine($"    - {ResolveName(id)}");
             }
             if (users.IncludeGroups?.Count > 0)
             {
                 sb.AppendLine("  Groups");
                 foreach (var id in users.IncludeGroups)
-                    sb.AppendLine($"    - {id}");
+                    sb.AppendLine($"    - {ResolveName(id)}");
             }
             if (users.IncludeUsers?.Count > 0)
             {
                 sb.AppendLine("  Users");
                 foreach (var id in users.IncludeUsers)
-                    sb.AppendLine($"    - {FormatUserId(id)}");
+                    sb.AppendLine($"    - {FormatUserId(ResolveName(id))}");
             }
             sb.AppendLine();
         }
@@ -121,22 +136,32 @@ public class AssignedUserWorkload
             {
                 sb.AppendLine("  Directory roles");
                 foreach (var id in users.ExcludeRoles)
-                    sb.AppendLine($"    - {id}");
+                    sb.AppendLine($"    - {ResolveName(id)}");
             }
             if (users.ExcludeGroups?.Count > 0)
             {
                 sb.AppendLine("  Groups");
                 foreach (var id in users.ExcludeGroups)
-                    sb.AppendLine($"    - {id}");
+                    sb.AppendLine($"    - {ResolveName(id)}");
             }
             if (users.ExcludeUsers?.Count > 0)
             {
                 sb.AppendLine("  Users");
                 foreach (var id in users.ExcludeUsers)
-                    sb.AppendLine($"    - {FormatUserId(id)}");
+                    sb.AppendLine($"    - {FormatUserId(ResolveName(id))}");
             }
         }
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Resolves an ID to a display name using the lookup dictionary.
+    /// Falls back to the raw ID if not found.
+    /// </summary>
+    private string ResolveName(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return id;
+        return _nameLookup.TryGetValue(id, out var name) ? name : id;
     }
 
     private static string FormatUserId(string id) => id switch

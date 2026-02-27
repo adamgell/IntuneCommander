@@ -6,6 +6,33 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- **Directory Object Resolver** — new `IDirectoryObjectResolver` / `DirectoryObjectResolver` in Core
+  - Batch-resolves directory object GUIDs to display names via `POST /directoryObjects/getByIds` (up to 1,000 IDs per call)
+  - Handles Users, Groups, Directory Roles, Role Templates, Service Principals, and Applications
+  - Automatically filters sentinel values (`All`, `None`, `GuestsOrExternalUsers`, etc.) to avoid unnecessary API calls
+  - Checks `WellKnownAppRegistry` for Microsoft first-party app IDs before hitting the Graph API
+- **Well-Known App Registry** — new `WellKnownAppRegistry` static class in Core/Models
+  - Lazy-loads 4,354 Microsoft first-party Entra ID application entries from embedded `MicrosoftApps.json`
+  - Case-insensitive GUID lookup with `WellKnownAppRegistry.Resolve(appId)` convenience method
+  - Replaces the hardcoded ~30-entry `WellKnownApps` dictionary previously in `MainWindowViewModel.Detail.cs`
+  - JSON file is an embedded resource — update by simply swapping the file, no code changes needed
+- **CA PowerPoint GUID-to-Name Resolution** — GUIDs in Conditional Access PowerPoint exports are now resolved to human-readable names
+  - `AssignedUserWorkload`: resolves user, group, directory role, and service principal GUIDs in include/exclude lists
+  - `AssignedCloudAppAction`: resolves application GUIDs in include/exclude lists
+  - `ConditionLocations`: resolves named location GUIDs; sentinel values (`All` → "Any location", `AllTrusted` → "All trusted locations") preserved
+  - `ConditionalAccessPptExportService`: collects all GUIDs across all policies, performs a single batch resolution, and passes the lookup to all helper constructors
+  - 24 new unit tests covering name resolution across all helper classes, `WellKnownAppRegistry`, and `DirectoryObjectResolver` contract
+
+### Changed
+
+- `ConditionalAccessPptExportService` constructor now accepts an optional `IDirectoryObjectResolver` for batch GUID resolution
+- `AssignedUserWorkload`, `AssignedCloudAppAction`, and `ConditionLocations` constructors accept an optional `IReadOnlyDictionary<string, string>` name lookup
+- Desktop `MainWindowViewModel.Detail.cs` now delegates app-ID resolution to the shared `WellKnownAppRegistry` instead of a local dictionary
+
+---
+
+### Added
+
 - **Permission Check Service** — new `IPermissionCheckService` / `PermissionCheckService` in Core
   - Acquires the current token via `TokenCredential`, base64url-decodes the JWT payload, and compares granted permissions against the 14 known-required Graph scopes
   - Supports both application tokens (`roles` claim) and delegated tokens (`scp` claim)
