@@ -37,7 +37,11 @@
             <MenuItem Header="Help">
                 <MenuItem Header="Check for Updates..." x:Name="MenuCheckUpdates" Click="OnCheckForUpdatesClick" />
                 <Separator />
-                <MenuItem Header="&#x1F511; Permissions..." x:Name="MenuPermissions" Click="OnPermissionsButtonClick" IsEnabled="{Binding IsConnected}" />
+                <MenuItem Header="Permissions..." x:Name="MenuPermissions" Click="OnPermissionsButtonClick" IsEnabled="{Binding IsConnected}">
+                    <MenuItem.Icon>
+                        <mi:MaterialIcon Kind="Key" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="About Intune Commander" x:Name="MenuAbout" Click="OnAboutClick" />
             </MenuItem>
@@ -56,20 +60,6 @@
                                  Foreground="{DynamicResource ProgressBarForegroundBrush}" Background="{DynamicResource ProgressBarBackgroundBrush}"
                                  VerticalAlignment="Center"
                                  CornerRadius="{StaticResource RadiusMedium}">
-                        <ProgressBar.Styles>
-                            <Style Selector="ProgressBar:indeterminate">
-                                <Style.Animations>
-                                    <Animation Duration="0:0:0.8" IterationCount="INFINITE" PlaybackDirection="Alternate">
-                                        <KeyFrame Cue="0%">
-                                            <Setter Property="Opacity" Value="0.5" />
-                                        </KeyFrame>
-                                        <KeyFrame Cue="100%">
-                                            <Setter Property="Opacity" Value="1.0" />
-                                        </KeyFrame>
-                                    </Animation>
-                                </Style.Animations>
-                            </Style>
-                        </ProgressBar.Styles>
                     </ProgressBar>
                     <Border Background="Transparent" Cursor="Hand" Padding="4,2"
                             PointerPressed="OnDebugLogLinkPressed">
@@ -123,8 +113,7 @@
                             </DropDownButton>
 
                             <Border Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="4,2" />
-                            <Button Content="&#9660; Download All to Cache"
-                                    Command="{Binding DownloadAllToCacheCommand}"
+                            <Button Command="{Binding DownloadAllToCacheCommand}"
                                     IsVisible="{Binding !IsDownloadingAll}"
                                     ToolTip.Tip="Downloads all Intune data types into the local cache"
                                     FontWeight="SemiBold"
@@ -132,11 +121,20 @@
                                     Foreground="White"
                                     Classes="Flat Accent Small"
                                     VerticalAlignment="Center"
-                                    HorizontalAlignment="Right" />
-                            <Button Content="⬛ Cancel Download"
-                                    Command="{Binding CancelDownloadAllCommand}"
+                                    HorizontalAlignment="Right">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="Download" />
+                                    <TextBlock Text="Download All to Cache" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding CancelDownloadAllCommand}"
                                     IsVisible="{Binding IsDownloadingAll}"
-                                    Classes="Flat Accent Small" />
+                                    Classes="Flat Accent Small">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="Stop" />
+                                    <TextBlock Text="Cancel Download" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <ComboBox ItemsSource="{Binding SwitcherProfiles}"
@@ -230,9 +228,7 @@
                                                                     Classes="NavItem"
                                                                     Classes.active="{Binding IsSelected}">
                                                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                                                    <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontSizeBody}"
-                                                                               Width="18" TextAlignment="Center"
-                                                                               VerticalAlignment="Center" />
+                                                                    <mi:MaterialIcon Kind="{Binding Icon}" Width="18" Height="18" VerticalAlignment="Center" />
                                                                     <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSizeBody}"
                                                                                VerticalAlignment="Center"
                                                                                TextTrimming="CharacterEllipsis" />
@@ -294,12 +290,16 @@
                                             VerticalAlignment="Center"
                                             IsVisible="{Binding IsAdministrativeTemplatesCategory}"
                                             ToolTip.Tip="Export Administrative Templates list to CSV" />
-                                    <Button Content="📊 Export PowerPoint"
-                                            Command="{Binding ExportConditionalAccessPowerPointCommand}"
+                                    <Button Command="{Binding ExportConditionalAccessPowerPointCommand}"
                                             Classes="Small"
                                             VerticalAlignment="Center"
                                             IsVisible="{Binding IsConditionalAccessCategory}"
-                                            ToolTip.Tip="Export Conditional Access policies to PowerPoint presentation" />
+                                            ToolTip.Tip="Export Conditional Access policies to PowerPoint presentation">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <mi:MaterialIcon Kind="Presentation" />
+                                            <TextBlock Text="Export PowerPoint" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
                                     <Button Content="⋮ Columns"
                                             x:Name="ColumnChooserButton"
                                             Classes="Small"
@@ -346,7 +346,7 @@
                                         Padding="32,20" CornerRadius="{StaticResource RadiusLarge}"
                                         Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                                     <StackPanel Spacing="10" HorizontalAlignment="Center">
-                                        <TextBlock Text="&#x1F4ED;" FontSize="40" HorizontalAlignment="Center" />
+                                        <mi:MaterialIcon Kind="InboxOutline" Width="48" Height="48" Foreground="{DynamicResource AppTextSecondaryBrush}" HorizontalAlignment="Center" />
                                         <TextBlock Text="No items found"
                                                    FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
                                                    HorizontalAlignment="Center" />

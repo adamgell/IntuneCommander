@@ -56,9 +56,9 @@
                                 ToolTip.Tip="View Device Configurations">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding TotalDeviceConfigs}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#2196F3" />
+                                           Foreground="{DynamicResource StatCardBlueBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#2196F3" /><Run Text="DEVICE CONFIGS" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardBlueBrush}" /><Run Text="DEVICE CONFIGS" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>
@@ -69,9 +69,9 @@
                                 ToolTip.Tip="View Compliance Policies">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding TotalCompliancePolicies}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#4CAF50" />
+                                           Foreground="{DynamicResource StatCardGreenBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#4CAF50" /><Run Text="COMPLIANCE" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardGreenBrush}" /><Run Text="COMPLIANCE" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>
@@ -82,9 +82,9 @@
                                 ToolTip.Tip="View Applications">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding TotalApplications}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#FF9800" />
+                                           Foreground="{DynamicResource StatCardOrangeBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#FF9800" /><Run Text="APPLICATIONS" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardOrangeBrush}" /><Run Text="APPLICATIONS" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>
@@ -95,9 +95,9 @@
                                 ToolTip.Tip="View Settings Catalog Policies">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding TotalSettingsCatalog}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#9C27B0" />
+                                           Foreground="{DynamicResource StatCardPurpleBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#9C27B0" /><Run Text="SETTINGS CATALOG" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardPurpleBrush}" /><Run Text="SETTINGS CATALOG" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>
@@ -114,9 +114,9 @@
                                 ToolTip.Tip="View Endpoint Security Policies">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding TotalEndpointSecurity}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#00BCD4" />
+                                           Foreground="{DynamicResource StatCardCyanBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#00BCD4" /><Run Text="ENDPOINT SECURITY" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardCyanBrush}" /><Run Text="ENDPOINT SECURITY" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>
@@ -127,9 +127,9 @@
                                 ToolTip.Tip="View Conditional Access Policies">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding TotalConditionalAccess}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#E91E63" />
+                                           Foreground="{DynamicResource StatCardPinkBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#E91E63" /><Run Text="CONDITIONAL ACCESS" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardPinkBrush}" /><Run Text="CONDITIONAL ACCESS" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>
@@ -140,9 +140,9 @@
                                 ToolTip.Tip="View Device Scripts">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding TotalScripts}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#009688" />
+                                           Foreground="{DynamicResource StatCardTealBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#009688" /><Run Text="SCRIPTS" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardTealBrush}" /><Run Text="SCRIPTS" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>
@@ -153,9 +153,9 @@
                                 ToolTip.Tip="View Unassigned Applications">
                             <StackPanel Spacing="1" Margin="8,6">
                                 <TextBlock Text="{Binding UnassignedAppCount}" FontSize="20" FontWeight="Bold"
-                                           Foreground="#F44336" />
+                                           Foreground="{DynamicResource StatCardRedBrush}" />
                                 <TextBlock FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                    <Run Text="● " Foreground="#F44336" /><Run Text="UNASSIGNED APPS" />
+                                    <Run Text="● " Foreground="{DynamicResource StatCardRedBrush}" /><Run Text="UNASSIGNED APPS" />
                                 </TextBlock>
                             </StackPanel>
                         </Button>

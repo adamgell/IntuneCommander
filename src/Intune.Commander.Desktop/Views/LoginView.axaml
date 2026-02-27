@@ -14,25 +14,27 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
                   HorizontalContentAlignment="Center">
-        <StackPanel Spacing="12" MaxWidth="420"
+        <StackPanel Spacing="16" MaxWidth="420"
                     Margin="40,24"
                     HorizontalAlignment="Center">
 
             <!-- Header -->
-            <TextBlock Text="Intune Commander"
-                       FontSize="28" FontWeight="Bold"
-                       HorizontalAlignment="Center"
-                       Margin="0,0,0,4" />
-
-            <TextBlock Text="Connect to your Intune tenant"
-                       FontSize="{StaticResource FontSizeSubheading}"
-                       HorizontalAlignment="Center"
-                       Foreground="{DynamicResource AppTextSecondaryBrush}"
-                       Margin="0,0,0,8" />
+            <StackPanel Spacing="8" HorizontalAlignment="Center" Margin="0,0,0,16">
+                <Image Source="avares://Intune.Commander.Desktop/Assets/logo.png" 
+                       Width="80" Height="80" 
+                       HorizontalAlignment="Center" />
+                <TextBlock Text="Intune Commander"
+                           FontSize="32" FontWeight="Bold"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Connect to your Intune tenant"
+                           FontSize="{StaticResource FontSizeSubheading}"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource AppTextSecondaryBrush}" />
+            </StackPanel>
 
             <!-- Saved Profiles -->
-            <StackPanel Spacing="4">
-                <TextBlock Text="Saved Profiles" FontSize="{StaticResource FontSizeBody}" />
+            <StackPanel Spacing="8">
+                <TextBlock Text="Saved Profiles" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                 <ComboBox ItemsSource="{Binding SavedProfiles}"
                           SelectedItem="{Binding SelectedProfile}"
                           HorizontalAlignment="Stretch"
@@ -46,19 +48,19 @@
                 </ComboBox>
             </StackPanel>
 
-            <Separator />
+            <Separator Margin="0,8" />
 
             <!-- Profile Name -->
-            <StackPanel Spacing="4">
-                <TextBlock Text="Profile Name (optional)" FontSize="{StaticResource FontSizeBody}" />
+            <StackPanel Spacing="8">
+                <TextBlock Text="Profile Name (optional)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                 <TextBox Text="{Binding ProfileName}"
                          Watermark="e.g. Contoso-Prod"
                          IsEnabled="{Binding !IsBusy}" />
             </StackPanel>
 
             <!-- Tenant ID -->
-            <StackPanel Spacing="4">
-                <TextBlock Text="Tenant ID" FontSize="{StaticResource FontSizeBody}" />
+            <StackPanel Spacing="8">
+                <TextBlock Text="Tenant ID" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                 <TextBox Text="{Binding TenantId}"
                          Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                          IsEnabled="{Binding !IsBusy}" />
@@ -68,16 +70,16 @@
             </StackPanel>
 
             <!-- Cloud Environment + Auth Method side by side -->
-            <Grid ColumnDefinitions="*,12,*">
-                <StackPanel Spacing="4" Grid.Column="0">
-                    <TextBlock Text="Cloud Environment" FontSize="{StaticResource FontSizeBody}" />
+            <Grid ColumnDefinitions="*,16,*">
+                <StackPanel Spacing="8" Grid.Column="0">
+                    <TextBlock Text="Cloud Environment" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                     <ComboBox ItemsSource="{Binding AvailableClouds}"
                               SelectedItem="{Binding SelectedCloud}"
                               HorizontalAlignment="Stretch"
                               IsEnabled="{Binding !IsBusy}" />
                 </StackPanel>
-                <StackPanel Spacing="4" Grid.Column="2">
-                    <TextBlock Text="Auth Method" FontSize="{StaticResource FontSizeBody}" />
+                <StackPanel Spacing="8" Grid.Column="2">
+                    <TextBlock Text="Auth Method" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                     <ComboBox ItemsSource="{Binding AvailableAuthMethods}"
                               SelectedItem="{Binding SelectedAuthMethod}"
                               HorizontalAlignment="Stretch"
@@ -86,8 +88,8 @@
             </Grid>
 
             <!-- Client ID -->
-            <StackPanel Spacing="4">
-                <TextBlock Text="Client ID (App Registration)" FontSize="{StaticResource FontSizeBody}" />
+            <StackPanel Spacing="8">
+                <TextBlock Text="Client ID (App Registration)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                 <TextBox Text="{Binding ClientId}"
                          Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                          IsEnabled="{Binding !IsBusy}" />
@@ -97,8 +99,8 @@
             </StackPanel>
 
             <!-- Client Secret (conditional) -->
-            <StackPanel Spacing="4" IsVisible="{Binding IsClientSecretVisible}">
-                <TextBlock Text="Client Secret" FontSize="{StaticResource FontSizeBody}" />
+            <StackPanel Spacing="8" IsVisible="{Binding IsClientSecretVisible}">
+                <TextBlock Text="Client Secret" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                 <TextBox Text="{Binding ClientSecret}"
                          PasswordChar="●"
                          Watermark="Enter client secret value"
@@ -106,7 +108,7 @@
             </StackPanel>
 
             <!-- Help expander -->
-            <Expander Header="Where do I find these values?" FontSize="{StaticResource FontSizeBody}" Padding="0">
+            <Expander Header="Where do I find these values?" FontSize="{StaticResource FontSizeBody}" Padding="0" Margin="0,8,0,0">
                 <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                         CornerRadius="{StaticResource RadiusSmall}" Padding="12,8" Margin="0,4,0,0">
                     <StackPanel Spacing="6">
@@ -128,23 +130,23 @@
 
             <!-- Profile action buttons -->
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"
-                        Margin="0,4,0,0">
+                        Margin="0,16,0,0">
                 <Button Content="New"
                         Command="{Binding NewProfileCommand}"
-                        Classes="Medium"
+                        Classes="Basic"
                         MinWidth="80" />
                 <Button Content="Save Profile"
                         Command="{Binding SaveProfileCommand}"
-                        Classes="Medium"
+                        Classes="Basic"
                         MinWidth="100" />
                 <Button Content="Delete"
                         Command="{Binding DeleteProfileCommand}"
-                        Classes="Medium"
+                        Classes="Basic"
                         MinWidth="80" />
                 <Button Content="Import Profiles"
                         Command="{Binding ImportProfilesCommand}"
                         IsEnabled="{Binding !IsBusy}"
-                        Classes="Medium"
+                        Classes="Basic"
                         MinWidth="100" />
             </StackPanel>
 
@@ -153,8 +155,8 @@
                     Command="{Binding LoginCommand}"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
-                    Classes="Flat"
-                    Margin="0,4,0,0" />
+                    Classes="Flat Accent Large"
+                    Margin="0,12,0,0" />
 
             <!-- Device Code instructions -->
             <Border BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}"
