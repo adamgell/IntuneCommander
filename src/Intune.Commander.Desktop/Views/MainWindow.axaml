@@ -16,7 +16,9 @@
                  x:DataType="vm:MainWindowViewModel"
                  Title="{Binding WindowTitle}"
                  FontSize="{StaticResource FontSizeBody}"
-                 WindowState="Maximized"
+                 Width="1200" Height="800"
+                 MinWidth="1024" MinHeight="768"
+                 WindowStartupLocation="CenterScreen"
                  >
 
     <Design.DataContext>

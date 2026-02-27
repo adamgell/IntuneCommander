@@ -52,20 +52,20 @@
 
         <!-- Right Side: Login Form -->
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Spacing="24" MaxWidth="460" Margin="40,60" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="16" MaxWidth="460" Margin="40,32" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                <StackPanel Spacing="8">
+                <StackPanel Spacing="4">
                     <TextBlock Text="Connect to Tenant" FontSize="28" FontWeight="Bold" />
                     <TextBlock Text="Select a saved profile or enter your credentials below." 
                                FontSize="{StaticResource FontSizeSubheading}" 
                                Foreground="{DynamicResource AppTextSecondaryBrush}" />
                 </StackPanel>
 
-                <suki:GlassCard Padding="24">
-                    <StackPanel Spacing="16">
+                <suki:GlassCard Padding="20">
+                    <StackPanel Spacing="12">
                         
                         <!-- Saved Profiles -->
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="4">
                             <TextBlock Text="Saved Profiles" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                             <Grid ColumnDefinitions="*,Auto">
                                 <ComboBox Grid.Column="0" ItemsSource="{Binding SavedProfiles}"
@@ -87,10 +87,10 @@
                             </Grid>
                         </StackPanel>
 
-                        <Separator Margin="0,8" Opacity="0.5" />
+                        <Separator Margin="0,4" Opacity="0.5" />
 
                         <!-- Profile Name -->
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="4">
                             <TextBlock Text="Profile Name (optional)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                             <TextBox Text="{Binding ProfileName}"
                                      Watermark="e.g. Contoso-Prod"
@@ -98,7 +98,7 @@
                         </StackPanel>
 
                         <!-- Tenant ID -->
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="4">
                             <TextBlock Text="Tenant ID" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                             <TextBox Text="{Binding TenantId}"
                                      Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -109,15 +109,15 @@
                         </StackPanel>
 
                         <!-- Cloud Environment + Auth Method side by side -->
-                        <Grid ColumnDefinitions="*,16,*">
-                            <StackPanel Spacing="8" Grid.Column="0">
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Spacing="4" Grid.Column="0">
                                 <TextBlock Text="Cloud Environment" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                                 <ComboBox ItemsSource="{Binding AvailableClouds}"
                                           SelectedItem="{Binding SelectedCloud}"
                                           HorizontalAlignment="Stretch"
                                           IsEnabled="{Binding !IsBusy}" />
                             </StackPanel>
-                            <StackPanel Spacing="8" Grid.Column="2">
+                            <StackPanel Spacing="4" Grid.Column="2">
                                 <TextBlock Text="Auth Method" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                                 <ComboBox ItemsSource="{Binding AvailableAuthMethods}"
                                           SelectedItem="{Binding SelectedAuthMethod}"
@@ -127,7 +127,7 @@
                         </Grid>
 
                         <!-- Client ID -->
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="4">
                             <TextBlock Text="Client ID (App Registration)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                             <TextBox Text="{Binding ClientId}"
                                      Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -138,7 +138,7 @@
                         </StackPanel>
 
                         <!-- Client Secret (conditional) -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsClientSecretVisible}">
+                        <StackPanel Spacing="4" IsVisible="{Binding IsClientSecretVisible}">
                             <TextBlock Text="Client Secret" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                             <TextBox Text="{Binding ClientSecret}"
                                      PasswordChar="●"
@@ -147,21 +147,20 @@
                         </StackPanel>
 
                         <!-- Help expander -->
-                        <Expander Header="Where do I find these values?" FontSize="{StaticResource FontSizeBody}" Padding="0" Margin="0,8,0,0">
+                        <Expander Header="Where do I find these values?" FontSize="{StaticResource FontSizeBody}" Padding="0" Margin="0,4,0,0">
                             <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                                     CornerRadius="{StaticResource RadiusSmall}" Padding="12,8" Margin="0,4,0,0">
-                                <StackPanel Spacing="6">
-                                    <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap">
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap">
                                         <Run FontWeight="SemiBold">Tenant ID: </Run>
                                         <Run>Azure Portal → Azure Active Directory → Overview → Tenant ID</Run>
                                     </TextBlock>
-                                    <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap">
+                                    <TextBlock FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap">
                                         <Run FontWeight="SemiBold">Client ID: </Run>
                                         <Run>Azure Portal → App Registrations → your app → Application (client) ID</Run>
                                     </TextBlock>
-                                    <TextBlock FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" Foreground="{DynamicResource AppTextSecondaryBrush}">
+                                    <TextBlock FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap" Foreground="{DynamicResource AppTextSecondaryBrush}">
                                         For Interactive auth, only Tenant ID and Client ID are required.
-                                        Client Secret is only needed for Client Credentials / service accounts.
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
