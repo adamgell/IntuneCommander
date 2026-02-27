@@ -161,6 +161,9 @@ public partial class LoginViewModel : ViewModelBase
         TenantIdError = null;
         ClientIdError = null;
         StatusMessage = string.Empty;
+        DeviceCodeMessage = string.Empty;
+        DeviceUserCode = string.Empty;
+        DeviceVerificationUrl = string.Empty;
         ClearError();
     }
 

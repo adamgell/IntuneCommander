@@ -2623,6 +2623,16 @@
                 </Grid>
             </DockPanel>
 
+            <!-- Version info (always visible, overlaid in bottom-left) -->
+            <TextBlock Text="{Binding VersionText}"
+                       FontSize="{StaticResource FontSizeCaption}"
+                       Foreground="{DynamicResource AppTextSecondaryBrush}"
+                       Opacity="0.4"
+                       Margin="8,0,0,4"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Bottom"
+                       IsHitTestVisible="False" />
+
         </Panel>
     </DockPanel>
 </suki:SukiWindow>

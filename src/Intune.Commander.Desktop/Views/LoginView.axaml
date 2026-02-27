@@ -21,7 +21,8 @@
                 <Border CornerRadius="100" ClipToBounds="True" Width="160" Height="160" HorizontalAlignment="Center"
                         BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}" BorderThickness="4">
                     <Image Source="avares://Intune.Commander.Desktop/Assets/logo.png" 
-                           Width="160" Height="160" Stretch="UniformToFill" />
+                           Width="160" Height="160" Stretch="UniformToFill"
+                           AutomationProperties.Name="Intune Commander Logo" />
                 </Border>
                 <StackPanel Spacing="8">
                     <TextBlock Text="Intune Commander"
