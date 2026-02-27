@@ -234,18 +234,10 @@ public static class ObservableCollectionExtensions
 
 #### Measurement Plan for Fix #1
 
-**Baseline Benchmark** (to be created):
-
-- **Name**: `ObservableCollectionConstructionBenchmark.cs`
-- **Scenario**: Create ObservableCollection from 1000-item list
-- **Metrics**: CPU time, allocations, P/Invoke count
-- **Tool**: `create_benchmark` → `run_benchmark` (CPU)
-
 **Expected Results**:
 
-- **Baseline**: ~50-100ms for 1000 items (with current pattern)
-- **Optimized**: ~20-40ms for 1000 items (with ReplaceAll pattern)
 - **Improvement**: 40-60% reduction in construction time
+- **Validation**: Manual profiling before/after
 
 ---
 
@@ -329,22 +321,12 @@ UpdateFilteredCollection(
 
 **Repeat for all 30+ filtered collections.**
 
-#### Measurement Plan for Fix #2
-
-**Baseline Benchmark** (to be created):
-
-- **Name**: `SearchFilterBenchmark.cs`
-- **Scenario**: Filter 500 items with 10-character search term
-- **Metrics**: Execution time, collection recreations
-- **Tool**: `create_benchmark` → `run_benchmark` (CPU)
-
 **Expected Results**:
 
-- **Baseline without debounce**: Runs on every keystroke (10× execution for "compliance")
-- **Optimized with debounce**: Runs once after typing stops
-- **Baseline filter time**: ~150-300ms per execution (with current pattern)
-- **Optimized filter time**: ~50-100ms per execution (with UpdateFilteredCollection)
+- **With debounce**: Runs once after typing stops instead of on every keystroke
+- **With UpdateFilteredCollection**: ~50-100ms per execution (vs ~150-300ms)
 - **Combined improvement**: 70-80% reduction in total search overhead
+- **Validation**: Manual profiling before/after
 
 ---
 
@@ -391,60 +373,51 @@ private async void ApplyFilter()
 
 ## Implementation Roadmap
 
-### Phase 1: Establish Baseline (1-2 hours)
+### Phase 1: Establish Baseline
 
 **Tasks**:
 
 1. ✅ Run CPU profiler → **COMPLETED** (see Step 1 above)
-2. ⏳ Create `ObservableCollectionConstructionBenchmark.cs`
-   - Measure current constructor pattern performance
-   - Test with 100, 500, 1000, 5000 item lists
-   - Run baseline: `run_benchmark` (CPU)
-3. ⏳ Create `SearchFilterBenchmark.cs`
-   - Measure current `ApplyFilter()` performance
-   - Test with 500 items, 10-character search term
-   - Run baseline: `run_benchmark` (CPU)
 
 **Deliverables**:
 
-- Baseline benchmark results saved to `benchmarks/baseline-results.md`
-- Performance regression thresholds documented
+- ✅ CPU profiling data documented above
 
 ---
 
-### Phase 2: Implement Core Optimizations (2-3 hours)
+### Phase 2: Implement Core Optimizations
 
-**Task 2.1: Create ObservableCollectionExtensions** (30 min)
+**Task 2.1: Create ObservableCollectionExtensions**
 
 - [ ] Create `src/Intune.Commander.Desktop/Extensions/ObservableCollectionExtensions.cs`
 - [ ] Add `ReplaceAll<T>()` extension method
 - [ ] Verify compilation with `dotnet build`
 
-**Task 2.2: Update LoadCollectionAsync** (45 min)
+**Task 2.2: Update LoadCollectionAsync**
 
 - [ ] Modify `src/Intune.Commander.Desktop/ViewModels/MainWindowViewModel.Loading.cs`
-- [ ] Replace `new ObservableCollection<T>(items)` pattern at line ~46
+- [ ] Replace `new ObservableCollection<T>(items)` pattern in `LoadCollectionAsync` (line ~46)
+- [ ] Replace same pattern in `RefreshCollectionAsync` (line ~89)
+- [ ] Replace same pattern in `TryLoadCollectionFromCache` (line ~108)
 - [ ] Add `using Intune.Commander.Desktop.Extensions;`
-- [ ] Test with real tenant connection (load Device Configurations)
 
-**Task 2.3: Update RefreshCollectionAsync** (30 min)
+**Task 2.3: Update AppAssignmentRows Loading**
 
-- [ ] Modify same file, `RefreshCollectionAsync` method (line ~70)
-- [ ] Apply same ObservableCollection pattern
-- [ ] Test F5 refresh operation
+- [ ] Modify `src/Intune.Commander.Desktop/ViewModels/MainWindowViewModel.AppAssignments.cs` (line ~97)
+- [ ] Replace `AppAssignmentRows = new ObservableCollection<AppAssignmentRow>(rows)` with `ReplaceAll` pattern
 
-**Task 2.4: Update AppAssignmentRows Loading** (30 min)
+**Task 2.4: Add Search Debouncing (300ms)**
 
-- [ ] Modify `src/Intune.Commander.Desktop/ViewModels/MainWindowViewModel.AppAssignments.cs:156`
-- [ ] Replace AppAssignmentRows construction
-- [ ] Test "Application Assignments" category navigation
-
-**Task 2.5: Add Search Debouncing** (45 min)
-
-- [ ] Add `_searchDebounceCancel` field to `MainWindowViewModel.Search.cs`
+- [ ] Add `_searchDebounceCancel` CancellationTokenSource field to `MainWindowViewModel.Search.cs`
 - [ ] Add `SearchDebounceMs` constant (300ms)
-- [ ] Implement `OnSearchTextChanged` partial method
-- [ ] Test search box typing behavior
+- [ ] Update `OnSearchTextChanged` to debounce before calling `ApplyFilter()`
+- [ ] Ensure `ApplyFilter` always runs on UI thread via `Dispatcher.UIThread.Post`
+
+**Task 2.5: Write unit tests**
+
+- [ ] Create `tests/Intune.Commander.Core.Tests/Extensions/ObservableCollectionExtensionsTests.cs`
+- [ ] Test `ReplaceAll()` with empty source, empty target, large collections
+- [ ] Verify correct behavior
 
 ---
 
@@ -504,22 +477,16 @@ private async void ApplyFilter()
 
 ---
 
-### Phase 4: Verify and Measure (1 hour)
+### Phase 4: Verify and Measure
 
-**Task 4.1: Re-run Benchmarks**
-
-- [ ] Run `ObservableCollectionConstructionBenchmark` → Compare to baseline
-- [ ] Run `SearchFilterBenchmark` → Compare to baseline
-- [ ] Document improvement percentages
-
-**Task 4.2: Integration Testing**
+**Task 4.1: Integration Testing**
 
 - [ ] Full workflow test: Login → Load all data types → Search
 - [ ] Verify no regressions in functionality
 - [ ] Test cache load/save operations
 - [ ] Test export operations (ensure collections are correct)
 
-**Task 4.3: Performance Validation**
+**Task 4.2: Performance Validation**
 
 - [ ] Run full profiler again (`run_profiler` CPU)
 - [ ] Verify P/Invoke overhead reduction
@@ -528,33 +495,27 @@ private async void ApplyFilter()
 
 ---
 
-### Phase 5: Optional Advanced Optimizations (Future Work)
+### Phase 5: Optional Advanced Optimizations — DEFERRED
 
-These are lower priority and should only be pursued after Phase 1-4 completion:
+> **Status: DEFERRED** — Revisit after Phases 2-4 are validated in production.
 
 **5.1: Async Filtering (MEDIUM Priority)**
 
 - Move LINQ `.Where()` operations to background thread
 - Update UI in single batch on `Dispatcher.UIThread`
-- Estimated improvement: Additional 20-30% reduction in filter time
 
 **5.2: Virtual Scrolling (LOW Priority)**
 
 - Replace DataGrid with virtualized collection view
 - Only render visible rows (lazy render)
-- Estimated improvement: Faster initial render for 1000+ item lists
 
 **5.3: JSON Serialization Optimization (LOW Priority)**
 
 - Pre-compile JsonSerializerOptions with source generators
-- Cache reflection-based converters
-- Estimated improvement: 1-2% CPU reduction (minor)
 
 **5.4: Connection Pooling for Graph API (LOW Priority)**
 
 - Reuse HttpClient instances across Graph calls
-- Reduce connection establishment overhead
-- Estimated improvement: Faster network I/O (not CPU-bound)
 
 ---
 
@@ -627,7 +588,7 @@ These are lower priority and should only be pursued after Phase 1-4 completion:
 ✅ All existing functionality works (no regressions)  
 ✅ All unit tests pass  
 
-### Nice to Have (Phase 5)
+### Nice to Have (Phase 5 — DEFERRED)
 
 🎯 Background thread filtering implemented  
 🎯 Virtual scrolling for large lists  
@@ -637,11 +598,12 @@ These are lower priority and should only be pursued after Phase 1-4 completion:
 
 ## Timeline
 
-- **Phase 1** (Baseline): 1-2 hours
+- **Phase 1** (Baseline): ✅ Complete
 - **Phase 2** (Core optimizations): 2-3 hours
 - **Phase 3** (Search filter refactor): 3-4 hours
 - **Phase 4** (Verification): 1 hour
-- **Total**: ~7-10 hours of focused development time
+- **Phase 5** (Advanced): DEFERRED
+- **Total**: ~6-8 hours of focused development time
 
 ---
 
