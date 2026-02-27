@@ -2,6 +2,7 @@ using Intune.Commander.Core.Models;
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.DirectoryObjects.GetByIds;
 using Microsoft.Graph.Beta.Models;
+using Microsoft.Kiota.Abstractions;
 
 namespace Intune.Commander.Core.Services;
 
@@ -94,7 +95,7 @@ public class DirectoryObjectResolver : IDirectoryObjectResolver
                     }
                 }
             }
-            catch (Exception)
+            catch (ApiException)
             {
                 // If the batch call fails, leave those IDs unresolved (raw GUID will be shown)
             }
