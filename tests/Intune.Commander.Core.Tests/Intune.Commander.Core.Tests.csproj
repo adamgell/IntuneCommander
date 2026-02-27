@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Intune.Commander.Core\Intune.Commander.Core.csproj" />
+    <ProjectReference Include="..\..\src\Intune.Commander.Desktop\Intune.Commander.Desktop.csproj" />
   </ItemGroup>
 
 </Project>
