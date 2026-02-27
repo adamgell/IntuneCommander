@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Intune Commander Desktop",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/Intune.Commander.Desktop/bin/Debug/net10.0/Intune.Commander.Desktop.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Intune.Commander.Desktop",
+      "preLaunchTask": "build",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    }
+  ]
+}
