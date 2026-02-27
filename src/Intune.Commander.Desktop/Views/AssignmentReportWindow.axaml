@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
         xmlns:m="using:Microsoft.Graph.Beta.Models"
+    xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         xmlns:suki="https://github.com/kikipoulet/SukiUI"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -31,32 +32,52 @@
                 <!-- Run / Cancel / Export -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8"
                             VerticalAlignment="Center">
-                    <Button Content="⬛  Cancel"
-                            Command="{Binding CancelReportCommand}"
+                    <Button Command="{Binding CancelReportCommand}"
                             IsVisible="{Binding IsRunning}"
-                            Classes="Medium" />
-                    <Button Content="&#128196; HTML Report"
-                            x:Name="ExportHtmlButton"
+                            Classes="Medium">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Stop" />
+                            <TextBlock Text="Cancel" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="ExportHtmlButton"
                             Click="OnExportHtmlClick"
                             IsEnabled="{Binding CanExport}"
-                            Classes="Medium" />
-                    <Button Content="⬇ Export CSV"
-                            x:Name="ExportCsvButton"
+                            Classes="Medium">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="FileDocumentOutline" />
+                            <TextBlock Text="HTML Report" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="ExportCsvButton"
                             Click="OnExportCsvClick"
                             IsEnabled="{Binding CanExport}"
-                            Classes="Medium" />
-                    <Button Content="&#9660; Download All to Cache"
-                            Command="{Binding PrefetchAllCommand}"
+                            Classes="Medium">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Download" />
+                            <TextBlock Text="Export CSV" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding PrefetchAllCommand}"
                             IsEnabled="{Binding !IsRunning}"
                             ToolTip.Tip="Pre-downloads all policy lists from Graph into the local cache so reports run faster"
                             Classes="Medium"
                             FontWeight="SemiBold"
                             Background="{DynamicResource SuccessBadgeBrush}"
-                            Foreground="White" />
-                    <Button Content="▶  Run Report"
-                            Command="{Binding RunReportCommand}"
+                            Foreground="White">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Download" />
+                            <TextBlock Text="Download All to Cache" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding RunReportCommand}"
                             IsEnabled="{Binding !IsRunning}"
-                            Classes="Large" />
+                            Classes="Flat Accent Large">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Play" />
+                            <TextBlock Text="Run Report" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
             </DockPanel>

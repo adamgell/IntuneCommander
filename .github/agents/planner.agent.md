@@ -2,7 +2,7 @@
 name: Planner
 description: Creates detailed implementation plans by researching the codebase and consulting documentation
 model: Claude Opus 4.6 (copilot)
-tools: ['vscode', 'execute', 'read', 'agent', 'context7/*', 'edit', 'search', 'web', 'memory', 'todo']
+tools: ['vscode', 'execute', 'read', 'agent', 'context7/*', 'edit', 'search', 'web', 'vscode/memory', 'todo']
 ---
 
 # Planning Agent

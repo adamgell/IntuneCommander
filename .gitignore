@@ -52,6 +52,8 @@ Desktop.ini
 *.swo
 *~
 
+# VS Code — track shared config, ignore machine-specific files
+.vscode/mcp.json
 
 # Temporary files
 *.tmp

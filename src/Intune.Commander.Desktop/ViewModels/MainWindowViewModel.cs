@@ -232,6 +232,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _windowTitle = "Intune Commander";
 
+    public string VersionText { get; } = GetVersionText();
+
+    private static string GetVersionText()
+    {
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        return version != null ? $"v{version.Major}.{version.Minor}.{version.Build}" : "dev";
+    }
+
 
 
     [ObservableProperty]

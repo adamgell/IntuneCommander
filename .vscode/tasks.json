@@ -1,63 +1,85 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "build",
-			"command": "dotnet",
-			"type": "process",
-			"args": [
-				"build",
-				"${workspaceFolder}/src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary;ForceNoAlign"
-			],
-			"problemMatcher": "$msCompile",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},
-		{
-			"label": "add-material-icons",
-			"type": "shell",
-			"command": "dotnet add src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj package Material.Icons.Avalonia",
-			"isBackground": false
-		},
-		{
-			"label": "build-verify",
-			"type": "shell",
-			"command": "dotnet build src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj 2>&1 | Select-Object -Last 10",
-			"isBackground": false
-		},
-		{
-			"label": "clean-rebuild",
-			"type": "shell",
-			"command": "dotnet clean src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj && dotnet build src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj 2>&1 | Select-Object -Last 12",
-			"isBackground": false
-		},
-		{
-			"label": "clean-rebuild2",
-			"type": "shell",
-			"command": "dotnet clean src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj && dotnet build src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj 2>&1 | Select-Object -Last 12",
-			"isBackground": false
-		},
-		{
-			"label": "rebuild3",
-			"type": "shell",
-			"command": "dotnet build src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj 2>&1 | Select-Object -Last 12",
-			"isBackground": false
-		},
-		{
-			"label": "rebuild4",
-			"type": "shell",
-			"command": "dotnet build src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj 2>&1 | Select-Object -Last 12",
-			"isBackground": false
-		},
-		{
-			"label": "rebuild-clean",
-			"type": "shell",
-			"command": "dotnet build src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj --no-incremental 2>&1 | Select-Object -Last 10",
-			"isBackground": false
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--no-restore"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "build-release",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--configuration",
+        "Release",
+        "--no-restore"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "restore",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "restore",
+        "${workspaceFolder}/Intune.Commander.sln"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "test",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--filter",
+        "Category!=Integration"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "test-with-coverage",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "/p:CollectCoverage=true",
+        "/p:Threshold=40",
+        "/p:ThresholdType=line",
+        "/p:ThresholdStat=total",
+        "--filter",
+        "Category!=Integration"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "clean",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "clean",
+        "${workspaceFolder}/Intune.Commander.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
 }
