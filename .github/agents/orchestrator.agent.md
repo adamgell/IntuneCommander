@@ -2,7 +2,7 @@
 name: Orchestrator
 description: Architect agent that orchestrates work through subagents (Opus, Codex, Gemini)
 model: Claude Opus 4.6 (copilot)
-tools: ['read/readFile', 'agent', 'memory']
+tools: ['read/readFile', 'agent', 'vscode/memory']
 ---
 
 <!-- Note: Memory is experimental at the moment. You'll need to be in VS Code Insiders and toggle on memory in settings -->
