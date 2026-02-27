@@ -27,7 +27,7 @@
 
     <DockPanel>
         <!-- Menu Bar -->
-        <Menu DockPanel.Dock="Top">
+        <Menu DockPanel.Dock="Top" IsVisible="{Binding IsConnected}">
             <MenuItem Header="File">
                 <MenuItem Header="Refresh" Command="{Binding RefreshCommand}" InputGesture="F5" />
                 <Separator />
@@ -52,7 +52,7 @@
 
         <!-- Status Bar -->
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                Padding="8,6" MinHeight="36">
+                Padding="8,6" MinHeight="36" IsVisible="{Binding IsConnected}">
             <DockPanel>
                 <!-- Right side: Debug Log link + progress bar -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2"

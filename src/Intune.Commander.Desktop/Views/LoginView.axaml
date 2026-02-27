@@ -18,9 +18,11 @@
         <!-- Left Side: Branding & Welcome -->
         <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="24" Margin="40">
-                <Image Source="avares://Intune.Commander.Desktop/Assets/logo.png" 
-                       Width="160" Height="160" 
-                       HorizontalAlignment="Center" />
+                <Border CornerRadius="100" ClipToBounds="True" Width="160" Height="160" HorizontalAlignment="Center"
+                        BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}" BorderThickness="4">
+                    <Image Source="avares://Intune.Commander.Desktop/Assets/logo.png" 
+                           Width="160" Height="160" Stretch="UniformToFill" />
+                </Border>
                 <StackPanel Spacing="8">
                     <TextBlock Text="Intune Commander"
                                FontSize="42" FontWeight="Bold"
@@ -52,22 +54,22 @@
 
         <!-- Right Side: Login Form -->
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Spacing="16" MaxWidth="460" Margin="40,32" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="12" MaxWidth="480" Margin="40,16" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                <StackPanel Spacing="4">
+                <StackPanel Spacing="2">
                     <TextBlock Text="Connect to Tenant" FontSize="28" FontWeight="Bold" />
                     <TextBlock Text="Select a saved profile or enter your credentials below." 
                                FontSize="{StaticResource FontSizeSubheading}" 
                                Foreground="{DynamicResource AppTextSecondaryBrush}" />
                 </StackPanel>
 
-                <suki:GlassCard Padding="20">
-                    <StackPanel Spacing="12">
+                <suki:GlassCard Padding="16">
+                    <StackPanel Spacing="8">
                         
                         <!-- Saved Profiles -->
-                        <StackPanel Spacing="4">
+                        <StackPanel Spacing="2">
                             <TextBlock Text="Saved Profiles" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
-                            <Grid ColumnDefinitions="*,Auto">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                 <ComboBox Grid.Column="0" ItemsSource="{Binding SavedProfiles}"
                                           SelectedItem="{Binding SelectedProfile}"
                                           HorizontalAlignment="Stretch"
@@ -79,45 +81,55 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <Button Grid.Column="1" Command="{Binding DeleteProfileCommand}" 
+                                <Button Grid.Column="1" Command="{Binding ClearProfileCommand}" 
+                                        Classes="Basic" Margin="8,0,0,0" ToolTip.Tip="New Profile"
+                                        IsEnabled="{Binding !IsBusy}">
+                                    <mi:MaterialIcon Kind="Plus" Width="20" Height="20" />
+                                </Button>
+                                <Button Grid.Column="2" Command="{Binding ImportProfilesCommand}" 
+                                        Classes="Basic" Margin="8,0,0,0" ToolTip.Tip="Import Profiles"
+                                        IsEnabled="{Binding !IsBusy}">
+                                    <mi:MaterialIcon Kind="FileImportOutline" Width="20" Height="20" />
+                                </Button>
+                                <Button Grid.Column="3" Command="{Binding DeleteProfileCommand}" 
                                         Classes="Basic" Margin="8,0,0,0" ToolTip.Tip="Delete Profile"
                                         IsEnabled="{Binding SelectedProfile, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                    <mi:MaterialIcon Kind="TrashCanOutline" />
+                                    <mi:MaterialIcon Kind="TrashCanOutline" Width="20" Height="20" />
                                 </Button>
                             </Grid>
                         </StackPanel>
 
-                        <Separator Margin="0,4" Opacity="0.5" />
+                        <Separator Margin="0,2" Opacity="0.5" />
 
-                        <!-- Profile Name -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Profile Name (optional)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
-                            <TextBox Text="{Binding ProfileName}"
-                                     Watermark="e.g. Contoso-Prod"
-                                     IsEnabled="{Binding !IsBusy}" />
-                        </StackPanel>
-
-                        <!-- Tenant ID -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Tenant ID" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
-                            <TextBox Text="{Binding TenantId}"
-                                     Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                                     IsEnabled="{Binding !IsBusy}" />
-                            <TextBlock Text="{Binding TenantIdError}"
-                                       Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
-                                       IsVisible="{Binding TenantIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                        </StackPanel>
+                        <!-- Profile Name & Tenant ID side by side -->
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Spacing="2" Grid.Column="0">
+                                <TextBlock Text="Profile Name (optional)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding ProfileName}"
+                                         Watermark="e.g. Contoso-Prod"
+                                         IsEnabled="{Binding !IsBusy}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Grid.Column="2">
+                                <TextBlock Text="Tenant ID" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding TenantId}"
+                                         Watermark="xxxx-xxxx-xxxx-xxxx"
+                                         IsEnabled="{Binding !IsBusy}" />
+                                <TextBlock Text="{Binding TenantIdError}"
+                                           Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
+                                           IsVisible="{Binding TenantIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            </StackPanel>
+                        </Grid>
 
                         <!-- Cloud Environment + Auth Method side by side -->
                         <Grid ColumnDefinitions="*,12,*">
-                            <StackPanel Spacing="4" Grid.Column="0">
+                            <StackPanel Spacing="2" Grid.Column="0">
                                 <TextBlock Text="Cloud Environment" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                                 <ComboBox ItemsSource="{Binding AvailableClouds}"
                                           SelectedItem="{Binding SelectedCloud}"
                                           HorizontalAlignment="Stretch"
                                           IsEnabled="{Binding !IsBusy}" />
                             </StackPanel>
-                            <StackPanel Spacing="4" Grid.Column="2">
+                            <StackPanel Spacing="2" Grid.Column="2">
                                 <TextBlock Text="Auth Method" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
                                 <ComboBox ItemsSource="{Binding AvailableAuthMethods}"
                                           SelectedItem="{Binding SelectedAuthMethod}"
@@ -126,51 +138,31 @@
                             </StackPanel>
                         </Grid>
 
-                        <!-- Client ID -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Client ID (App Registration)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
-                            <TextBox Text="{Binding ClientId}"
-                                     Watermark="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                                     IsEnabled="{Binding !IsBusy}" />
-                            <TextBlock Text="{Binding ClientIdError}"
-                                       Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
-                                       IsVisible="{Binding ClientIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                        </StackPanel>
-
-                        <!-- Client Secret (conditional) -->
-                        <StackPanel Spacing="4" IsVisible="{Binding IsClientSecretVisible}">
-                            <TextBlock Text="Client Secret" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
-                            <TextBox Text="{Binding ClientSecret}"
-                                     PasswordChar="●"
-                                     Watermark="Enter client secret value"
-                                     IsEnabled="{Binding !IsBusy}" />
-                        </StackPanel>
-
-                        <!-- Help expander -->
-                        <Expander Header="Where do I find these values?" FontSize="{StaticResource FontSizeBody}" Padding="0" Margin="0,4,0,0">
-                            <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                                    CornerRadius="{StaticResource RadiusSmall}" Padding="12,8" Margin="0,4,0,0">
-                                <StackPanel Spacing="4">
-                                    <TextBlock FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap">
-                                        <Run FontWeight="SemiBold">Tenant ID: </Run>
-                                        <Run>Azure Portal → Azure Active Directory → Overview → Tenant ID</Run>
-                                    </TextBlock>
-                                    <TextBlock FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap">
-                                        <Run FontWeight="SemiBold">Client ID: </Run>
-                                        <Run>Azure Portal → App Registrations → your app → Application (client) ID</Run>
-                                    </TextBlock>
-                                    <TextBlock FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap" Foreground="{DynamicResource AppTextSecondaryBrush}">
-                                        For Interactive auth, only Tenant ID and Client ID are required.
-                                    </TextBlock>
-                                </StackPanel>
-                            </Border>
-                        </Expander>
+                        <!-- Client ID & Client Secret side by side -->
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Spacing="2" Grid.Column="0">
+                                <TextBlock Text="Client ID (App Reg)" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding ClientId}"
+                                         Watermark="xxxx-xxxx-xxxx-xxxx"
+                                         IsEnabled="{Binding !IsBusy}" />
+                                <TextBlock Text="{Binding ClientIdError}"
+                                           Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
+                                           IsVisible="{Binding ClientIdError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Grid.Column="2" IsVisible="{Binding IsClientSecretVisible}">
+                                <TextBlock Text="Client Secret" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding ClientSecret}"
+                                         PasswordChar="●"
+                                         Watermark="Enter secret value"
+                                         IsEnabled="{Binding !IsBusy}" />
+                            </StackPanel>
+                        </Grid>
 
                     </StackPanel>
                 </suki:GlassCard>
 
                 <!-- Action Buttons -->
-                <StackPanel Spacing="12">
+                <StackPanel Spacing="8">
                     <Button Content="Connect"
                             Command="{Binding LoginCommand}"
                             HorizontalAlignment="Stretch"
@@ -179,17 +171,10 @@
                             Foreground="White"
                             Classes="Flat Large" />
                     
-                    <Grid ColumnDefinitions="*,12,*">
-                        <Button Grid.Column="0" Content="Save Profile"
-                                Command="{Binding SaveProfileCommand}"
-                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                                Classes="Basic" />
-                        <Button Grid.Column="2" Content="Import Profiles"
-                                Command="{Binding ImportProfilesCommand}"
-                                IsEnabled="{Binding !IsBusy}"
-                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                                Classes="Basic" />
-                    </Grid>
+                    <Button Content="Save Profile"
+                            Command="{Binding SaveProfileCommand}"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Classes="Basic" />
                 </StackPanel>
 
                 <!-- Device Code instructions -->

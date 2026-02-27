@@ -148,6 +148,22 @@ public partial class LoginViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDeviceCodeMessageVisible));
     }
 
+    [RelayCommand]
+    private void ClearProfile()
+    {
+        SelectedProfile = null;
+        ProfileName = string.Empty;
+        TenantId = string.Empty;
+        ClientId = string.Empty;
+        ClientSecret = string.Empty;
+        SelectedCloud = CloudEnvironment.Commercial;
+        SelectedAuthMethod = AuthMethod.Interactive;
+        TenantIdError = null;
+        ClientIdError = null;
+        StatusMessage = string.Empty;
+        ClearError();
+    }
+
     [RelayCommand(CanExecute = nameof(CanSaveProfile))]
     private async Task SaveProfileAsync(CancellationToken cancellationToken)
     {
