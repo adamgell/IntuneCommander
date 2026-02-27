@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using Intune.Commander.Core.Models;
 
 using Microsoft.Graph.Beta.Models;
 
@@ -282,6 +283,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private ObservableCollection<NotificationMessageTemplate> _filteredNotificationTemplates = [];
 
+    [ObservableProperty]
+    private ObservableCollection<DeviceUserEntry> _filteredDeviceUserEntries = [];
+
 
 
     private void ApplyFilter()
@@ -380,6 +384,8 @@ public partial class MainWindowViewModel : ViewModelBase
             FilteredReusablePolicySettings = new ObservableCollection<DeviceManagementReusablePolicySetting>(ReusablePolicySettings);
 
             FilteredNotificationTemplates = new ObservableCollection<NotificationMessageTemplate>(NotificationTemplates);
+
+            FilteredDeviceUserEntries = new ObservableCollection<DeviceUserEntry>(DeviceUserEntries);
 
             return;
 
@@ -873,6 +879,16 @@ public partial class MainWindowViewModel : ViewModelBase
                 Contains(t.DefaultLocale, q) ||
 
                 Contains(t.Id, q)));
+
+        FilteredDeviceUserEntries = new ObservableCollection<DeviceUserEntry>(
+            DeviceUserEntries.Where(d =>
+                Contains(d.DeviceName, q) ||
+                Contains(d.UserDisplayName, q) ||
+                Contains(d.UserPrincipalName, q) ||
+                Contains(d.Department, q) ||
+                Contains(d.OperatingSystem, q) ||
+                Contains(d.ComplianceState, q) ||
+                Contains(d.DeviceModel, q)));
         OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
 
     }
@@ -886,4 +902,3 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 }
-

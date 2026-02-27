@@ -300,9 +300,23 @@ public partial class LoginViewModel : ViewModelBase
                 };
             }
 
-            // Test the connection
+            // Create the Graph client (validates token acquisition)
             var client = await _graphClientFactory.CreateClientAsync(profile, deviceCodeCallback, cancellationToken);
-            await client.DeviceManagement.GetAsync(cancellationToken: cancellationToken);
+
+            // Try a lightweight connectivity test, but don't block login on
+            // insufficient Graph permissions — the user may have only a subset
+            // of scopes granted. Individual category loaders already handle
+            // permission errors gracefully.
+            try
+            {
+                await client.Organization.GetAsync(cancellationToken: cancellationToken);
+            }
+            catch (Exception testEx)
+            {
+                // Log but proceed — token was acquired, so auth itself worked.
+                // Permission gaps will surface per-view instead of blocking login.
+                DebugLog.Log("Auth", $"Connection test warning (non-blocking): {testEx.Message}");
+            }
 
             DeviceCodeMessage = string.Empty;
             DeviceUserCode = string.Empty;

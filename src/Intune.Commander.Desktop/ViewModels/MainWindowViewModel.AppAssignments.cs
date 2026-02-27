@@ -194,7 +194,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             {
 
-                _cacheService.Set(ActiveProfile.TenantId, CacheKeyAppAssignments, rows);
+                await _cacheService.SetAsync(ActiveProfile.TenantId, CacheKeyAppAssignments, rows);
 
                 DebugLog.Log("Cache", $"Saved {rows.Count} app assignment row(s) to cache");
 
@@ -909,7 +909,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             {
 
-                _cacheService.Set(ActiveProfile.TenantId, CacheKeyDynamicGroups, rows);
+                await _cacheService.SetAsync(ActiveProfile.TenantId, CacheKeyDynamicGroups, rows);
 
                 DebugLog.Log("Cache", $"Saved {rows.Count} dynamic group row(s) to cache");
 
@@ -1051,7 +1051,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             {
 
-                _cacheService.Set(ActiveProfile.TenantId, CacheKeyAssignedGroups, rows);
+                await _cacheService.SetAsync(ActiveProfile.TenantId, CacheKeyAssignedGroups, rows);
 
                 DebugLog.Log("Cache", $"Saved {rows.Count} assigned group row(s) to cache");
 

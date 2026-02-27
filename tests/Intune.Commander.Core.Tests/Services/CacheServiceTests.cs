@@ -36,6 +36,16 @@ public class CacheServiceTests : IDisposable
     // --- Simple DTO for testing ---
     private record TestItem(string Name, int Value);
 
+    private static readonly List<TestItem> ChunkedPayloadItems = CreateChunkedPayloadItems();
+
+    private static List<TestItem> CreateChunkedPayloadItems()
+    {
+        var payload = new string('X', 20_000);
+        return Enumerable.Range(0, 500)
+            .Select(i => new TestItem($"Item_{i}_{payload}", i))
+            .ToList();
+    }
+
     [Fact]
     public void Set_and_Get_roundtrips_data()
     {
@@ -273,5 +283,161 @@ public class CacheServiceTests : IDisposable
         var removed = _sut.CleanupExpired();
 
         Assert.Equal(0, removed);
+    }
+
+    // --- Chunked caching tests ---
+
+    [Fact]
+    public void Set_and_Get_roundtrips_large_data_via_chunking()
+    {
+        var items = ChunkedPayloadItems;
+
+        _sut.Set("tenant1", "BigData", items);
+
+        var result = _sut.Get<TestItem>("tenant1", "BigData");
+
+        Assert.NotNull(result);
+        Assert.Equal(items.Count, result.Count);
+        Assert.Equal(items[0].Name, result[0].Name);
+        Assert.Equal(items[^1].Name, result[^1].Name);
+    }
+
+    [Fact]
+    public void GetMetadata_returns_correct_count_for_chunked_entry()
+    {
+        var items = ChunkedPayloadItems;
+
+        _sut.Set("tenant1", "BigMeta", items);
+
+        var meta = _sut.GetMetadata("tenant1", "BigMeta");
+
+        Assert.NotNull(meta);
+        Assert.Equal(items.Count, meta.Value.ItemCount);
+    }
+
+    [Fact]
+    public void Invalidate_removes_chunked_entry_and_chunks()
+    {
+        var items = ChunkedPayloadItems;
+
+        _sut.Set("tenant1", "BigInvalidate", items);
+
+        _sut.Invalidate("tenant1", "BigInvalidate");
+
+        Assert.Null(_sut.Get<TestItem>("tenant1", "BigInvalidate"));
+        Assert.Null(_sut.GetMetadata("tenant1", "BigInvalidate"));
+    }
+
+    [Fact]
+    public void Set_overwrites_chunked_entry_with_small_entry()
+    {
+        // First write: large (chunked)
+        var bigItems = ChunkedPayloadItems;
+        _sut.Set("tenant1", "Overwrite", bigItems);
+
+        // Overwrite with small (non-chunked)
+        var smallItems = new List<TestItem> { new("Small", 1) };
+        _sut.Set("tenant1", "Overwrite", smallItems);
+
+        var result = _sut.Get<TestItem>("tenant1", "Overwrite");
+
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal("Small", result[0].Name);
+    }
+
+    [Fact]
+    public void Set_overwrites_small_entry_with_chunked_entry()
+    {
+        // First write: small (non-chunked)
+        _sut.Set("tenant1", "GrowBig", new List<TestItem> { new("Tiny", 1) });
+
+        // Overwrite with large (chunked)
+        var bigItems = ChunkedPayloadItems;
+        _sut.Set("tenant1", "GrowBig", bigItems);
+
+        var result = _sut.Get<TestItem>("tenant1", "GrowBig");
+
+        Assert.NotNull(result);
+        Assert.Equal(bigItems.Count, result.Count);
+    }
+
+    // --- Async wrapper tests ---
+
+    [Fact]
+    public async Task SetAsync_and_GetAsync_roundtrips_data()
+    {
+        var items = new List<TestItem>
+        {
+            new("Alpha", 1),
+            new("Beta", 2)
+        };
+
+        await _sut.SetAsync("tenant1", "AsyncTest", items);
+
+        var result = await _sut.GetAsync<TestItem>("tenant1", "AsyncTest");
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+        Assert.Equal("Alpha", result[0].Name);
+        Assert.Equal(2, result[1].Value);
+    }
+
+    [Fact]
+    public async Task GetAsync_returns_null_for_missing_key()
+    {
+        var result = await _sut.GetAsync<TestItem>("tenant1", "NonExistent");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task InvalidateAsync_removes_entry()
+    {
+        await _sut.SetAsync("tenant1", "ToRemove", new List<TestItem> { new("X", 1) });
+
+        await _sut.InvalidateAsync("tenant1", "ToRemove");
+
+        var result = await _sut.GetAsync<TestItem>("tenant1", "ToRemove");
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetMetadataAsync_returns_info_for_valid_entry()
+    {
+        var items = new List<TestItem> { new("A", 1), new("B", 2) };
+        await _sut.SetAsync("tenant1", "MetaAsync", items);
+
+        var meta = await _sut.GetMetadataAsync("tenant1", "MetaAsync");
+
+        Assert.NotNull(meta);
+        Assert.Equal(2, meta.Value.ItemCount);
+    }
+
+    [Fact]
+    public async Task GetMetadataAsync_returns_null_for_missing_entry()
+    {
+        var meta = await _sut.GetMetadataAsync("tenant1", "Missing");
+
+        Assert.Null(meta);
+    }
+
+    [Fact]
+    public async Task Async_methods_run_on_thread_pool()
+    {
+        var items = new List<TestItem> { new("ThreadTest", 1) };
+
+        // SetAsync should not block the calling thread
+        var setTask = _sut.SetAsync("tenant1", "ThreadPool", items);
+        Assert.IsType<Task>(setTask);
+        await setTask;
+
+        // GetAsync should not block the calling thread
+        var getTask = _sut.GetAsync<TestItem>("tenant1", "ThreadPool");
+        Assert.IsType<Task<List<TestItem>?>>(getTask);
+        var result = await getTask;
+
+        Assert.NotNull(result);
+        Assert.Single(result);
     }
 }

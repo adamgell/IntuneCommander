@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.Graph.Beta.Models;
 
@@ -192,6 +194,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 new() { Name = "Assigned Groups", Icon = "👥" },
 
+                new() { Name = "Devices & Users", Icon = "🔗" },
+
                 new() { Name = "Mac Custom Attributes", Icon = "🍎" },
 
                 new() { Name = "Notification Templates", Icon = "🔔" },
@@ -371,6 +375,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         "Assigned Groups" => AssignedGroupColumns,
 
+        "Devices & Users" => DevicesAndUsersColumns,
+
         "Cloud PC Provisioning Policies" => CloudPcProvisioningColumns,
 
         "Cloud PC User Settings" => CloudPcUserSettingColumns,
@@ -498,6 +504,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsAssignedGroupsCategory => SelectedCategory?.Name == "Assigned Groups";
 
+    public bool IsDevicesAndUsersCategory => SelectedCategory?.Name == "Devices & Users";
+
     public bool IsCloudPcProvisioningCategory => SelectedCategory?.Name == "Cloud PC Provisioning Policies";
 
     public bool IsCloudPcUserSettingsCategory => SelectedCategory?.Name == "Cloud PC User Settings";
@@ -557,6 +565,7 @@ public partial class MainWindowViewModel : ViewModelBase
         "ADMX Files" => FilteredAdmxFiles.Count,
         "Reusable Policy Settings" => FilteredReusablePolicySettings.Count,
         "Notification Templates" => FilteredNotificationTemplates.Count,
+        "Devices & Users" => FilteredDeviceUserEntries.Count,
         _ => -1
     };
 
@@ -652,6 +661,8 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedDynamicGroupRow = null;
 
         SelectedAssignedGroupRow = null;
+
+        SelectedDeviceUserEntry = null;
 
         SelectedCloudPcProvisioningPolicy = null;
 
@@ -757,6 +768,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDynamicGroupsCategory));
 
         OnPropertyChanged(nameof(IsAssignedGroupsCategory));
+
+        OnPropertyChanged(nameof(IsDevicesAndUsersCategory));
 
         OnPropertyChanged(nameof(IsCloudPcProvisioningCategory));
 
@@ -1932,6 +1945,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         }
 
+        if (value?.Name == "Devices & Users" && !_deviceUserEntriesLoaded)
+        {
+            _deviceUserEntriesLoaded = true;
+            _ = LoadDevicesAndUsersAsync(CancellationToken.None);
+        }
+
     }
 
 
@@ -1989,4 +2008,3 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
 }
-

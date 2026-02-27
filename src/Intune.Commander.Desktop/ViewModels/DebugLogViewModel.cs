@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Intune.Commander.Desktop.Models;
@@ -39,6 +41,13 @@ public partial class DebugLogViewModel : ObservableObject
     [ObservableProperty]
     private bool autoScroll = true;
 
+    /// <summary>
+    /// Debounce timer — prevents ApplyFilters from running on every single
+    /// log entry during heavy background logging (caching, bulk downloads).
+    /// </summary>
+    private DispatcherTimer? _debounceTimer;
+    private const int DebounceMs = 250;
+
     public DebugLogViewModel()
     {
         LogEntries.CollectionChanged += OnLogEntriesChanged;
@@ -69,6 +78,28 @@ public partial class DebugLogViewModel : ObservableObject
                     Categories.Add(item.Category);
             }
         }
+        ScheduleDebouncedRefresh();
+    }
+
+    /// <summary>
+    /// Resets and starts a debounce timer. When many log entries arrive in
+    /// quick succession (e.g. during "Download All to Cache"), the filter
+    /// refresh only runs once after the burst instead of on every entry.
+    /// </summary>
+    private void ScheduleDebouncedRefresh()
+    {
+        if (_debounceTimer == null)
+        {
+            _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DebounceMs) };
+            _debounceTimer.Tick += DebounceTimerOnTick;
+        }
+        _debounceTimer.Stop();
+        _debounceTimer.Start();
+    }
+
+    private void DebounceTimerOnTick(object? sender, EventArgs e)
+    {
+        _debounceTimer?.Stop();
         RefreshCategories();
         ApplyFilters();
     }

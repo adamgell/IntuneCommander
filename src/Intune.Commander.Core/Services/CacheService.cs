@@ -18,6 +18,12 @@ public class CacheService : ICacheService
 {
     private const string CollectionName = "cache";
     private const string PasswordPurpose = "Intune.Commander.Cache.Password.v1";
+    private const string ChunkSuffix = "__chunk_";
+
+    /// <summary>
+    /// Maximum JSON payload size per LiteDB document (~8 MB, well within the 16 MB hard limit).
+    /// </summary>
+    private const int MaxChunkBytes = 8 * 1024 * 1024;
 
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromHours(24);
 
@@ -78,19 +84,30 @@ public class CacheService : ICacheService
 
         if (DateTime.UtcNow > entry.ExpiresAtUtc)
         {
-            // Expired — remove and return null
-            _collection.Delete(id);
+            // Expired — remove (including any chunks)
+            DeleteWithChunks(id, entry.ChunkCount);
             return null;
         }
 
         try
         {
-            return DeserializeFromCache<T>(entry.JsonData);
+            var json = entry.ChunkCount > 0
+                ? ReassembleChunks(id, entry.ChunkCount)
+                : entry.JsonData;
+
+            if (json == null)
+            {
+                // A chunk is missing — treat as cache miss
+                DeleteWithChunks(id, entry.ChunkCount);
+                return null;
+            }
+
+            return DeserializeFromCache<T>(json);
         }
         catch
         {
             // Deserialization failed (schema change, corruption) — remove stale entry
-            _collection.Delete(id);
+            DeleteWithChunks(id, entry.ChunkCount);
             return null;
         }
     }
@@ -99,26 +116,71 @@ public class CacheService : ICacheService
     {
         var effectiveTtl = ttl ?? DefaultTtl;
         var now = DateTime.UtcNow;
+        var id = MakeKey(tenantId, dataType);
 
-        var entry = new CacheEntry
+        // Clean up any existing chunks from a previous write
+        var existing = _collection.FindById(id);
+        if (existing is { ChunkCount: > 0 })
+            DeleteChunks(id, existing.ChunkCount);
+
+        var json = SerializeForCache(items);
+        var jsonBytes = Encoding.UTF8.GetByteCount(json);
+
+        if (jsonBytes <= MaxChunkBytes)
         {
-            Id = MakeKey(tenantId, dataType),
-            TenantId = tenantId,
-            DataType = dataType,
-            JsonData = SerializeForCache(items),
-            CachedAtUtc = now,
-            ExpiresAtUtc = now + effectiveTtl,
-            ItemCount = items.Count
-        };
+            // Fits in a single document
+            _collection.Upsert(new CacheEntry
+            {
+                Id = id,
+                TenantId = tenantId,
+                DataType = dataType,
+                JsonData = json,
+                CachedAtUtc = now,
+                ExpiresAtUtc = now + effectiveTtl,
+                ItemCount = items.Count,
+                ChunkCount = 0
+            });
+        }
+        else
+        {
+            // Split into chunks
+            var chunks = SplitIntoChunks(json, MaxChunkBytes);
+            for (var i = 0; i < chunks.Count; i++)
+            {
+                _collection.Upsert(new CacheEntry
+                {
+                    Id = $"{id}{ChunkSuffix}{i}",
+                    TenantId = tenantId,
+                    DataType = $"{dataType}{ChunkSuffix}{i}",
+                    JsonData = chunks[i],
+                    CachedAtUtc = now,
+                    ExpiresAtUtc = now + effectiveTtl,
+                    ItemCount = 0
+                });
+            }
 
-        _collection.Upsert(entry);
+            // Write manifest (no data, just metadata)
+            _collection.Upsert(new CacheEntry
+            {
+                Id = id,
+                TenantId = tenantId,
+                DataType = dataType,
+                JsonData = "",
+                CachedAtUtc = now,
+                ExpiresAtUtc = now + effectiveTtl,
+                ItemCount = items.Count,
+                ChunkCount = chunks.Count
+            });
+        }
     }
 
     public void Invalidate(string tenantId, string? dataType = null)
     {
         if (dataType != null)
         {
-            _collection.Delete(MakeKey(tenantId, dataType));
+            var id = MakeKey(tenantId, dataType);
+            var entry = _collection.FindById(id);
+            DeleteWithChunks(id, entry?.ChunkCount ?? 0);
         }
         else
         {
@@ -156,8 +218,93 @@ public class CacheService : ICacheService
         GC.SuppressFinalize(this);
     }
 
+    // ─── Async wrappers ────────────────────────────────────────────────────
+
+    public Task<List<T>?> GetAsync<T>(string tenantId, string dataType)
+        => Task.Run(() => Get<T>(tenantId, dataType));
+
+    public Task SetAsync<T>(string tenantId, string dataType, List<T> items, TimeSpan? ttl = null)
+        => Task.Run(() => Set(tenantId, dataType, items, ttl));
+
+    public Task InvalidateAsync(string tenantId, string? dataType = null)
+        => Task.Run(() => Invalidate(tenantId, dataType));
+
+    public Task<(DateTime CachedAt, int ItemCount)?> GetMetadataAsync(string tenantId, string dataType)
+        => Task.Run(() => GetMetadata(tenantId, dataType));
+
     private static string MakeKey(string tenantId, string dataType)
         => $"{tenantId}|{dataType}";
+
+    /// <summary>
+    /// Reassembles JSON from numbered chunk documents.
+    /// Returns null if any chunk is missing.
+    /// </summary>
+    private string? ReassembleChunks(string manifestId, int chunkCount)
+    {
+        var sb = new StringBuilder();
+        for (var i = 0; i < chunkCount; i++)
+        {
+            var chunk = _collection.FindById($"{manifestId}{ChunkSuffix}{i}");
+            if (chunk == null) return null;
+            sb.Append(chunk.JsonData);
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Splits a JSON string into byte-size-limited chunks.
+    /// Splits on character boundaries (never mid-surrogate).
+    /// </summary>
+    private static List<string> SplitIntoChunks(string json, int maxBytes)
+    {
+        var chunks = new List<string>();
+        var start = 0;
+        while (start < json.Length)
+        {
+            // Find how many chars fit within maxBytes
+            var remaining = json.Length - start;
+            var charCount = remaining;
+
+            // Binary-search for the right char count
+            while (Encoding.UTF8.GetByteCount(json, start, charCount) > maxBytes)
+                charCount = charCount / 2;
+
+            // Grow to fill as much as possible
+            while (charCount < remaining &&
+                   Encoding.UTF8.GetByteCount(json, start, charCount + 1) <= maxBytes)
+                charCount++;
+
+            if (charCount > 0 &&
+                start + charCount < json.Length &&
+                char.IsHighSurrogate(json[start + charCount - 1]) &&
+                char.IsLowSurrogate(json[start + charCount]))
+            {
+                charCount--;
+            }
+
+            chunks.Add(json.Substring(start, charCount));
+            start += charCount;
+        }
+        return chunks;
+    }
+
+    /// <summary>
+    /// Deletes a cache entry and any associated chunk documents.
+    /// </summary>
+    private void DeleteWithChunks(string id, int chunkCount)
+    {
+        _collection.Delete(id);
+        DeleteChunks(id, chunkCount);
+    }
+
+    /// <summary>
+    /// Deletes chunk documents only (not the manifest).
+    /// </summary>
+    private void DeleteChunks(string id, int chunkCount)
+    {
+        for (var i = 0; i < chunkCount; i++)
+            _collection.Delete($"{id}{ChunkSuffix}{i}");
+    }
 
     /// <summary>
     /// Serializes the list with runtime types so that derived Graph model properties

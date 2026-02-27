@@ -152,6 +152,7 @@ public partial class MainWindow : SukiWindow
             or nameof(MainWindowViewModel.IsNotificationTemplatesCategory)
             or nameof(MainWindowViewModel.IsDynamicGroupsCategory)
             or nameof(MainWindowViewModel.IsAssignedGroupsCategory)
+            or nameof(MainWindowViewModel.IsDevicesAndUsersCategory)
             or nameof(MainWindowViewModel.IsOverviewCategory))
         {
             // Multiple category properties fire in sequence during a single
@@ -207,7 +208,8 @@ public partial class MainWindow : SukiWindow
             or nameof(MainWindowViewModel.FilteredReusablePolicySettings)
             or nameof(MainWindowViewModel.FilteredNotificationTemplates)
             or nameof(MainWindowViewModel.FilteredDynamicGroupRows)
-            or nameof(MainWindowViewModel.FilteredAssignedGroupRows))
+            or nameof(MainWindowViewModel.FilteredAssignedGroupRows)
+            or nameof(MainWindowViewModel.FilteredDeviceUserEntries))
         {
             // Only rebind when the changed collection matches the active
             // category so we never pair mismatched columns/data.
@@ -264,6 +266,7 @@ public partial class MainWindow : SukiWindow
             nameof(MainWindowViewModel.FilteredNotificationTemplates) => _vm.IsNotificationTemplatesCategory,
             nameof(MainWindowViewModel.FilteredDynamicGroupRows)    => _vm.IsDynamicGroupsCategory,
             nameof(MainWindowViewModel.FilteredAssignedGroupRows)   => _vm.IsAssignedGroupsCategory,
+            nameof(MainWindowViewModel.FilteredDeviceUserEntries)   => _vm.IsDevicesAndUsersCategory,
             _ => false
         };
     }
@@ -548,6 +551,13 @@ public partial class MainWindow : SukiWindow
                 new Binding(nameof(_vm.FilteredAssignedGroupRows)) { Source = _vm });
             _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
                 new Binding(nameof(_vm.SelectedAssignedGroupRow)) { Source = _vm, Mode = BindingMode.TwoWay });
+        }
+        else if (_vm.IsDevicesAndUsersCategory)
+        {
+            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
+                new Binding(nameof(_vm.FilteredDeviceUserEntries)) { Source = _vm });
+            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
+                new Binding(nameof(_vm.SelectedDeviceUserEntry)) { Source = _vm, Mode = BindingMode.TwoWay });
         }
         else
         {

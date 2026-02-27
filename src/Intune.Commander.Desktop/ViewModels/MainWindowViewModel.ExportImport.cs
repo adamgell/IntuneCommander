@@ -202,6 +202,62 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
+    private async Task ExportDevicesAndUsersCsvAsync(CancellationToken cancellationToken)
+    {
+        if (FilteredDeviceUserEntries.Count == 0)
+        {
+            StatusText = "No devices and users data to export";
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "Exporting Devices & Users to CSV...";
+
+        try
+        {
+            var outputPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "IntuneExport");
+            Directory.CreateDirectory(outputPath);
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            var csvPath = Path.Combine(outputPath, $"DevicesAndUsers-{timestamp}.csv");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("\"Device Name\",\"User Display Name\",\"UPN\",\"Department\",\"OS\",\"Compliance\",\"Model\",\"Manufacturer\",\"Device Category\",\"Serial Number\",\"Device ID\",\"User ID\"");
+
+            foreach (var row in FilteredDeviceUserEntries)
+            {
+                sb.AppendLine(string.Join(",",
+                    CsvEscape(row.DeviceName),
+                    CsvEscape(row.UserDisplayName),
+                    CsvEscape(row.UserPrincipalName),
+                    CsvEscape(row.Department),
+                    CsvEscape(row.OperatingSystem),
+                    CsvEscape(row.ComplianceState),
+                    CsvEscape(row.DeviceModel),
+                    CsvEscape(row.Manufacturer),
+                    CsvEscape(row.DeviceCategory),
+                    CsvEscape(row.SerialNumber),
+                    CsvEscape(row.DeviceId),
+                    CsvEscape(row.UserId)));
+            }
+
+            await File.WriteAllTextAsync(csvPath, sb.ToString(), Encoding.UTF8, cancellationToken);
+            StatusText = $"Exported {FilteredDeviceUserEntries.Count} rows to {csvPath}";
+        }
+        catch (Exception ex)
+        {
+            SetError($"CSV export failed: {ex.Message}");
+            StatusText = "CSV export failed";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
 
     // --- Settings Catalog CSV Export ---
 
