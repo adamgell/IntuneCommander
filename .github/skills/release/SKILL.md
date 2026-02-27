@@ -25,7 +25,24 @@ argument-hint: "Version number (e.g. 0.5.0 or 0.5.0-beta1)"
 - If there are unrelated uncommitted changes, ask the user before proceeding
 - Confirm the version number with the user if not explicitly provided
 
-### 2. Update Version in Both csproj Files
+### 2. Update CHANGELOG.md
+
+Read the current `CHANGELOG.md`. The `## [Unreleased]` section contains all changes since the last release.
+
+1. Rename `## [Unreleased]` to `## [X.Y.Z] — YYYY-MM-DD` (use today's date)
+2. Add a fresh empty `## [Unreleased]` section above it
+3. Keep all the content (Added, Changed, Fixed, etc.) under the new versioned heading
+4. Use `git log --oneline <previous-tag>..HEAD` to check for any commits not yet captured in the changelog — add them to the appropriate section if missing
+
+The changelog follows [Keep a Changelog](https://keepachangelog.com/) format with these sections:
+- **Added** — new features
+- **Changed** — changes to existing functionality
+- **Fixed** — bug fixes
+- **Removed** — removed features
+- **Documentation** — docs-only changes
+- **Build & Validation** — CI/build changes
+
+### 3. Update Version in Both csproj Files
 
 Update these three properties in **both** project files:
 
@@ -46,20 +63,20 @@ For prerelease versions (e.g. `0.5.0-beta1`), `Version` keeps the suffix but `As
 <FileVersion>0.5.0.0</FileVersion>
 ```
 
-### 3. Commit
+### 4. Commit
 
 ```
-git add src/Intune.Commander.Core/Intune.Commander.Core.csproj src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj
-git commit -m "chore: bump version to X.Y.Z"
+git add CHANGELOG.md src/Intune.Commander.Core/Intune.Commander.Core.csproj src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj
+git commit -m "release: v X.Y.Z"
 ```
 
-### 4. Push to Main
+### 5. Push to Main
 
 ```
 git push origin main
 ```
 
-### 5. Create and Push Tag
+### 6. Create and Push Tag
 
 ```
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
@@ -71,13 +88,37 @@ This triggers the `codesign` GitHub Actions workflow (`.github/workflows/codesig
 2. Code-signs it via Azure Trusted Signing
 3. Creates a GitHub Release with auto-generated notes
 
-### 6. Confirm
+### 7. Confirm with Release Summary
 
-Tell the user:
-- The tag has been pushed
-- The codesign workflow has been triggered
-- Link to monitor: `https://github.com/adamgell/IntuneCommander/actions`
-- The release will appear at: `https://github.com/adamgell/IntuneCommander/releases/tag/vX.Y.Z`
+After all steps complete, print a formatted release summary:
+
+```
+══════════════════════════════════════════════════
+  Intune Commander vX.Y.Z — Released!
+══════════════════════════════════════════════════
+
+  Tag:       vX.Y.Z
+  Commit:    <short-hash>
+  Date:      YYYY-MM-DD
+
+  What's New:
+    - <bullet summary of Added items>
+
+  Changes:
+    - <bullet summary of Changed items>
+
+  Fixes:
+    - <bullet summary of Fixed items>
+
+  Links:
+    Actions:  https://github.com/adamgell/IntuneCommander/actions
+    Release:  https://github.com/adamgell/IntuneCommander/releases/tag/vX.Y.Z
+
+  The codesign workflow is building your signed exe now.
+══════════════════════════════════════════════════
+```
+
+Populate the "What's New", "Changes", and "Fixes" sections from the changelog entries for this version. Omit any section that has no entries. Keep each bullet to one line.
 
 ## Important Notes
 
