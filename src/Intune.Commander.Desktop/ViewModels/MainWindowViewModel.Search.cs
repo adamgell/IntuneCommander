@@ -4,7 +4,15 @@ using System.Collections.ObjectModel;
 
 using System.Linq;
 
+using System.Threading;
+
+using System.Threading.Tasks;
+
+using Avalonia.Threading;
+
 using CommunityToolkit.Mvvm.ComponentModel;
+
+using Intune.Commander.Core.Extensions;
 
 using Microsoft.Graph.Beta.Models;
 
@@ -26,11 +34,61 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
+    private CancellationTokenSource? _searchDebounceCancel;
+
+    private const int SearchDebounceMs = 300;
+
+
+
     partial void OnSearchTextChanged(string value)
 
     {
 
-        ApplyFilter();
+        var previousCts = _searchDebounceCancel;
+
+        previousCts?.Cancel();
+
+        previousCts?.Dispose();
+
+        _searchDebounceCancel = new CancellationTokenSource();
+
+        var currentCts = _searchDebounceCancel;
+
+        _ = DebounceApplyFilterAsync(currentCts, currentCts.Token);
+
+    }
+
+
+
+    private async Task DebounceApplyFilterAsync(CancellationTokenSource expectedCts, CancellationToken cancellationToken)
+
+    {
+
+        try
+
+        {
+
+            await Task.Delay(SearchDebounceMs, cancellationToken);
+
+        }
+
+        catch (TaskCanceledException)
+
+        {
+
+            return;
+
+        }
+
+
+
+        if (!cancellationToken.IsCancellationRequested && ReferenceEquals(_searchDebounceCancel, expectedCts))
+
+        {
+
+            Dispatcher.UIThread.Post(ApplyFilter);
+
+        }
 
     }
 
@@ -284,6 +342,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
+    private static void UpdateFilteredCollection<T>(
+        ObservableCollection<T> target,
+        ObservableCollection<T> source,
+        Func<T, bool>? predicate = null)
+    {
+        if (predicate == null)
+        {
+            target.ReplaceAll(source);
+            return;
+        }
+
+        target.ReplaceAll(source.Where(predicate));
+    }
+
     private void ApplyFilter()
 
     {
@@ -296,583 +368,142 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
-            FilteredDeviceConfigurations = new ObservableCollection<DeviceConfiguration>(DeviceConfigurations);
+            UpdateFilteredCollection(FilteredDeviceConfigurations, DeviceConfigurations);
+            UpdateFilteredCollection(FilteredCompliancePolicies, CompliancePolicies);
+            UpdateFilteredCollection(FilteredApplications, Applications);
+            UpdateFilteredCollection(FilteredAppAssignmentRows, AppAssignmentRows);
+            UpdateFilteredCollection(FilteredDynamicGroupRows, DynamicGroupRows);
+            UpdateFilteredCollection(FilteredAssignedGroupRows, AssignedGroupRows);
+            UpdateFilteredCollection(FilteredSettingsCatalogPolicies, SettingsCatalogPolicies);
+            UpdateFilteredCollection(FilteredEndpointSecurityIntents, EndpointSecurityIntents);
+            UpdateFilteredCollection(FilteredAdministrativeTemplates, AdministrativeTemplates);
+            UpdateFilteredCollection(FilteredEnrollmentConfigurations, EnrollmentConfigurations);
+            UpdateFilteredCollection(FilteredAppProtectionPolicies, AppProtectionPolicies);
+            UpdateFilteredCollection(FilteredManagedDeviceAppConfigurations, ManagedDeviceAppConfigurations);
+            UpdateFilteredCollection(FilteredTargetedManagedAppConfigurations, TargetedManagedAppConfigurations);
+            UpdateFilteredCollection(FilteredTermsAndConditionsCollection, TermsAndConditionsCollection);
+            UpdateFilteredCollection(FilteredScopeTags, ScopeTags);
+            UpdateFilteredCollection(FilteredRoleDefinitions, RoleDefinitions);
+            UpdateFilteredCollection(FilteredIntuneBrandingProfiles, IntuneBrandingProfiles);
+            UpdateFilteredCollection(FilteredAzureBrandingLocalizations, AzureBrandingLocalizations);
+            UpdateFilteredCollection(FilteredConditionalAccessPolicies, ConditionalAccessPolicies);
+            UpdateFilteredCollection(FilteredAssignmentFilters, AssignmentFilters);
+            UpdateFilteredCollection(FilteredPolicySets, PolicySets);
+            UpdateFilteredCollection(FilteredAutopilotProfiles, AutopilotProfiles);
+            UpdateFilteredCollection(FilteredDeviceHealthScripts, DeviceHealthScripts);
+            UpdateFilteredCollection(FilteredMacCustomAttributes, MacCustomAttributes);
+            UpdateFilteredCollection(FilteredFeatureUpdateProfiles, FeatureUpdateProfiles);
+            UpdateFilteredCollection(FilteredNamedLocations, NamedLocations);
+            UpdateFilteredCollection(FilteredAuthenticationStrengthPolicies, AuthenticationStrengthPolicies);
+            UpdateFilteredCollection(FilteredAuthenticationContextClassReferences, AuthenticationContextClassReferences);
+            UpdateFilteredCollection(FilteredTermsOfUseAgreements, TermsOfUseAgreements);
+            UpdateFilteredCollection(FilteredDeviceManagementScripts, DeviceManagementScripts);
+            UpdateFilteredCollection(FilteredDeviceShellScripts, DeviceShellScripts);
+            UpdateFilteredCollection(FilteredComplianceScripts, ComplianceScripts);
+            UpdateFilteredCollection(FilteredAppleDepSettings, AppleDepSettings);
+            UpdateFilteredCollection(FilteredDeviceCategories, DeviceCategories);
+            UpdateFilteredCollection(FilteredCloudPcProvisioningPolicies, CloudPcProvisioningPolicies);
+            UpdateFilteredCollection(FilteredCloudPcUserSettings, CloudPcUserSettings);
+            UpdateFilteredCollection(FilteredVppTokens, VppTokens);
+            UpdateFilteredCollection(FilteredRoleAssignments, RoleAssignments);
+            UpdateFilteredCollection(FilteredQualityUpdateProfiles, QualityUpdateProfiles);
+            UpdateFilteredCollection(FilteredDriverUpdateProfiles, DriverUpdateProfiles);
+            UpdateFilteredCollection(FilteredAdmxFiles, AdmxFiles);
+            UpdateFilteredCollection(FilteredReusablePolicySettings, ReusablePolicySettings);
+            UpdateFilteredCollection(FilteredNotificationTemplates, NotificationTemplates);
 
-            FilteredCompliancePolicies = new ObservableCollection<DeviceCompliancePolicy>(CompliancePolicies);
-
-            FilteredApplications = new ObservableCollection<MobileApp>(Applications);
-
-            FilteredAppAssignmentRows = new ObservableCollection<AppAssignmentRow>(AppAssignmentRows);
-
-            FilteredDynamicGroupRows = new ObservableCollection<GroupRow>(DynamicGroupRows);
-
-            FilteredAssignedGroupRows = new ObservableCollection<GroupRow>(AssignedGroupRows);
-
-            FilteredSettingsCatalogPolicies = new ObservableCollection<DeviceManagementConfigurationPolicy>(SettingsCatalogPolicies);
-
-            FilteredEndpointSecurityIntents = new ObservableCollection<DeviceManagementIntent>(EndpointSecurityIntents);
-
-            FilteredAdministrativeTemplates = new ObservableCollection<GroupPolicyConfiguration>(AdministrativeTemplates);
-
-            FilteredEnrollmentConfigurations = new ObservableCollection<DeviceEnrollmentConfiguration>(EnrollmentConfigurations);
-
-            FilteredAppProtectionPolicies = new ObservableCollection<ManagedAppPolicy>(AppProtectionPolicies);
-
-            FilteredManagedDeviceAppConfigurations = new ObservableCollection<ManagedDeviceMobileAppConfiguration>(ManagedDeviceAppConfigurations);
-
-            FilteredTargetedManagedAppConfigurations = new ObservableCollection<TargetedManagedAppConfiguration>(TargetedManagedAppConfigurations);
-
-            FilteredTermsAndConditionsCollection = new ObservableCollection<TermsAndConditions>(TermsAndConditionsCollection);
-
-            FilteredScopeTags = new ObservableCollection<RoleScopeTag>(ScopeTags);
-
-            FilteredRoleDefinitions = new ObservableCollection<RoleDefinition>(RoleDefinitions);
-
-            FilteredIntuneBrandingProfiles = new ObservableCollection<IntuneBrandingProfile>(IntuneBrandingProfiles);
-
-            FilteredAzureBrandingLocalizations = new ObservableCollection<OrganizationalBrandingLocalization>(AzureBrandingLocalizations);
-
-            FilteredConditionalAccessPolicies = new ObservableCollection<ConditionalAccessPolicy>(ConditionalAccessPolicies);
-
-            FilteredAssignmentFilters = new ObservableCollection<DeviceAndAppManagementAssignmentFilter>(AssignmentFilters);
-
-            FilteredPolicySets = new ObservableCollection<PolicySet>(PolicySets);
-
-            FilteredAutopilotProfiles = new ObservableCollection<WindowsAutopilotDeploymentProfile>(AutopilotProfiles);
-
-            FilteredDeviceHealthScripts = new ObservableCollection<DeviceHealthScript>(DeviceHealthScripts);
-
-            FilteredMacCustomAttributes = new ObservableCollection<DeviceCustomAttributeShellScript>(MacCustomAttributes);
-
-            FilteredFeatureUpdateProfiles = new ObservableCollection<WindowsFeatureUpdateProfile>(FeatureUpdateProfiles);
-
-            FilteredNamedLocations = new ObservableCollection<NamedLocation>(NamedLocations);
-
-            FilteredAuthenticationStrengthPolicies = new ObservableCollection<AuthenticationStrengthPolicy>(AuthenticationStrengthPolicies);
-
-            FilteredAuthenticationContextClassReferences = new ObservableCollection<AuthenticationContextClassReference>(AuthenticationContextClassReferences);
-
-            FilteredTermsOfUseAgreements = new ObservableCollection<Agreement>(TermsOfUseAgreements);
-
-            FilteredDeviceManagementScripts = new ObservableCollection<DeviceManagementScript>(DeviceManagementScripts);
-
-            FilteredDeviceShellScripts = new ObservableCollection<DeviceShellScript>(DeviceShellScripts);
-
-            FilteredComplianceScripts = new ObservableCollection<DeviceComplianceScript>(ComplianceScripts);
-
-            FilteredAppleDepSettings = new ObservableCollection<DepOnboardingSetting>(AppleDepSettings);
-
-            FilteredDeviceCategories = new ObservableCollection<DeviceCategory>(DeviceCategories);
-
-            FilteredCloudPcProvisioningPolicies = new ObservableCollection<CloudPcProvisioningPolicy>(CloudPcProvisioningPolicies);
-
-            FilteredCloudPcUserSettings = new ObservableCollection<CloudPcUserSetting>(CloudPcUserSettings);
-
-            FilteredVppTokens = new ObservableCollection<VppToken>(VppTokens);
-
-            FilteredRoleAssignments = new ObservableCollection<DeviceAndAppManagementRoleAssignment>(RoleAssignments);
-
-            FilteredQualityUpdateProfiles = new ObservableCollection<WindowsQualityUpdateProfile>(QualityUpdateProfiles);
-
-            FilteredDriverUpdateProfiles = new ObservableCollection<WindowsDriverUpdateProfile>(DriverUpdateProfiles);
-            FilteredAdmxFiles = new ObservableCollection<GroupPolicyUploadedDefinitionFile>(AdmxFiles);
-
-            FilteredReusablePolicySettings = new ObservableCollection<DeviceManagementReusablePolicySetting>(ReusablePolicySettings);
-
-            FilteredNotificationTemplates = new ObservableCollection<NotificationMessageTemplate>(NotificationTemplates);
-
+            OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
             return;
 
         }
 
+        UpdateFilteredCollection(FilteredDeviceConfigurations, DeviceConfigurations,
+            c => Contains(c.DisplayName, q) || Contains(c.Description, q) || Contains(c.OdataType, q));
+        UpdateFilteredCollection(FilteredCompliancePolicies, CompliancePolicies,
+            p => Contains(p.DisplayName, q) || Contains(p.Description, q) || Contains(p.OdataType, q));
+        UpdateFilteredCollection(FilteredApplications, Applications,
+            a => Contains(a.DisplayName, q) || Contains(a.Publisher, q) || Contains(a.Description, q) || Contains(a.OdataType, q));
+        UpdateFilteredCollection(FilteredAppAssignmentRows, AppAssignmentRows,
+            r => Contains(r.AppName, q) || Contains(r.Publisher, q) || Contains(r.TargetName, q) || Contains(r.AppType, q) || Contains(r.Platform, q) || Contains(r.InstallIntent, q));
+        UpdateFilteredCollection(FilteredDynamicGroupRows, DynamicGroupRows,
+            g => Contains(g.GroupName, q) || Contains(g.Description, q) || Contains(g.MembershipRule, q) || Contains(g.GroupType, q) || Contains(g.GroupId, q));
+        UpdateFilteredCollection(FilteredAssignedGroupRows, AssignedGroupRows,
+            g => Contains(g.GroupName, q) || Contains(g.Description, q) || Contains(g.GroupType, q) || Contains(g.GroupId, q));
+        UpdateFilteredCollection(FilteredSettingsCatalogPolicies, SettingsCatalogPolicies,
+            p => Contains(p.Name, q) || Contains(p.Description, q) || Contains(p.Platforms?.ToString(), q) || Contains(p.Technologies?.ToString(), q));
+        UpdateFilteredCollection(FilteredEndpointSecurityIntents, EndpointSecurityIntents,
+            i => Contains(i.DisplayName, q) || Contains(i.Description, q) || Contains(i.Id, q));
+        UpdateFilteredCollection(FilteredAdministrativeTemplates, AdministrativeTemplates,
+            t => Contains(t.DisplayName, q) || Contains(t.Description, q) || Contains(t.Id, q));
+        UpdateFilteredCollection(FilteredEnrollmentConfigurations, EnrollmentConfigurations,
+            c => Contains(c.DisplayName, q) || Contains(c.Description, q) || Contains(c.Id, q) || Contains(c.OdataType, q));
+        UpdateFilteredCollection(FilteredAppProtectionPolicies, AppProtectionPolicies,
+            p => Contains(p.DisplayName, q) || Contains(p.Description, q) || Contains(p.Id, q) || Contains(p.OdataType, q));
+        UpdateFilteredCollection(FilteredManagedDeviceAppConfigurations, ManagedDeviceAppConfigurations,
+            c => Contains(c.DisplayName, q) || Contains(c.Description, q) || Contains(c.Id, q) || Contains(c.OdataType, q));
+        UpdateFilteredCollection(FilteredTargetedManagedAppConfigurations, TargetedManagedAppConfigurations,
+            c => Contains(c.DisplayName, q) || Contains(c.Description, q) || Contains(c.Id, q) || Contains(c.OdataType, q));
+        UpdateFilteredCollection(FilteredTermsAndConditionsCollection, TermsAndConditionsCollection,
+            t => Contains(t.DisplayName, q) || Contains(t.Description, q) || Contains(t.Id, q));
+        UpdateFilteredCollection(FilteredScopeTags, ScopeTags,
+            t => Contains(t.DisplayName, q) || Contains(t.Description, q) || Contains(t.Id, q));
+        UpdateFilteredCollection(FilteredRoleDefinitions, RoleDefinitions,
+            r => Contains(r.DisplayName, q) || Contains(r.Description, q) || Contains(r.Id, q));
+        UpdateFilteredCollection(FilteredIntuneBrandingProfiles, IntuneBrandingProfiles,
+            b => Contains(b.ProfileName, q) || Contains(b.Id, q));
+        UpdateFilteredCollection(FilteredAzureBrandingLocalizations, AzureBrandingLocalizations,
+            b => Contains(b.Id, q) || Contains(b.SignInPageText, q));
+        UpdateFilteredCollection(FilteredConditionalAccessPolicies, ConditionalAccessPolicies,
+            p => Contains(p.DisplayName, q) || Contains(p.State?.ToString(), q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredAssignmentFilters, AssignmentFilters,
+            f => Contains(f.DisplayName, q) || Contains(f.Platform?.ToString(), q) || Contains(f.AssignmentFilterManagementType?.ToString(), q) || Contains(f.Id, q));
+        UpdateFilteredCollection(FilteredPolicySets, PolicySets,
+            p => Contains(p.DisplayName, q) || Contains(p.Description, q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredAutopilotProfiles, AutopilotProfiles,
+            p => Contains(TryReadStringProperty(p, "DisplayName"), q) || Contains(TryReadStringProperty(p, "Description"), q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredDeviceHealthScripts, DeviceHealthScripts,
+            s => Contains(TryReadStringProperty(s, "DisplayName"), q) || Contains(TryReadStringProperty(s, "Description"), q) || Contains(s.Id, q));
+        UpdateFilteredCollection(FilteredMacCustomAttributes, MacCustomAttributes,
+            a => Contains(TryReadStringProperty(a, "DisplayName"), q) || Contains(TryReadStringProperty(a, "Description"), q) || Contains(a.Id, q));
+        UpdateFilteredCollection(FilteredFeatureUpdateProfiles, FeatureUpdateProfiles,
+            p => Contains(TryReadStringProperty(p, "DisplayName"), q) || Contains(TryReadStringProperty(p, "Description"), q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredNamedLocations, NamedLocations,
+            n => Contains(TryReadStringProperty(n, "DisplayName"), q) || Contains(TryReadStringProperty(n, "Description"), q) || Contains(n.Id, q));
+        UpdateFilteredCollection(FilteredAuthenticationStrengthPolicies, AuthenticationStrengthPolicies,
+            p => Contains(TryReadStringProperty(p, "DisplayName"), q) || Contains(TryReadStringProperty(p, "Description"), q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredAuthenticationContextClassReferences, AuthenticationContextClassReferences,
+            c => Contains(TryReadStringProperty(c, "DisplayName"), q) || Contains(TryReadStringProperty(c, "Description"), q) || Contains(c.Id, q));
+        UpdateFilteredCollection(FilteredTermsOfUseAgreements, TermsOfUseAgreements,
+            a => Contains(TryReadStringProperty(a, "DisplayName"), q) || Contains(TryReadStringProperty(a, "Description"), q) || Contains(a.Id, q));
+        UpdateFilteredCollection(FilteredDeviceManagementScripts, DeviceManagementScripts,
+            s => Contains(TryReadStringProperty(s, "DisplayName"), q) || Contains(TryReadStringProperty(s, "Description"), q) || Contains(TryReadStringProperty(s, "FileName"), q) || Contains(s.Id, q));
+        UpdateFilteredCollection(FilteredDeviceShellScripts, DeviceShellScripts,
+            s => Contains(TryReadStringProperty(s, "DisplayName"), q) || Contains(TryReadStringProperty(s, "Description"), q) || Contains(TryReadStringProperty(s, "FileName"), q) || Contains(s.Id, q));
+        UpdateFilteredCollection(FilteredComplianceScripts, ComplianceScripts,
+            s => Contains(TryReadStringProperty(s, "DisplayName"), q) || Contains(TryReadStringProperty(s, "Description"), q) || Contains(TryReadStringProperty(s, "Publisher"), q) || Contains(s.Id, q));
+        UpdateFilteredCollection(FilteredAppleDepSettings, AppleDepSettings,
+            d => Contains(d.TokenName, q) || Contains(d.AppleIdentifier, q) || Contains(d.Id, q));
+        UpdateFilteredCollection(FilteredDeviceCategories, DeviceCategories,
+            c => Contains(c.DisplayName, q) || Contains(c.Description, q) || Contains(c.Id, q));
+        UpdateFilteredCollection(FilteredCloudPcProvisioningPolicies, CloudPcProvisioningPolicies,
+            p => Contains(p.DisplayName, q) || Contains(p.Description, q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredCloudPcUserSettings, CloudPcUserSettings,
+            s => Contains(s.DisplayName, q) || Contains(s.Id, q));
+        UpdateFilteredCollection(FilteredVppTokens, VppTokens,
+            t => Contains(t.DisplayName, q) || Contains(t.AppleId, q) || Contains(t.OrganizationName, q) || Contains(t.Id, q));
+        UpdateFilteredCollection(FilteredRoleAssignments, RoleAssignments,
+            r => Contains(r.DisplayName, q) || Contains(r.Description, q) || Contains(r.Id, q));
+        UpdateFilteredCollection(FilteredQualityUpdateProfiles, QualityUpdateProfiles,
+            p => Contains(p.DisplayName, q) || Contains(p.Description, q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredDriverUpdateProfiles, DriverUpdateProfiles,
+            p => Contains(p.DisplayName, q) || Contains(p.Description, q) || Contains(p.Id, q));
+        UpdateFilteredCollection(FilteredAdmxFiles, AdmxFiles,
+            f => Contains(f.DisplayName, q) || Contains(f.FileName, q) || Contains(f.Description, q) || Contains(f.Id, q));
+        UpdateFilteredCollection(FilteredReusablePolicySettings, ReusablePolicySettings,
+            s => Contains(s.DisplayName, q) || Contains(s.Description, q) || Contains(s.SettingDefinitionId, q) || Contains(s.Id, q));
+        UpdateFilteredCollection(FilteredNotificationTemplates, NotificationTemplates,
+            t => Contains(t.DisplayName, q) || Contains(t.Description, q) || Contains(t.DefaultLocale, q) || Contains(t.Id, q));
 
-
-        FilteredDeviceConfigurations = new ObservableCollection<DeviceConfiguration>(
-
-            DeviceConfigurations.Where(c =>
-
-                Contains(c.DisplayName, q) ||
-
-                Contains(c.Description, q) ||
-
-                Contains(c.OdataType, q)));
-
-
-
-        FilteredCompliancePolicies = new ObservableCollection<DeviceCompliancePolicy>(
-
-            CompliancePolicies.Where(p =>
-
-                Contains(p.DisplayName, q) ||
-
-                Contains(p.Description, q) ||
-
-                Contains(p.OdataType, q)));
-
-
-
-        FilteredApplications = new ObservableCollection<MobileApp>(
-
-            Applications.Where(a =>
-
-                Contains(a.DisplayName, q) ||
-
-                Contains(a.Publisher, q) ||
-
-                Contains(a.Description, q) ||
-
-                Contains(a.OdataType, q)));
-
-
-
-        FilteredAppAssignmentRows = new ObservableCollection<AppAssignmentRow>(
-
-            AppAssignmentRows.Where(r =>
-
-                Contains(r.AppName, q) ||
-
-                Contains(r.Publisher, q) ||
-
-                Contains(r.TargetName, q) ||
-
-                Contains(r.AppType, q) ||
-
-                Contains(r.Platform, q) ||
-
-                Contains(r.InstallIntent, q)));
-
-
-
-        FilteredDynamicGroupRows = new ObservableCollection<GroupRow>(
-
-            DynamicGroupRows.Where(g =>
-
-                Contains(g.GroupName, q) ||
-
-                Contains(g.Description, q) ||
-
-                Contains(g.MembershipRule, q) ||
-
-                Contains(g.GroupType, q) ||
-
-                Contains(g.GroupId, q)));
-
-
-
-        FilteredAssignedGroupRows = new ObservableCollection<GroupRow>(
-
-            AssignedGroupRows.Where(g =>
-
-                Contains(g.GroupName, q) ||
-
-                Contains(g.Description, q) ||
-
-                Contains(g.GroupType, q) ||
-
-                Contains(g.GroupId, q)));
-
-
-
-        FilteredSettingsCatalogPolicies = new ObservableCollection<DeviceManagementConfigurationPolicy>(
-
-            SettingsCatalogPolicies.Where(p =>
-
-                Contains(p.Name, q) ||
-
-                Contains(p.Description, q) ||
-
-                Contains(p.Platforms?.ToString(), q) ||
-
-                Contains(p.Technologies?.ToString(), q)));
-
-
-
-        FilteredEndpointSecurityIntents = new ObservableCollection<DeviceManagementIntent>(
-
-            EndpointSecurityIntents.Where(i =>
-
-                Contains(i.DisplayName, q) ||
-
-                Contains(i.Description, q) ||
-
-                Contains(i.Id, q)));
-
-
-
-        FilteredAdministrativeTemplates = new ObservableCollection<GroupPolicyConfiguration>(
-
-            AdministrativeTemplates.Where(t =>
-
-                Contains(t.DisplayName, q) ||
-
-                Contains(t.Description, q) ||
-
-                Contains(t.Id, q)));
-
-
-
-        FilteredEnrollmentConfigurations = new ObservableCollection<DeviceEnrollmentConfiguration>(
-
-            EnrollmentConfigurations.Where(c =>
-
-                Contains(c.DisplayName, q) ||
-
-                Contains(c.Description, q) ||
-
-                Contains(c.Id, q) ||
-
-                Contains(c.OdataType, q)));
-
-
-
-        FilteredAppProtectionPolicies = new ObservableCollection<ManagedAppPolicy>(
-
-            AppProtectionPolicies.Where(p =>
-
-                Contains(p.DisplayName, q) ||
-
-                Contains(p.Description, q) ||
-
-                Contains(p.Id, q) ||
-
-                Contains(p.OdataType, q)));
-
-
-
-        FilteredManagedDeviceAppConfigurations = new ObservableCollection<ManagedDeviceMobileAppConfiguration>(
-
-            ManagedDeviceAppConfigurations.Where(c =>
-
-                Contains(c.DisplayName, q) ||
-
-                Contains(c.Description, q) ||
-
-                Contains(c.Id, q) ||
-
-                Contains(c.OdataType, q)));
-
-
-
-        FilteredTargetedManagedAppConfigurations = new ObservableCollection<TargetedManagedAppConfiguration>(
-
-            TargetedManagedAppConfigurations.Where(c =>
-
-                Contains(c.DisplayName, q) ||
-
-                Contains(c.Description, q) ||
-
-                Contains(c.Id, q) ||
-
-                Contains(c.OdataType, q)));
-
-
-
-        FilteredTermsAndConditionsCollection = new ObservableCollection<TermsAndConditions>(
-
-            TermsAndConditionsCollection.Where(t =>
-
-                Contains(t.DisplayName, q) ||
-
-                Contains(t.Description, q) ||
-
-                Contains(t.Id, q)));
-
-
-
-        FilteredScopeTags = new ObservableCollection<RoleScopeTag>(
-
-            ScopeTags.Where(t =>
-
-                Contains(t.DisplayName, q) ||
-
-                Contains(t.Description, q) ||
-
-                Contains(t.Id, q)));
-
-
-
-        FilteredRoleDefinitions = new ObservableCollection<RoleDefinition>(
-
-            RoleDefinitions.Where(r =>
-
-                Contains(r.DisplayName, q) ||
-
-                Contains(r.Description, q) ||
-
-                Contains(r.Id, q)));
-
-
-
-        FilteredIntuneBrandingProfiles = new ObservableCollection<IntuneBrandingProfile>(
-
-            IntuneBrandingProfiles.Where(b =>
-
-                Contains(b.ProfileName, q) ||
-
-                Contains(b.Id, q)));
-
-
-
-        FilteredAzureBrandingLocalizations = new ObservableCollection<OrganizationalBrandingLocalization>(
-
-            AzureBrandingLocalizations.Where(b =>
-
-                Contains(b.Id, q) ||
-
-                Contains(b.SignInPageText, q)));
-
-
-
-        FilteredConditionalAccessPolicies = new ObservableCollection<ConditionalAccessPolicy>(
-
-            ConditionalAccessPolicies.Where(p =>
-
-                Contains(p.DisplayName, q) ||
-
-                Contains(p.State?.ToString(), q) ||
-
-                Contains(p.Id, q)));
-
-
-
-        FilteredAssignmentFilters = new ObservableCollection<DeviceAndAppManagementAssignmentFilter>(
-
-            AssignmentFilters.Where(f =>
-
-                Contains(f.DisplayName, q) ||
-
-                Contains(f.Platform?.ToString(), q) ||
-
-                Contains(f.AssignmentFilterManagementType?.ToString(), q) ||
-
-                Contains(f.Id, q)));
-
-
-
-        FilteredPolicySets = new ObservableCollection<PolicySet>(
-
-            PolicySets.Where(p =>
-
-                Contains(p.DisplayName, q) ||
-
-                Contains(p.Description, q) ||
-
-                Contains(p.Id, q)));
-
-
-
-        FilteredAutopilotProfiles = new ObservableCollection<WindowsAutopilotDeploymentProfile>(
-
-            AutopilotProfiles.Where(p =>
-
-                Contains(TryReadStringProperty(p, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(p, "Description"), q) ||
-
-                Contains(p.Id, q)));
-
-
-
-        FilteredDeviceHealthScripts = new ObservableCollection<DeviceHealthScript>(
-
-            DeviceHealthScripts.Where(s =>
-
-                Contains(TryReadStringProperty(s, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(s, "Description"), q) ||
-
-                Contains(s.Id, q)));
-
-
-
-        FilteredMacCustomAttributes = new ObservableCollection<DeviceCustomAttributeShellScript>(
-
-            MacCustomAttributes.Where(a =>
-
-                Contains(TryReadStringProperty(a, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(a, "Description"), q) ||
-
-                Contains(a.Id, q)));
-
-
-
-        FilteredFeatureUpdateProfiles = new ObservableCollection<WindowsFeatureUpdateProfile>(
-
-            FeatureUpdateProfiles.Where(p =>
-
-                Contains(TryReadStringProperty(p, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(p, "Description"), q) ||
-
-                Contains(p.Id, q)));
-
-
-
-        FilteredNamedLocations = new ObservableCollection<NamedLocation>(
-
-            NamedLocations.Where(n =>
-
-                Contains(TryReadStringProperty(n, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(n, "Description"), q) ||
-
-                Contains(n.Id, q)));
-
-
-
-        FilteredAuthenticationStrengthPolicies = new ObservableCollection<AuthenticationStrengthPolicy>(
-
-            AuthenticationStrengthPolicies.Where(p =>
-
-                Contains(TryReadStringProperty(p, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(p, "Description"), q) ||
-
-                Contains(p.Id, q)));
-
-
-
-        FilteredAuthenticationContextClassReferences = new ObservableCollection<AuthenticationContextClassReference>(
-
-            AuthenticationContextClassReferences.Where(c =>
-
-                Contains(TryReadStringProperty(c, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(c, "Description"), q) ||
-
-                Contains(c.Id, q)));
-
-
-
-        FilteredTermsOfUseAgreements = new ObservableCollection<Agreement>(
-
-            TermsOfUseAgreements.Where(a =>
-
-                Contains(TryReadStringProperty(a, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(a, "Description"), q) ||
-
-                Contains(a.Id, q)));
-
-        FilteredDeviceManagementScripts = new ObservableCollection<DeviceManagementScript>(
-
-            DeviceManagementScripts.Where(s =>
-
-                Contains(TryReadStringProperty(s, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(s, "Description"), q) ||
-
-                Contains(TryReadStringProperty(s, "FileName"), q) ||
-
-                Contains(s.Id, q)));
-
-        FilteredDeviceShellScripts = new ObservableCollection<DeviceShellScript>(
-
-            DeviceShellScripts.Where(s =>
-
-                Contains(TryReadStringProperty(s, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(s, "Description"), q) ||
-
-                Contains(TryReadStringProperty(s, "FileName"), q) ||
-
-                Contains(s.Id, q)));
-
-        FilteredComplianceScripts = new ObservableCollection<DeviceComplianceScript>(
-
-            ComplianceScripts.Where(s =>
-
-                Contains(TryReadStringProperty(s, "DisplayName"), q) ||
-
-                Contains(TryReadStringProperty(s, "Description"), q) ||
-
-                Contains(TryReadStringProperty(s, "Publisher"), q) ||
-
-                Contains(s.Id, q)));
-
-        FilteredAppleDepSettings = new ObservableCollection<DepOnboardingSetting>(
-            AppleDepSettings.Where(d =>
-                Contains(d.TokenName, q) ||
-                Contains(d.AppleIdentifier, q) ||
-                Contains(d.Id, q)));
-
-        FilteredDeviceCategories = new ObservableCollection<DeviceCategory>(
-            DeviceCategories.Where(c =>
-                Contains(c.DisplayName, q) ||
-                Contains(c.Description, q) ||
-                Contains(c.Id, q)));
-
-        FilteredCloudPcProvisioningPolicies = new ObservableCollection<CloudPcProvisioningPolicy>(
-            CloudPcProvisioningPolicies.Where(p =>
-                Contains(p.DisplayName, q) ||
-                Contains(p.Description, q) ||
-                Contains(p.Id, q)));
-
-        FilteredCloudPcUserSettings = new ObservableCollection<CloudPcUserSetting>(
-            CloudPcUserSettings.Where(s =>
-                Contains(s.DisplayName, q) ||
-                Contains(s.Id, q)));
-
-        FilteredVppTokens = new ObservableCollection<VppToken>(
-            VppTokens.Where(t =>
-                Contains(t.DisplayName, q) ||
-                Contains(t.AppleId, q) ||
-                Contains(t.OrganizationName, q) ||
-                Contains(t.Id, q)));
-
-        FilteredRoleAssignments = new ObservableCollection<DeviceAndAppManagementRoleAssignment>(
-            RoleAssignments.Where(r =>
-                Contains(r.DisplayName, q) ||
-                Contains(r.Description, q) ||
-                Contains(r.Id, q)));
-
-        FilteredQualityUpdateProfiles = new ObservableCollection<WindowsQualityUpdateProfile>(
-            QualityUpdateProfiles.Where(p =>
-                Contains(p.DisplayName, q) ||
-                Contains(p.Description, q) ||
-                Contains(p.Id, q)));
-
-        FilteredDriverUpdateProfiles = new ObservableCollection<WindowsDriverUpdateProfile>(
-            DriverUpdateProfiles.Where(p =>
-                Contains(p.DisplayName, q) ||
-                Contains(p.Description, q) ||
-                Contains(p.Id, q)));
-        FilteredAdmxFiles = new ObservableCollection<GroupPolicyUploadedDefinitionFile>(
-
-            AdmxFiles.Where(f =>
-
-                Contains(f.DisplayName, q) ||
-
-                Contains(f.FileName, q) ||
-
-                Contains(f.Description, q) ||
-
-                Contains(f.Id, q)));
-
-        FilteredReusablePolicySettings = new ObservableCollection<DeviceManagementReusablePolicySetting>(
-
-            ReusablePolicySettings.Where(s =>
-
-                Contains(s.DisplayName, q) ||
-
-                Contains(s.Description, q) ||
-
-                Contains(s.SettingDefinitionId, q) ||
-
-                Contains(s.Id, q)));
-
-        FilteredNotificationTemplates = new ObservableCollection<NotificationMessageTemplate>(
-
-            NotificationTemplates.Where(t =>
-
-                Contains(t.DisplayName, q) ||
-
-                Contains(t.Description, q) ||
-
-                Contains(t.DefaultLocale, q) ||
-
-                Contains(t.Id, q)));
         OnPropertyChanged(nameof(IsCurrentCategoryEmpty));
 
     }
