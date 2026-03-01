@@ -77,6 +77,9 @@
                     <TextBlock Text="{Binding StatusText}" FontSize="{StaticResource FontSizeBody}" />
                     <TextBlock Text="{Binding CacheStatusText}" FontSize="{StaticResource FontSizeCaption}"
                                Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+                    <SelectableTextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="11"
+                                         TextWrapping="Wrap"
+                                         IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
                                TextWrapping="Wrap"
                                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
