@@ -11,10 +11,11 @@ using Avalonia.Platform.Storage;
 using Intune.Commander.Desktop.Models;
 using Intune.Commander.Desktop.Services;
 using Intune.Commander.Desktop.ViewModels;
+using SukiUI.Controls;
 
 namespace Intune.Commander.Desktop.Views;
 
-public partial class DebugLogWindow : Window
+public partial class DebugLogWindow : SukiWindow
 {
     private readonly DebugLogViewModel _viewModel;
     private readonly ListBox? _listBox;

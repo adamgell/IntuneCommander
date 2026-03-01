@@ -18,10 +18,12 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 **Interface:** `IAutopilotService`  
 **Class:** `AutopilotService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/windowsAutopilotDeploymentProfiles`
 - Assignments: `/deviceManagement/windowsAutopilotDeploymentProfiles/{id}/assignments`
 
 **Methods to Implement:**
+
 - [ ] `ListAutopilotProfilesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<WindowsAutopilotDeploymentProfile>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -47,10 +49,12 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 **Interface:** `IDeviceHealthScriptService`  
 **Class:** `DeviceHealthScriptService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/deviceHealthScripts`
 - Assignments: `/deviceManagement/deviceHealthScripts/{id}/assignments`
 
 **Methods to Implement:**
+
 - [ ] `ListDeviceHealthScriptsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<DeviceHealthScript>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -76,10 +80,12 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 **Interface:** `IMacCustomAttributeService`  
 **Class:** `MacCustomAttributeService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/deviceCustomAttributeShellScripts`
 - Assignments: `/deviceManagement/deviceCustomAttributeShellScripts/{id}/assignments`
 
 **Methods to Implement:**
+
 - [ ] `ListMacCustomAttributesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<DeviceCustomAttributeShellScript>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -105,10 +111,12 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 **Interface:** `IFeatureUpdateService`  
 **Class:** `FeatureUpdateService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/windowsFeatureUpdateProfiles`
 - Assignments: `/deviceManagement/windowsFeatureUpdateProfiles/{id}/assignments`
 
 **Methods to Implement:**
+
 - [ ] `ListFeatureUpdateProfilesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<WindowsFeatureUpdateProfile>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -132,6 +140,7 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 ## Scaffolding Steps
 
 ### Core Service Setup
+
 - [ ] Add interface files in `src/Intune.Commander.Core/Services/`
 - [ ] Add implementation classes in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructors accept `GraphServiceClient`
@@ -141,6 +150,7 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 - [ ] Add null checks and throw on null responses for create/update/get
 
 ### Export/Import Integration
+
 - [ ] Extend `ExportService` to handle Wave 4 objects
 - [ ] Extend `ImportService` to handle Wave 4 objects
 - [ ] Create export wrapper models for objects with assignments
@@ -149,6 +159,7 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 - [ ] Consider script content encoding/decoding for health scripts and Mac scripts
 
 ### Desktop UI Integration
+
 - [ ] Add collections in `MainWindowViewModel` for each type
 - [ ] Add selection properties for each type
 - [ ] Add DataGrid column configurations
@@ -158,6 +169,7 @@ Wave 4 focuses on implementing services for device enrollment automation and man
 - [ ] Wire up export/import commands for new types
 
 ### Testing
+
 - [ ] Add `AutopilotServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths

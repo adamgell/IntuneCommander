@@ -232,6 +232,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _windowTitle = "Intune Commander";
 
+    public string VersionText { get; } = GetVersionText();
+
+    private static string GetVersionText()
+    {
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        return version != null ? $"v{version.Major}.{version.Minor}.{version.Build}" : "dev";
+    }
+
 
 
     [ObservableProperty]
@@ -1001,10 +1009,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // Compliance Policy specific
     [ObservableProperty]
-    private int _selectedItemGracePeriodDays = 0;
+    private ObservableCollection<Models.SettingItem> _selectedItemComplianceSettings = [];
 
     [ObservableProperty]
-    private ObservableCollection<string> _selectedItemNonComplianceActions = [];
+    private ObservableCollection<Models.NonComplianceActionItem> _selectedItemNonComplianceActions = [];
 
     // Settings Catalog specific
     [ObservableProperty]
@@ -2157,7 +2165,24 @@ public partial class MainWindowViewModel : ViewModelBase
 
     {
 
-        return ex is ODataError odata ? FormatODataError(odata) : ex.Message;
+        if (ex is ODataError odata)
+            return FormatODataError(odata);
+
+        // Walk the InnerException chain to find the most specific message.
+        // Azure.Identity wraps the real cause (e.g. HTTP 401, SSL error) inside
+        // AuthenticationFailedException.InnerException, so ex.Message alone gives
+        // "ClientSecretCredential authentication failed: " with nothing after the colon.
+        var messages = new List<string>();
+        Exception? current = ex;
+        while (current != null)
+        {
+            if (!string.IsNullOrWhiteSpace(current.Message) &&
+                (messages.Count == 0 || current.Message != messages[^1]))
+                messages.Add(current.Message);
+            current = current.InnerException;
+        }
+
+        return string.Join(" → ", messages);
 
     }
 

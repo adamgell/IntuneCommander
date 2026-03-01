@@ -5,8 +5,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Intune.Commander.Desktop.ViewModels;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Enums;
+using SukiUI.MessageBox;
+using SukiUI.Controls;
 
 namespace Intune.Commander.Desktop.Views;
 
@@ -39,14 +39,14 @@ public partial class LoginView : UserControl
 
     private async Task<bool> OnConfirmDeleteProfile(string profileName)
     {
-        var box = MessageBoxManager.GetMessageBoxStandard(
-            "Delete Profile",
-            $"Delete profile \"{profileName}\"? This cannot be undone.",
-            ButtonEnum.YesNo,
-            Icon.Warning);
-        var result = await box.ShowWindowDialogAsync(
-            TopLevel.GetTopLevel(this) as Window ?? throw new InvalidOperationException());
-        return result == ButtonResult.Yes;
+        var owner = TopLevel.GetTopLevel(this) as Window ?? throw new InvalidOperationException();
+        var result = await SukiMessageBox.ShowDialog(owner, new SukiMessageBoxHost
+        {
+            Header = "Delete Profile",
+            Content = $"Delete profile \"{profileName}\"? This cannot be undone.",
+            ActionButtonsPreset = SukiMessageBoxButtons.YesNo
+        });
+        return result is SukiMessageBoxResult.Yes;
     }
 
     private async Task<string?> OnImportProfilesRequested()

@@ -1,7 +1,11 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using Intune.Commander.Core.Models;
 using LiteDB;
 using Microsoft.AspNetCore.DataProtection;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Intune.Commander.Core.Services;
 
@@ -17,11 +21,16 @@ public class CacheService : ICacheService
 
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromHours(24);
 
-    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
     };
+
+    /// <summary>
+    /// Cache for OData type discriminator → C# runtime type resolution.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, Type?> OdataTypeMap = new();
 
     private readonly LiteDatabase _db;
     private readonly ILiteCollection<CacheEntry> _collection;
@@ -76,7 +85,7 @@ public class CacheService : ICacheService
 
         try
         {
-            return System.Text.Json.JsonSerializer.Deserialize<List<T>>(entry.JsonData, JsonOptions);
+            return DeserializeFromCache<T>(entry.JsonData);
         }
         catch
         {
@@ -96,7 +105,7 @@ public class CacheService : ICacheService
             Id = MakeKey(tenantId, dataType),
             TenantId = tenantId,
             DataType = dataType,
-            JsonData = System.Text.Json.JsonSerializer.Serialize(items, JsonOptions),
+            JsonData = SerializeForCache(items),
             CachedAtUtc = now,
             ExpiresAtUtc = now + effectiveTtl,
             ItemCount = items.Count
@@ -149,6 +158,99 @@ public class CacheService : ICacheService
 
     private static string MakeKey(string tenantId, string dataType)
         => $"{tenantId}|{dataType}";
+
+    /// <summary>
+    /// Serializes the list with runtime types so that derived Graph model properties
+    /// (e.g., Windows10CompliancePolicy.PasswordRequired) are preserved in the JSON.
+    /// </summary>
+    private static string SerializeForCache<T>(List<T> items)
+    {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        writer.WriteStartArray();
+        foreach (var item in items)
+        {
+            if (item is null)
+                writer.WriteNullValue();
+            else
+                JsonSerializer.Serialize(writer, item, item.GetType(), JsonOptions);
+        }
+        writer.WriteEndArray();
+        writer.Flush();
+        return Encoding.UTF8.GetString(ms.ToArray());
+    }
+
+    /// <summary>
+    /// Deserializes with polymorphic type resolution: reads the OData type discriminator
+    /// from each JSON element and creates the correct C# derived type.
+    /// Falls back to regular deserialization for non-Graph types or on failure.
+    /// </summary>
+    private static List<T>? DeserializeFromCache<T>(string json)
+    {
+        try
+        {
+            var result = DeserializePolymorphic<T>(json);
+            if (result != null) return result;
+        }
+        catch
+        {
+            // Fall back to regular deserialization
+        }
+
+        return JsonSerializer.Deserialize<List<T>>(json, JsonOptions);
+    }
+
+    private static List<T>? DeserializePolymorphic<T>(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
+
+        var result = new List<T>();
+        foreach (var element in doc.RootElement.EnumerateArray())
+        {
+            var targetType = typeof(T);
+
+            // Try to find OData type discriminator in the JSON element
+            foreach (var propName in (string[])["odataType", "OdataType", "@odata.type"])
+            {
+                if (element.TryGetProperty(propName, out var otProp) &&
+                    otProp.ValueKind == JsonValueKind.String)
+                {
+                    var odataType = otProp.GetString();
+                    if (!string.IsNullOrEmpty(odataType))
+                    {
+                        var resolved = ResolveOdataType(odataType, typeof(T));
+                        if (resolved != null) targetType = resolved;
+                    }
+                    break;
+                }
+            }
+
+            var item = (T?)JsonSerializer.Deserialize(element.GetRawText(), targetType, JsonOptions);
+            if (item != null) result.Add(item);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Maps an OData type string (e.g. "#microsoft.graph.windows10CompliancePolicy")
+    /// to the corresponding C# type in the Graph SDK assembly.
+    /// Results are cached for performance.
+    /// </summary>
+    private static Type? ResolveOdataType(string odataType, Type baseType)
+    {
+        var cacheKey = $"{odataType}|{baseType.FullName}";
+        return OdataTypeMap.GetOrAdd(cacheKey, _ =>
+        {
+            var typeName = odataType.Split('.').LastOrDefault();
+            if (string.IsNullOrEmpty(typeName)) return null;
+
+            return baseType.Assembly.GetTypes()
+                .FirstOrDefault(t => t.Name.Equals(typeName, StringComparison.OrdinalIgnoreCase)
+                                     && baseType.IsAssignableFrom(t));
+        });
+    }
 
     /// <summary>
     /// Gets or creates the LiteDB password. The password is a random 32-byte

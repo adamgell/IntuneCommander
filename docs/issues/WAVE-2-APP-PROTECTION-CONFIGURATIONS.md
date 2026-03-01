@@ -17,10 +17,12 @@ Wave 2 focuses on implementing services for application protection policies and 
 **Interface:** `IAppProtectionService`  
 **Class:** `AppProtectionService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceAppManagement/managedAppPolicies`
 - Note: May need separate endpoints for iOS/Android/Windows policies
 
 **Methods to Implement:**
+
 - [ ] `ListManagedAppPoliciesAsync(CancellationToken cancellationToken = default)`
   - Returns `List<ManagedAppPolicy>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -46,10 +48,12 @@ Wave 2 focuses on implementing services for application protection policies and 
 **Interface:** `IManagedAppConfigurationService`  
 **Class:** `ManagedAppConfigurationService`  
 **Graph Endpoints:**
+
 - Mobile app configurations: `/deviceAppManagement/mobileAppConfigurations`
 - Targeted managed app configurations: `/deviceAppManagement/targetedManagedAppConfigurations`
 
 **Methods to Implement:**
+
 - [ ] `ListMobileAppConfigurationsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<ManagedDeviceMobileAppConfiguration>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -87,9 +91,11 @@ Wave 2 focuses on implementing services for application protection policies and 
 **Interface:** `ITermsAndConditionsService`  
 **Class:** `TermsAndConditionsService`  
 **Graph Endpoints:**
+
 - Base collection: `/deviceManagement/termsAndConditions`
 
 **Methods to Implement:**
+
 - [ ] `ListTermsAndConditionsAsync(CancellationToken cancellationToken = default)`
   - Returns `List<TermsAndConditions>`
   - Use manual `@odata.nextLink` pagination with `$top=999`
@@ -111,6 +117,7 @@ Wave 2 focuses on implementing services for application protection policies and 
 ## Scaffolding Steps
 
 ### Core Service Setup
+
 - [ ] Add interface files in `src/Intune.Commander.Core/Services/`
 - [ ] Add implementation classes in `src/Intune.Commander.Core/Services/`
 - [ ] Ensure constructors accept `GraphServiceClient`
@@ -120,6 +127,7 @@ Wave 2 focuses on implementing services for application protection policies and 
 - [ ] Add null checks and throw on null responses for create/update/get
 
 ### Export/Import Integration
+
 - [ ] Extend `ExportService` to handle Wave 2 objects
 - [ ] Extend `ImportService` to handle Wave 2 objects
 - [ ] Create export wrapper models if needed (e.g., with assignments)
@@ -127,6 +135,7 @@ Wave 2 focuses on implementing services for application protection policies and 
 - [ ] Maintain migration-table compatibility
 
 ### Desktop UI Integration
+
 - [ ] Add collections in `MainWindowViewModel` for each type
 - [ ] Add selection properties for each type
 - [ ] Add DataGrid column configurations
@@ -136,6 +145,7 @@ Wave 2 focuses on implementing services for application protection policies and 
 - [ ] Wire up export/import commands for new types
 
 ### Testing
+
 - [ ] Add `AppProtectionServiceTests.cs` in `tests/Intune.Commander.Core.Tests/Services/`
   - Test pagination continuation
   - Test list/get/create/update/delete success paths

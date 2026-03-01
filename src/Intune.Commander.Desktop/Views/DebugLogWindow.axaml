@@ -1,8 +1,9 @@
-<Window xmlns="https://github.com/avaloniaui"
+<suki:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
         xmlns:models="using:Intune.Commander.Desktop.Models"
         xmlns:conv="using:Intune.Commander.Desktop.Converters"
+        xmlns:suki="https://github.com/kikipoulet/SukiUI"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="600"
@@ -24,14 +25,14 @@
             <DockPanel>
                 <!-- Buttons on the right must be declared before the fill child -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
-                    <Button x:Name="CopySelectedButton" Content="Copy Selected" Click="OnCopySelected" Padding="10,3" FontSize="12" />
-                    <Button x:Name="CopyAllButton"      Content="Copy All"      Click="OnCopyAll"      Padding="10,3" FontSize="12" />
-                    <Button Content="Export..."     Click="OnSaveLog"      Padding="10,3" FontSize="12" />
-                    <Button Content="Clear" Command="{Binding ClearLogCommand}" Padding="10,3" FontSize="12" />
+                    <Button x:Name="CopySelectedButton" Content="Copy Selected" Click="OnCopySelected" Classes="Small" />
+                    <Button x:Name="CopyAllButton"      Content="Copy All"      Click="OnCopyAll"      Classes="Small" />
+                    <Button Content="Export..."     Click="OnSaveLog"      Classes="Small" />
+                    <Button Content="Clear" Command="{Binding ClearLogCommand}" Classes="Small" />
                 </StackPanel>
                 <!-- Search + category filter fill remaining space -->
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <TextBlock Text="Debug Log" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Text="Debug Log" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <TextBox Width="200" Watermark="Search..."
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                     <ComboBox Width="130"
@@ -47,14 +48,14 @@
                 BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="8,4">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-                <TextBlock Text="Show:" VerticalAlignment="Center" FontSize="12" />
-                <CheckBox Content="Debug"  IsChecked="{Binding ShowDebug}"   FontSize="12" />
-                <CheckBox Content="Info"   IsChecked="{Binding ShowInfo}"    FontSize="12" />
-                <CheckBox Content="Warn"   IsChecked="{Binding ShowWarning}" FontSize="12" />
-                <CheckBox Content="Error"  IsChecked="{Binding ShowError}"   FontSize="12" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Show:" VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}" />
+                <CheckBox Content="Debug"  IsChecked="{Binding ShowDebug}"   FontSize="{StaticResource FontSizeBody}" />
+                <CheckBox Content="Info"   IsChecked="{Binding ShowInfo}"    FontSize="{StaticResource FontSizeBody}" />
+                <CheckBox Content="Warn"   IsChecked="{Binding ShowWarning}" FontSize="{StaticResource FontSizeBody}" />
+                <CheckBox Content="Error"  IsChecked="{Binding ShowError}"   FontSize="{StaticResource FontSizeBody}" />
                 <ToggleSwitch Content="Auto-scroll" IsChecked="{Binding AutoScroll}"
-                              FontSize="12" Margin="16,0,0,0" />
+                              FontSize="{StaticResource FontSizeBody}" Margin="16,0,0,0" />
             </StackPanel>
         </Border>
 
@@ -80,13 +81,13 @@
                                            FontSize="12" VerticalAlignment="Center" />
                                 <!-- Category badge -->
                                 <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                                        CornerRadius="3" Padding="4,1">
-                                    <TextBlock Text="{Binding Category}" FontSize="11" VerticalAlignment="Center" />
+                                        CornerRadius="{StaticResource RadiusSmall}" Padding="4,1">
+                                    <TextBlock Text="{Binding Category}" FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center" />
                                 </Border>
                                 <!-- Level badge (colored) -->
                                 <Border Background="{Binding Level, Converter={x:Static conv:DebugLevelBrushConverter.Instance}}"
-                                        CornerRadius="3" Padding="4,1">
-                                    <TextBlock Text="{Binding Level}" FontSize="11" Foreground="White"
+                                        CornerRadius="{StaticResource RadiusSmall}" Padding="4,1">
+                                    <TextBlock Text="{Binding Level}" FontSize="{StaticResource FontSizeCaption}" Foreground="White"
                                                FontWeight="SemiBold" VerticalAlignment="Center" />
                                 </Border>
                                 <SelectableTextBlock Text="{Binding Message}"
@@ -114,7 +115,7 @@
                     </Style>
                 </ScrollViewer.Styles>
                 <StackPanel Margin="6,4">
-                    <TextBlock Text="Modules" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4" />
+                    <TextBlock Text="Modules" FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" Margin="0,0,0,4" />
                     <ItemsControl ItemsSource="{Binding GroupedEntries}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:DebugLogGroup">
@@ -139,4 +140,4 @@
 
         </Grid>
     </DockPanel>
-</Window>
+</suki:SukiWindow>

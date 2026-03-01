@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Material.Icons;
 
 namespace Intune.Commander.Desktop.ViewModels;
 
@@ -8,7 +9,7 @@ namespace Intune.Commander.Desktop.ViewModels;
 public partial class NavCategory : ObservableObject
 {
     public required string Name { get; init; }
-    public required string Icon { get; init; }
+    public required MaterialIconKind Icon { get; init; }
 
     [ObservableProperty]
     private bool _isSelected;

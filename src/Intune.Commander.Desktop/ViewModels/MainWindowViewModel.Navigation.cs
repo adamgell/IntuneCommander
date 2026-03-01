@@ -10,224 +10,105 @@ using Microsoft.Graph.Beta.Models;
 
 
 
+using Material.Icons;
+
 namespace Intune.Commander.Desktop.ViewModels;
-
-
 
 public partial class MainWindowViewModel : ViewModelBase
 
 {
 
-
-
     public ObservableCollection<NavCategory> NavCategories { get; } = [];
 
     public ObservableCollection<NavCategoryGroup> NavGroups { get; } = [];
 
-
-
-    private static readonly NavCategory OverviewCategory = new() { Name = "Overview", Icon = "📊" };
-
-
+    private static readonly NavCategory OverviewCategory = new() { Name = "Overview", Icon = MaterialIconKind.ViewDashboard };
 
     private static List<NavCategoryGroup> BuildDefaultNavGroups() =>
-
     [
-
         new NavCategoryGroup
-
         {
-
-            Name = "Devices", Icon = "💻",
-
+            Name = "Devices", Icon = MaterialIconKind.Laptop,
             Children = new ObservableCollection<NavCategory>
-
             {
-
-                new() { Name = "Device Configurations", Icon = "⚙" },
-
-                new() { Name = "Compliance Policies", Icon = "✓" },
-
-                new() { Name = "Settings Catalog", Icon = "⚙" },
-
-                new() { Name = "Administrative Templates", Icon = "🧾" },
-
-                new() { Name = "Endpoint Security", Icon = "🛡" },
-
-                new() { Name = "Enrollment Configurations", Icon = "🪪" },
-
-                new() { Name = "Device Categories", Icon = "🗂" },
-
+                new() { Name = "Device Configurations", Icon = MaterialIconKind.Cog },
+                new() { Name = "Compliance Policies", Icon = MaterialIconKind.CheckCircleOutline },
+                new() { Name = "Settings Catalog", Icon = MaterialIconKind.CogOutline },
+                new() { Name = "Administrative Templates", Icon = MaterialIconKind.ReceiptOutline },
+                new() { Name = "Endpoint Security", Icon = MaterialIconKind.ShieldOutline },
+                new() { Name = "Device Categories", Icon = MaterialIconKind.FolderOutline },
+                new() { Name = "Device Health Scripts", Icon = MaterialIconKind.Stethoscope },
+                new() { Name = "Compliance Scripts", Icon = MaterialIconKind.CheckAll },
+                new() { Name = "Feature Updates", Icon = MaterialIconKind.MicrosoftWindows },
+                new() { Name = "Device Management Scripts", Icon = MaterialIconKind.ScriptTextOutline },
+                new() { Name = "Device Shell Scripts", Icon = MaterialIconKind.Console },
             }
-
         },
-
         new NavCategoryGroup
-
         {
-
-            Name = "Applications", Icon = "📦",
-
+            Name = "Applications", Icon = MaterialIconKind.PackageVariantClosed,
             Children = new ObservableCollection<NavCategory>
-
             {
-
-                new() { Name = "Applications", Icon = "📦" },
-
-                new() { Name = "Application Assignments", Icon = "📋" },
-
-                new() { Name = "App Protection Policies", Icon = "🔒" },
-
-                new() { Name = "Managed Device App Configurations", Icon = "📱" },
-
-                new() { Name = "Targeted Managed App Configurations", Icon = "🎯" },
-
-                new() { Name = "VPP Tokens", Icon = "🎟" },
-
+                new() { Name = "Applications", Icon = MaterialIconKind.PackageVariant },
+                new() { Name = "Application Assignments", Icon = MaterialIconKind.ClipboardTextOutline },
+                new() { Name = "App Protection Policies", Icon = MaterialIconKind.LockOutline },
+                new() { Name = "Managed Device App Configurations", Icon = MaterialIconKind.CellphoneCog },
+                new() { Name = "Targeted Managed App Configurations", Icon = MaterialIconKind.Target },
+                new() { Name = "VPP Tokens", Icon = MaterialIconKind.TicketOutline },
             }
-
         },
-
         new NavCategoryGroup
-
         {
-
-            Name = "Identity & Access", Icon = "🔐",
-
+            Name = "Enrollment", Icon = MaterialIconKind.CardAccountDetailsOutline,
             Children = new ObservableCollection<NavCategory>
-
             {
-
-                new() { Name = "Conditional Access", Icon = "🔐" },
-
-                new() { Name = "Named Locations", Icon = "📍" },
-
-                new() { Name = "Authentication Strengths", Icon = "🔐" },
-
-                new() { Name = "Authentication Contexts", Icon = "🏷" },
-
-                new() { Name = "Terms of Use", Icon = "📄" },
-
+                new() { Name = "Enrollment Configurations", Icon = MaterialIconKind.CardAccountDetails },
+                new() { Name = "Autopilot Profiles", Icon = MaterialIconKind.RocketLaunchOutline },
+                new() { Name = "Apple DEP", Icon = MaterialIconKind.Apple },
+                new() { Name = "Cloud PC Provisioning Policies", Icon = MaterialIconKind.DesktopClassic },
             }
-
         },
-
         new NavCategoryGroup
-
         {
-
-            Name = "Tenant Admin", Icon = "🏢",
-
+            Name = "Identity & Access", Icon = MaterialIconKind.LockCheckOutline,
             Children = new ObservableCollection<NavCategory>
-
             {
-
-                new() { Name = "Scope Tags", Icon = "🏷" },
-
-                new() { Name = "Role Definitions", Icon = "💼" },
-
-                new() { Name = "Role Assignments", Icon = "🔑" },
-
-                new() { Name = "Assignment Filters", Icon = "🧩" },
-
-                new() { Name = "Policy Sets", Icon = "🗂" },
-
-                new() { Name = "Intune Branding", Icon = "🎨" },
-
-                new() { Name = "Azure Branding", Icon = "🟦" },
-
-                new() { Name = "Terms and Conditions", Icon = "📜" },
-
-                new() { Name = "Autopilot Profiles", Icon = "🚀" },
-
+                new() { Name = "Conditional Access", Icon = MaterialIconKind.LockCheck },
+                new() { Name = "Named Locations", Icon = MaterialIconKind.MapMarkerOutline },
+                new() { Name = "Authentication Strengths", Icon = MaterialIconKind.ShieldKeyOutline },
+                new() { Name = "Authentication Contexts", Icon = MaterialIconKind.TagOutline },
+                new() { Name = "Terms of Use", Icon = MaterialIconKind.FileDocumentOutline },
             }
-
         },
-
         new NavCategoryGroup
-
         {
-
-            Name = "Cloud PC", Icon = "🖥",
-
+            Name = "Tenant Admin", Icon = MaterialIconKind.Domain,
             Children = new ObservableCollection<NavCategory>
-
             {
-
-                new() { Name = "Cloud PC Provisioning Policies", Icon = "🖥" },
-
-                new() { Name = "Cloud PC User Settings", Icon = "👤" },
-
+                new() { Name = "Scope Tags", Icon = MaterialIconKind.TagMultipleOutline },
+                new() { Name = "Role Definitions", Icon = MaterialIconKind.BriefcaseOutline },
+                new() { Name = "Role Assignments", Icon = MaterialIconKind.KeyOutline },
+                new() { Name = "Assignment Filters", Icon = MaterialIconKind.FilterOutline },
+                new() { Name = "Policy Sets", Icon = MaterialIconKind.FolderMultipleOutline },
+                new() { Name = "Intune Branding", Icon = MaterialIconKind.PaletteOutline },
+                new() { Name = "Azure Branding", Icon = MaterialIconKind.MicrosoftAzure },
+                new() { Name = "Terms and Conditions", Icon = MaterialIconKind.ScriptOutline },
+                new() { Name = "Cloud PC User Settings", Icon = MaterialIconKind.AccountCogOutline },
+                new() { Name = "ADMX Files", Icon = MaterialIconKind.FolderZipOutline },
+                new() { Name = "Reusable Policy Settings", Icon = MaterialIconKind.LinkVariant },
             }
-
         },
-
         new NavCategoryGroup
-
         {
-
-            Name = "Monitoring", Icon = "🩺",
-
+            Name = "Groups & Monitoring", Icon = MaterialIconKind.AccountGroupOutline,
             Children = new ObservableCollection<NavCategory>
-
             {
-
-                new() { Name = "Device Health Scripts", Icon = "🩺" },
-
-                new() { Name = "Mac Custom Attributes", Icon = "🍎" },
-
-                new() { Name = "Feature Updates", Icon = "🪟" },
-
-                new() { Name = "Device Management Scripts", Icon = "📜" },
-
-                new() { Name = "Device Shell Scripts", Icon = "🐚" },
-
-                new() { Name = "Compliance Scripts", Icon = "✅" },
-
-                new() { Name = "ADMX Files", Icon = "📁" },
-
-                new() { Name = "Reusable Policy Settings", Icon = "🔗" },
-
-                new() { Name = "Notification Templates", Icon = "🔔" },
-
+                new() { Name = "Dynamic Groups", Icon = MaterialIconKind.AccountConvertOutline },
+                new() { Name = "Assigned Groups", Icon = MaterialIconKind.AccountMultipleOutline },
+                new() { Name = "Mac Custom Attributes", Icon = MaterialIconKind.AppleKeyboardCommand },
+                new() { Name = "Notification Templates", Icon = MaterialIconKind.BellOutline },
             }
-
         },
-
-        new NavCategoryGroup
-
-        {
-
-            Name = "Apple", Icon = "🍎",
-
-            Children = new ObservableCollection<NavCategory>
-
-            {
-
-                new() { Name = "Apple DEP", Icon = "📱" },
-
-            }
-
-        },
-
-        new NavCategoryGroup
-
-        {
-
-            Name = "Groups", Icon = "👥",
-
-            Children = new ObservableCollection<NavCategory>
-
-            {
-
-                new() { Name = "Dynamic Groups", Icon = "🔄" },
-
-                new() { Name = "Assigned Groups", Icon = "👥" },
-
-            }
-
-        },
-
     ];
 
 
@@ -842,7 +723,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     (IReadOnlyList<MobileApp>)Applications,
 
-                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows);
+                    (IReadOnlyList<AppAssignmentRow>)AppAssignmentRows,
+
+                    SettingsCatalogPolicies.Count,
+
+                    EndpointSecurityIntents.Count,
+
+                    AdministrativeTemplates.Count,
+
+                    ConditionalAccessPolicies.Count,
+
+                    EnrollmentConfigurations.Count,
+
+                    DeviceManagementScripts.Count + DeviceShellScripts.Count,
+
+                    AppProtectionPolicies.Count);
 
             }))
 

@@ -20,12 +20,12 @@ using Intune.Commander.Core.Models;
 using Intune.Commander.Desktop.Converters;
 
 using Intune.Commander.Desktop.ViewModels;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Enums;
+using SukiUI.MessageBox;
+using SukiUI.Controls;
 
 namespace Intune.Commander.Desktop.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow : SukiWindow
 {
     private DataGrid? _mainDataGrid;
     private MainWindowViewModel? _vm;
@@ -53,9 +53,10 @@ public partial class MainWindow : Window
 
         _mainDataGrid = this.FindControl<DataGrid>("MainDataGrid");
 
-        var importButton = this.FindControl<Button>("ImportButton");
-        if (importButton != null)
-            importButton.Click += OnImportClick;
+        // With this:
+        var importMenuItem = this.FindControl<MenuItem>("ImportMenuItem");
+        if (importMenuItem != null)
+            importMenuItem.Click += OnImportClick;
 
         var groupLookupButton = this.FindControl<Button>("GroupLookupButton");
         if (groupLookupButton != null)
@@ -64,10 +65,6 @@ public partial class MainWindow : Window
         var columnChooserButton = this.FindControl<Button>("ColumnChooserButton");
         if (columnChooserButton != null)
             columnChooserButton.Click += OnColumnChooserClick;
-
-        var overviewNavButton = this.FindControl<Button>("OverviewNavButton");
-        if (overviewNavButton != null)
-            overviewNavButton.Click += OnOverviewNavClick;
 
         AttachViewModelIfAvailable("Loaded");
     }
@@ -689,14 +686,13 @@ public partial class MainWindow : Window
 
     private async Task<bool> OnSwitchProfileRequested(TenantProfile target)
     {
-        var box = MessageBoxManager.GetMessageBoxStandard(
-            "Switch Profile",
-            $"Switch to \"{target.Name}\"?\nYou will be disconnected from the current tenant.",
-            ButtonEnum.YesNo,
-            MsBox.Avalonia.Enums.Icon.Info);
-
-        var result = await box.ShowWindowDialogAsync(this);
-        return result == ButtonResult.Yes;
+        var result = await SukiMessageBox.ShowDialog(this, new SukiMessageBoxHost
+        {
+            Header = "Switch Profile",
+            Content = $"Switch to \"{target.Name}\"?\nYou will be disconnected from the current tenant.",
+            ActionButtonsPreset = SukiMessageBoxButtons.YesNo
+        });
+        return result is SukiMessageBoxResult.Yes;
     }
 
     private async void OnImportClick(object? sender, RoutedEventArgs e)
@@ -768,7 +764,7 @@ public partial class MainWindow : Window
 
     private void OnCheckForUpdatesClick(object? sender, RoutedEventArgs e)
     {
-        OpenUrl("https://github.com/adamgell/IntuneCommader/releases");
+        OpenUrl("https://github.com/adamgell/IntuneCommander/releases");
     }
 
     private async void OnAboutClick(object? sender, RoutedEventArgs e)
@@ -776,37 +772,22 @@ public partial class MainWindow : Window
         var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
         var versionText = version != null ? $"v{version.Major}.{version.Minor}.{version.Build}" : "dev";
 
-        var box = MessageBoxManager.GetMessageBoxStandard(
-            "About Intune Commander",
-            $"Intune Commander {versionText}\n\n" +
-            "A .NET 8 / Avalonia desktop app for managing\n" +
-            "Microsoft Intune configurations across clouds.\n\n" +
-            "https://github.com/adamgell/IntuneCommader",
-            ButtonEnum.Ok,
-            MsBox.Avalonia.Enums.Icon.Info);
-
-        await box.ShowAsPopupAsync(this);
-    }
-
-    private void OnOverviewNavClick(object? sender, RoutedEventArgs e)
-    {
-        if (_vm == null) return;
-        // Find the Overview category in the flat NavCategories list
-        var overview = _vm.NavCategories.FirstOrDefault(c => c.Name == "Overview");
-        if (overview != null)
-            _vm.SelectedCategory = overview;
+        await SukiMessageBox.ShowDialog(this, new SukiMessageBoxHost
+        {
+            Header = "About",
+            Content = $"Intune Commander {versionText}\n\n" +
+                "A .NET 8 / Avalonia desktop app for managing\n" +
+                "Microsoft Intune configurations across clouds.\n\n" +
+                "https://github.com/adamgell/IntuneCommander",
+            ActionButtonsPreset = SukiMessageBoxButtons.OK
+        });
     }
 
     private void OnNavItemClick(object? sender, RoutedEventArgs e)
     {
         if (_vm == null) return;
-        if (sender is Button btn && btn.Tag is NavCategory category)
-        {
-            // Find the matching category in the flat NavCategories list to maintain reference equality
-            var match = _vm.NavCategories.FirstOrDefault(c => c.Name == category.Name);
-            if (match != null)
-                _vm.SelectedCategory = match;
-        }
+        if (sender is Button { Tag: string categoryName })
+            _vm.ActivateCategoryByName(categoryName);
     }
 
     private static void OpenUrl(string url)
@@ -825,14 +806,13 @@ public partial class MainWindow : Window
 
     private async Task<bool> OnOpenAfterExportRequested(string filePath)
     {
-        var box = MessageBoxManager.GetMessageBoxStandard(
-            "Export Complete",
-            $"PowerPoint exported successfully.\n\nWould you like to open {Path.GetFileName(filePath)}?",
-            ButtonEnum.YesNo,
-            MsBox.Avalonia.Enums.Icon.Success);
-
-        var result = await box.ShowWindowDialogAsync(this);
-        return result == ButtonResult.Yes;
+        var result = await SukiMessageBox.ShowDialog(this, new SukiMessageBoxHost
+        {
+            Header = "Export Complete",
+            Content = $"PowerPoint exported successfully.\n\nWould you like to open {Path.GetFileName(filePath)}?",
+            ActionButtonsPreset = SukiMessageBoxButtons.YesNo
+        });
+        return result is SukiMessageBoxResult.Yes;
     }
 
     private async Task<string?> OnSaveFileRequested(string defaultFileName, string filter)

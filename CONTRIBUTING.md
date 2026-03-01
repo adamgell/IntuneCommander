@@ -20,6 +20,7 @@ test(core): add unit tests for ProfileService [P2]
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -30,6 +31,7 @@ test(core): add unit tests for ProfileService [P2]
 - `chore`: Maintenance tasks, dependencies
 
 **Priorities:**
+
 - `[P1]` - **Critical**: Security issues, broken features, blocking bugs
 - `[P2]` - **Important**: Significant improvements, major bugs, essential docs
 - `[P3]` - **Enhancement**: Nice-to-have features, optimizations, minor fixes
@@ -68,6 +70,7 @@ If any breaking changes exist:
 ### Before Submitting
 
 1. **Build and Test Locally**
+
    ```bash
    dotnet build
    dotnet test
@@ -102,6 +105,7 @@ If any breaking changes exist:
 ### Graph API Patterns
 
 **Manual Pagination (Required)**
+
 ```csharp
 var response = await _graphClient.SomeEndpoint
     .GetAsync(req => req.QueryParameters.Top = 200, cancellationToken);
@@ -235,11 +239,13 @@ public async Task MethodName_Scenario_ExpectedBehavior()
 See [PR_STATUS.md](PR_STATUS.md) for current PR organization and recommended merge order.
 
 **General Priority Order:**
+
 1. **P1 (Critical)**: Security fixes, broken features, blocking bugs
 2. **P2 (Important)**: Documentation accuracy, significant improvements
 3. **P3 (Enhancement)**: Nice-to-have features, optimizations
 
 **Dependencies:**
+
 - Check PR_STATUS.md for PR dependencies
 - Base your branch on `main` unless depending on another PR
 - Coordinate with maintainers if multiple PRs affect same code

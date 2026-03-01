@@ -1,6 +1,7 @@
-<Window xmlns="https://github.com/avaloniaui"
+<suki:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+        xmlns:suki="https://github.com/kikipoulet/SukiUI"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -18,22 +19,23 @@
             <Button DockPanel.Dock="Right" Content="Search"
                     Command="{Binding SearchGroupsCommand}"
                     IsEnabled="{Binding !IsSearching}"
-                    Margin="8,0,0,0" Padding="16,8"
+                    Margin="8,0,0,0"
+                    Classes="Large"
                     HorizontalContentAlignment="Center" />
             <TextBox Text="{Binding SearchQuery}"
                      Watermark="Enter Entra group name or GUID..."
                      KeyDown="OnSearchKeyDown"
-                     FontSize="14" Padding="8" />
+                     FontSize="{StaticResource FontSizeSubheading}" Padding="8" />
         </DockPanel>
 
         <!-- Status bar -->
         <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-            <TextBlock Text="{Binding StatusText}" FontSize="12"
+            <TextBlock Text="{Binding StatusText}" FontSize="{StaticResource FontSizeBody}"
                        VerticalAlignment="Center" Opacity="0.7" />
             <ProgressBar IsIndeterminate="True"
                          IsVisible="{Binding IsBusy}"
                          Width="180" Height="10"
-                         Foreground="#00CC55" Background="#224400"
+                         Foreground="{DynamicResource ProgressBarForegroundBrush}" Background="{DynamicResource ProgressBarBackgroundBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          CornerRadius="5" />
         </DockPanel>
@@ -41,8 +43,8 @@
         <!-- Error message -->
         <Border DockPanel.Dock="Bottom"
                 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                Background="{DynamicResource AppErrorBackgroundBrush}" CornerRadius="4" Padding="8" Margin="0,4,0,0">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
+                Background="{DynamicResource AppErrorBackgroundBrush}" CornerRadius="{StaticResource RadiusSmall}" Padding="8" Margin="0,4,0,0">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" />
         </Border>
 
         <!-- Group search results (shown when multiple results, hidden after selection loads) -->
@@ -50,7 +52,7 @@
                 IsVisible="{Binding SearchResults.Count}"
                 MaxHeight="180" Margin="0,0,0,8">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Select a group:" FontSize="12"
+                <TextBlock DockPanel.Dock="Top" Text="Select a group:" FontSize="{StaticResource FontSizeBody}"
                            FontWeight="SemiBold" Margin="0,0,0,4" />
                 <ListBox ItemsSource="{Binding SearchResults}"
                          SelectedItem="{Binding SelectedGroup}"
@@ -63,7 +65,7 @@
                                 <TextBlock Text="{Binding Description}" Opacity="0.6"
                                            VerticalAlignment="Center" MaxWidth="300"
                                            TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{Binding Id}" Opacity="0.4" FontSize="11"
+                                <TextBlock Text="{Binding Id}" Opacity="0.4" FontSize="{StaticResource FontSizeCaption}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </DataTemplate>
@@ -76,10 +78,10 @@
         <Border DockPanel.Dock="Top"
                 IsVisible="{Binding SelectedGroupInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                 Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="4" Padding="10,6" Margin="0,0,0,8">
+                CornerRadius="{StaticResource RadiusSmall}" Padding="10,6" Margin="0,0,0,8">
             <DockPanel>
                 <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <TextBlock Text="{Binding SelectedGroupInfo}" FontSize="13"
+                <TextBlock Text="{Binding SelectedGroupInfo}" FontSize="{StaticResource FontSizeBody}"
                            FontWeight="SemiBold" VerticalAlignment="Center" />
             </DockPanel>
         </Border>
@@ -93,10 +95,10 @@
                         CommandParameter="Device Configuration"
                         x:Name="FilterConfigBtn"
                         Classes.accent="{Binding IsConfigFilterActive}"
-                        Padding="10,4" CornerRadius="4">
+                        Classes="Medium" CornerRadius="{StaticResource RadiusSmall}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="⚙" FontSize="14" VerticalAlignment="Center" />
-                        <TextBlock FontSize="12" VerticalAlignment="Center">
+                        <TextBlock Text="⚙" FontSize="{StaticResource FontSizeSubheading}" VerticalAlignment="Center" />
+                        <TextBlock FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} Configs">
                                     <Binding Path="ConfigCount" />
@@ -109,10 +111,10 @@
                         CommandParameter="Compliance Policy"
                         x:Name="FilterComplianceBtn"
                         Classes.accent="{Binding IsComplianceFilterActive}"
-                        Padding="10,4" CornerRadius="4">
+                        Classes="Medium" CornerRadius="{StaticResource RadiusSmall}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="✓" FontSize="14" VerticalAlignment="Center" />
-                        <TextBlock FontSize="12" VerticalAlignment="Center">
+                        <TextBlock Text="✓" FontSize="{StaticResource FontSizeSubheading}" VerticalAlignment="Center" />
+                        <TextBlock FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} Compliance">
                                     <Binding Path="ComplianceCount" />
@@ -125,10 +127,10 @@
                         CommandParameter="Application"
                         x:Name="FilterAppBtn"
                         Classes.accent="{Binding IsAppFilterActive}"
-                        Padding="10,4" CornerRadius="4">
+                        Classes="Medium" CornerRadius="{StaticResource RadiusSmall}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="📦" FontSize="14" VerticalAlignment="Center" />
-                        <TextBlock FontSize="12" VerticalAlignment="Center">
+                        <TextBlock Text="📦" FontSize="{StaticResource FontSizeSubheading}" VerticalAlignment="Center" />
+                        <TextBlock FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} Apps">
                                     <Binding Path="AppCount" />
@@ -140,8 +142,8 @@
                 <Button Command="{Binding FilterByCategoryCommand}"
                         x:Name="FilterAllBtn"
                         Classes.accent="{Binding IsAllFilterActive}"
-                        Padding="10,4" CornerRadius="4">
-                    <TextBlock FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center">
+                        Classes="Medium" CornerRadius="{StaticResource RadiusSmall}">
+                    <TextBlock FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold" VerticalAlignment="Center">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0} Total">
                                 <Binding Path="TotalCount" />
@@ -162,7 +164,7 @@
                   CanUserReorderColumns="True"
                   CanUserResizeColumns="True"
                   SelectionMode="Single"
-                  FontSize="13">
+                  FontSize="{StaticResource FontSizeBody}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" />
                 <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}" Width="*" />
@@ -174,19 +176,19 @@
         </DataGrid>
             <Border IsVisible="{Binding HasNoResults}"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Padding="24,16" CornerRadius="8"
+                    Padding="24,16" CornerRadius="{StaticResource RadiusLarge}"
                     Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
                 <StackPanel Spacing="8" HorizontalAlignment="Center">
                     <TextBlock Text="🔍" FontSize="32" HorizontalAlignment="Center" />
                     <TextBlock Text="No assignments found for this group"
-                               FontSize="14" FontWeight="SemiBold"
+                               FontSize="{StaticResource FontSizeSubheading}" FontWeight="SemiBold"
                                HorizontalAlignment="Center" />
                     <TextBlock Text="Try clearing the category filter or searching for a different group."
-                               FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                               FontSize="{StaticResource FontSizeBody}" Foreground="{DynamicResource AppTextSecondaryBrush}"
                                HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="320" />
                 </StackPanel>
             </Border>
         </Panel>
 
     </DockPanel>
-</Window>
+</suki:SukiWindow>

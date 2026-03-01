@@ -18,7 +18,7 @@ env:
   PROJECT: src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj
   PUBLISH_DIR: src/Intune.Commander.Desktop/bin/Release/net10.0/win-x64/publish
   DOTNET_VERSION: '10.0.x'
-  GH_REPO: adamgell/IntuneCommader
+  GH_REPO: adamgell/IntuneCommander
 
 jobs:
   release:
@@ -67,6 +67,8 @@ jobs:
         run: dotnet restore ${{ env.PROJECT }} -r win-x64
 
       - name: Publish
+        env:
+          SYNCFUSION_LICENSE_KEY: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
         run: >
           dotnet publish ${{ env.PROJECT }}
           -c Release
@@ -76,6 +78,7 @@ jobs:
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:Version=${{ steps.version.outputs.version }}
+          "-p:SyncfusionLicenseKey=$env:SYNCFUSION_LICENSE_KEY"
 
       - name: Verify build output
         shell: bash

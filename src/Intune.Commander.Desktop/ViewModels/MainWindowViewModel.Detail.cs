@@ -1,6 +1,10 @@
 using System;
 
+using System.Collections.Generic;
+
 using System.Linq;
+
+using System.Reflection;
 
 using System.Text;
 
@@ -310,8 +314,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Name", pol.DisplayName);
 
-            Append(sb, "Description", pol.Description);
-
             Append(sb, "Platform / Type", SelectedItemTypeName);
 
             Append(sb, "ID", pol.Id);
@@ -322,7 +324,69 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Version", pol.Version?.ToString());
 
-            AppendAssignments(sb);
+
+
+            // SETTINGS section
+
+            var settings = ExtractComplianceSettings(pol);
+
+            if (settings.Count > 0)
+
+            {
+
+                sb.AppendLine();
+
+                sb.AppendLine("SETTINGS");
+
+                foreach (var (label, value) in settings)
+
+                {
+
+                    sb.AppendLine($"  {label}: {value}");
+
+                }
+
+            }
+
+
+
+            // ACTIONS section
+
+            sb.AppendLine();
+
+            sb.AppendLine("ACTIONS");
+
+            if (SelectedItemNonComplianceActions.Count > 0)
+
+            {
+
+                foreach (var action in SelectedItemNonComplianceActions)
+                {
+                    sb.AppendLine($"  {action.ActionTypeDisplay}");
+                    sb.AppendLine($"    Schedule: {action.GracePeriodDisplay}");
+                    if (action.HasNotificationTemplate)
+                        sb.AppendLine($"    Notification Template: {action.NotificationTemplateId}");
+                }
+
+            }
+
+            else
+
+            {
+
+                sb.AppendLine("  No actions configured");
+
+            }
+
+
+
+            // ASSIGNMENTS section
+
+            sb.AppendLine();
+
+            sb.AppendLine("ASSIGNMENTS");
+
+            AppendAssignmentsList(sb);
 
         }
 
@@ -920,11 +984,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "Description", cs.Description);
 
+            Append(sb, "ID", cs.Id);
+
+            Append(sb, "Publisher", cs.Publisher);
+
+            Append(sb, "Run As Account", cs.RunAsAccount?.ToString());
+
+            Append(sb, "Enforce Signature Check", cs.EnforceSignatureCheck?.ToString());
+
+            Append(sb, "Run As 32-bit", cs.RunAs32Bit?.ToString());
+
             Append(sb, "Created", cs.CreatedDateTime?.ToString("g"));
 
             Append(sb, "Last Modified", cs.LastModifiedDateTime?.ToString("g"));
-
-            Append(sb, "ID", cs.Id);
 
         }
 
@@ -1088,6 +1160,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
         sb.AppendLine("Assignments:");
 
+        AppendAssignmentsList(sb);
+
+    }
+
+
+
+    private void AppendAssignmentsList(StringBuilder sb)
+
+    {
+
+        if (SelectedItemAssignments.Count == 0)
+
+        {
+
+            sb.AppendLine("  None");
+
+            return;
+
+        }
+
+
+
         foreach (var a in SelectedItemAssignments)
 
         {
@@ -1104,9 +1198,96 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
+    /// <summary>
+    /// Extracts compliance policy settings by serializing the policy to JSON and
+    /// parsing the result. This approach reliably captures all derived type properties
+    /// (e.g., Windows10CompliancePolicy.PasswordRequired) regardless of the backing
+    /// store implementation.
+    /// </summary>
+    private List<(string Label, string Value)> ExtractComplianceSettings(DeviceCompliancePolicy policy)
+    {
+        var settings = new List<(string Label, string Value)>();
 
+        // Properties to exclude (metadata, organizational, actions — displayed elsewhere)
+        var excludedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Id", "DisplayName", "Description", "OdataType", "CreatedDateTime",
+            "LastModifiedDateTime", "Version", "RoleScopeTagIds", "Assignments",
+            "ScheduledActionsForRule", "AdditionalData", "BackingStore",
+            "@odata.context", "@odata.type"
+        };
 
+        try
+        {
+            // Serialize with the runtime type so all derived properties are included
+            var json = JsonSerializer.Serialize(policy, policy.GetType(), new JsonSerializerOptions
+            {
+                WriteIndented = false
+            });
 
+            using var doc = JsonDocument.Parse(json);
+            foreach (var prop in doc.RootElement.EnumerateObject())
+            {
+                if (excludedProperties.Contains(prop.Name))
+                    continue;
+
+                var label = FormatPropertyName(prop.Name);
+                var formattedValue = FormatJsonElementValue(prop.Value);
+                settings.Add((label, formattedValue));
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"ComplianceSettings: Failed to extract settings: {ex.Message}");
+        }
+
+        return settings;
+    }
+
+    /// <summary>
+    /// Converts camelCase property names to Human Readable format.
+    /// </summary>
+    private static string FormatPropertyName(string propertyName)
+    {
+        if (string.IsNullOrEmpty(propertyName))
+            return propertyName;
+
+        // Insert spaces before capital letters
+        var result = System.Text.RegularExpressions.Regex.Replace(
+            propertyName,
+            "([a-z])([A-Z])",
+            "$1 $2"
+        );
+
+        // Insert spaces before numbers
+        result = System.Text.RegularExpressions.Regex.Replace(
+            result,
+            "([a-zA-Z])([0-9])",
+            "$1 $2"
+        );
+
+        return result;
+    }
+
+    /// <summary>
+    /// Formats a JSON element value for human-readable display.
+    /// </summary>
+    private static string FormatJsonElementValue(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.True => "Yes",
+            JsonValueKind.False => "No",
+            JsonValueKind.Null or JsonValueKind.Undefined => "Not Configured",
+            JsonValueKind.String => element.GetString() is { Length: > 0 } s ? s : "Not Configured",
+            JsonValueKind.Number => element.ToString(),
+            JsonValueKind.Array => element.GetArrayLength() > 0
+                ? string.Join(", ", element.EnumerateArray().Select(e => e.ToString()))
+                : "None",
+            JsonValueKind.Object => "(complex)",
+            _ => element.ToString()
+        };
+    }
 
     private static string? TryReadStringProperty(object? instance, string propertyName)
 
@@ -1148,17 +1329,17 @@ public partial class MainWindowViewModel : ViewModelBase
     private string ResolveNamedLocationId(string? id)
     {
         if (string.IsNullOrEmpty(id)) return "";
-        
-        var location = NamedLocations.FirstOrDefault(nl => 
+
+        var location = NamedLocations.FirstOrDefault(nl =>
             TryReadStringProperty(nl, "Id") == id);
-        
+
         if (location != null)
         {
             var displayName = TryReadStringProperty(location, "DisplayName");
             if (!string.IsNullOrEmpty(displayName))
                 return displayName;
         }
-        
+
         return $"Unknown Location ({id})";
     }
 
@@ -1169,69 +1350,26 @@ public partial class MainWindowViewModel : ViewModelBase
     private string ResolveGroupId(string? id)
     {
         if (string.IsNullOrEmpty(id)) return "";
-        
+
         // Check DynamicGroupRows
         var dynamicGroup = DynamicGroupRows.FirstOrDefault(g => g.GroupId == id);
         if (dynamicGroup != null && !string.IsNullOrEmpty(dynamicGroup.GroupName))
             return dynamicGroup.GroupName;
-        
+
         // Check AssignedGroupRows
         var assignedGroup = AssignedGroupRows.FirstOrDefault(g => g.GroupId == id);
         if (assignedGroup != null && !string.IsNullOrEmpty(assignedGroup.GroupName))
             return assignedGroup.GroupName;
-        
+
         return $"Unknown Group ({id})";
     }
 
     /// <summary>
-    /// Well-known Microsoft app IDs and their display names.
+    /// Resolves an application ID to a well-known display name using the shared
+    /// MicrosoftApps.json registry, or returns the ID if unknown.
     /// </summary>
-    private static readonly System.Collections.Generic.Dictionary<string, string> WellKnownApps = new()
-    {
-        ["00000002-0000-0ff1-ce00-000000000000"] = "Office 365",
-        ["00000003-0000-0000-c000-000000000000"] = "Microsoft Graph",
-        ["0000000a-0000-0000-c000-000000000000"] = "Microsoft Intune",
-        ["00000006-0000-0ff1-ce00-000000000000"] = "Microsoft Office 365 Portal",
-        ["c44b4083-3bb0-49c1-b47d-974e53cbdf3c"] = "Azure Portal",
-        ["89bee1f7-5e6e-4d8a-9f3d-ecd601259da7"] = "Azure Management",
-        ["797f4846-ba00-4fd7-ba43-dac1f8f63013"] = "Azure Service Management",
-        ["cc15fd57-2c6c-4117-a88c-83b1d56b4bbe"] = "Microsoft Teams",
-        ["5e3ce6c0-2b1f-4285-8d4b-75ee78787346"] = "Microsoft Stream",
-        ["00000007-0000-0ff1-ce00-000000000000"] = "Microsoft Office 365 Hybrid",
-        ["4345a7b9-9a63-4910-a426-35363201d503"] = "Microsoft O365 Suite UX",
-        ["28b567f6-162c-4f54-99a0-6887f387bbcc"] = "Azure DevOps",
-        ["499b84ac-1321-427f-aa17-267ca6975798"] = "Microsoft Visual Studio",
-        ["d3590ed6-52b3-4102-aeff-aad2292ab01c"] = "Microsoft Office",
-        ["00b41c95-dab0-4487-9791-b9d2c32c80f2"] = "Office 365 Management",
-        ["00000012-0000-0000-c000-000000000000"] = "Microsoft Rights Management Services",
-        ["1fec8e78-bce4-4aaf-ab1b-5451cc387264"] = "Microsoft Teams Web Client",
-        ["27922004-5251-4030-b22d-91ecd9a37ea4"] = "Outlook Mobile",
-        ["57fb890c-0dab-4253-a5e0-7188c88b2bb4"] = "SharePoint Android",
-        ["d3590ed6-52b3-4102-aeff-aad2292ab01c"] = "Office UWP PWA",
-        ["93d53678-613d-4013-afc1-62e9e444a0a5"] = "Power Platform Admin Center",
-        ["871c010f-5e61-4fb1-83ac-98610a7e9110"] = "Power Apps",
-        ["4e291c71-d680-4d0e-9640-0a3358e31177"] = "Power Automate",
-        ["a8f7a65c-f5ba-4859-b2d6-df772c264e9d"] = "Power BI Service",
-        ["26a7ee05-5602-4d76-a7ba-eae8b7b67941"] = "Windows Azure Service Management API",
-        ["cf53fce8-def6-4aeb-8d30-b158e7b1cf83"] = "Microsoft Password Reset Service",
-        ["0000000c-0000-0000-c000-000000000000"] = "Microsoft App Access Panel",
-        ["ffcb16e8-f789-467c-8ce9-f826a080d987"] = "Microsoft Bing",
-        ["20a11fe0-faa8-4df5-baf2-f965f8f9972e"] = "Microsoft Exchange Online Protection",
-        ["fb78d390-0c51-40cd-8e17-fdbfab77341b"] = "Microsoft Exchange Rest API Auth"
-    };
-
-    /// <summary>
-    /// Resolves an application ID to a well-known display name, or returns the ID if unknown.
-    /// </summary>
-    private static string ResolveApplicationId(string? id)
-    {
-        if (string.IsNullOrEmpty(id)) return "";
-        
-        if (WellKnownApps.TryGetValue(id, out var appName))
-            return appName;
-        
-        return id;
-    }
+    private static string ResolveApplicationId(string? id) =>
+        Intune.Commander.Core.Models.WellKnownAppRegistry.Resolve(id);
 
     /// <summary>
     /// Decodes a Base64-encoded string (commonly used for script content).
@@ -1239,7 +1377,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string DecodeBase64Script(string? base64Content)
     {
         if (string.IsNullOrEmpty(base64Content)) return "";
-        
+
         try
         {
             var bytes = System.Convert.FromBase64String(base64Content);

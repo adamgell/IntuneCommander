@@ -16,9 +16,12 @@ public enum AppAccessType
 
 /// <summary>
 /// Parses cloud app/action assignments from a CA policy.
+/// Accepts an optional name lookup dictionary to resolve application GUIDs to display names.
 /// </summary>
 public class AssignedCloudAppAction
 {
+    private readonly IReadOnlyDictionary<string, string> _nameLookup;
+
     public string? Name { get; private set; }
     public string? IncludeExclude { get; private set; }
     public AppAccessType AccessType { get; private set; }
@@ -26,8 +29,19 @@ public class AssignedCloudAppAction
     public bool IsSelectedMicrosoftAdminPortalsOnly { get; private set; }
     public bool HasData => !string.IsNullOrEmpty(IncludeExclude);
 
-    public AssignedCloudAppAction(ConditionalAccessPolicy policy)
+    /// <summary>
+    /// Creates a new <see cref="AssignedCloudAppAction"/> instance.
+    /// </summary>
+    /// <param name="policy">The Conditional Access policy to parse.</param>
+    /// <param name="nameLookup">
+    /// Optional dictionary mapping application/service principal GUIDs to display names.
+    /// When provided, application GUIDs are resolved to readable names.
+    /// </param>
+    public AssignedCloudAppAction(
+        ConditionalAccessPolicy policy,
+        IReadOnlyDictionary<string, string>? nameLookup = null)
     {
+        _nameLookup = nameLookup ?? new Dictionary<string, string>();
         var conditions = policy.Conditions;
         if (conditions?.Applications == null) return;
 
@@ -126,7 +140,7 @@ public class AssignedCloudAppAction
                 else if (val == "None")
                     sb.AppendLine(" - None");
                 else
-                    sb.AppendLine($" - {val}");
+                    sb.AppendLine($" - {ResolveName(val)}");
             }
         }
 
@@ -141,7 +155,7 @@ public class AssignedCloudAppAction
                 else if (val == "MicrosoftAdminPortals")
                     sb.AppendLine(" - Microsoft Admin Portals");
                 else
-                    sb.AppendLine($" - {val}");
+                    sb.AppendLine($" - {ResolveName(val)}");
             }
         }
 
@@ -158,5 +172,15 @@ public class AssignedCloudAppAction
                 sb.AppendLine($" - {val}");
         }
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Resolves an ID to a display name using the lookup dictionary.
+    /// Falls back to the raw ID if not found.
+    /// </summary>
+    private string ResolveName(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return id;
+        return _nameLookup.TryGetValue(id, out var name) ? name : id;
     }
 }

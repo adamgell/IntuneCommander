@@ -42,7 +42,7 @@ dotnet run --project src/Intune.Commander.Desktop
 | Dialogs | MessageBox.Avalonia 3.2.x |
 | Profile storage | `Microsoft.AspNetCore.DataProtection` |
 | DI | `Microsoft.Extensions.DependencyInjection` 10.0.x |
-| Testing | xUnit |
+| Testing | xUnit, NSubstitute 5.3.x |
 
 **Important:** The project uses `Microsoft.Graph.Beta` (not the stable `Microsoft.Graph` package). All models and the `GraphServiceClient` come from `Microsoft.Graph.Beta.*`.
 
@@ -73,6 +73,7 @@ tests/
 `App.axaml.cs` calls `services.AddIntuneCommanderCore()` then registers `MainWindowViewModel` as transient.
 
 `AddIntuneCommanderCore()` registers:
+
 - **Singleton:** `IAuthenticationProvider`, `IntuneGraphClientFactory`, `ProfileService`, `IProfileEncryptionService`, `ICacheService`
 - **Transient:** `IExportService`
 
@@ -83,6 +84,7 @@ tests/
 `IntuneGraphClientFactory.CreateClientAsync(profile)` creates a `GraphServiceClient` using `Azure.Identity` credentials and the correct endpoint from `CloudEndpoints.GetEndpoints(profile.Cloud)`.
 
 Cloud endpoints in `CloudEndpoints.cs`:
+
 - Commercial & GCC → `https://graph.microsoft.com`
 - GCC-High → `https://graph.microsoft.us`
 - DoD → `https://dod-graph.microsoft.us`
@@ -153,11 +155,18 @@ Each object type exports to its own subfolder under the chosen output directory 
 **Unit tests are required for all new or changed code.** Every new service, model, or behavioral change in `Intune.Commander.Core` must include corresponding tests. PRs without adequate test coverage will not be merged.
 
 ### Unit tests (`tests/Intune.Commander.Core.Tests/`)
-- xUnit with `[Fact]`/`[Theory]`, no mocking framework
+- xUnit with `[Fact]`/`[Theory]`, NSubstitute 5.x for mocking (`Substitute.For<IMyInterface>()`)
 - Service contract tests verify interface conformance, method signatures, return types, and `CancellationToken` parameters via reflection
 - File I/O tests use temp directories with `IDisposable` cleanup
+- **NSubstitute patterns**:
+  - Return values: `svc.MethodAsync(Arg.Any<T>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(result))`
+  - Argument capture: `svc.MethodAsync(Arg.Do<T>(x => captured = x), Arg.Any<CancellationToken>()).Returns(...)`
+  - Call verification: `await svc.Received(1).MethodAsync(expectedArg, Arg.Any<CancellationToken>())`
+  - No-call assertion: `svc.DidNotReceive().Method(Arg.Any<string>())`
+- **`GraphServiceClient` is NOT mockable** (sealed SDK) — services that directly call Graph keep their reflection-based contract tests; NSubstitute is used only for project-owned interfaces (`IXxxService`, `ICacheService`, etc.)
 
 ### Integration tests (`tests/Intune.Commander.Core.Tests/Integration/`)
+
 - Tagged with `[Trait("Category", "Integration")]` — **always** use this trait for any test hitting Graph API
 - Base class `GraphIntegrationTestBase` provides `GraphServiceClient` from env vars and `ShouldSkip()` for graceful no-op when credentials are missing
 - Read-only tests (List + Get) are safe for any tenant
