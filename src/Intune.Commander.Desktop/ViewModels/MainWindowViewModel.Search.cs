@@ -12,7 +12,7 @@ using Avalonia.Threading;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
-using Intune.Commander.Desktop.Extensions;
+using Intune.Commander.Core.Extensions;
 
 using Microsoft.Graph.Beta.Models;
 
@@ -44,27 +44,51 @@ public partial class MainWindowViewModel : ViewModelBase
 
     {
 
-        _searchDebounceCancel?.Cancel();
+        var previousCts = _searchDebounceCancel;
+
+        previousCts?.Cancel();
+
+        previousCts?.Dispose();
 
         _searchDebounceCancel = new CancellationTokenSource();
 
-        var token = _searchDebounceCancel.Token;
+        var currentCts = _searchDebounceCancel;
+
+        _ = DebounceApplyFilterAsync(currentCts, currentCts.Token);
+
+    }
 
 
 
-        Task.Delay(SearchDebounceMs, token).ContinueWith(_ =>
+    private async Task DebounceApplyFilterAsync(CancellationTokenSource expectedCts, CancellationToken cancellationToken)
+
+    {
+
+        try
 
         {
 
-            if (!token.IsCancellationRequested)
+            await Task.Delay(SearchDebounceMs, cancellationToken);
 
-            {
+        }
 
-                Dispatcher.UIThread.Post(ApplyFilter);
+        catch (TaskCanceledException)
 
-            }
+        {
 
-        }, token);
+            return;
+
+        }
+
+
+
+        if (!cancellationToken.IsCancellationRequested && ReferenceEquals(_searchDebounceCancel, expectedCts))
+
+        {
+
+            Dispatcher.UIThread.Post(ApplyFilter);
+
+        }
 
     }
 
