@@ -192,7 +192,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 _namedLocationService,
                 _authenticationStrengthService,
                 _authenticationContextService,
-                _applicationService);
+                _applicationService,
+                new DirectoryObjectResolver(_graphClient));
 
             ExportConditionalAccessPowerPointCommand.NotifyCanExecuteChanged();
 

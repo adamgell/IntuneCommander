@@ -1416,3 +1416,261 @@ public class ControlSessionTests
         Assert.False(result.SecureSignInSession);
     }
 }
+
+// =====================================================================
+// Name resolution tests – verifying that GUIDs are resolved to display
+// names when a lookup dictionary is provided.
+// =====================================================================
+
+public class AssignedUserWorkloadNameResolutionTests
+{
+    private static readonly Dictionary<string, string> Lookup = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["33edc044-86ef-4f8b-9601-171ea69dcf66"] = "Security Admins",
+        ["86f1d5f2-7646-4a75-8582-65ac081efec9"] = "Break Glass Account",
+        ["0ce1952a-e86d-4cbd-8f23-ca60396b58fd"] = "Service Accounts Group",
+        ["aaaa1111-2222-3333-4444-555566667777"] = "Global Administrator"
+    };
+
+    [Fact]
+    public void IncludeGroups_ResolvedToDisplayName()
+    {
+        var policy = PolicyWithUsers(includeGroups: ["33edc044-86ef-4f8b-9601-171ea69dcf66"]);
+        var result = new AssignedUserWorkload(policy, Lookup);
+        Assert.Contains("Security Admins", result.IncludeExclude);
+        Assert.DoesNotContain("33edc044", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void ExcludeGroups_ResolvedToDisplayName()
+    {
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Users = new ConditionalAccessUsers
+                {
+                    ExcludeGroups = [
+                        "86f1d5f2-7646-4a75-8582-65ac081efec9",
+                        "0ce1952a-e86d-4cbd-8f23-ca60396b58fd"
+                    ]
+                }
+            }
+        };
+        var result = new AssignedUserWorkload(policy, Lookup);
+        Assert.Contains("Break Glass Account", result.IncludeExclude);
+        Assert.Contains("Service Accounts Group", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void IncludeRoles_ResolvedToDisplayName()
+    {
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Users = new ConditionalAccessUsers
+                {
+                    IncludeRoles = ["aaaa1111-2222-3333-4444-555566667777"]
+                }
+            }
+        };
+        var result = new AssignedUserWorkload(policy, Lookup);
+        Assert.Contains("Global Administrator", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void IncludeUsers_ResolvedToDisplayName()
+    {
+        var lookup = new Dictionary<string, string>
+        {
+            ["bbbb2222-3333-4444-5555-666677778888"] = "John Doe"
+        };
+        var policy = PolicyWithUsers(includeUsers: ["bbbb2222-3333-4444-5555-666677778888"]);
+        var result = new AssignedUserWorkload(policy, lookup);
+        Assert.Contains("John Doe", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void SentinelValues_PreservedWhenNotInLookup()
+    {
+        // In real usage, sentinels like "All" are never in the resolver output.
+        // Verify they still format correctly via FormatUserId.
+        var lookup = new Dictionary<string, string>
+        {
+            ["some-other-guid"] = "Irrelevant"
+        };
+        var policy = PolicyWithUsers(includeUsers: ["All"]);
+        var result = new AssignedUserWorkload(policy, lookup);
+        Assert.Contains("All users", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void NoLookup_FallsBackToRawGuid()
+    {
+        var policy = PolicyWithUsers(includeGroups: ["33edc044-86ef-4f8b-9601-171ea69dcf66"]);
+        var result = new AssignedUserWorkload(policy);
+        Assert.Contains("33edc044-86ef-4f8b-9601-171ea69dcf66", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void WorkloadIdentity_ServicePrincipals_ResolvedToDisplayName()
+    {
+        var lookup = new Dictionary<string, string>
+        {
+            ["sp-guid-12345"] = "My Service Principal"
+        };
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                ClientApplications = new ConditionalAccessClientApplications
+                {
+                    IncludeServicePrincipals = ["sp-guid-12345"]
+                }
+            }
+        };
+        var result = new AssignedUserWorkload(policy, lookup);
+        Assert.Contains("My Service Principal", result.IncludeExclude);
+    }
+
+    private static ConditionalAccessPolicy PolicyWithUsers(
+        List<string>? includeUsers = null,
+        List<string>? includeGroups = null) =>
+        new()
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Users = new ConditionalAccessUsers
+                {
+                    IncludeUsers = includeUsers,
+                    IncludeGroups = includeGroups
+                }
+            }
+        };
+}
+
+public class AssignedCloudAppActionNameResolutionTests
+{
+    [Fact]
+    public void IncludeApps_ResolvedViaLookup()
+    {
+        var lookup = new Dictionary<string, string>
+        {
+            ["app-guid-1234"] = "Contoso Portal"
+        };
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Applications = new ConditionalAccessApplications
+                {
+                    IncludeApplications = ["app-guid-1234"]
+                }
+            }
+        };
+        var result = new AssignedCloudAppAction(policy, lookup);
+        Assert.Contains("Contoso Portal", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void ExcludeApps_ResolvedViaLookup()
+    {
+        var lookup = new Dictionary<string, string>
+        {
+            ["excl-app-guid"] = "Excluded App Name"
+        };
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Applications = new ConditionalAccessApplications
+                {
+                    IncludeApplications = ["All"],
+                    ExcludeApplications = ["excl-app-guid"]
+                }
+            }
+        };
+        var result = new AssignedCloudAppAction(policy, lookup);
+        Assert.Contains("Excluded App Name", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void NoLookup_FallsBackToRawId()
+    {
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Applications = new ConditionalAccessApplications
+                {
+                    IncludeApplications = ["raw-guid-no-lookup"]
+                }
+            }
+        };
+        var result = new AssignedCloudAppAction(policy);
+        Assert.Contains("raw-guid-no-lookup", result.IncludeExclude);
+    }
+}
+
+public class ConditionLocationsNameResolutionTests
+{
+    [Fact]
+    public void LocationIds_ResolvedViaLookup()
+    {
+        var lookup = new Dictionary<string, string>
+        {
+            ["loc-guid-123"] = "Corporate Office"
+        };
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Locations = new ConditionalAccessLocations
+                {
+                    IncludeLocations = ["loc-guid-123"]
+                }
+            }
+        };
+        var result = new ConditionLocations(policy, lookup);
+        Assert.Contains("Corporate Office", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void SentinelLocations_NotOverridden()
+    {
+        var lookup = new Dictionary<string, string>
+        {
+            ["All"] = "SHOULD NOT APPEAR"
+        };
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Locations = new ConditionalAccessLocations
+                {
+                    IncludeLocations = ["All"]
+                }
+            }
+        };
+        var result = new ConditionLocations(policy, lookup);
+        Assert.Contains("Any location", result.IncludeExclude);
+    }
+
+    [Fact]
+    public void NoLookup_FallsBackToRawId()
+    {
+        var policy = new ConditionalAccessPolicy
+        {
+            Conditions = new ConditionalAccessConditionSet
+            {
+                Locations = new ConditionalAccessLocations
+                {
+                    IncludeLocations = ["unknown-loc-guid"]
+                }
+            }
+        };
+        var result = new ConditionLocations(policy);
+        Assert.Contains("unknown-loc-guid", result.IncludeExclude);
+    }
+}
