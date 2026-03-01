@@ -303,6 +303,27 @@ public class CacheServiceTests : IDisposable
     }
 
     [Fact]
+    public void Set_and_Get_roundtrips_large_data_with_surrogate_pairs()
+    {
+        var emojiPayload = string.Concat(Enumerable.Repeat("😀", 5_000));
+        var items = Enumerable.Range(0, 160)
+            .Select(i => new TestItem($"Item_{i}_{emojiPayload}", i))
+            .ToList();
+
+        _sut.Set("tenant1", "BigEmojiData", items);
+
+        var result = _sut.Get<TestItem>("tenant1", "BigEmojiData");
+
+        Assert.NotNull(result);
+        Assert.Equal(items.Count, result.Count);
+        for (var i = 0; i < items.Count; i++)
+        {
+            Assert.Equal(items[i].Name, result[i].Name);
+            Assert.Equal(items[i].Value, result[i].Value);
+        }
+    }
+
+    [Fact]
     public void GetMetadata_returns_correct_count_for_chunked_entry()
     {
         var items = ChunkedPayloadItems;

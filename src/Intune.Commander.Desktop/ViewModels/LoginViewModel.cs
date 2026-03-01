@@ -12,6 +12,7 @@ using CommunityToolkit.Mvvm.Input;
 using Intune.Commander.Core.Auth;
 using Intune.Commander.Core.Models;
 using Intune.Commander.Core.Services;
+using Microsoft.Kiota.Abstractions;
 
 namespace Intune.Commander.Desktop.ViewModels;
 
@@ -311,11 +312,15 @@ public partial class LoginViewModel : ViewModelBase
             {
                 await client.Organization.GetAsync(cancellationToken: cancellationToken);
             }
-            catch (Exception testEx)
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (ApiException permissionEx) when (permissionEx.ResponseStatusCode is 401 or 403)
             {
                 // Log but proceed — token was acquired, so auth itself worked.
                 // Permission gaps will surface per-view instead of blocking login.
-                DebugLog.Log("Auth", $"Connection test warning (non-blocking): {testEx.Message}");
+                DebugLog.Log("Auth", $"Connection test warning (non-blocking): {permissionEx.Message}");
             }
 
             DeviceCodeMessage = string.Empty;
@@ -327,6 +332,13 @@ public partial class LoginViewModel : ViewModelBase
             await _profileService.SaveAsync(cancellationToken);
 
             LoginSucceeded?.Invoke(this, profile);
+        }
+        catch (OperationCanceledException)
+        {
+            DeviceCodeMessage = string.Empty;
+            DeviceUserCode = string.Empty;
+            DeviceVerificationUrl = string.Empty;
+            StatusMessage = "Login cancelled.";
         }
         catch (Exception ex)
         {
