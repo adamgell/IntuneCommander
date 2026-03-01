@@ -1685,7 +1685,7 @@
                                     </Border>
 
                                     <!-- Section: Assignments -->
-                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1794,7 +1794,7 @@
                                     </Border>
 
                                     <!-- Section: Assignments -->
-                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1848,7 +1848,7 @@
                                     </Border>
 
                                     <!-- Section: Assignments -->
-                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -2053,7 +2053,7 @@
                                     </Border>
 
                                     <!-- Section: Assignments -->
-                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
