@@ -18,8 +18,6 @@ using Avalonia.Threading;
 
 using Intune.Commander.Core.Services;
 
-using Intune.Commander.Desktop.Extensions;
-
 using Microsoft.Graph.Beta.Models;
 
 
@@ -182,11 +180,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 
-            var collection = new ObservableCollection<AppAssignmentRow>();
-
-            collection.ReplaceAll(rows);
-
-            AppAssignmentRows = collection;
+            AppAssignmentRows = new ObservableCollection<AppAssignmentRow>(rows);
 
             _appAssignmentsLoaded = true;
 

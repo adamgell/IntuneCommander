@@ -1,5 +1,5 @@
 using System.Collections.ObjectModel;
-using Intune.Commander.Desktop.Extensions;
+using Intune.Commander.Core.Extensions;
 
 namespace Intune.Commander.Core.Tests.Extensions;
 

@@ -9,7 +9,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using Intune.Commander.Core.Models;
 using Intune.Commander.Core.Services;
-using Intune.Commander.Desktop.Extensions;
+using Intune.Commander.Core.Extensions;
 using Microsoft.Graph.Beta.Models;
 
 namespace Intune.Commander.Desktop.ViewModels;
@@ -39,8 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             var items = await fetch(cancellationToken);
-            var collection = new ObservableCollection<T>();
-            collection.ReplaceAll(items);
+            var collection = new ObservableCollection<T>(items);
             setCollection(collection);
             setLoadedFlag();
             ApplyFilter();
@@ -81,8 +80,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             StatusText = $"Loading {displayName}...";
             var items = await fetch(cancellationToken);
-            var collection = new ObservableCollection<T>();
-            collection.ReplaceAll(items);
+            var collection = new ObservableCollection<T>(items);
             setCollection(collection);
             setLoadedFlag?.Invoke(true);
             DebugLog.Log("Graph", $"Loaded {items.Count} {displayName}");
@@ -110,8 +108,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var items = _cacheService.Get<T>(tenantId, cacheKey);
         if (items == null) return false;
 
-        var collection = new ObservableCollection<T>();
-        collection.ReplaceAll(items);
+        var collection = new ObservableCollection<T>(items);
         setCollection(collection);
         setLoadedFlag?.Invoke();
         DebugLog.Log("Cache", $"Loaded {items.Count} {displayName} from cache");
