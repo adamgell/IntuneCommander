@@ -1210,6 +1210,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1277,6 +1280,9 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1329,6 +1335,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1381,6 +1390,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1433,6 +1445,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1668,6 +1683,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1775,6 +1793,8 @@
                                         </StackPanel>
                                     </Border>
 
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -1826,6 +1846,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
@@ -2028,6 +2051,9 @@
                                             </Grid>
                                         </StackPanel>
                                     </Border>
+
+                                    <!-- Section: Assignments -->
+                                    <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
                                 </StackPanel>
                             </ScrollViewer>
 
