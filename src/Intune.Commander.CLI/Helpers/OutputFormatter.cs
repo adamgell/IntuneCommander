@@ -12,12 +12,17 @@ public static class OutputFormatter
 
     public static string SerializeJson(object value) => JsonSerializer.Serialize(value, JsonOptions);
 
-    public static void WriteJsonToStdout(object value) => Console.Out.WriteLine(SerializeJson(value));
+    public static void WriteJsonToStdout(object value, TextWriter? writer = null) =>
+        (writer ?? Console.Out).WriteLine(SerializeJson(value));
 
-    public static void WriteTable(IEnumerable<string> headers, IEnumerable<IEnumerable<string?>> rows)
+    public static void WriteTable(
+        IEnumerable<string> headers,
+        IEnumerable<IEnumerable<string?>> rows,
+        TextWriter? writer = null)
     {
-        Console.Out.WriteLine(string.Join('\t', headers));
+        var targetWriter = writer ?? Console.Out;
+        targetWriter.WriteLine(string.Join('\t', headers));
         foreach (var row in rows)
-            Console.Out.WriteLine(string.Join('\t', row.Select(c => c ?? string.Empty)));
+            targetWriter.WriteLine(string.Join('\t', row.Select(c => c ?? string.Empty)));
     }
 }

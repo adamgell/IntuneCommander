@@ -5,6 +5,7 @@ using Intune.Commander.Core.Models;
 using Intune.Commander.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Intune.Commander.CLI.Commands;
 
@@ -41,7 +42,18 @@ public static class ExportCommand
         command.AddOption(output);
         command.AddOption(types);
 
-        command.SetHandler(ExecuteAsync, profile, tenantId, clientId, secret, cloud, output, types);
+        command.SetHandler(async context =>
+        {
+            await ExecuteAsync(
+                context.ParseResult.GetValueForOption(profile),
+                context.ParseResult.GetValueForOption(tenantId),
+                context.ParseResult.GetValueForOption(clientId),
+                context.ParseResult.GetValueForOption(secret),
+                context.ParseResult.GetValueForOption(cloud),
+                context.ParseResult.GetValueForOption(output)!,
+                context.ParseResult.GetValueForOption(types) ?? "all",
+                context.GetCancellationToken());
+        });
         return command;
     }
 
@@ -52,9 +64,9 @@ public static class ExportCommand
         string? secret,
         string? cloud,
         string output,
-        string types)
+        string types,
+        CancellationToken cancellationToken)
     {
-        var cancellationToken = CancellationToken.None;
         using var provider = CliServices.CreateServiceProvider();
         var profileService = provider.GetRequiredService<ProfileService>();
         var graphClientFactory = provider.GetRequiredService<IntuneGraphClientFactory>();

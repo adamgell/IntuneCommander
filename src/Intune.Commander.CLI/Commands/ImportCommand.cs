@@ -4,6 +4,7 @@ using Intune.Commander.Core.Auth;
 using Intune.Commander.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Intune.Commander.CLI.Commands;
 
@@ -29,7 +30,18 @@ public static class ImportCommand
         command.AddOption(folder);
         command.AddOption(dryRun);
 
-        command.SetHandler(ExecuteAsync, profile, tenantId, clientId, secret, cloud, folder, dryRun);
+        command.SetHandler(async context =>
+        {
+            await ExecuteAsync(
+                context.ParseResult.GetValueForOption(profile),
+                context.ParseResult.GetValueForOption(tenantId),
+                context.ParseResult.GetValueForOption(clientId),
+                context.ParseResult.GetValueForOption(secret),
+                context.ParseResult.GetValueForOption(cloud),
+                context.ParseResult.GetValueForOption(folder)!,
+                context.ParseResult.GetValueForOption(dryRun),
+                context.GetCancellationToken());
+        });
         return command;
     }
 
@@ -40,9 +52,9 @@ public static class ImportCommand
         string? secret,
         string? cloud,
         string folder,
-        bool dryRun)
+        bool dryRun,
+        CancellationToken cancellationToken)
     {
-        var cancellationToken = CancellationToken.None;
         if (!Directory.Exists(folder))
             throw new DirectoryNotFoundException($"Import folder \"{folder}\" was not found.");
 

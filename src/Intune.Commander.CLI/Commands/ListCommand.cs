@@ -3,6 +3,7 @@ using Intune.Commander.Core.Auth;
 using Intune.Commander.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Intune.Commander.CLI.Commands;
 
@@ -10,7 +11,7 @@ public static class ListCommand
 {
     public static Command Build()
     {
-        var command = new Command("list", "List supported Intune object types");
+        var command = new Command("list", "List Intune objects of the given type");
 
         var typeArgument = new Argument<string>("type");
         var profile = new Option<string?>("--profile");
@@ -28,7 +29,18 @@ public static class ListCommand
         command.AddOption(cloud);
         command.AddOption(format);
 
-        command.SetHandler(ExecuteAsync, typeArgument, profile, tenantId, clientId, secret, cloud, format);
+        command.SetHandler(async context =>
+        {
+            await ExecuteAsync(
+                context.ParseResult.GetValueForArgument(typeArgument),
+                context.ParseResult.GetValueForOption(profile),
+                context.ParseResult.GetValueForOption(tenantId),
+                context.ParseResult.GetValueForOption(clientId),
+                context.ParseResult.GetValueForOption(secret),
+                context.ParseResult.GetValueForOption(cloud),
+                context.ParseResult.GetValueForOption(format) ?? "table",
+                context.GetCancellationToken());
+        });
         return command;
     }
 
@@ -39,9 +51,9 @@ public static class ListCommand
         string? clientId,
         string? secret,
         string? cloud,
-        string format)
+        string format,
+        CancellationToken cancellationToken)
     {
-        var cancellationToken = CancellationToken.None;
         using var provider = CliServices.CreateServiceProvider();
         var profileService = provider.GetRequiredService<ProfileService>();
         var graphClientFactory = provider.GetRequiredService<IntuneGraphClientFactory>();

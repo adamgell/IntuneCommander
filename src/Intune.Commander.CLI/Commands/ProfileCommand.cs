@@ -3,6 +3,7 @@ using Intune.Commander.Core.Auth;
 using Intune.Commander.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Intune.Commander.CLI.Commands;
 
@@ -18,7 +19,12 @@ public static class ProfileCommand
         var testCommand = new Command("test", "Test a saved profile");
         var name = new Option<string>("--name") { IsRequired = true };
         testCommand.AddOption(name);
-        testCommand.SetHandler(TestAsync, name);
+        testCommand.SetHandler(async context =>
+        {
+            await TestAsync(
+                context.ParseResult.GetValueForOption(name)!,
+                context.GetCancellationToken());
+        });
 
         command.AddCommand(listCommand);
         command.AddCommand(testCommand);
@@ -34,9 +40,8 @@ public static class ProfileCommand
         OutputFormatter.WriteJsonToStdout(profileService.Profiles);
     }
 
-    private static async Task TestAsync(string name)
+    private static async Task TestAsync(string name, CancellationToken cancellationToken)
     {
-        var cancellationToken = CancellationToken.None;
         using var provider = CliServices.CreateServiceProvider();
         var profileService = provider.GetRequiredService<ProfileService>();
         var graphClientFactory = provider.GetRequiredService<IntuneGraphClientFactory>();

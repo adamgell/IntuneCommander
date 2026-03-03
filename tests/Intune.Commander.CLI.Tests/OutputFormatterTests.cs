@@ -17,17 +17,7 @@ public class OutputFormatterTests
     public void WriteTable_WritesHeadersAndRows()
     {
         var writer = new StringWriter();
-        var original = Console.Out;
-        Console.SetOut(writer);
-
-        try
-        {
-            OutputFormatter.WriteTable(["Name", "Id"], [["Policy A", "1"]]);
-        }
-        finally
-        {
-            Console.SetOut(original);
-        }
+        OutputFormatter.WriteTable(["Name", "Id"], [["Policy A", "1"]], writer);
 
         var output = writer.ToString();
         Assert.Contains("Name\tId", output);

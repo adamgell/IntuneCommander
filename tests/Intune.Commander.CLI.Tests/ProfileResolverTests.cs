@@ -7,6 +7,10 @@ namespace Intune.Commander.CLI.Tests;
 public sealed class ProfileResolverTests : IDisposable
 {
     private readonly string _tempFile = Path.Combine(Path.GetTempPath(), $"profiles-{Guid.NewGuid()}.json");
+    private readonly string? _originalTenant = Environment.GetEnvironmentVariable("IC_TENANT_ID");
+    private readonly string? _originalClient = Environment.GetEnvironmentVariable("IC_CLIENT_ID");
+    private readonly string? _originalSecret = Environment.GetEnvironmentVariable("IC_CLIENT_SECRET");
+    private readonly string? _originalCloud = Environment.GetEnvironmentVariable("IC_CLOUD");
 
     [Fact]
     public async Task ResolveAsync_UsesEnvVars_WhenNoProfileNameProvided()
@@ -49,10 +53,10 @@ public sealed class ProfileResolverTests : IDisposable
 
     public void Dispose()
     {
-        Environment.SetEnvironmentVariable("IC_TENANT_ID", null);
-        Environment.SetEnvironmentVariable("IC_CLIENT_ID", null);
-        Environment.SetEnvironmentVariable("IC_CLIENT_SECRET", null);
-        Environment.SetEnvironmentVariable("IC_CLOUD", null);
+        Environment.SetEnvironmentVariable("IC_TENANT_ID", _originalTenant);
+        Environment.SetEnvironmentVariable("IC_CLIENT_ID", _originalClient);
+        Environment.SetEnvironmentVariable("IC_CLIENT_SECRET", _originalSecret);
+        Environment.SetEnvironmentVariable("IC_CLOUD", _originalCloud);
 
         if (File.Exists(_tempFile))
             File.Delete(_tempFile);
