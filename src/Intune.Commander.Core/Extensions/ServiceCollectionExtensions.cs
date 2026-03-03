@@ -59,6 +59,8 @@ public static class ServiceCollectionExtensions
             new ProfileService(encryption: sp.GetRequiredService<IProfileEncryptionService>()));
 
         services.AddTransient<IExportService, ExportService>();
+        services.AddSingleton<IExportNormalizer, ExportNormalizer>();
+        services.AddSingleton<IDriftDetectionService, DriftDetectionService>();
 
         // Cache — singleton LiteDB-backed cache with encrypted storage
         services.AddSingleton<ICacheService>(sp =>
