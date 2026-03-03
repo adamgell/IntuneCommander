@@ -18,7 +18,7 @@ public sealed class ProfileResolverTests : IDisposable
 
         var profileService = new ProfileService(_tempFile);
 
-        var result = await ProfileResolver.ResolveAsync(profileService, null, null, null, null, null);
+        var result = await ProfileResolver.ResolveAsync(profileService, null, null, null, null, null, CancellationToken.None);
 
         Assert.Equal("tenant-id", result.TenantId);
         Assert.Equal("client-id", result.ClientId);
@@ -41,7 +41,7 @@ public sealed class ProfileResolverTests : IDisposable
         });
         await profileService.SaveAsync();
 
-        var result = await ProfileResolver.ResolveAsync(profileService, "Contoso", null, null, null, null);
+        var result = await ProfileResolver.ResolveAsync(profileService, "Contoso", null, null, null, null, CancellationToken.None);
 
         Assert.Equal("Contoso", result.Name);
         Assert.Equal("tenant", result.TenantId);

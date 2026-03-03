@@ -25,7 +25,7 @@ public static class ProfileResolver
             var profile = profileService.Profiles.FirstOrDefault(
                 p => string.Equals(p.Name, profileName, StringComparison.OrdinalIgnoreCase));
 
-            return profile ?? throw new InvalidOperationException($"Profile '{profileName}' was not found.");
+            return profile ?? throw new InvalidOperationException($"Profile \"{profileName}\" was not found.");
         }
 
         tenantId ??= Environment.GetEnvironmentVariable(TenantEnv);
@@ -63,7 +63,7 @@ public static class ProfileResolver
             "gcc" => CloudEnvironment.GCC,
             "gcchigh" or "gcc-high" => CloudEnvironment.GCCHigh,
             "dod" => CloudEnvironment.DoD,
-            _ => throw new InvalidOperationException($"Unsupported cloud '{cloud}'.")
+            _ => throw new InvalidOperationException($"Unsupported cloud \"{cloud}\".")
         };
     }
 }

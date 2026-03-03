@@ -54,13 +54,14 @@ public static class ExportCommand
         string output,
         string types)
     {
+        var cancellationToken = CancellationToken.None;
         using var provider = CliServices.CreateServiceProvider();
         var profileService = provider.GetRequiredService<ProfileService>();
         var graphClientFactory = provider.GetRequiredService<IntuneGraphClientFactory>();
         var exportService = provider.GetRequiredService<IExportService>();
 
-        var resolvedProfile = await ProfileResolver.ResolveAsync(profileService, profile, tenantId, clientId, secret, cloud);
-        var graphClient = await graphClientFactory.CreateClientAsync(resolvedProfile, AuthHelper.DeviceCodeToStderr);
+        var resolvedProfile = await ProfileResolver.ResolveAsync(profileService, profile, tenantId, clientId, secret, cloud, cancellationToken);
+        var graphClient = await graphClientFactory.CreateClientAsync(resolvedProfile, AuthHelper.DeviceCodeToStderr, cancellationToken);
 
         Directory.CreateDirectory(output);
         var selectedTypes = ParseTypes(types);
@@ -98,10 +99,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("configurations"))
         {
             Console.Error.WriteLine("Exporting device configurations...");
-            var items = await configurationProfileService.ListDeviceConfigurationsAsync();
+            var items = await configurationProfileService.ListDeviceConfigurationsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportDeviceConfigurationAsync(item, output, migrationTable);
+                await exportService.ExportDeviceConfigurationAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -109,11 +110,11 @@ public static class ExportCommand
         if (selectedTypes.Contains("compliance"))
         {
             Console.Error.WriteLine("Exporting compliance policies...");
-            var items = await compliancePolicyService.ListCompliancePoliciesAsync();
+            var items = await compliancePolicyService.ListCompliancePoliciesAsync(cancellationToken);
             foreach (var item in items)
             {
-                var assignments = item.Id is null ? [] : await compliancePolicyService.GetAssignmentsAsync(item.Id);
-                await exportService.ExportCompliancePolicyAsync(item, assignments, output, migrationTable);
+                var assignments = item.Id is null ? [] : await compliancePolicyService.GetAssignmentsAsync(item.Id, cancellationToken);
+                await exportService.ExportCompliancePolicyAsync(item, assignments, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -121,11 +122,11 @@ public static class ExportCommand
         if (selectedTypes.Contains("applications"))
         {
             Console.Error.WriteLine("Exporting applications...");
-            var items = await applicationService.ListApplicationsAsync();
+            var items = await applicationService.ListApplicationsAsync(cancellationToken);
             foreach (var item in items)
             {
-                var assignments = item.Id is null ? [] : await applicationService.GetAssignmentsAsync(item.Id);
-                await exportService.ExportApplicationAsync(item, assignments, output, migrationTable);
+                var assignments = item.Id is null ? [] : await applicationService.GetAssignmentsAsync(item.Id, cancellationToken);
+                await exportService.ExportApplicationAsync(item, assignments, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -133,11 +134,11 @@ public static class ExportCommand
         if (selectedTypes.Contains("endpoint-security"))
         {
             Console.Error.WriteLine("Exporting endpoint security intents...");
-            var items = await endpointSecurityService.ListEndpointSecurityIntentsAsync();
+            var items = await endpointSecurityService.ListEndpointSecurityIntentsAsync(cancellationToken);
             foreach (var item in items)
             {
-                var assignments = item.Id is null ? [] : await endpointSecurityService.GetAssignmentsAsync(item.Id);
-                await exportService.ExportEndpointSecurityIntentAsync(item, assignments, output, migrationTable);
+                var assignments = item.Id is null ? [] : await endpointSecurityService.GetAssignmentsAsync(item.Id, cancellationToken);
+                await exportService.ExportEndpointSecurityIntentAsync(item, assignments, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -145,11 +146,11 @@ public static class ExportCommand
         if (selectedTypes.Contains("administrative-templates"))
         {
             Console.Error.WriteLine("Exporting administrative templates...");
-            var items = await administrativeTemplateService.ListAdministrativeTemplatesAsync();
+            var items = await administrativeTemplateService.ListAdministrativeTemplatesAsync(cancellationToken);
             foreach (var item in items)
             {
-                var assignments = item.Id is null ? [] : await administrativeTemplateService.GetAssignmentsAsync(item.Id);
-                await exportService.ExportAdministrativeTemplateAsync(item, assignments, output, migrationTable);
+                var assignments = item.Id is null ? [] : await administrativeTemplateService.GetAssignmentsAsync(item.Id, cancellationToken);
+                await exportService.ExportAdministrativeTemplateAsync(item, assignments, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -157,12 +158,12 @@ public static class ExportCommand
         if (selectedTypes.Contains("settings-catalog"))
         {
             Console.Error.WriteLine("Exporting settings catalog policies...");
-            var items = await settingsCatalogService.ListSettingsCatalogPoliciesAsync();
+            var items = await settingsCatalogService.ListSettingsCatalogPoliciesAsync(cancellationToken);
             foreach (var item in items)
             {
-                var settings = item.Id is null ? [] : await settingsCatalogService.GetPolicySettingsAsync(item.Id);
-                var assignments = item.Id is null ? [] : await settingsCatalogService.GetAssignmentsAsync(item.Id);
-                await exportService.ExportSettingsCatalogPolicyAsync(item, settings, assignments, output, migrationTable);
+                var settings = item.Id is null ? [] : await settingsCatalogService.GetPolicySettingsAsync(item.Id, cancellationToken);
+                var assignments = item.Id is null ? [] : await settingsCatalogService.GetAssignmentsAsync(item.Id, cancellationToken);
+                await exportService.ExportSettingsCatalogPolicyAsync(item, settings, assignments, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -170,10 +171,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("enrollment-configurations"))
         {
             Console.Error.WriteLine("Exporting enrollment configurations...");
-            var items = await enrollmentConfigurationService.ListEnrollmentConfigurationsAsync();
+            var items = await enrollmentConfigurationService.ListEnrollmentConfigurationsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportEnrollmentConfigurationAsync(item, output, migrationTable);
+                await exportService.ExportEnrollmentConfigurationAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -181,10 +182,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("app-protection"))
         {
             Console.Error.WriteLine("Exporting app protection policies...");
-            var items = await appProtectionPolicyService.ListAppProtectionPoliciesAsync();
+            var items = await appProtectionPolicyService.ListAppProtectionPoliciesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportAppProtectionPolicyAsync(item, output, migrationTable);
+                await exportService.ExportAppProtectionPolicyAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -192,10 +193,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("managed-device-app-configurations"))
         {
             Console.Error.WriteLine("Exporting managed device app configurations...");
-            var items = await managedAppConfigurationService.ListManagedDeviceAppConfigurationsAsync();
+            var items = await managedAppConfigurationService.ListManagedDeviceAppConfigurationsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportManagedDeviceAppConfigurationAsync(item, output, migrationTable);
+                await exportService.ExportManagedDeviceAppConfigurationAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -203,10 +204,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("targeted-managed-app-configurations"))
         {
             Console.Error.WriteLine("Exporting targeted managed app configurations...");
-            var items = await managedAppConfigurationService.ListTargetedManagedAppConfigurationsAsync();
+            var items = await managedAppConfigurationService.ListTargetedManagedAppConfigurationsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportTargetedManagedAppConfigurationAsync(item, output, migrationTable);
+                await exportService.ExportTargetedManagedAppConfigurationAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -214,10 +215,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("terms-and-conditions"))
         {
             Console.Error.WriteLine("Exporting terms and conditions...");
-            var items = await termsAndConditionsService.ListTermsAndConditionsAsync();
+            var items = await termsAndConditionsService.ListTermsAndConditionsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportTermsAndConditionsAsync(item, output, migrationTable);
+                await exportService.ExportTermsAndConditionsAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -225,10 +226,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("scope-tags"))
         {
             Console.Error.WriteLine("Exporting scope tags...");
-            var items = await scopeTagService.ListScopeTagsAsync();
+            var items = await scopeTagService.ListScopeTagsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportScopeTagAsync(item, output, migrationTable);
+                await exportService.ExportScopeTagAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -236,10 +237,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("role-definitions"))
         {
             Console.Error.WriteLine("Exporting role definitions...");
-            var items = await roleDefinitionService.ListRoleDefinitionsAsync();
+            var items = await roleDefinitionService.ListRoleDefinitionsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportRoleDefinitionAsync(item, output, migrationTable);
+                await exportService.ExportRoleDefinitionAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -247,10 +248,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("intune-branding"))
         {
             Console.Error.WriteLine("Exporting Intune branding profiles...");
-            var items = await intuneBrandingService.ListIntuneBrandingProfilesAsync();
+            var items = await intuneBrandingService.ListIntuneBrandingProfilesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportIntuneBrandingProfileAsync(item, output, migrationTable);
+                await exportService.ExportIntuneBrandingProfileAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -258,10 +259,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("azure-branding"))
         {
             Console.Error.WriteLine("Exporting Azure branding localizations...");
-            var items = await azureBrandingService.ListBrandingLocalizationsAsync();
+            var items = await azureBrandingService.ListBrandingLocalizationsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportAzureBrandingLocalizationAsync(item, output, migrationTable);
+                await exportService.ExportAzureBrandingLocalizationAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -269,10 +270,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("autopilot"))
         {
             Console.Error.WriteLine("Exporting autopilot profiles...");
-            var items = await autopilotService.ListAutopilotProfilesAsync();
+            var items = await autopilotService.ListAutopilotProfilesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportAutopilotProfileAsync(item, output, migrationTable);
+                await exportService.ExportAutopilotProfileAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -280,10 +281,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("device-health-scripts"))
         {
             Console.Error.WriteLine("Exporting device health scripts...");
-            var items = await deviceHealthScriptService.ListDeviceHealthScriptsAsync();
+            var items = await deviceHealthScriptService.ListDeviceHealthScriptsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportDeviceHealthScriptAsync(item, output, migrationTable);
+                await exportService.ExportDeviceHealthScriptAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -291,10 +292,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("mac-custom-attributes"))
         {
             Console.Error.WriteLine("Exporting mac custom attributes...");
-            var items = await macCustomAttributeService.ListMacCustomAttributesAsync();
+            var items = await macCustomAttributeService.ListMacCustomAttributesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportMacCustomAttributeAsync(item, output, migrationTable);
+                await exportService.ExportMacCustomAttributeAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -302,10 +303,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("feature-updates"))
         {
             Console.Error.WriteLine("Exporting feature update profiles...");
-            var items = await featureUpdateProfileService.ListFeatureUpdateProfilesAsync();
+            var items = await featureUpdateProfileService.ListFeatureUpdateProfilesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportFeatureUpdateProfileAsync(item, output, migrationTable);
+                await exportService.ExportFeatureUpdateProfileAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -313,10 +314,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("named-locations"))
         {
             Console.Error.WriteLine("Exporting named locations...");
-            var items = await namedLocationService.ListNamedLocationsAsync();
+            var items = await namedLocationService.ListNamedLocationsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportNamedLocationAsync(item, output, migrationTable);
+                await exportService.ExportNamedLocationAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -324,10 +325,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("authentication-strengths"))
         {
             Console.Error.WriteLine("Exporting authentication strength policies...");
-            var items = await authenticationStrengthService.ListAuthenticationStrengthPoliciesAsync();
+            var items = await authenticationStrengthService.ListAuthenticationStrengthPoliciesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportAuthenticationStrengthPolicyAsync(item, output, migrationTable);
+                await exportService.ExportAuthenticationStrengthPolicyAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -335,10 +336,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("authentication-contexts"))
         {
             Console.Error.WriteLine("Exporting authentication contexts...");
-            var items = await authenticationContextService.ListAuthenticationContextsAsync();
+            var items = await authenticationContextService.ListAuthenticationContextsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportAuthenticationContextAsync(item, output, migrationTable);
+                await exportService.ExportAuthenticationContextAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -346,10 +347,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("terms-of-use"))
         {
             Console.Error.WriteLine("Exporting terms of use agreements...");
-            var items = await termsOfUseService.ListTermsOfUseAgreementsAsync();
+            var items = await termsOfUseService.ListTermsOfUseAgreementsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportTermsOfUseAgreementAsync(item, output, migrationTable);
+                await exportService.ExportTermsOfUseAgreementAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -357,10 +358,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("device-management-scripts"))
         {
             Console.Error.WriteLine("Exporting device management scripts...");
-            var items = await deviceManagementScriptService.ListDeviceManagementScriptsAsync();
+            var items = await deviceManagementScriptService.ListDeviceManagementScriptsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportDeviceManagementScriptAsync(item, output, migrationTable);
+                await exportService.ExportDeviceManagementScriptAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -368,10 +369,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("device-shell-scripts"))
         {
             Console.Error.WriteLine("Exporting device shell scripts...");
-            var items = await deviceShellScriptService.ListDeviceShellScriptsAsync();
+            var items = await deviceShellScriptService.ListDeviceShellScriptsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportDeviceShellScriptAsync(item, output, migrationTable);
+                await exportService.ExportDeviceShellScriptAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -379,10 +380,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("compliance-scripts"))
         {
             Console.Error.WriteLine("Exporting compliance scripts...");
-            var items = await complianceScriptService.ListComplianceScriptsAsync();
+            var items = await complianceScriptService.ListComplianceScriptsAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportComplianceScriptAsync(item, output, migrationTable);
+                await exportService.ExportComplianceScriptAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -390,10 +391,10 @@ public static class ExportCommand
         if (selectedTypes.Contains("quality-updates"))
         {
             Console.Error.WriteLine("Exporting quality update profiles...");
-            var items = await qualityUpdateProfileService.ListQualityUpdateProfilesAsync();
+            var items = await qualityUpdateProfileService.ListQualityUpdateProfilesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportQualityUpdateProfileAsync(item, output, migrationTable);
+                await exportService.ExportQualityUpdateProfileAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
@@ -401,16 +402,16 @@ public static class ExportCommand
         if (selectedTypes.Contains("driver-updates"))
         {
             Console.Error.WriteLine("Exporting driver update profiles...");
-            var items = await driverUpdateProfileService.ListDriverUpdateProfilesAsync();
+            var items = await driverUpdateProfileService.ListDriverUpdateProfilesAsync(cancellationToken);
             foreach (var item in items)
             {
-                await exportService.ExportDriverUpdateProfileAsync(item, output, migrationTable);
+                await exportService.ExportDriverUpdateProfileAsync(item, output, migrationTable, cancellationToken);
                 count++;
             }
         }
 
-        await exportService.SaveMigrationTableAsync(migrationTable, output);
-        OutputFormatter.WriteJsonToStdout(new CommandResult { Command = "export", Count = count, Path = output });
+        await exportService.SaveMigrationTableAsync(migrationTable, output, cancellationToken);
+        OutputFormatter.WriteJsonToStdout(new CommandResult { Command = "export", Count = count, Path = output, DryRun = false });
     }
 
     private static HashSet<string> ParseTypes(string types)

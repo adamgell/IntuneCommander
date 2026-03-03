@@ -36,14 +36,15 @@ public static class ProfileCommand
 
     private static async Task TestAsync(string name)
     {
+        var cancellationToken = CancellationToken.None;
         using var provider = CliServices.CreateServiceProvider();
         var profileService = provider.GetRequiredService<ProfileService>();
         var graphClientFactory = provider.GetRequiredService<IntuneGraphClientFactory>();
 
-        var profile = await ProfileResolver.ResolveAsync(profileService, name, null, null, null, null);
-        var client = await graphClientFactory.CreateClientAsync(profile, AuthHelper.DeviceCodeToStderr);
+        var profile = await ProfileResolver.ResolveAsync(profileService, name, null, null, null, null, cancellationToken);
+        var client = await graphClientFactory.CreateClientAsync(profile, AuthHelper.DeviceCodeToStderr, cancellationToken);
 
-        await client.Organization.GetAsync(config => config.QueryParameters.Top = 1);
+        await client.Organization.GetAsync(config => config.QueryParameters.Top = 1, cancellationToken);
 
         OutputFormatter.WriteJsonToStdout(new
         {

@@ -42,16 +42,17 @@ public static class ImportCommand
         string folder,
         bool dryRun)
     {
+        var cancellationToken = CancellationToken.None;
         if (!Directory.Exists(folder))
-            throw new DirectoryNotFoundException($"Import folder '{folder}' was not found.");
+            throw new DirectoryNotFoundException($"Import folder \"{folder}\" was not found.");
 
         using var provider = CliServices.CreateServiceProvider();
         var profileService = provider.GetRequiredService<ProfileService>();
         var graphClientFactory = provider.GetRequiredService<IntuneGraphClientFactory>();
         var exportService = provider.GetRequiredService<IExportService>();
 
-        var resolvedProfile = await ProfileResolver.ResolveAsync(profileService, profile, tenantId, clientId, secret, cloud);
-        var graphClient = await graphClientFactory.CreateClientAsync(resolvedProfile, AuthHelper.DeviceCodeToStderr);
+        var resolvedProfile = await ProfileResolver.ResolveAsync(profileService, profile, tenantId, clientId, secret, cloud, cancellationToken);
+        var graphClient = await graphClientFactory.CreateClientAsync(resolvedProfile, AuthHelper.DeviceCodeToStderr, cancellationToken);
 
         var configurationProfileService = new ConfigurationProfileService(graphClient);
         var compliancePolicyService = new CompliancePolicyService(graphClient);
@@ -108,281 +109,281 @@ public static class ImportCommand
             driverUpdateProfileService,
             settingsCatalogService);
 
-        var migrationTable = await importService.ReadMigrationTableAsync(folder);
+        var migrationTable = await importService.ReadMigrationTableAsync(folder, cancellationToken);
         var imported = 0;
 
-        var deviceConfigurations = await importService.ReadDeviceConfigurationsFromFolderAsync(folder);
+        var deviceConfigurations = await importService.ReadDeviceConfigurationsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in deviceConfigurations)
             {
-                await importService.ImportDeviceConfigurationAsync(item, migrationTable);
+                await importService.ImportDeviceConfigurationAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += deviceConfigurations.Count;
 
-        var compliancePolicies = await importService.ReadCompliancePoliciesFromFolderAsync(folder);
+        var compliancePolicies = await importService.ReadCompliancePoliciesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in compliancePolicies)
             {
-                await importService.ImportCompliancePolicyAsync(item, migrationTable);
+                await importService.ImportCompliancePolicyAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += compliancePolicies.Count;
 
-        var endpointSecurityIntents = await importService.ReadEndpointSecurityIntentsFromFolderAsync(folder);
+        var endpointSecurityIntents = await importService.ReadEndpointSecurityIntentsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in endpointSecurityIntents)
             {
-                await importService.ImportEndpointSecurityIntentAsync(item, migrationTable);
+                await importService.ImportEndpointSecurityIntentAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += endpointSecurityIntents.Count;
 
-        var administrativeTemplates = await importService.ReadAdministrativeTemplatesFromFolderAsync(folder);
+        var administrativeTemplates = await importService.ReadAdministrativeTemplatesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in administrativeTemplates)
             {
-                await importService.ImportAdministrativeTemplateAsync(item, migrationTable);
+                await importService.ImportAdministrativeTemplateAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += administrativeTemplates.Count;
 
-        var enrollmentConfigurations = await importService.ReadEnrollmentConfigurationsFromFolderAsync(folder);
+        var enrollmentConfigurations = await importService.ReadEnrollmentConfigurationsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in enrollmentConfigurations)
             {
-                await importService.ImportEnrollmentConfigurationAsync(item, migrationTable);
+                await importService.ImportEnrollmentConfigurationAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += enrollmentConfigurations.Count;
 
-        var appProtectionPolicies = await importService.ReadAppProtectionPoliciesFromFolderAsync(folder);
+        var appProtectionPolicies = await importService.ReadAppProtectionPoliciesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in appProtectionPolicies)
             {
-                await importService.ImportAppProtectionPolicyAsync(item, migrationTable);
+                await importService.ImportAppProtectionPolicyAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += appProtectionPolicies.Count;
 
-        var managedDeviceAppConfigurations = await importService.ReadManagedDeviceAppConfigurationsFromFolderAsync(folder);
+        var managedDeviceAppConfigurations = await importService.ReadManagedDeviceAppConfigurationsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in managedDeviceAppConfigurations)
             {
-                await importService.ImportManagedDeviceAppConfigurationAsync(item, migrationTable);
+                await importService.ImportManagedDeviceAppConfigurationAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += managedDeviceAppConfigurations.Count;
 
-        var targetedManagedAppConfigurations = await importService.ReadTargetedManagedAppConfigurationsFromFolderAsync(folder);
+        var targetedManagedAppConfigurations = await importService.ReadTargetedManagedAppConfigurationsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in targetedManagedAppConfigurations)
             {
-                await importService.ImportTargetedManagedAppConfigurationAsync(item, migrationTable);
+                await importService.ImportTargetedManagedAppConfigurationAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += targetedManagedAppConfigurations.Count;
 
-        var termsAndConditions = await importService.ReadTermsAndConditionsFromFolderAsync(folder);
+        var termsAndConditions = await importService.ReadTermsAndConditionsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in termsAndConditions)
             {
-                await importService.ImportTermsAndConditionsAsync(item, migrationTable);
+                await importService.ImportTermsAndConditionsAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += termsAndConditions.Count;
 
-        var scopeTags = await importService.ReadScopeTagsFromFolderAsync(folder);
+        var scopeTags = await importService.ReadScopeTagsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in scopeTags)
             {
-                await importService.ImportScopeTagAsync(item, migrationTable);
+                await importService.ImportScopeTagAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += scopeTags.Count;
 
-        var roleDefinitions = await importService.ReadRoleDefinitionsFromFolderAsync(folder);
+        var roleDefinitions = await importService.ReadRoleDefinitionsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in roleDefinitions)
             {
-                await importService.ImportRoleDefinitionAsync(item, migrationTable);
+                await importService.ImportRoleDefinitionAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += roleDefinitions.Count;
 
-        var intuneBrandingProfiles = await importService.ReadIntuneBrandingProfilesFromFolderAsync(folder);
+        var intuneBrandingProfiles = await importService.ReadIntuneBrandingProfilesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in intuneBrandingProfiles)
             {
-                await importService.ImportIntuneBrandingProfileAsync(item, migrationTable);
+                await importService.ImportIntuneBrandingProfileAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += intuneBrandingProfiles.Count;
 
-        var azureBrandingLocalizations = await importService.ReadAzureBrandingLocalizationsFromFolderAsync(folder);
+        var azureBrandingLocalizations = await importService.ReadAzureBrandingLocalizationsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in azureBrandingLocalizations)
             {
-                await importService.ImportAzureBrandingLocalizationAsync(item, migrationTable);
+                await importService.ImportAzureBrandingLocalizationAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += azureBrandingLocalizations.Count;
 
-        var autopilotProfiles = await importService.ReadAutopilotProfilesFromFolderAsync(folder);
+        var autopilotProfiles = await importService.ReadAutopilotProfilesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in autopilotProfiles)
             {
-                await importService.ImportAutopilotProfileAsync(item, migrationTable);
+                await importService.ImportAutopilotProfileAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += autopilotProfiles.Count;
 
-        var deviceHealthScripts = await importService.ReadDeviceHealthScriptsFromFolderAsync(folder);
+        var deviceHealthScripts = await importService.ReadDeviceHealthScriptsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in deviceHealthScripts)
             {
-                await importService.ImportDeviceHealthScriptAsync(item, migrationTable);
+                await importService.ImportDeviceHealthScriptAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += deviceHealthScripts.Count;
 
-        var macCustomAttributes = await importService.ReadMacCustomAttributesFromFolderAsync(folder);
+        var macCustomAttributes = await importService.ReadMacCustomAttributesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in macCustomAttributes)
             {
-                await importService.ImportMacCustomAttributeAsync(item, migrationTable);
+                await importService.ImportMacCustomAttributeAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += macCustomAttributes.Count;
 
-        var featureUpdateProfiles = await importService.ReadFeatureUpdateProfilesFromFolderAsync(folder);
+        var featureUpdateProfiles = await importService.ReadFeatureUpdateProfilesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in featureUpdateProfiles)
             {
-                await importService.ImportFeatureUpdateProfileAsync(item, migrationTable);
+                await importService.ImportFeatureUpdateProfileAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += featureUpdateProfiles.Count;
 
-        var namedLocations = await importService.ReadNamedLocationsFromFolderAsync(folder);
+        var namedLocations = await importService.ReadNamedLocationsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in namedLocations)
             {
-                await importService.ImportNamedLocationAsync(item, migrationTable);
+                await importService.ImportNamedLocationAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += namedLocations.Count;
 
-        var authenticationStrengthPolicies = await importService.ReadAuthenticationStrengthPoliciesFromFolderAsync(folder);
+        var authenticationStrengthPolicies = await importService.ReadAuthenticationStrengthPoliciesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in authenticationStrengthPolicies)
             {
-                await importService.ImportAuthenticationStrengthPolicyAsync(item, migrationTable);
+                await importService.ImportAuthenticationStrengthPolicyAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += authenticationStrengthPolicies.Count;
 
-        var authenticationContexts = await importService.ReadAuthenticationContextsFromFolderAsync(folder);
+        var authenticationContexts = await importService.ReadAuthenticationContextsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in authenticationContexts)
             {
-                await importService.ImportAuthenticationContextAsync(item, migrationTable);
+                await importService.ImportAuthenticationContextAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += authenticationContexts.Count;
 
-        var termsOfUseAgreements = await importService.ReadTermsOfUseAgreementsFromFolderAsync(folder);
+        var termsOfUseAgreements = await importService.ReadTermsOfUseAgreementsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in termsOfUseAgreements)
             {
-                await importService.ImportTermsOfUseAgreementAsync(item, migrationTable);
+                await importService.ImportTermsOfUseAgreementAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += termsOfUseAgreements.Count;
 
-        var deviceManagementScripts = await importService.ReadDeviceManagementScriptsFromFolderAsync(folder);
+        var deviceManagementScripts = await importService.ReadDeviceManagementScriptsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in deviceManagementScripts)
             {
-                await importService.ImportDeviceManagementScriptAsync(item, migrationTable);
+                await importService.ImportDeviceManagementScriptAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += deviceManagementScripts.Count;
 
-        var deviceShellScripts = await importService.ReadDeviceShellScriptsFromFolderAsync(folder);
+        var deviceShellScripts = await importService.ReadDeviceShellScriptsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in deviceShellScripts)
             {
-                await importService.ImportDeviceShellScriptAsync(item, migrationTable);
+                await importService.ImportDeviceShellScriptAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += deviceShellScripts.Count;
 
-        var complianceScripts = await importService.ReadComplianceScriptsFromFolderAsync(folder);
+        var complianceScripts = await importService.ReadComplianceScriptsFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in complianceScripts)
             {
-                await importService.ImportComplianceScriptAsync(item, migrationTable);
+                await importService.ImportComplianceScriptAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += complianceScripts.Count;
 
-        var qualityUpdateProfiles = await importService.ReadQualityUpdateProfilesFromFolderAsync(folder);
+        var qualityUpdateProfiles = await importService.ReadQualityUpdateProfilesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in qualityUpdateProfiles)
             {
-                await importService.ImportQualityUpdateProfileAsync(item, migrationTable);
+                await importService.ImportQualityUpdateProfileAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += qualityUpdateProfiles.Count;
 
-        var driverUpdateProfiles = await importService.ReadDriverUpdateProfilesFromFolderAsync(folder);
+        var driverUpdateProfiles = await importService.ReadDriverUpdateProfilesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in driverUpdateProfiles)
             {
-                await importService.ImportDriverUpdateProfileAsync(item, migrationTable);
+                await importService.ImportDriverUpdateProfileAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += driverUpdateProfiles.Count;
 
-        var settingsCatalogPolicies = await importService.ReadSettingsCatalogPoliciesFromFolderAsync(folder);
+        var settingsCatalogPolicies = await importService.ReadSettingsCatalogPoliciesFromFolderAsync(folder, cancellationToken);
         if (!dryRun)
             foreach (var item in settingsCatalogPolicies)
             {
-                await importService.ImportSettingsCatalogPolicyAsync(item, migrationTable);
+                await importService.ImportSettingsCatalogPolicyAsync(item, migrationTable, cancellationToken);
                 imported++;
             }
         else
             imported += settingsCatalogPolicies.Count;
 
         if (!dryRun)
-            await exportService.SaveMigrationTableAsync(migrationTable, folder);
+            await exportService.SaveMigrationTableAsync(migrationTable, folder, cancellationToken);
 
         OutputFormatter.WriteJsonToStdout(new
         {

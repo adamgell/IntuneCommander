@@ -41,20 +41,21 @@ public static class ListCommand
         string? cloud,
         string format)
     {
+        var cancellationToken = CancellationToken.None;
         using var provider = CliServices.CreateServiceProvider();
         var profileService = provider.GetRequiredService<ProfileService>();
         var graphClientFactory = provider.GetRequiredService<IntuneGraphClientFactory>();
 
-        var resolvedProfile = await ProfileResolver.ResolveAsync(profileService, profile, tenantId, clientId, secret, cloud);
-        var graphClient = await graphClientFactory.CreateClientAsync(resolvedProfile, AuthHelper.DeviceCodeToStderr);
+        var resolvedProfile = await ProfileResolver.ResolveAsync(profileService, profile, tenantId, clientId, secret, cloud, cancellationToken);
+        var graphClient = await graphClientFactory.CreateClientAsync(resolvedProfile, AuthHelper.DeviceCodeToStderr, cancellationToken);
 
         var normalizedType = type.Trim().ToLowerInvariant();
         object result = normalizedType switch
         {
-            "configurations" => await new ConfigurationProfileService(graphClient).ListDeviceConfigurationsAsync(),
-            "compliance" => await new CompliancePolicyService(graphClient).ListCompliancePoliciesAsync(),
-            "applications" => await new ApplicationService(graphClient).ListApplicationsAsync(),
-            _ => throw new InvalidOperationException($"Unsupported list type '{type}'. Supported: configurations, compliance, applications")
+            "configurations" => await new ConfigurationProfileService(graphClient).ListDeviceConfigurationsAsync(cancellationToken),
+            "compliance" => await new CompliancePolicyService(graphClient).ListCompliancePoliciesAsync(cancellationToken),
+            "applications" => await new ApplicationService(graphClient).ListApplicationsAsync(cancellationToken),
+            _ => throw new InvalidOperationException($"Unsupported list type \"{type}\". Supported: configurations, compliance, applications")
         };
 
         if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
@@ -64,7 +65,7 @@ public static class ListCommand
         }
 
         if (!string.Equals(format, "table", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("Format must be 'table' or 'json'.");
+            throw new InvalidOperationException("Format must be \"table\" or \"json\".");
 
         if (result is not System.Collections.IEnumerable enumerable)
         {
