@@ -14,8 +14,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        repository: adamgell/IntuneCommander
 
     - name: Check if .NET solution exists
       id: check-solution
@@ -63,4 +61,53 @@ jobs:
       with:
         name: Intune.Commander-win-x64
         path: ./publish/Intune.Commander.Desktop.exe
+        retention-days: 30
+
+  publish-cli:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore Intune.Commander.sln
+
+    - name: Publish CLI win-x64
+      run: |
+        dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj \
+          --configuration Release \
+          --runtime win-x64 \
+          --self-contained true \
+          --output ./publish-cli/win-x64 \
+          -p:PublishSingleFile=true
+
+    - name: Publish CLI linux-x64
+      run: |
+        dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj \
+          --configuration Release \
+          --runtime linux-x64 \
+          --self-contained true \
+          --output ./publish-cli/linux-x64 \
+          -p:PublishSingleFile=true
+
+    - name: Upload CLI win-x64 artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Intune.Commander.CLI-win-x64
+        path: ./publish-cli/win-x64/ic.exe
+        retention-days: 30
+
+    - name: Upload CLI linux-x64 artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Intune.Commander.CLI-linux-x64
+        path: ./publish-cli/linux-x64/ic
         retention-days: 30

@@ -44,6 +44,7 @@ nav:
     - Export & Import: user-guide/export-import.md
     - Multi-Cloud: user-guide/multi-cloud.md
     - CA PowerPoint Export: user-guide/ca-powerpoint.md
+    - CLI: user-guide/cli.md
   - Reference:
     - Graph Permissions: reference/graph-permissions.md
     - Supported Object Types: reference/object-types.md
