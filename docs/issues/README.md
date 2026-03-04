@@ -4,7 +4,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 
 ## Wave Documents
 
-### [Wave 1: Endpoint Security, Administrative Templates, and Enrollment Configurations](WAVE-1-ENDPOINT-SECURITY-TEMPLATES-ENROLLMENT.md)
+### Wave 1: Endpoint Security, Administrative Templates, and Enrollment Configurations
 
 **Priority:** High — Core policy management services  
 **Services:**
@@ -17,7 +17,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 
 ---
 
-### [Wave 2: App Protection and Managed App Configurations](WAVE-2-APP-PROTECTION-CONFIGURATIONS.md)
+### Wave 2: App Protection and Managed App Configurations
 
 **Priority:** High — Application management plane  
 **Services:**
@@ -30,7 +30,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 
 ---
 
-### [Wave 3: Tenant Administration Services](WAVE-3-TENANT-ADMINISTRATION.md)
+### Wave 3: Tenant Administration Services
 
 **Priority:** Medium — Tenant-level administrative features  
 **Services:**
@@ -44,7 +44,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 
 ---
 
-### [Wave 4: Enrollment and Device Management Services](WAVE-4-ENROLLMENT-DEVICE-MANAGEMENT.md)
+### Wave 4: Enrollment and Device Management Services
 
 **Priority:** Medium — Device lifecycle management  
 **Services:**
@@ -58,7 +58,7 @@ This directory contains detailed tracking documents for implementing Intune Comm
 
 ---
 
-### [Wave 5: Conditional Access and Identity Governance](WAVE-5-CONDITIONAL-ACCESS-IDENTITY.md)
+### Wave 5: Conditional Access and Identity Governance
 
 **Priority:** Low — Identity-adjacent features  
 **Services:**
@@ -119,4 +119,4 @@ Update the status emoji in each wave section as work progresses:
 - Each wave document contains detailed method signatures and checklists
 - Reference the main [SERVICE-IMPLEMENTATION-PLAN.md](../SERVICE-IMPLEMENTATION-PLAN.md) for architectural context
 - Follow the conventions documented in [.github/copilot-instructions.md](../../.github/copilot-instructions.md)
-- See [ARCHITECTURE.md](../ARCHITECTURE.md) for overall design decisions
+- See [CLAUDE.md](../../CLAUDE.md) for overall design decisions

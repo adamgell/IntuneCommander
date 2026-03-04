@@ -139,7 +139,7 @@ tests/
 
 Graph API services are created **after** authentication (`new XxxService(graphClient)`) — they are not registered in DI at startup.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for full architectural decisions.
+See [CLAUDE.md](CLAUDE.md) for full architectural decisions.
 
 ## Supported Intune Object Types
 
@@ -211,4 +211,3 @@ Additional thanks to Merill Fernando for originally creating [idPowerToys](https
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting pull requests, code standards, and development workflow.
 
-For current PR status and organization, see [PR_STATUS.md](PR_STATUS.md).

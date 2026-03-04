@@ -14,7 +14,7 @@ Use conventional commit format with priority labels:
 Examples:
 feat(auth): add certificate authentication [P1]
 fix(ui): resolve dark mode contrast issue [P1]
-docs: update ARCHITECTURE.md with cache patterns [P2]
+docs: update CLAUDE.md with cache patterns [P2]
 refactor(services): extract common pagination helper [P3]
 test(core): add unit tests for ProfileService [P2]
 ```
@@ -83,7 +83,7 @@ If any breaking changes exist:
 
 3. **Update Documentation**
    - Update CHANGELOG.md for user-facing changes
-   - Update ARCHITECTURE.md if changing patterns
+    - Update CLAUDE.md if changing patterns
    - Add XML doc comments for public APIs
 
 4. **Commit Messages**
@@ -211,9 +211,8 @@ public async Task MethodName_Scenario_ExpectedBehavior()
 ### Documentation Files
 
 - **CHANGELOG.md**: User-facing changes, release notes
-- **ARCHITECTURE.md**: Architectural decisions and patterns
+- **CLAUDE.md**: Architectural decisions and patterns
 - **README.md**: Getting started, build instructions
-- **PR_STATUS.md**: Current PR organization (update as needed)
 
 ## Review Process
 
@@ -246,13 +245,13 @@ See [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for curr
 
 **Dependencies:**
 
-- Check PR_STATUS.md for PR dependencies
+- Check GitHub Issues for PR dependencies
 - Base your branch on `main` unless depending on another PR
 - Coordinate with maintainers if multiple PRs affect same code
 
 ## Getting Help
 
-- **Questions about implementation**: Check `CLAUDE.md` and `ARCHITECTURE.md`
+- **Questions about implementation**: Check `CLAUDE.md`
 - **Questions about PR process**: See [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues)
 - **Questions about code patterns**: See `.github/copilot-instructions.md`
 - **Stuck on something?**: Open a draft PR and ask for guidance
