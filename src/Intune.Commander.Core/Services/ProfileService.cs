@@ -131,7 +131,7 @@ public class ProfileService
                 // Decryption failed (keys rotated, corrupted, etc.)
                 // Fall back to empty store — caller can surface the error
                 System.Diagnostics.Debug.WriteLine(
-                    $"[ProfileService] Profile decryption failed — returning empty store. Error: {ex.Message}");
+                    $"[ProfileService] Profile decryption failed — returning empty store. Exception: {ex}");
                 _store = new ProfileStore();
                 return;
             }
