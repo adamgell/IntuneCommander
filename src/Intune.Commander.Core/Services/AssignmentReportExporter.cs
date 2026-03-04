@@ -356,11 +356,22 @@ public static class AssignmentReportExporter
           });
         }
 
+        function sanitizeCsvField(value) {
+          var escaped = value.replace(/"/g, '""');
+          // Prevent CSV formula injection: prefix with single-quote if the first
+          // non-whitespace character would be interpreted as a formula by spreadsheet apps.
+          var trimmed = escaped.replace(/^\s+/, '');
+          if (trimmed.length > 0 && /^[=+\-@]/.test(trimmed)) {
+            escaped = "'" + escaped;
+          }
+          return '"' + escaped + '"';
+        }
+
         function exportCsv() {
           const visibleRows = document.querySelectorAll('#dataTable tbody tr:not(.hidden)');
-          const lines = [HEADERS.map(h => '"' + h.replace(/"/g, '""') + '"').join(',')];
+          const lines = [HEADERS.map(h => sanitizeCsvField(h)).join(',')];
           visibleRows.forEach(row => {
-            const cols = [...row.cells].map(c => '"' + c.textContent.replace(/"/g, '""') + '"');
+            const cols = [...row.cells].map(c => sanitizeCsvField(c.textContent));
             lines.push(cols.join(','));
           });
           const csv = '\uFEFF' + lines.join('\r\n');
