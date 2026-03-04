@@ -29,7 +29,9 @@ public class ODataTypeConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -45,7 +47,9 @@ public class PlatformConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -63,7 +67,9 @@ public class StringListConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -102,7 +108,9 @@ public class HumanDateTimeConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -124,7 +132,9 @@ public class BytesToUtf8Converter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -145,7 +155,9 @@ public class BytesToMegabytesConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -247,7 +259,9 @@ public class MinimumOSVersionConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -263,7 +277,9 @@ public class IsIosAppConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -279,7 +295,9 @@ public class IsAndroidAppConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -295,7 +313,9 @@ public class IsMacOSAppConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
 
 /// <summary>
@@ -311,5 +331,7 @@ public class IsWin32AppConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }

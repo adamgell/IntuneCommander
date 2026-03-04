@@ -15,10 +15,14 @@ public sealed class PermissionSummaryBrushConverter : IValueConverter
     private static readonly SolidColorBrush Red   = new(Color.Parse("#CC3300"));
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is true ? Green : Red;
+    {
+        return value is true ? Green : Red;
+    }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
+    {
+        throw new NotSupportedException();
+    }
 }
 
 /// <summary>Converts a PermissionCheckResult to a summary string like "14 / 15 Granted".</summary>
@@ -35,7 +39,9 @@ public sealed class PermissionSummaryTextConverter : IValueConverter
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
+    {
+        throw new NotSupportedException();
+    }
 }
 
 /// <summary>Returns true when an int value is greater than zero (for IsVisible bindings).</summary>
@@ -44,8 +50,12 @@ public sealed class CountGreaterThanZeroConverter : IValueConverter
     public static readonly CountGreaterThanZeroConverter Instance = new();
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is int n && n > 0;
+    {
+        return value is int n && n > 0;
+    }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
+    {
+        throw new NotSupportedException();
+    }
 }

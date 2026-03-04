@@ -60,12 +60,15 @@
             </Border>
 
             <!-- Script Content -->
-            <TextBlock Text="Script Content" Classes="SectionHeader" />
+            <TextBlock Text="Script Content" Classes="SectionHeaderSpaced" />
             <Border Classes="SectionCard">
-                <SelectableTextBlock Text="{Binding SelectedDeviceShellScript.ScriptContent, Converter={x:Static conv:BytesToUtf8Converter.Instance}}"
-                                     FontFamily="Monospace" FontSize="{StaticResource FontSizeCaption}"
-                                     TextWrapping="Wrap"
-                                     Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                <Expander Header="Script Content" IsExpanded="False">
+                    <Border Padding="4" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="4">
+                        <SelectableTextBlock Text="{Binding SelectedItemScriptContent}"
+                                             FontFamily="Consolas,Courier New,monospace" FontSize="{StaticResource FontSizeCaption}"
+                                             TextWrapping="Wrap" />
+                    </Border>
+                </Expander>
             </Border>
 
             <!-- Scope Tags -->

@@ -72,19 +72,24 @@
                 </StackPanel>
             </Border>
 
-            <!-- Section: Detection Script -->
-            <Expander Header="Detection Script" IsExpanded="False">
-                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemDetectionScript}"
-                                     FontFamily="Consolas" FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap"
-                                     Margin="4" />
-            </Expander>
-
-            <!-- Section: Remediation Script -->
-            <Expander Header="Remediation Script" IsExpanded="False" Margin="0,4,0,0">
-                <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRemediationScript}"
-                                     FontFamily="Consolas" FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap"
-                                     Margin="4" />
-            </Expander>
+            <!-- Section: Scripts -->
+            <TextBlock Text="Scripts" Classes="SectionHeaderSpaced" />
+            <Border Classes="SectionCard">
+                <StackPanel Spacing="4">
+                    <Expander Header="Detection Script" IsExpanded="False">
+                        <Border Padding="4" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="4">
+                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemDetectionScript}"
+                                                 FontFamily="Consolas,Courier New,monospace" FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap" />
+                        </Border>
+                    </Expander>
+                    <Expander Header="Remediation Script" IsExpanded="False">
+                        <Border Padding="4" Background="{DynamicResource SystemControlBackgroundAltHighBrush}" CornerRadius="4">
+                            <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemRemediationScript}"
+                                                 FontFamily="Consolas,Courier New,monospace" FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap" />
+                        </Border>
+                    </Expander>
+                </StackPanel>
+            </Border>
 
             <!-- Section: Assignments -->
             <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />

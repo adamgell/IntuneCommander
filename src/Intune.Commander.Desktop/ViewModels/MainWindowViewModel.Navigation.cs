@@ -26,8 +26,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private static readonly NavCategory OverviewCategory = new() { Name = "Overview", Icon = MaterialIconKind.ViewDashboard };
 
-    private static List<NavCategoryGroup> BuildDefaultNavGroups() =>
-    [
+    private static List<NavCategoryGroup> BuildDefaultNavGroups()
+    {
+        return [
         new NavCategoryGroup
         {
             Name = "Devices", Icon = MaterialIconKind.Laptop,
@@ -112,6 +113,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         },
     ];
+    }
 
 
 
@@ -423,53 +425,56 @@ public partial class MainWindowViewModel : ViewModelBase
         !IsOverviewCategory &&
         GetCurrentFilteredCount() == 0;
 
-    private int GetCurrentFilteredCount() => SelectedCategory?.Name switch
+    private int GetCurrentFilteredCount()
     {
-        "Device Configurations" => FilteredDeviceConfigurations.Count,
-        "Compliance Policies" => FilteredCompliancePolicies.Count,
-        "Applications" => FilteredApplications.Count,
-        "Application Assignments" => FilteredAppAssignmentRows.Count,
-        "Dynamic Groups" => FilteredDynamicGroupRows.Count,
-        "Assigned Groups" => FilteredAssignedGroupRows.Count,
-        "Settings Catalog" => FilteredSettingsCatalogPolicies.Count,
-        "Endpoint Security" => FilteredEndpointSecurityIntents.Count,
-        "Administrative Templates" => FilteredAdministrativeTemplates.Count,
-        "Enrollment Configurations" => FilteredEnrollmentConfigurations.Count,
-        "App Protection Policies" => FilteredAppProtectionPolicies.Count,
-        "Managed Device App Configurations" => FilteredManagedDeviceAppConfigurations.Count,
-        "Targeted Managed App Configurations" => FilteredTargetedManagedAppConfigurations.Count,
-        "Terms and Conditions" => FilteredTermsAndConditionsCollection.Count,
-        "Scope Tags" => FilteredScopeTags.Count,
-        "Role Definitions" => FilteredRoleDefinitions.Count,
-        "Intune Branding" => FilteredIntuneBrandingProfiles.Count,
-        "Azure Branding" => FilteredAzureBrandingLocalizations.Count,
-        "Conditional Access" => FilteredConditionalAccessPolicies.Count,
-        "Assignment Filters" => FilteredAssignmentFilters.Count,
-        "Policy Sets" => FilteredPolicySets.Count,
-        "Autopilot Profiles" => FilteredAutopilotProfiles.Count,
-        "Device Health Scripts" => FilteredDeviceHealthScripts.Count,
-        "Mac Custom Attributes" => FilteredMacCustomAttributes.Count,
-        "Feature Updates" => FilteredFeatureUpdateProfiles.Count,
-        "Quality Updates" => FilteredQualityUpdateProfiles.Count,
-        "Driver Updates" => FilteredDriverUpdateProfiles.Count,
-        "Named Locations" => FilteredNamedLocations.Count,
-        "Authentication Strengths" => FilteredAuthenticationStrengthPolicies.Count,
-        "Authentication Contexts" => FilteredAuthenticationContextClassReferences.Count,
-        "Terms of Use" => FilteredTermsOfUseAgreements.Count,
-        "Device Management Scripts" => FilteredDeviceManagementScripts.Count,
-        "Device Shell Scripts" => FilteredDeviceShellScripts.Count,
-        "Compliance Scripts" => FilteredComplianceScripts.Count,
-        "Apple DEP" => FilteredAppleDepSettings.Count,
-        "Device Categories" => FilteredDeviceCategories.Count,
-        "Cloud PC Provisioning Policies" => FilteredCloudPcProvisioningPolicies.Count,
-        "Cloud PC User Settings" => FilteredCloudPcUserSettings.Count,
-        "VPP Tokens" => FilteredVppTokens.Count,
-        "Role Assignments" => FilteredRoleAssignments.Count,
-        "ADMX Files" => FilteredAdmxFiles.Count,
-        "Reusable Policy Settings" => FilteredReusablePolicySettings.Count,
-        "Notification Templates" => FilteredNotificationTemplates.Count,
-        _ => -1
-    };
+        return SelectedCategory?.Name switch
+        {
+            "Device Configurations" => FilteredDeviceConfigurations.Count,
+            "Compliance Policies" => FilteredCompliancePolicies.Count,
+            "Applications" => FilteredApplications.Count,
+            "Application Assignments" => FilteredAppAssignmentRows.Count,
+            "Dynamic Groups" => FilteredDynamicGroupRows.Count,
+            "Assigned Groups" => FilteredAssignedGroupRows.Count,
+            "Settings Catalog" => FilteredSettingsCatalogPolicies.Count,
+            "Endpoint Security" => FilteredEndpointSecurityIntents.Count,
+            "Administrative Templates" => FilteredAdministrativeTemplates.Count,
+            "Enrollment Configurations" => FilteredEnrollmentConfigurations.Count,
+            "App Protection Policies" => FilteredAppProtectionPolicies.Count,
+            "Managed Device App Configurations" => FilteredManagedDeviceAppConfigurations.Count,
+            "Targeted Managed App Configurations" => FilteredTargetedManagedAppConfigurations.Count,
+            "Terms and Conditions" => FilteredTermsAndConditionsCollection.Count,
+            "Scope Tags" => FilteredScopeTags.Count,
+            "Role Definitions" => FilteredRoleDefinitions.Count,
+            "Intune Branding" => FilteredIntuneBrandingProfiles.Count,
+            "Azure Branding" => FilteredAzureBrandingLocalizations.Count,
+            "Conditional Access" => FilteredConditionalAccessPolicies.Count,
+            "Assignment Filters" => FilteredAssignmentFilters.Count,
+            "Policy Sets" => FilteredPolicySets.Count,
+            "Autopilot Profiles" => FilteredAutopilotProfiles.Count,
+            "Device Health Scripts" => FilteredDeviceHealthScripts.Count,
+            "Mac Custom Attributes" => FilteredMacCustomAttributes.Count,
+            "Feature Updates" => FilteredFeatureUpdateProfiles.Count,
+            "Quality Updates" => FilteredQualityUpdateProfiles.Count,
+            "Driver Updates" => FilteredDriverUpdateProfiles.Count,
+            "Named Locations" => FilteredNamedLocations.Count,
+            "Authentication Strengths" => FilteredAuthenticationStrengthPolicies.Count,
+            "Authentication Contexts" => FilteredAuthenticationContextClassReferences.Count,
+            "Terms of Use" => FilteredTermsOfUseAgreements.Count,
+            "Device Management Scripts" => FilteredDeviceManagementScripts.Count,
+            "Device Shell Scripts" => FilteredDeviceShellScripts.Count,
+            "Compliance Scripts" => FilteredComplianceScripts.Count,
+            "Apple DEP" => FilteredAppleDepSettings.Count,
+            "Device Categories" => FilteredDeviceCategories.Count,
+            "Cloud PC Provisioning Policies" => FilteredCloudPcProvisioningPolicies.Count,
+            "Cloud PC User Settings" => FilteredCloudPcUserSettings.Count,
+            "VPP Tokens" => FilteredVppTokens.Count,
+            "Role Assignments" => FilteredRoleAssignments.Count,
+            "ADMX Files" => FilteredAdmxFiles.Count,
+            "Reusable Policy Settings" => FilteredReusablePolicySettings.Count,
+            "Notification Templates" => FilteredNotificationTemplates.Count,
+            _ => -1
+        };
+    }
 
     /// <summary>Returns the filtered collection for the currently selected category, for direct AXAML binding.</summary>
     public System.Collections.IEnumerable? ActiveItemsSource => SelectedCategory?.Name switch
@@ -625,7 +630,10 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>Called when a Filtered* collection property is replaced to refresh the AXAML ItemsSource binding.</summary>
-    internal void RefreshActiveItemsSource() => OnPropertyChanged(nameof(ActiveItemsSource));
+    internal void RefreshActiveItemsSource()
+    {
+        OnPropertyChanged(nameof(ActiveItemsSource));
+    }
 
     /// <summary>Navigates to the category with the given name. Used by OverviewViewModel card commands.</summary>
     public void ActivateCategoryByName(string name)

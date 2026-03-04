@@ -1001,6 +1001,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private int _selectedItemSupersededCount = 0;
 
+    [ObservableProperty]
+    private string _selectedItemAppStoreUrl = "";
+
     // Common properties for multiple types
     [ObservableProperty]
     private string _selectedItemDescription = "";
@@ -1093,6 +1096,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _selectedItemRemediationScript = "";
+
+    [ObservableProperty]
+    private string _selectedItemScriptContent = "";
 
     // Feature Update Profile specific
     [ObservableProperty]

@@ -1509,8 +1509,10 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Resolves an application ID to a well-known display name using the shared
     /// MicrosoftApps.json registry, or returns the ID if unknown.
     /// </summary>
-    private static string ResolveApplicationId(string? id) =>
-        Intune.Commander.Core.Models.WellKnownAppRegistry.Resolve(id);
+    private static string ResolveApplicationId(string? id)
+    {
+        return Intune.Commander.Core.Models.WellKnownAppRegistry.Resolve(id);
+    }
 
     /// <summary>
     /// Decodes a Base64-encoded string (commonly used for script content).
@@ -1530,7 +1532,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private static string FormatAuthMethodMode(AuthenticationMethodModes mode) =>
-        System.Text.RegularExpressions.Regex.Replace(mode.ToString(), "(?<=[a-z])(?=[A-Z])", " ");
-
+    private static string FormatAuthMethodMode(AuthenticationMethodModes mode)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(mode.ToString(), "(?<=[a-z])(?=[A-Z])", " ");
+    }
 }

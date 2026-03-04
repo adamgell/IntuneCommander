@@ -278,7 +278,10 @@ public partial class LoginViewModel : ViewModelBase
         }
     }
 
-    private bool CanDeleteProfile() => SelectedProfile is not null;
+    private bool CanDeleteProfile()
+    {
+        return SelectedProfile is not null;
+    }
 
     [RelayCommand(CanExecute = nameof(CanLogin))]
     private async Task LoginAsync(CancellationToken cancellationToken)

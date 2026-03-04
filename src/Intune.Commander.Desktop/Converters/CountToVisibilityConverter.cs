@@ -25,5 +25,7 @@ public class CountToVisibilityConverter : IValueConverter
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }

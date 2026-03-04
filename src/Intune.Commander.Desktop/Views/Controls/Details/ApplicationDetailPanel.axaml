@@ -17,6 +17,10 @@
                         <SelectableTextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Spacing="2">
+                        <TextBlock Text="Description" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                        <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap" MaxLines="5" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <StackPanel Spacing="2">
                         <TextBlock Text="Type" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                         <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
                     </StackPanel>
@@ -68,6 +72,11 @@
                         <TextBlock Text="Privacy URL" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                         <SelectableTextBlock Text="{Binding PrivacyInformationUrl}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeBody}" />
                     </StackPanel>
+                    <StackPanel Spacing="2"
+                                IsVisible="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAppStoreUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=false, TargetNullValue=false}">
+                        <TextBlock Text="App Store URL" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                        <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAppStoreUrl}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeBody}" />
+                    </StackPanel>
                     <Grid ColumnDefinitions="*,*">
                         <StackPanel Grid.Column="0" Spacing="2">
                             <TextBlock Text="Created" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
@@ -86,10 +95,8 @@
             </Border>
 
             <!-- Section: Application Details -->
-            <TextBlock Text="Application Details" Classes="SectionHeader"
-                       IsVisible="{Binding SelectedItemVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=false, TargetNullValue=false}" />
-            <Border Classes="SectionCard"
-                    IsVisible="{Binding SelectedItemVersion, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=false, TargetNullValue=false}">
+            <TextBlock Text="Application Details" Classes="SectionHeader" />
+            <Border Classes="SectionCard">
                 <StackPanel Spacing="10">
                     <StackPanel Spacing="2">
                         <TextBlock Text="Version" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />

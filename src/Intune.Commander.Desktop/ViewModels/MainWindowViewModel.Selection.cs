@@ -1215,6 +1215,7 @@ public partial class MainWindowViewModel : ViewModelBase
             SelectedItemSizeMB = ExtractSizeInMB(value);
             SelectedItemCategories = ExtractCategories(value);
             SelectedItemSupersededCount = ExtractSupersededCount(value);
+            SelectedItemAppStoreUrl = ExtractAppStoreUrl(value);
         }
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
@@ -1401,11 +1402,12 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>Returns true for CA keyword values that are not directory object GUIDs.</summary>
-    private static bool IsSpecialCaValue(string id) => id is
+    private static bool IsSpecialCaValue(string id)
+    {
+        return id is
         "All" or "None" or "AllTrusted" or "GuestsOrExternalUsers" or
         "Office365" or "MicrosoftAdminPortals";
-
-
+    }
 
     partial void OnSelectedEndpointSecurityIntentChanged(DeviceManagementIntent? value)
 
@@ -1755,18 +1757,17 @@ public partial class MainWindowViewModel : ViewModelBase
             ? value.RunAsAccount.Value.ToString()
             : "";
         SelectedItemRunAs32BitText = value?.RunAs32Bit == true ? "Yes" : "No";
-        SelectedItemDetectionScript = value?.DetectionScriptContent != null
-            ? System.Text.Encoding.UTF8.GetString(value.DetectionScriptContent)
-            : "";
-        SelectedItemRemediationScript = value?.RemediationScriptContent != null
-            ? System.Text.Encoding.UTF8.GetString(value.RemediationScriptContent)
-            : "";
+        SelectedItemDetectionScript = "Loading...";
+        SelectedItemRemediationScript = "Loading...";
         SelectedItemEnforceSignatureCheck = value?.EnforceSignatureCheck ?? false;
         SelectedItemRunAs32Bit = value?.RunAs32Bit ?? false;
         SelectedItemVersion = value?.Version ?? "";
 
         if (value?.Id != null)
+        {
             _ = LoadDeviceHealthScriptAssignmentsAsync(value.Id);
+            _ = LoadDeviceHealthScriptDetailsAsync(value.Id);
+        }
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1950,13 +1951,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        SelectedItemScriptContent = "Loading...";
+
         SelectedItemRoleScopeTags = new ObservableCollection<string>(value?.RoleScopeTagIds ?? []);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
-
+        {
             _ = LoadDeviceManagementScriptAssignmentsAsync(value.Id);
+            _ = LoadDeviceManagementScriptDetailsAsync(value.Id);
+        }
 
     }
 
@@ -1972,13 +1977,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        SelectedItemScriptContent = "Loading...";
+
         SelectedItemRoleScopeTags = new ObservableCollection<string>(value?.RoleScopeTagIds ?? []);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
-
+        {
             _ = LoadDeviceShellScriptAssignmentsAsync(value.Id);
+            _ = LoadDeviceShellScriptDetailsAsync(value.Id);
+        }
 
     }
 
@@ -3022,6 +3031,89 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
+    private async Task LoadDeviceHealthScriptDetailsAsync(string scriptId)
+    {
+        if (_deviceHealthScriptService == null) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var fullScript = await _deviceHealthScriptService.GetDeviceHealthScriptAsync(scriptId);
+
+            // Guard: selection may have changed while loading
+            if (SelectedDeviceHealthScript?.Id != scriptId) return;
+
+            if (fullScript != null)
+            {
+                SelectedItemDetectionScript = fullScript.DetectionScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.DetectionScriptContent)
+                    : "(No detection script)";
+                SelectedItemRemediationScript = fullScript.RemediationScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.RemediationScriptContent)
+                    : "(No remediation script)";
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load device health script details: {FormatGraphError(ex)}", ex);
+            SelectedItemDetectionScript = "(Failed to load script)";
+            SelectedItemRemediationScript = "(Failed to load script)";
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadDeviceManagementScriptDetailsAsync(string scriptId)
+    {
+        if (_deviceManagementScriptService == null) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var fullScript = await _deviceManagementScriptService.GetDeviceManagementScriptAsync(scriptId);
+
+            if (SelectedDeviceManagementScript?.Id != scriptId) return;
+
+            if (fullScript != null)
+            {
+                SelectedItemScriptContent = fullScript.ScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.ScriptContent)
+                    : "(No script content)";
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load device management script details: {FormatGraphError(ex)}", ex);
+            SelectedItemScriptContent = "(Failed to load script)";
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadDeviceShellScriptDetailsAsync(string scriptId)
+    {
+        if (_deviceShellScriptService == null) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var fullScript = await _deviceShellScriptService.GetDeviceShellScriptAsync(scriptId);
+
+            if (SelectedDeviceShellScript?.Id != scriptId) return;
+
+            if (fullScript != null)
+            {
+                SelectedItemScriptContent = fullScript.ScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.ScriptContent)
+                    : "(No script content)";
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load device shell script details: {FormatGraphError(ex)}", ex);
+            SelectedItemScriptContent = "(Failed to load script)";
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
     private async Task LoadDeviceHealthScriptAssignmentsAsync(string scriptId)
 
     {
@@ -3066,12 +3158,48 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             var settings = await _settingsCatalogService.GetPolicySettingsAsync(policyId);
+            var items = new List<Models.SettingItem>();
+
+            // Metadata properties to exclude
+            var excludedProps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "id", "@odata.type", "settingInstance@odata.type",
+                "settingInstanceTemplateReference", "settingDefinitionId",
+                "simpleSettingValue@odata.type", "choiceSettingValue@odata.type",
+                "groupSettingValue", "children"
+            };
+
+            foreach (var setting in settings)
+            {
+                var defId = setting.SettingInstance?.SettingDefinitionId;
+                var label = FormatCatalogSettingLabel(defId);
+
+                // Serialize and extract values using JSON approach
+                try
+                {
+                    var json = System.Text.Json.JsonSerializer.Serialize(setting, setting.GetType());
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+
+                    // Walk the JSON to extract leaf values
+                    FlattenCatalogSettingJson(doc.RootElement, label, items, excludedProps, 0);
+                }
+                catch
+                {
+                    // Fallback: use the SDK type extraction
+                    items.Add(new Models.SettingItem(label, ExtractSettingInstanceValue(setting.SettingInstance)));
+                }
+            }
+
+            // If flattening produced nothing meaningful, fall back
+            if (items.Count == 0 && settings.Count > 0)
+            {
+                items.AddRange(settings.Select(s => new Models.SettingItem(
+                    FormatCatalogSettingLabel(s.SettingInstance?.SettingDefinitionId),
+                    ExtractSettingInstanceValue(s.SettingInstance))));
+            }
+
             SelectedItemCatalogSettings = new ObservableCollection<Models.SettingItem>(
-                settings
-                    .Select(s => new Models.SettingItem(
-                        FormatSettingDefinitionId(s.SettingInstance?.SettingDefinitionId),
-                        ExtractSettingInstanceValue(s.SettingInstance)))
-                    .OrderBy(s => s.Label));
+                items.OrderBy(s => s.Label));
         }
         catch (Exception ex)
         {
@@ -3080,10 +3208,11 @@ public partial class MainWindowViewModel : ViewModelBase
         finally { IsLoadingDetails = false; }
     }
 
-    /// <summary>Strips vendor path prefixes from a setting definition ID and title-cases the remainder.</summary>
-    private static string FormatSettingDefinitionId(string? id)
+    /// <summary>Extracts a human-readable label from a Settings Catalog setting definition ID.</summary>
+    private static string FormatCatalogSettingLabel(string? id)
     {
         if (string.IsNullOrEmpty(id)) return "";
+
         // Strip known vendor path prefixes
         foreach (var prefix in new[] {
             "device_vendor_msft_policy_config_",
@@ -3097,9 +3226,112 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             }
         }
-        // Convert remaining snake_case segments to Title Case words separated by " › "
+
+        // Take meaningful segments (skip very long paths)
         var parts = id.Split('_');
-        return string.Join(" › ", parts.Select(p => p.Length > 0 ? char.ToUpper(p[0]) + p[1..] : ""));
+        // Use last 2-3 segments for context, applying camelCase spacing
+        var meaningfulParts = parts.Length > 3 ? parts[^3..] : parts;
+        return string.Join(" \u203a ", meaningfulParts.Select(FormatPropertyName));
+    }
+
+    /// <summary>Recursively walks a Settings Catalog setting JSON tree, extracting leaf values as SettingItems.</summary>
+    private static void FlattenCatalogSettingJson(
+        System.Text.Json.JsonElement element, string parentLabel,
+        List<Models.SettingItem> items, HashSet<string> excludedProps, int depth)
+    {
+        if (depth > 5) return; // safety cap
+
+        switch (element.ValueKind)
+        {
+            case System.Text.Json.JsonValueKind.Object:
+                // Look for "value" property (the actual setting value)
+                if (element.TryGetProperty("value", out var valProp))
+                {
+                    var formatted = FormatCatalogValue(valProp);
+                    if (!string.IsNullOrEmpty(formatted))
+                        items.Add(new Models.SettingItem(parentLabel, formatted));
+                    return;
+                }
+
+                // Look for children array (group settings)
+                if (element.TryGetProperty("children", out var childrenProp) && childrenProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    foreach (var child in childrenProp.EnumerateArray())
+                    {
+                        // Each child has settingDefinitionId and its own value
+                        var childIdStr = child.TryGetProperty("settingDefinitionId", out var childId)
+                            ? childId.GetString() : null;
+                        var childLabel = FormatCatalogSettingLabel(childIdStr);
+                        FlattenCatalogSettingJson(child, childLabel, items, excludedProps, depth + 1);
+                    }
+                    return;
+                }
+
+                // Walk into settingInstance if present
+                if (element.TryGetProperty("settingInstance", out var instanceProp))
+                {
+                    FlattenCatalogSettingJson(instanceProp, parentLabel, items, excludedProps, depth + 1);
+                    return;
+                }
+
+                // Walk into simpleSettingValue, choiceSettingValue etc.
+                foreach (var prop in element.EnumerateObject())
+                {
+                    if (excludedProps.Contains(prop.Name)) continue;
+                    if (prop.Name.EndsWith("Value") || prop.Name.EndsWith("CollectionValue"))
+                    {
+                        FlattenCatalogSettingJson(prop.Value, parentLabel, items, excludedProps, depth + 1);
+                    }
+                }
+                break;
+
+            case System.Text.Json.JsonValueKind.Array:
+                var arrayVals = new List<string>();
+                foreach (var arrItem in element.EnumerateArray())
+                {
+                    if (arrItem.ValueKind == System.Text.Json.JsonValueKind.Object)
+                    {
+                        FlattenCatalogSettingJson(arrItem, parentLabel, items, excludedProps, depth + 1);
+                    }
+                    else
+                    {
+                        arrayVals.Add(FormatCatalogValue(arrItem));
+                    }
+                }
+                if (arrayVals.Count > 0)
+                    items.Add(new Models.SettingItem(parentLabel, string.Join(", ", arrayVals)));
+                break;
+        }
+    }
+
+    /// <summary>Formats a leaf JSON value for human-readable display in Settings Catalog.</summary>
+    private static string FormatCatalogValue(System.Text.Json.JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.True => "Yes",
+            System.Text.Json.JsonValueKind.False => "No",
+            System.Text.Json.JsonValueKind.Null or System.Text.Json.JsonValueKind.Undefined => "Not Configured",
+            System.Text.Json.JsonValueKind.Number => element.ToString(),
+            System.Text.Json.JsonValueKind.String => FormatCatalogStringValue(element.GetString()),
+            _ => element.ToString()
+        };
+    }
+
+    /// <summary>Formats a string value from Settings Catalog, handling choice IDs and plain strings.</summary>
+    private static string FormatCatalogStringValue(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return "Not Configured";
+
+        // Choice values look like "device_vendor_msft_policy_config_..._somechoice_0"
+        // Take the last meaningful segment
+        if (value.Contains("_vendor_msft_") || value.Contains("_config_"))
+        {
+            var lastSegment = value.Split('_').LastOrDefault() ?? value;
+            return FormatPropertyName(lastSegment);
+        }
+
+        return value;
     }
 
     /// <summary>Extracts a display-friendly value from a polymorphic setting instance.</summary>
@@ -3134,13 +3366,14 @@ public partial class MainWindowViewModel : ViewModelBase
         };
     }
 
-    private static string ExtractSimpleValue(Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSimpleSettingValue? v) =>
-        v switch
+    private static string ExtractSimpleValue(Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSimpleSettingValue? v)
+    {
+        return v switch
         {
-            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationStringSettingValue sv  => sv.Value ?? "",
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationStringSettingValue sv => sv.Value ?? "",
             Microsoft.Graph.Beta.Models.DeviceManagementConfigurationIntegerSettingValue iv => iv.Value?.ToString() ?? "",
             Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSecretSettingValue sec => $"[secret: {sec.ValueState}]",
             _ => v?.AdditionalData != null && v.AdditionalData.TryGetValue("value", out var raw) ? raw?.ToString() ?? "" : ""
         };
-
+    }
 }

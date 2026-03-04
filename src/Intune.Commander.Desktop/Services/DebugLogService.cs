@@ -16,9 +16,15 @@ public sealed class DebugLogService
 
     private DebugLogService() { }
 
-    public void Log(string message) => Log(DebugLogLevel.Info, "App", message);
+    public void Log(string message)
+    {
+        Log(DebugLogLevel.Info, "App", message);
+    }
 
-    public void Log(string category, string message) => Log(DebugLogLevel.Info, category, message);
+    public void Log(string category, string message)
+    {
+        Log(DebugLogLevel.Info, category, message);
+    }
 
     public void Log(DebugLogLevel level, string category, string message)
     {

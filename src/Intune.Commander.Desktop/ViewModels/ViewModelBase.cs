@@ -13,7 +13,10 @@ public abstract partial class ViewModelBase : ObservableObject
 
     protected static DebugLogService DebugLog => DebugLogService.Instance;
 
-    protected void ClearError() => ErrorMessage = null;
+    protected void ClearError()
+    {
+        ErrorMessage = null;
+    }
 
     protected void SetError(string message)
     {

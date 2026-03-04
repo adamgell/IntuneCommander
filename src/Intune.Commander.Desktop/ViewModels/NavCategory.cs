@@ -14,5 +14,8 @@ public partial class NavCategory : ObservableObject
     [ObservableProperty]
     private bool _isSelected;
 
-    public override string ToString() => Name;
+    public override string ToString()
+    {
+        return Name;
+    }
 }
