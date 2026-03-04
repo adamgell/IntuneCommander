@@ -24,6 +24,10 @@
                         <TextBlock Text="Deployable Content" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                         <SelectableTextBlock Text="{Binding SelectedQualityUpdateProfile.DeployableContentDisplayName}" TextWrapping="Wrap" />
                     </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="Release Date" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                        <SelectableTextBlock Text="{Binding SelectedQualityUpdateProfile.ReleaseDateDisplayName}" TextWrapping="Wrap" />
+                    </StackPanel>
                     <Grid ColumnDefinitions="*,*">
                         <StackPanel Grid.Column="0" Spacing="2">
                             <TextBlock Text="Created" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
@@ -38,6 +42,23 @@
                         <TextBlock Text="ID" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
                         <SelectableTextBlock Text="{Binding SelectedQualityUpdateProfile.Id}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.8" />
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Expedited Settings -->
+            <TextBlock Text="Expedited Settings" Classes="SectionHeaderSpaced" />
+            <Border Classes="SectionCard">
+                <StackPanel Spacing="10">
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Text="Days Until Forced Reboot" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding SelectedItemDaysUntilForcedReboot}" FontSize="{StaticResource FontSizeBody}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="Quality Update Release" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding SelectedQualityUpdateProfile.ExpeditedUpdateSettings.QualityUpdateRelease}" FontSize="{StaticResource FontSizeBody}" />
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
 

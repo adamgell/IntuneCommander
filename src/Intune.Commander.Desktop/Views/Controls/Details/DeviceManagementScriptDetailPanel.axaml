@@ -62,6 +62,18 @@
                                      Foreground="{DynamicResource AppTextSecondaryBrush}" />
             </Border>
 
+            <!-- Scope Tags -->
+            <TextBlock Text="Scope Tags" Classes="SectionHeaderSpaced" />
+            <Border Classes="SectionCard">
+                <ItemsControl ItemsSource="{Binding SelectedItemRoleScopeTags}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="{StaticResource FontSizeBody}" Margin="0,2,0,2" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
             <!-- Section: Assignments -->
             <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
         </StackPanel>

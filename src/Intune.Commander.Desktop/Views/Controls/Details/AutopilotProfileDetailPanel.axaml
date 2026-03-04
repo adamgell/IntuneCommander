@@ -63,6 +63,23 @@
                 </StackPanel>
             </Border>
 
+            <!-- Section: Advanced Settings -->
+            <TextBlock Text="Advanced Settings" Classes="SectionHeaderSpaced" />
+            <Border Classes="SectionCard">
+                <StackPanel Spacing="10">
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Text="Pre-provisioning" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding PreprovisioningAllowed}" FontSize="{StaticResource FontSizeBody}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="Hardware Hash Extraction" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding HardwareHashExtractionEnabled}" FontSize="{StaticResource FontSizeBody}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
             <!-- Section: Assignments -->
             <controls:AssignmentListControl Assignments="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemAssignments}" />
         </StackPanel>
