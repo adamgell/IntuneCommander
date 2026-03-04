@@ -74,6 +74,8 @@
         <!-- Single dynamic DataGrid — columns built in code-behind -->
         <Panel>
             <DataGrid x:Name="MainDataGrid"
+                      ItemsSource="{Binding ActiveItemsSource}"
+                      SelectedItem="{Binding ActiveSelectedItem, Mode=TwoWay}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserResizeColumns="True"

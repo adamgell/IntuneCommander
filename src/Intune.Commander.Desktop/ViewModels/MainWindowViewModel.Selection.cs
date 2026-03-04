@@ -1082,10 +1082,13 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
             ? new ObservableCollection<string>((IEnumerable<string>)value.RoleScopeTagIds.Cast<string>())
             : [];
-        var omaSettings = value?.AdditionalData?.TryGetValue("omaSettings", out var oma) == true
-            ? oma as System.Collections.IList
-            : null;
-        SelectedItemOmaSettingsCount = omaSettings?.Count ?? 0;
+        // OmaSettings is a typed property on subclasses (e.g. Windows10CustomConfiguration),
+        // NOT stored in AdditionalData. Use reflection to find it generically.
+        var omaSettingsList = value?.GetType()
+            .GetProperty("OmaSettings",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            ?.GetValue(value) as System.Collections.IList;
+        SelectedItemOmaSettingsCount = omaSettingsList?.Count ?? 0;
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1160,7 +1163,9 @@ public partial class MainWindowViewModel : ViewModelBase
             : [];
         
         // Settings Catalog specific
-        SelectedItemSettingsCount = value?.Settings?.Count ?? 0;
+        // Settings collection is NOT populated in list responses (requires $expand=settings).
+        // SettingCount is an integer property that IS available from the list API.
+        SelectedItemSettingsCount = value?.SettingCount ?? 0;
         SelectedItemTemplateFamilies = !string.IsNullOrEmpty(value?.TemplateReference?.TemplateFamily?.ToString())
             ? new ObservableCollection<string>(new[] { value.TemplateReference.TemplateFamily.ToString() ?? "" })
             : [];
