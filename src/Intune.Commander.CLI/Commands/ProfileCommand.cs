@@ -17,12 +17,12 @@ public static class ProfileCommand
         listCommand.SetHandler(ListAsync);
 
         var testCommand = new Command("test", "Test a saved profile");
-        var name = new Option<string>("--name") { IsRequired = true };
-        testCommand.AddOption(name);
+        var name = new Argument<string>("name", "Profile name to test");
+        testCommand.AddArgument(name);
         testCommand.SetHandler(async context =>
         {
             await TestAsync(
-                context.ParseResult.GetValueForOption(name)!,
+                context.ParseResult.GetValueForArgument(name),
                 context.GetCancellationToken());
         });
 

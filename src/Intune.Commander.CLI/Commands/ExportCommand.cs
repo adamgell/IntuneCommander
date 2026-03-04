@@ -32,7 +32,14 @@ public static class ExportCommand
         var secret = new Option<string?>("--secret");
         var cloud = new Option<string?>("--cloud");
         var output = new Option<string>("--output") { IsRequired = true };
-        var types = new Option<string>("--types", () => "all");
+        var types = new Option<string>("--types", () => "all", "Comma-separated list of types to export, or \"all\"");
+        types.AddCompletions(ctx =>
+        {
+            // Suggest "all" plus each individual type not yet present in the token
+            var current = ctx.WordToComplete ?? string.Empty;
+            var candidates = new[] { "all" }.Concat(AllTypes);
+            return candidates.Where(t => t.StartsWith(current, StringComparison.OrdinalIgnoreCase));
+        });
 
         command.AddOption(profile);
         command.AddOption(tenantId);
