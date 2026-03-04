@@ -126,6 +126,9 @@
                                    IsVisible="{Binding !IsOverviewCategory}">
                             <controls:DetailPaneHeaderControl DockPanel.Dock="Top" />
 
+                            <!-- All detail panels share the same fill area; IsVisible picks the active one -->
+                            <Panel>
+
                             <!-- No selection placeholder -->
                             <TextBlock Text="Select an item to view details"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -394,6 +397,8 @@
                             <!-- Role Assignment details                    -->
                             <!-- ═══════════════════════════════════════════ -->
                             <details:RoleAssignmentDetailPanel IsVisible="{Binding SelectedRoleAssignment, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                            </Panel>
 
                         </DockPanel>
                     </Grid>
