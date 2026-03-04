@@ -175,9 +175,15 @@ public static class AssignmentReportExporter
     {
         if (string.IsNullOrEmpty(value)) return "\"\"";
         var escaped = value.Replace("\"", "\"\"");
-        // Prevent CSV formula injection — prefix with single-quote so Excel treats as text
-        if (escaped[0] is '=' or '+' or '-' or '@')
+        // Prevent CSV formula injection — prefix with single-quote so Excel treats as text.
+        // Check the first non-whitespace character, since spreadsheet apps ignore leading
+        // spaces/tabs/newlines when interpreting formulas.
+        var trimmedLeadingWhitespace = escaped.TrimStart(' ', '\t', '\r', '\n');
+        if (!string.IsNullOrEmpty(trimmedLeadingWhitespace)
+            && trimmedLeadingWhitespace[0] is '=' or '+' or '-' or '@')
+        {
             escaped = "'" + escaped;
+        }
         return "\"" + escaped + "\"";
     }
 
