@@ -40,6 +40,8 @@ public partial class AssignmentReportWindow : SukiWindow
 
     protected override void OnClosed(EventArgs e)
     {
+        if (DataContext is AssignmentReportViewModel vm)
+            vm.PropertyChanged -= OnVmPropertyChanged;
         base.OnClosed(e);
         SaveWindowPlacement();
     }

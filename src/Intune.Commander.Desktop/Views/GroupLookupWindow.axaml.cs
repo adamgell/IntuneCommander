@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Avalonia;
@@ -40,6 +41,13 @@ public partial class GroupLookupWindow : SukiWindow
             vm.PropertyChanged += OnVmPropertyChanged;
             UpdateFilterButtonStyles(vm.ActiveFilter);
         }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        if (DataContext is GroupLookupViewModel vm)
+            vm.PropertyChanged -= OnVmPropertyChanged;
+        base.OnClosed(e);
     }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)

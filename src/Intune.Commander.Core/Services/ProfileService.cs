@@ -126,10 +126,12 @@ public class ProfileService
             {
                 json = _encryption.Decrypt(raw[EncryptedMarker.Length..]);
             }
-            catch
+            catch (Exception ex)
             {
                 // Decryption failed (keys rotated, corrupted, etc.)
                 // Fall back to empty store — caller can surface the error
+                System.Diagnostics.Debug.WriteLine(
+                    $"[ProfileService] Profile decryption failed — returning empty store. Error: {ex.Message}");
                 _store = new ProfileStore();
                 return;
             }

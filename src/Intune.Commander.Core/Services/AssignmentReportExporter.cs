@@ -174,7 +174,11 @@ public static class AssignmentReportExporter
     private static string CsvQ(string? value)
     {
         if (string.IsNullOrEmpty(value)) return "\"\"";
-        return "\"" + value.Replace("\"", "\"\"") + "\"";
+        var escaped = value.Replace("\"", "\"\"");
+        // Prevent CSV formula injection — prefix with single-quote so Excel treats as text
+        if (escaped[0] is '=' or '+' or '-' or '@')
+            escaped = "'" + escaped;
+        return "\"" + escaped + "\"";
     }
 
     // ── HTML template ─────────────────────────────────────────────────────────────
