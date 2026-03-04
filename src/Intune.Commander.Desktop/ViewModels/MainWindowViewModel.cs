@@ -219,6 +219,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private ICloudPcUserSettingsService? _cloudPcUserSettingsService;
     private IVppTokenService? _vppTokenService;
     private IPermissionCheckService? _permissionCheckService;
+    private IDirectoryObjectResolver? _directoryObjectResolver;
 
 
 
@@ -945,6 +946,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private ObservableCollection<AssignmentDisplayItem> _selectedItemAssignments = [];
 
+    [ObservableProperty]
+
+    private ObservableCollection<LocalizedNotificationMessageItem> _selectedItemNotificationMessages = [];
+
 
 
     [ObservableProperty]
@@ -996,6 +1001,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private int _selectedItemSupersededCount = 0;
 
+    [ObservableProperty]
+    private string _selectedItemAppStoreUrl = "";
+
     // Common properties for multiple types
     [ObservableProperty]
     private string _selectedItemDescription = "";
@@ -1006,6 +1014,9 @@ public partial class MainWindowViewModel : ViewModelBase
     // Device Configuration specific
     [ObservableProperty]
     private int _selectedItemOmaSettingsCount = 0;
+
+    [ObservableProperty]
+    private ObservableCollection<Models.SettingItem> _selectedItemConfigurationSettings = [];
 
     // Compliance Policy specific
     [ObservableProperty]
@@ -1020,6 +1031,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private ObservableCollection<string> _selectedItemTemplateFamilies = [];
+
+    [ObservableProperty]
+    private ObservableCollection<Models.SettingItem> _selectedItemCatalogSettings = [];
 
     // Endpoint Security specific
     [ObservableProperty]
@@ -1086,6 +1100,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _selectedItemRemediationScript = "";
 
+    [ObservableProperty]
+    private string _selectedItemScriptContent = "";
+
     // Feature Update Profile specific
     [ObservableProperty]
     private string _selectedItemFeatureUpdateVersion = "";
@@ -1098,6 +1115,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _selectedItemInstallLatestOnEOL = false;
+
+    // Quality Update Profile specific
+    [ObservableProperty] private int? _selectedItemServiceWindowDays;
+    [ObservableProperty] private int? _selectedItemDaysUntilForcedReboot;
+
+    // Cloud PC User Setting specific
+    [ObservableProperty] private string _selectedItemRestorePointFrequency = "";
+    [ObservableProperty] private bool _selectedItemUserRestoreEnabled;
 
     // Named Location specific
     [ObservableProperty]
@@ -1141,6 +1166,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private ObservableCollection<string> _selectedCAPolicyExcludeApps = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeUsers = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeUsers = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyIncludeRoles = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _selectedCAPolicyExcludeRoles = [];
 
 
 

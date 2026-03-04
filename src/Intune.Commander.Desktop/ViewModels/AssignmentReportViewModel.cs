@@ -225,14 +225,17 @@ public partial class AssignmentReportViewModel : ViewModelBase
             : GetInputPrompt(value);
     }
 
-    private static string GetInputPrompt(int modeIndex) => modeIndex switch
+    private static string GetInputPrompt(int modeIndex)
     {
-        0 => "Search for users by name or UPN, select one or more, then click Run Report.",
-        1 => "Search for a group by name or GUID, select it, then click Run Report.",
-        2 => "Enter a device name prefix (e.g. 'LAPTOP-') and click Run Report. Matches all devices with that prefix.",
-        8 => "Search for two groups to compare, select them, then click Run Report.",
-        _ => "Click 'Run Report' to fetch data."
-    };
+        return modeIndex switch
+        {
+            0 => "Search for users by name or UPN, select one or more, then click Run Report.",
+            1 => "Search for a group by name or GUID, select it, then click Run Report.",
+            2 => "Enter a device name prefix (e.g. 'LAPTOP-') and click Run Report. Matches all devices with that prefix.",
+            8 => "Search for two groups to compare, select them, then click Run Report.",
+            _ => "Click 'Run Report' to fetch data."
+        };
+    }
 
     // ── Group search (Assignment mode) ───────────────────────────────────────────
 
@@ -498,11 +501,15 @@ public partial class AssignmentReportViewModel : ViewModelBase
 
     // ── Export ────────────────────────────────────────────────────────────────────
 
-    public string GenerateHtml() =>
-        AssignmentReportExporter.GenerateHtml(SelectedModeName, Results.ToList());
+    public string GenerateHtml()
+    {
+        return AssignmentReportExporter.GenerateHtml(SelectedModeName, Results.ToList());
+    }
 
-    public string GenerateCsv() =>
-        AssignmentReportExporter.GenerateCsv(SelectedModeName, Results.ToList());
+    public string GenerateCsv()
+    {
+        return AssignmentReportExporter.GenerateCsv(SelectedModeName, Results.ToList());
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
 

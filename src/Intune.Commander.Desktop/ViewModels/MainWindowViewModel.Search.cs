@@ -511,10 +511,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     private static bool Contains(string? source, string search)
-
-        => source?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
-
-
-
+    {
+        return source?.Contains(search, StringComparison.OrdinalIgnoreCase) == true;
+    }
 }
 

@@ -1,0 +1,121 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+             xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="Intune.Commander.Desktop.Views.Controls.ItemListPanelControl"
+             x:DataType="vm:MainWindowViewModel">
+    <DockPanel Margin="8">
+
+        <!-- Category header with column chooser -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                <Button Content="Export CSV"
+                        Command="{Binding ExportAppAssignmentsCsvCommand}"
+                        Classes="Small"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsAppAssignmentsCategory}" />
+                <Button Content="Export CSV"
+                        Command="{Binding ExportGroupsCsvCommand}"
+                        Classes="Small"
+                        VerticalAlignment="Center">
+                    <Button.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                            <Binding Path="IsDynamicGroupsCategory" />
+                            <Binding Path="IsAssignedGroupsCategory" />
+                        </MultiBinding>
+                    </Button.IsVisible>
+                </Button>
+                <Button Content="Export CSV"
+                        Command="{Binding ExportSettingsCatalogCsvCommand}"
+                        Classes="Small"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsSettingsCatalogCategory}"
+                        ToolTip.Tip="Export Settings Catalog policies list to CSV" />
+                <Button Content="Export CSV"
+                        Command="{Binding ExportCompliancePoliciesCsvCommand}"
+                        Classes="Small"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsCompliancePolicyCategory}"
+                        ToolTip.Tip="Export Compliance Policies list to CSV" />
+                <Button Content="Export CSV"
+                        Command="{Binding ExportAdminTemplatesCsvCommand}"
+                        Classes="Small"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsAdministrativeTemplatesCategory}"
+                        ToolTip.Tip="Export Administrative Templates list to CSV" />
+                <Button Command="{Binding ExportConditionalAccessPowerPointCommand}"
+                        Classes="Small"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsConditionalAccessCategory}"
+                        ToolTip.Tip="Export Conditional Access policies to PowerPoint presentation">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="Presentation" />
+                        <TextBlock Text="Export PowerPoint" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Content="⋮ Columns"
+                        x:Name="ColumnChooserButton"
+                        Classes="Small"
+                        VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="{Binding SelectedCategory.Name, FallbackValue='Items'}"
+                       FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+        </DockPanel>
+
+        <!-- Search / filter box -->
+        <TextBox DockPanel.Dock="Top"
+                 Text="{Binding SearchText, Mode=TwoWay}"
+                 Watermark="🔍 Search..."
+                 Margin="0,0,0,8"
+                 Padding="8,6"
+                 FontSize="{StaticResource FontSizeBody}" />
+
+        <!-- Single dynamic DataGrid — columns built in code-behind -->
+        <Panel>
+            <DataGrid x:Name="MainDataGrid"
+                      ItemsSource="{Binding ActiveItemsSource}"
+                      SelectedItem="{Binding ActiveSelectedItem, Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserResizeColumns="True"
+                      GridLinesVisibility="Horizontal"
+                      FontSize="{StaticResource FontSizeBody}"
+                      BorderThickness="1"
+                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Refresh Item from Graph"
+                                  Command="{Binding RefreshSelectedItemCommand}"
+                                  IsEnabled="{Binding CanRefreshSelectedItem}" />
+                        <Separator />
+                        <MenuItem Header="Export Selected"
+                                  Command="{Binding ExportSelectedCommand}" />
+                        <MenuItem Header="Copy Details to Clipboard"
+                                  Command="{Binding CopyDetailsToClipboardCommand}" />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+            <Border IsVisible="{Binding IsCurrentCategoryEmpty}"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Padding="32,20" CornerRadius="{StaticResource RadiusLarge}"
+                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                <StackPanel Spacing="10" HorizontalAlignment="Center">
+                    <mi:MaterialIcon Kind="InboxOutline"
+                                     Width="48"
+                                     Height="48"
+                                     Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                     HorizontalAlignment="Center"
+                                     AutomationProperties.Name="Empty inbox icon"
+                                     ToolTip.Tip="Empty inbox" />
+                    <TextBlock Text="No items found"
+                               FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="This category is empty or no items match your search."
+                               FontSize="{StaticResource FontSizeBody}" Foreground="{DynamicResource AppTextSecondaryBrush}"
+                               HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="300" />
+                </StackPanel>
+            </Border>
+        </Panel>
+    </DockPanel>
+</UserControl>

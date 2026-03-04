@@ -16,16 +16,20 @@ public sealed class DebugLevelBrushConverter : IValueConverter
     private static readonly IBrush WarningBrush = new SolidColorBrush(Color.Parse("#fd7e14"));
     private static readonly IBrush ErrorBrush   = new SolidColorBrush(Color.Parse("#dc3545"));
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value switch
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value switch
         {
-            DebugLogLevel.Debug   => DebugBrush,
-            DebugLogLevel.Info    => InfoBrush,
+            DebugLogLevel.Debug => DebugBrush,
+            DebugLogLevel.Info => InfoBrush,
             DebugLogLevel.Warning => WarningBrush,
-            DebugLogLevel.Error   => ErrorBrush,
-            _                     => DebugBrush
+            DebugLogLevel.Error => ErrorBrush,
+            _ => DebugBrush
         };
+    }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
+    {
+        throw new NotSupportedException();
+    }
 }

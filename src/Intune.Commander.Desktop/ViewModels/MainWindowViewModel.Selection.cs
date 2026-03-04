@@ -1082,10 +1082,25 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
             ? new ObservableCollection<string>((IEnumerable<string>)value.RoleScopeTagIds.Cast<string>())
             : [];
-        var omaSettings = value?.AdditionalData?.TryGetValue("omaSettings", out var oma) == true
-            ? oma as System.Collections.IList
-            : null;
-        SelectedItemOmaSettingsCount = omaSettings?.Count ?? 0;
+        // OmaSettings is a typed property on subclasses (e.g. Windows10CustomConfiguration),
+        // NOT stored in AdditionalData. Use reflection to find it generically.
+        var omaSettingsList = value?.GetType()
+            .GetProperty("OmaSettings",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            ?.GetValue(value) as System.Collections.IList;
+        SelectedItemOmaSettingsCount = omaSettingsList?.Count ?? 0;
+
+        // Extract all typed settings from the derived Device Configuration type
+        if (value != null)
+        {
+            var settings = ExtractGraphObjectSettings(value);
+            SelectedItemConfigurationSettings = new ObservableCollection<Models.SettingItem>(
+                settings.Select(s => new Models.SettingItem(s.Label, s.Value)));
+        }
+        else
+        {
+            SelectedItemConfigurationSettings = [];
+        }
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1160,16 +1175,22 @@ public partial class MainWindowViewModel : ViewModelBase
             : [];
         
         // Settings Catalog specific
-        SelectedItemSettingsCount = value?.Settings?.Count ?? 0;
+        // Settings collection is NOT populated in list responses (requires $expand=settings).
+        // SettingCount is an integer property that IS available from the list API.
+        SelectedItemSettingsCount = value?.SettingCount ?? 0;
         SelectedItemTemplateFamilies = !string.IsNullOrEmpty(value?.TemplateReference?.TemplateFamily?.ToString())
             ? new ObservableCollection<string>(new[] { value.TemplateReference.TemplateFamily.ToString() ?? "" })
             : [];
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
-        if (value?.Id != null)
+        SelectedItemCatalogSettings = [];
 
+        if (value?.Id != null)
+        {
             _ = LoadSettingsCatalogAssignmentsAsync(value.Id);
+            _ = LoadSettingsCatalogSettingsAsync(value.Id);
+        }
 
     }
 
@@ -1206,6 +1227,7 @@ public partial class MainWindowViewModel : ViewModelBase
             SelectedItemSizeMB = ExtractSizeInMB(value);
             SelectedItemCategories = ExtractCategories(value);
             SelectedItemSupersededCount = ExtractSupersededCount(value);
+            SelectedItemAppStoreUrl = ExtractAppStoreUrl(value);
         }
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
@@ -1232,7 +1254,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // Common properties
         SelectedItemDescription = value?.Description ?? "";
 
-        // Resolve location names
+        // Resolve location names (local lookup — named locations are not directory objects)
         var inclLocs = value?.Conditions?.Locations?.IncludeLocations ?? [];
         SelectedCAPolicyIncludeLocations = new ObservableCollection<string>(
             inclLocs.Select(id => id switch {
@@ -1248,11 +1270,35 @@ public partial class MainWindowViewModel : ViewModelBase
                 _ => ResolveNamedLocationId(id)
             }));
 
-        // Resolve group names
+        // Seed groups synchronously from local cache as fallback (replaced async below)
         var inclGroups = value?.Conditions?.Users?.IncludeGroups ?? [];
         SelectedCAPolicyIncludeGroups = new ObservableCollection<string>(inclGroups.Select(ResolveGroupId));
         var exclGroups = value?.Conditions?.Users?.ExcludeGroups ?? [];
         SelectedCAPolicyExcludeGroups = new ObservableCollection<string>(exclGroups.Select(ResolveGroupId));
+
+        // Seed users synchronously (raw GUIDs as placeholder — resolved async below)
+        var inclUsers = value?.Conditions?.Users?.IncludeUsers ?? [];
+        SelectedCAPolicyIncludeUsers = new ObservableCollection<string>(
+            inclUsers.Select(id => id switch {
+                "All" => "All Users",
+                "None" => "None",
+                "GuestsOrExternalUsers" => "Guests or external users",
+                _ => id
+            }));
+        var exclUsers = value?.Conditions?.Users?.ExcludeUsers ?? [];
+        SelectedCAPolicyExcludeUsers = new ObservableCollection<string>(
+            exclUsers.Select(id => id switch {
+                "All" => "All Users",
+                "None" => "None",
+                "GuestsOrExternalUsers" => "Guests or external users",
+                _ => id
+            }));
+
+        // Seed roles synchronously (raw GUIDs as placeholder — resolved async below)
+        var inclRoles = value?.Conditions?.Users?.IncludeRoles ?? [];
+        SelectedCAPolicyIncludeRoles = new ObservableCollection<string>(inclRoles);
+        var exclRoles = value?.Conditions?.Users?.ExcludeRoles ?? [];
+        SelectedCAPolicyExcludeRoles = new ObservableCollection<string>(exclRoles);
 
         // Resolve app names
         var inclApps = value?.Conditions?.Applications?.IncludeApplications ?? [];
@@ -1268,9 +1314,112 @@ public partial class MainWindowViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
+        // Fire async GUID resolution to replace raw GUIDs with display names
+        if (value != null)
+            _ = ResolveCAPolicyGuidsAsync(value);
+
     }
 
+    /// <summary>
+    /// Resolves all GUIDs in a CA policy (groups, users, roles, apps) to display names
+    /// using the DirectoryObjectResolver batch API. Updates the SelectedCAPolicy* collections
+    /// once resolved. Named locations are excluded (not directory objects).
+    /// </summary>
+    private async Task ResolveCAPolicyGuidsAsync(ConditionalAccessPolicy policy)
+    {
+        if (_directoryObjectResolver == null) return;
 
+        // Collect all raw GUIDs, filtering out special keyword values
+        var allGuids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void AddGuids(IReadOnlyList<string>? ids)
+        {
+            if (ids == null) return;
+            foreach (var id in ids)
+                if (!IsSpecialCaValue(id))
+                    allGuids.Add(id);
+        }
+
+        AddGuids(policy.Conditions?.Users?.IncludeUsers);
+        AddGuids(policy.Conditions?.Users?.ExcludeUsers);
+        AddGuids(policy.Conditions?.Users?.IncludeGroups);
+        AddGuids(policy.Conditions?.Users?.ExcludeGroups);
+        AddGuids(policy.Conditions?.Users?.IncludeRoles);
+        AddGuids(policy.Conditions?.Users?.ExcludeRoles);
+        AddGuids(policy.Conditions?.Applications?.IncludeApplications);
+        AddGuids(policy.Conditions?.Applications?.ExcludeApplications);
+
+        if (allGuids.Count == 0) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var nameMap = await _directoryObjectResolver.ResolveAsync([.. allGuids]);
+
+            // Guard: abort if a different policy was selected while we were awaiting
+            if (SelectedConditionalAccessPolicy?.Id != policy.Id) return;
+
+            string Resolve(string? id) => id switch
+            {
+                null or "" => "",
+                "All" => "All",
+                "None" => "None",
+                "AllTrusted" => "All trusted locations",
+                "GuestsOrExternalUsers" => "Guests or external users",
+                "Office365" => "Office 365",
+                "MicrosoftAdminPortals" => "Microsoft Admin Portals",
+                _ => nameMap.TryGetValue(id, out var name) ? name : id
+            };
+
+            string Resolve2(string? id) => id switch
+            {
+                null or "" => "",
+                "All" => "All Users",
+                "None" => "None",
+                "GuestsOrExternalUsers" => "Guests or external users",
+                _ => nameMap.TryGetValue(id, out var name) ? name : id
+            };
+
+            string ResolveApp(string? id) => id switch
+            {
+                null or "" => "",
+                "All" => "All Applications",
+                "Office365" => "Office 365",
+                "MicrosoftAdminPortals" => "Microsoft Admin Portals",
+                _ => nameMap.TryGetValue(id, out var name) ? name : ResolveApplicationId(id)
+            };
+
+            SelectedCAPolicyIncludeGroups = new ObservableCollection<string>(
+                (policy.Conditions?.Users?.IncludeGroups ?? []).Select(id => Resolve(id)));
+            SelectedCAPolicyExcludeGroups = new ObservableCollection<string>(
+                (policy.Conditions?.Users?.ExcludeGroups ?? []).Select(id => Resolve(id)));
+            SelectedCAPolicyIncludeUsers = new ObservableCollection<string>(
+                (policy.Conditions?.Users?.IncludeUsers ?? []).Select(id => Resolve2(id)));
+            SelectedCAPolicyExcludeUsers = new ObservableCollection<string>(
+                (policy.Conditions?.Users?.ExcludeUsers ?? []).Select(id => Resolve2(id)));
+            SelectedCAPolicyIncludeRoles = new ObservableCollection<string>(
+                (policy.Conditions?.Users?.IncludeRoles ?? []).Select(id => Resolve(id)));
+            SelectedCAPolicyExcludeRoles = new ObservableCollection<string>(
+                (policy.Conditions?.Users?.ExcludeRoles ?? []).Select(id => Resolve(id)));
+            SelectedCAPolicyIncludeApps = new ObservableCollection<string>(
+                (policy.Conditions?.Applications?.IncludeApplications ?? []).Select(id => ResolveApp(id)));
+            SelectedCAPolicyExcludeApps = new ObservableCollection<string>(
+                (policy.Conditions?.Applications?.ExcludeApplications ?? []).Select(id => ResolveApp(id)));
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to resolve CA policy GUIDs: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    /// <summary>Returns true for CA keyword values that are not directory object GUIDs.</summary>
+    private static bool IsSpecialCaValue(string id)
+    {
+        return id is
+        "All" or "None" or "AllTrusted" or "GuestsOrExternalUsers" or
+        "Office365" or "MicrosoftAdminPortals";
+    }
 
     partial void OnSelectedEndpointSecurityIntentChanged(DeviceManagementIntent? value)
 
@@ -1620,18 +1769,17 @@ public partial class MainWindowViewModel : ViewModelBase
             ? value.RunAsAccount.Value.ToString()
             : "";
         SelectedItemRunAs32BitText = value?.RunAs32Bit == true ? "Yes" : "No";
-        SelectedItemDetectionScript = value?.DetectionScriptContent != null
-            ? System.Text.Encoding.UTF8.GetString(value.DetectionScriptContent)
-            : "";
-        SelectedItemRemediationScript = value?.RemediationScriptContent != null
-            ? System.Text.Encoding.UTF8.GetString(value.RemediationScriptContent)
-            : "";
+        SelectedItemDetectionScript = "Loading...";
+        SelectedItemRemediationScript = "Loading...";
         SelectedItemEnforceSignatureCheck = value?.EnforceSignatureCheck ?? false;
         SelectedItemRunAs32Bit = value?.RunAs32Bit ?? false;
         SelectedItemVersion = value?.Version ?? "";
 
         if (value?.Id != null)
+        {
             _ = LoadDeviceHealthScriptAssignmentsAsync(value.Id);
+            _ = LoadDeviceHealthScriptDetailsAsync(value.Id);
+        }
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1648,6 +1796,10 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Mac Custom Attribute";
 
         SelectedItemPlatform = "";
+
+        SelectedItemRunAsAccount = value?.RunAsAccount.HasValue == true
+            ? value.RunAsAccount.Value.ToString()
+            : "";
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1680,6 +1832,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemRolloutStartDate = value?.RolloutSettings?.OfferStartDateTimeInUTC;
         SelectedItemRolloutEndDate = value?.RolloutSettings?.OfferEndDateTimeInUTC;
         SelectedItemInstallLatestOnEOL = value?.InstallLatestWindows10OnWindows11IneligibleDevice ?? false;
+        SelectedItemCreatedDateTime = value?.CreatedDateTime;
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1810,11 +1963,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        SelectedItemScriptContent = "Loading...";
+
+        SelectedItemRoleScopeTags = new ObservableCollection<string>(value?.RoleScopeTagIds ?? []);
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
-
+        {
             _ = LoadDeviceManagementScriptAssignmentsAsync(value.Id);
+            _ = LoadDeviceManagementScriptDetailsAsync(value.Id);
+        }
 
     }
 
@@ -1830,11 +1989,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
+        SelectedItemScriptContent = "Loading...";
+
+        SelectedItemRoleScopeTags = new ObservableCollection<string>(value?.RoleScopeTagIds ?? []);
+
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
         if (value?.Id != null)
-
+        {
             _ = LoadDeviceShellScriptAssignmentsAsync(value.Id);
+            _ = LoadDeviceShellScriptDetailsAsync(value.Id);
+        }
 
     }
 
@@ -1849,6 +2014,14 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Compliance Script";
 
         SelectedItemPlatform = "";
+
+        SelectedItemPublisher = value?.Publisher ?? "";
+        SelectedItemRunAsAccount = value?.RunAsAccount.HasValue == true
+            ? value.RunAsAccount.Value.ToString()
+            : "";
+        SelectedItemRunAs32BitText = value?.RunAs32Bit == true ? "Yes" : "No";
+        SelectedItemEnforceSignatureCheck = value?.EnforceSignatureCheck ?? false;
+        SelectedItemRoleScopeTags = new ObservableCollection<string>(value?.RoleScopeTagIds ?? []);
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1865,6 +2038,8 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedItemTypeName = "Quality Update Profile";
 
         SelectedItemPlatform = "";
+
+        SelectedItemDaysUntilForcedReboot = value?.ExpeditedUpdateSettings?.DaysUntilForcedReboot;
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));
 
@@ -1886,7 +2061,81 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
+    partial void OnSelectedAdmxFileChanged(GroupPolicyUploadedDefinitionFile? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "ADMX File";
+        SelectedItemPlatform = "";
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
 
+    partial void OnSelectedReusablePolicySettingChanged(DeviceManagementReusablePolicySetting? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "Reusable Policy Setting";
+        SelectedItemPlatform = "";
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
+
+    partial void OnSelectedNotificationTemplateChanged(NotificationMessageTemplate? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "Notification Template";
+        SelectedItemPlatform = "";
+        SelectedItemNotificationMessages.Clear();
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
+
+    partial void OnSelectedAppleDepSettingChanged(DepOnboardingSetting? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "Apple DEP Setting";
+        SelectedItemPlatform = "";
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
+
+    partial void OnSelectedDeviceCategoryChanged(DeviceCategory? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "Device Category";
+        SelectedItemPlatform = "";
+        SelectedItemRoleScopeTags = new ObservableCollection<string>(value?.RoleScopeTagIds ?? []);
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
+
+    partial void OnSelectedVppTokenChanged(VppToken? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "VPP Token";
+        SelectedItemPlatform = "";
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
+
+    partial void OnSelectedCloudPcProvisioningPolicyChanged(CloudPcProvisioningPolicy? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "Cloud PC Provisioning Policy";
+        SelectedItemPlatform = "";
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
+
+    partial void OnSelectedCloudPcUserSettingChanged(CloudPcUserSetting? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "Cloud PC User Setting";
+        SelectedItemPlatform = "";
+        SelectedItemRestorePointFrequency = value?.RestorePointSetting?.FrequencyType?.ToString() ?? "";
+        SelectedItemUserRestoreEnabled = value?.RestorePointSetting?.UserRestoreEnabled ?? false;
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
+
+    partial void OnSelectedRoleAssignmentChanged(DeviceAndAppManagementRoleAssignment? value)
+    {
+        SelectedItemAssignments.Clear();
+        SelectedItemTypeName = "Role Assignment";
+        SelectedItemPlatform = "";
+        OnPropertyChanged(nameof(CanRefreshSelectedItem));
+    }
 
     partial void OnSelectedDynamicGroupRowChanged(GroupRow? value)
 
@@ -2794,6 +3043,89 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
+    private async Task LoadDeviceHealthScriptDetailsAsync(string scriptId)
+    {
+        if (_deviceHealthScriptService == null) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var fullScript = await _deviceHealthScriptService.GetDeviceHealthScriptAsync(scriptId);
+
+            // Guard: selection may have changed while loading
+            if (SelectedDeviceHealthScript?.Id != scriptId) return;
+
+            if (fullScript != null)
+            {
+                SelectedItemDetectionScript = fullScript.DetectionScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.DetectionScriptContent)
+                    : "(No detection script)";
+                SelectedItemRemediationScript = fullScript.RemediationScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.RemediationScriptContent)
+                    : "(No remediation script)";
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load device health script details: {FormatGraphError(ex)}", ex);
+            SelectedItemDetectionScript = "(Failed to load script)";
+            SelectedItemRemediationScript = "(Failed to load script)";
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadDeviceManagementScriptDetailsAsync(string scriptId)
+    {
+        if (_deviceManagementScriptService == null) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var fullScript = await _deviceManagementScriptService.GetDeviceManagementScriptAsync(scriptId);
+
+            if (SelectedDeviceManagementScript?.Id != scriptId) return;
+
+            if (fullScript != null)
+            {
+                SelectedItemScriptContent = fullScript.ScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.ScriptContent)
+                    : "(No script content)";
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load device management script details: {FormatGraphError(ex)}", ex);
+            SelectedItemScriptContent = "(Failed to load script)";
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    private async Task LoadDeviceShellScriptDetailsAsync(string scriptId)
+    {
+        if (_deviceShellScriptService == null) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var fullScript = await _deviceShellScriptService.GetDeviceShellScriptAsync(scriptId);
+
+            if (SelectedDeviceShellScript?.Id != scriptId) return;
+
+            if (fullScript != null)
+            {
+                SelectedItemScriptContent = fullScript.ScriptContent != null
+                    ? System.Text.Encoding.UTF8.GetString(fullScript.ScriptContent)
+                    : "(No script content)";
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load device shell script details: {FormatGraphError(ex)}", ex);
+            SelectedItemScriptContent = "(Failed to load script)";
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
     private async Task LoadDeviceHealthScriptAssignmentsAsync(string scriptId)
 
     {
@@ -2830,4 +3162,230 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
+    private async Task LoadSettingsCatalogSettingsAsync(string policyId)
+    {
+        if (_settingsCatalogService == null) return;
+
+        IsLoadingDetails = true;
+        try
+        {
+            var settings = await _settingsCatalogService.GetPolicySettingsAsync(policyId);
+            var items = new List<Models.SettingItem>();
+
+            // Metadata properties to exclude
+            var excludedProps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "id", "@odata.type", "settingInstance@odata.type",
+                "settingInstanceTemplateReference", "settingDefinitionId",
+                "simpleSettingValue@odata.type", "choiceSettingValue@odata.type",
+                "groupSettingValue", "children"
+            };
+
+            foreach (var setting in settings)
+            {
+                var defId = setting.SettingInstance?.SettingDefinitionId;
+                var label = FormatCatalogSettingLabel(defId);
+
+                // Serialize and extract values using JSON approach
+                try
+                {
+                    var json = System.Text.Json.JsonSerializer.Serialize(setting, setting.GetType());
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+
+                    // Walk the JSON to extract leaf values
+                    FlattenCatalogSettingJson(doc.RootElement, label, items, excludedProps, 0);
+                }
+                catch
+                {
+                    // Fallback: use the SDK type extraction
+                    items.Add(new Models.SettingItem(label, ExtractSettingInstanceValue(setting.SettingInstance)));
+                }
+            }
+
+            // If flattening produced nothing meaningful, fall back
+            if (items.Count == 0 && settings.Count > 0)
+            {
+                items.AddRange(settings.Select(s => new Models.SettingItem(
+                    FormatCatalogSettingLabel(s.SettingInstance?.SettingDefinitionId),
+                    ExtractSettingInstanceValue(s.SettingInstance))));
+            }
+
+            SelectedItemCatalogSettings = new ObservableCollection<Models.SettingItem>(
+                items.OrderBy(s => s.Label));
+        }
+        catch (Exception ex)
+        {
+            DebugLog.LogError($"Failed to load settings catalog settings: {FormatGraphError(ex)}", ex);
+        }
+        finally { IsLoadingDetails = false; }
+    }
+
+    /// <summary>Extracts a human-readable label from a Settings Catalog setting definition ID.</summary>
+    private static string FormatCatalogSettingLabel(string? id)
+    {
+        if (string.IsNullOrEmpty(id)) return "";
+
+        // Strip known vendor path prefixes
+        foreach (var prefix in new[] {
+            "device_vendor_msft_policy_config_",
+            "user_vendor_msft_policy_config_",
+            "device_vendor_msft_",
+            "user_vendor_msft_" })
+        {
+            if (id.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                id = id[prefix.Length..];
+                break;
+            }
+        }
+
+        // Take meaningful segments (skip very long paths)
+        var parts = id.Split('_');
+        // Use last 2-3 segments for context, applying camelCase spacing
+        var meaningfulParts = parts.Length > 3 ? parts[^3..] : parts;
+        return string.Join(" \u203a ", meaningfulParts.Select(FormatPropertyName));
+    }
+
+    /// <summary>Recursively walks a Settings Catalog setting JSON tree, extracting leaf values as SettingItems.</summary>
+    private static void FlattenCatalogSettingJson(
+        System.Text.Json.JsonElement element, string parentLabel,
+        List<Models.SettingItem> items, HashSet<string> excludedProps, int depth)
+    {
+        if (depth > 5) return; // safety cap
+
+        switch (element.ValueKind)
+        {
+            case System.Text.Json.JsonValueKind.Object:
+                // Look for "value" property (the actual setting value)
+                if (element.TryGetProperty("value", out var valProp))
+                {
+                    var formatted = FormatCatalogValue(valProp);
+                    if (!string.IsNullOrEmpty(formatted))
+                        items.Add(new Models.SettingItem(parentLabel, formatted));
+                    return;
+                }
+
+                // Look for children array (group settings)
+                if (element.TryGetProperty("children", out var childrenProp) && childrenProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    foreach (var child in childrenProp.EnumerateArray())
+                    {
+                        // Each child has settingDefinitionId and its own value
+                        var childIdStr = child.TryGetProperty("settingDefinitionId", out var childId)
+                            ? childId.GetString() : null;
+                        var childLabel = FormatCatalogSettingLabel(childIdStr);
+                        FlattenCatalogSettingJson(child, childLabel, items, excludedProps, depth + 1);
+                    }
+                    return;
+                }
+
+                // Walk into settingInstance if present
+                if (element.TryGetProperty("settingInstance", out var instanceProp))
+                {
+                    FlattenCatalogSettingJson(instanceProp, parentLabel, items, excludedProps, depth + 1);
+                    return;
+                }
+
+                // Walk into simpleSettingValue, choiceSettingValue etc.
+                foreach (var prop in element.EnumerateObject())
+                {
+                    if (excludedProps.Contains(prop.Name)) continue;
+                    if (prop.Name.EndsWith("Value") || prop.Name.EndsWith("CollectionValue"))
+                    {
+                        FlattenCatalogSettingJson(prop.Value, parentLabel, items, excludedProps, depth + 1);
+                    }
+                }
+                break;
+
+            case System.Text.Json.JsonValueKind.Array:
+                var arrayVals = new List<string>();
+                foreach (var arrItem in element.EnumerateArray())
+                {
+                    if (arrItem.ValueKind == System.Text.Json.JsonValueKind.Object)
+                    {
+                        FlattenCatalogSettingJson(arrItem, parentLabel, items, excludedProps, depth + 1);
+                    }
+                    else
+                    {
+                        arrayVals.Add(FormatCatalogValue(arrItem));
+                    }
+                }
+                if (arrayVals.Count > 0)
+                    items.Add(new Models.SettingItem(parentLabel, string.Join(", ", arrayVals)));
+                break;
+        }
+    }
+
+    /// <summary>Formats a leaf JSON value for human-readable display in Settings Catalog.</summary>
+    private static string FormatCatalogValue(System.Text.Json.JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.True => "Yes",
+            System.Text.Json.JsonValueKind.False => "No",
+            System.Text.Json.JsonValueKind.Null or System.Text.Json.JsonValueKind.Undefined => "Not Configured",
+            System.Text.Json.JsonValueKind.Number => element.ToString(),
+            System.Text.Json.JsonValueKind.String => FormatCatalogStringValue(element.GetString()),
+            _ => element.ToString()
+        };
+    }
+
+    /// <summary>Formats a string value from Settings Catalog, handling choice IDs and plain strings.</summary>
+    private static string FormatCatalogStringValue(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return "Not Configured";
+
+        // Choice values look like "device_vendor_msft_policy_config_..._somechoice_0"
+        // Take the last meaningful segment
+        if (value.Contains("_vendor_msft_") || value.Contains("_config_"))
+        {
+            var lastSegment = value.Split('_').LastOrDefault() ?? value;
+            return FormatPropertyName(lastSegment);
+        }
+
+        return value;
+    }
+
+    /// <summary>Extracts a display-friendly value from a polymorphic setting instance.</summary>
+    private static string ExtractSettingInstanceValue(Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSettingInstance? instance)
+    {
+        return instance switch
+        {
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSimpleSettingInstance s =>
+                ExtractSimpleValue(s.SimpleSettingValue),
+
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSimpleSettingCollectionInstance sc =>
+                sc.SimpleSettingCollectionValue is { Count: > 0 } vals
+                    ? string.Join(", ", vals.Select(ExtractSimpleValue))
+                    : "(empty)",
+
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationChoiceSettingInstance c =>
+                // Choice values are full definition IDs; take the last underscore segment for brevity
+                c.ChoiceSettingValue?.Value?.Split('_').LastOrDefault() ?? "",
+
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationChoiceSettingCollectionInstance cc =>
+                cc.ChoiceSettingCollectionValue is { Count: > 0 } cvals
+                    ? string.Join(", ", cvals.Select(v => v.Value?.Split('_').LastOrDefault() ?? ""))
+                    : "(empty)",
+
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationGroupSettingInstance g =>
+                $"[{g.GroupSettingValue?.Children?.Count ?? 0} child setting(s)]",
+
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationGroupSettingCollectionInstance gc =>
+                $"[{gc.GroupSettingCollectionValue?.Count ?? 0} group(s)]",
+
+            _ => instance?.OdataType?.Split('.').LastOrDefault() ?? ""
+        };
+    }
+
+    private static string ExtractSimpleValue(Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSimpleSettingValue? v)
+    {
+        return v switch
+        {
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationStringSettingValue sv => sv.Value ?? "",
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationIntegerSettingValue iv => iv.Value?.ToString() ?? "",
+            Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSecretSettingValue sec => $"[secret: {sec.ValueState}]",
+            _ => v?.AdditionalData != null && v.AdditionalData.TryGetValue("value", out var raw) ? raw?.ToString() ?? "" : ""
+        };
+    }
 }

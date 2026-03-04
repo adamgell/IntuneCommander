@@ -16,6 +16,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Intune.Commander.Core.Models;
 using Intune.Commander.Desktop.Converters;
 
@@ -30,6 +31,21 @@ public partial class MainWindow : SukiWindow
     private DataGrid? _mainDataGrid;
     private MainWindowViewModel? _vm;
     private bool _pendingGridRebuild;
+
+    /// <summary>
+    /// Returns the DataGrid, performing a lazy visual-tree search on first
+    /// call (or after it becomes null). The grid lives inside a UserControl
+    /// whose template is not stamped until the connected DockPanel first
+    /// becomes visible, so we cannot find it reliably during OnLoaded.
+    /// </summary>
+    private DataGrid? GetMainDataGrid()
+    {
+        if (_mainDataGrid != null) return _mainDataGrid;
+        _mainDataGrid = this.GetVisualDescendants()
+                            .OfType<DataGrid>()
+                            .FirstOrDefault(g => g.Name == "MainDataGrid");
+        return _mainDataGrid;
+    }
     private DebugLogWindow? _debugLogWindow;
     private PermissionsWindow? _permissionsWindow;
 
@@ -51,18 +67,26 @@ public partial class MainWindow : SukiWindow
     {
         base.OnLoaded(e);
 
-        _mainDataGrid = this.FindControl<DataGrid>("MainDataGrid");
+        // Named controls now live inside UserControl child name-scopes.
+        // We use GetVisualDescendants() to cross those boundaries. The
+        // DataGrid search is deferred to GetMainDataGrid() because the
+        // connected panel's template isn't stamped until IsConnected=true.
 
-        // With this:
-        var importMenuItem = this.FindControl<MenuItem>("ImportMenuItem");
+        var importMenuItem = this.GetVisualDescendants()
+                                 .OfType<MenuItem>()
+                                 .FirstOrDefault(m => m.Name == "ImportMenuItem");
         if (importMenuItem != null)
             importMenuItem.Click += OnImportClick;
 
-        var groupLookupButton = this.FindControl<Button>("GroupLookupButton");
+        var groupLookupButton = this.GetVisualDescendants()
+                                    .OfType<Button>()
+                                    .FirstOrDefault(b => b.Name == "GroupLookupButton");
         if (groupLookupButton != null)
             groupLookupButton.Click += OnGroupLookupClick;
 
-        var columnChooserButton = this.FindControl<Button>("ColumnChooserButton");
+        var columnChooserButton = this.GetVisualDescendants()
+                                      .OfType<Button>()
+                                      .FirstOrDefault(b => b.Name == "ColumnChooserButton");
         if (columnChooserButton != null)
             columnChooserButton.Click += OnColumnChooserClick;
 
@@ -152,6 +176,10 @@ public partial class MainWindow : SukiWindow
             or nameof(MainWindowViewModel.IsNotificationTemplatesCategory)
             or nameof(MainWindowViewModel.IsDynamicGroupsCategory)
             or nameof(MainWindowViewModel.IsAssignedGroupsCategory)
+            or nameof(MainWindowViewModel.IsVppTokensCategory)
+            or nameof(MainWindowViewModel.IsCloudPcProvisioningCategory)
+            or nameof(MainWindowViewModel.IsCloudPcUserSettingsCategory)
+            or nameof(MainWindowViewModel.IsRoleAssignmentsCategory)
             or nameof(MainWindowViewModel.IsOverviewCategory))
         {
             // Multiple category properties fire in sequence during a single
@@ -165,401 +193,21 @@ public partial class MainWindow : SukiWindow
                 {
                     _pendingGridRebuild = false;
                     RebuildDataGridColumns();
-                    BindDataGridSource();
                 }, DispatcherPriority.Render);
             }
         }
-        else if (e.PropertyName is nameof(MainWindowViewModel.FilteredDeviceConfigurations)
-            or nameof(MainWindowViewModel.FilteredCompliancePolicies)
-            or nameof(MainWindowViewModel.FilteredApplications)
-            or nameof(MainWindowViewModel.FilteredAppAssignmentRows)
-            or nameof(MainWindowViewModel.FilteredSettingsCatalogPolicies)
-            or nameof(MainWindowViewModel.FilteredEndpointSecurityIntents)
-            or nameof(MainWindowViewModel.FilteredAdministrativeTemplates)
-            or nameof(MainWindowViewModel.FilteredEnrollmentConfigurations)
-            or nameof(MainWindowViewModel.FilteredAppProtectionPolicies)
-            or nameof(MainWindowViewModel.FilteredManagedDeviceAppConfigurations)
-            or nameof(MainWindowViewModel.FilteredTargetedManagedAppConfigurations)
-            or nameof(MainWindowViewModel.FilteredTermsAndConditionsCollection)
-            or nameof(MainWindowViewModel.FilteredScopeTags)
-            or nameof(MainWindowViewModel.FilteredRoleDefinitions)
-            or nameof(MainWindowViewModel.FilteredIntuneBrandingProfiles)
-            or nameof(MainWindowViewModel.FilteredAzureBrandingLocalizations)
-            or nameof(MainWindowViewModel.FilteredConditionalAccessPolicies)
-            or nameof(MainWindowViewModel.FilteredAssignmentFilters)
-            or nameof(MainWindowViewModel.FilteredPolicySets)
-            or nameof(MainWindowViewModel.FilteredAutopilotProfiles)
-            or nameof(MainWindowViewModel.FilteredDeviceHealthScripts)
-            or nameof(MainWindowViewModel.FilteredMacCustomAttributes)
-            or nameof(MainWindowViewModel.FilteredFeatureUpdateProfiles)
-            or nameof(MainWindowViewModel.FilteredNamedLocations)
-            or nameof(MainWindowViewModel.FilteredAuthenticationStrengthPolicies)
-            or nameof(MainWindowViewModel.FilteredAuthenticationContextClassReferences)
-            or nameof(MainWindowViewModel.FilteredTermsOfUseAgreements)
-            or nameof(MainWindowViewModel.FilteredDeviceManagementScripts)
-            or nameof(MainWindowViewModel.FilteredDeviceShellScripts)
-            or nameof(MainWindowViewModel.FilteredComplianceScripts)
-            or nameof(MainWindowViewModel.FilteredAppleDepSettings)
-            or nameof(MainWindowViewModel.FilteredDeviceCategories)
-            or nameof(MainWindowViewModel.FilteredQualityUpdateProfiles)
-            or nameof(MainWindowViewModel.FilteredDriverUpdateProfiles)
-            or nameof(MainWindowViewModel.FilteredAdmxFiles)
-            or nameof(MainWindowViewModel.FilteredReusablePolicySettings)
-            or nameof(MainWindowViewModel.FilteredNotificationTemplates)
-            or nameof(MainWindowViewModel.FilteredDynamicGroupRows)
-            or nameof(MainWindowViewModel.FilteredAssignedGroupRows))
+        else if (e.PropertyName?.StartsWith("Filtered") == true)
         {
-            // Only rebind when the changed collection matches the active
-            // category so we never pair mismatched columns/data.
-            if (IsActiveFilteredCollection(e.PropertyName))
-                BindDataGridSource();
-        }
-    }
-
-    /// <summary>
-    /// Returns true when the property name is the filtered collection that
-    /// the currently selected nav category actually displays.
-    /// </summary>
-    private bool IsActiveFilteredCollection(string? propertyName)
-    {
-        if (_vm == null) return false;
-        return propertyName switch
-        {
-            nameof(MainWindowViewModel.FilteredDeviceConfigurations) => _vm.IsDeviceConfigCategory,
-            nameof(MainWindowViewModel.FilteredCompliancePolicies)  => _vm.IsCompliancePolicyCategory,
-            nameof(MainWindowViewModel.FilteredApplications)        => _vm.IsApplicationCategory,
-            nameof(MainWindowViewModel.FilteredAppAssignmentRows)   => _vm.IsAppAssignmentsCategory,
-            nameof(MainWindowViewModel.FilteredSettingsCatalogPolicies) => _vm.IsSettingsCatalogCategory,
-            nameof(MainWindowViewModel.FilteredEndpointSecurityIntents) => _vm.IsEndpointSecurityCategory,
-            nameof(MainWindowViewModel.FilteredAdministrativeTemplates) => _vm.IsAdministrativeTemplatesCategory,
-            nameof(MainWindowViewModel.FilteredEnrollmentConfigurations) => _vm.IsEnrollmentConfigurationsCategory,
-            nameof(MainWindowViewModel.FilteredAppProtectionPolicies) => _vm.IsAppProtectionPoliciesCategory,
-            nameof(MainWindowViewModel.FilteredManagedDeviceAppConfigurations) => _vm.IsManagedDeviceAppConfigurationsCategory,
-            nameof(MainWindowViewModel.FilteredTargetedManagedAppConfigurations) => _vm.IsTargetedManagedAppConfigurationsCategory,
-            nameof(MainWindowViewModel.FilteredTermsAndConditionsCollection) => _vm.IsTermsAndConditionsCategory,
-            nameof(MainWindowViewModel.FilteredScopeTags) => _vm.IsScopeTagsCategory,
-            nameof(MainWindowViewModel.FilteredRoleDefinitions) => _vm.IsRoleDefinitionsCategory,
-            nameof(MainWindowViewModel.FilteredIntuneBrandingProfiles) => _vm.IsIntuneBrandingCategory,
-            nameof(MainWindowViewModel.FilteredAzureBrandingLocalizations) => _vm.IsAzureBrandingCategory,
-            nameof(MainWindowViewModel.FilteredConditionalAccessPolicies) => _vm.IsConditionalAccessCategory,
-            nameof(MainWindowViewModel.FilteredAssignmentFilters)   => _vm.IsAssignmentFiltersCategory,
-            nameof(MainWindowViewModel.FilteredPolicySets)          => _vm.IsPolicySetsCategory,
-            nameof(MainWindowViewModel.FilteredAutopilotProfiles) => _vm.IsAutopilotProfilesCategory,
-            nameof(MainWindowViewModel.FilteredDeviceHealthScripts) => _vm.IsDeviceHealthScriptsCategory,
-            nameof(MainWindowViewModel.FilteredMacCustomAttributes) => _vm.IsMacCustomAttributesCategory,
-            nameof(MainWindowViewModel.FilteredFeatureUpdateProfiles) => _vm.IsFeatureUpdatesCategory,
-            nameof(MainWindowViewModel.FilteredNamedLocations) => _vm.IsNamedLocationsCategory,
-            nameof(MainWindowViewModel.FilteredAuthenticationStrengthPolicies) => _vm.IsAuthenticationStrengthsCategory,
-            nameof(MainWindowViewModel.FilteredAuthenticationContextClassReferences) => _vm.IsAuthenticationContextsCategory,
-            nameof(MainWindowViewModel.FilteredTermsOfUseAgreements) => _vm.IsTermsOfUseCategory,
-            nameof(MainWindowViewModel.FilteredDeviceManagementScripts) => _vm.IsDeviceManagementScriptsCategory,
-            nameof(MainWindowViewModel.FilteredDeviceShellScripts) => _vm.IsDeviceShellScriptsCategory,
-            nameof(MainWindowViewModel.FilteredComplianceScripts) => _vm.IsComplianceScriptsCategory,
-            nameof(MainWindowViewModel.FilteredAppleDepSettings) => _vm.IsAppleDepCategory,
-            nameof(MainWindowViewModel.FilteredDeviceCategories) => _vm.IsDeviceCategoriesCategory,
-            nameof(MainWindowViewModel.FilteredQualityUpdateProfiles) => _vm.IsQualityUpdatesCategory,
-            nameof(MainWindowViewModel.FilteredDriverUpdateProfiles) => _vm.IsDriverUpdatesCategory,
-            nameof(MainWindowViewModel.FilteredAdmxFiles) => _vm.IsAdmxFilesCategory,
-            nameof(MainWindowViewModel.FilteredReusablePolicySettings) => _vm.IsReusablePolicySettingsCategory,
-            nameof(MainWindowViewModel.FilteredNotificationTemplates) => _vm.IsNotificationTemplatesCategory,
-            nameof(MainWindowViewModel.FilteredDynamicGroupRows)    => _vm.IsDynamicGroupsCategory,
-            nameof(MainWindowViewModel.FilteredAssignedGroupRows)   => _vm.IsAssignedGroupsCategory,
-            _ => false
-        };
-    }
-
-    private void BindDataGridSource()
-    {
-        if (_mainDataGrid == null || _vm == null) return;
-
-        // Clear existing bindings first
-        _mainDataGrid.ClearValue(DataGrid.ItemsSourceProperty);
-        _mainDataGrid.ClearValue(DataGrid.SelectedItemProperty);
-
-        if (_vm.IsDeviceConfigCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredDeviceConfigurations)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedConfiguration)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsCompliancePolicyCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredCompliancePolicies)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedCompliancePolicy)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsApplicationCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredApplications)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedApplication)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAppAssignmentsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAppAssignmentRows)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAppAssignmentRow)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsSettingsCatalogCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredSettingsCatalogPolicies)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedSettingsCatalogPolicy)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsEndpointSecurityCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredEndpointSecurityIntents)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedEndpointSecurityIntent)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAdministrativeTemplatesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAdministrativeTemplates)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAdministrativeTemplate)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsEnrollmentConfigurationsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredEnrollmentConfigurations)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedEnrollmentConfiguration)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAppProtectionPoliciesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAppProtectionPolicies)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAppProtectionPolicy)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsManagedDeviceAppConfigurationsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredManagedDeviceAppConfigurations)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedManagedDeviceAppConfiguration)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsTargetedManagedAppConfigurationsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredTargetedManagedAppConfigurations)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedTargetedManagedAppConfiguration)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsTermsAndConditionsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredTermsAndConditionsCollection)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedTermsAndConditions)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsScopeTagsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredScopeTags)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedScopeTag)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsRoleDefinitionsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredRoleDefinitions)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedRoleDefinition)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsIntuneBrandingCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredIntuneBrandingProfiles)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedIntuneBrandingProfile)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAzureBrandingCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAzureBrandingLocalizations)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAzureBrandingLocalization)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsConditionalAccessCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredConditionalAccessPolicies)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedConditionalAccessPolicy)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAssignmentFiltersCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAssignmentFilters)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAssignmentFilter)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsPolicySetsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredPolicySets)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedPolicySet)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAutopilotProfilesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAutopilotProfiles)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAutopilotProfile)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsDeviceHealthScriptsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredDeviceHealthScripts)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedDeviceHealthScript)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsMacCustomAttributesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredMacCustomAttributes)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedMacCustomAttribute)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsFeatureUpdatesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredFeatureUpdateProfiles)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedFeatureUpdateProfile)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsNamedLocationsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredNamedLocations)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedNamedLocation)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAuthenticationStrengthsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAuthenticationStrengthPolicies)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAuthenticationStrengthPolicy)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAuthenticationContextsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAuthenticationContextClassReferences)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAuthenticationContextClassReference)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsTermsOfUseCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredTermsOfUseAgreements)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedTermsOfUseAgreement)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsDeviceManagementScriptsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredDeviceManagementScripts)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedDeviceManagementScript)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsDeviceShellScriptsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredDeviceShellScripts)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedDeviceShellScript)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsComplianceScriptsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredComplianceScripts)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedComplianceScript)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAppleDepCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAppleDepSettings)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAppleDepSetting)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsDeviceCategoriesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredDeviceCategories)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedDeviceCategory)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsQualityUpdatesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredQualityUpdateProfiles)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedQualityUpdateProfile)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsDriverUpdatesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredDriverUpdateProfiles)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedDriverUpdateProfile)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAdmxFilesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAdmxFiles)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAdmxFile)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsReusablePolicySettingsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredReusablePolicySettings)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedReusablePolicySetting)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsNotificationTemplatesCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredNotificationTemplates)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedNotificationTemplate)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsDynamicGroupsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredDynamicGroupRows)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedDynamicGroupRow)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else if (_vm.IsAssignedGroupsCategory)
-        {
-            _mainDataGrid.Bind(DataGrid.ItemsSourceProperty,
-                new Binding(nameof(_vm.FilteredAssignedGroupRows)) { Source = _vm });
-            _mainDataGrid.Bind(DataGrid.SelectedItemProperty,
-                new Binding(nameof(_vm.SelectedAssignedGroupRow)) { Source = _vm, Mode = BindingMode.TwoWay });
-        }
-        else
-        {
-            _mainDataGrid.ItemsSource = null;
+            _vm?.RefreshActiveItemsSource();
         }
     }
 
     private void RebuildDataGridColumns()
     {
-        if (_mainDataGrid == null || _vm == null) return;
+        var grid = GetMainDataGrid();
+        if (grid == null || _vm == null) return;
 
-        _mainDataGrid.Columns.Clear();
+        grid.Columns.Clear();
         var columns = _vm.ActiveColumns;
         if (columns == null) return;
 
@@ -595,7 +243,7 @@ public partial class MainWindow : SukiWindow
                     : new DataGridLength(col.Width)
             };
 
-            _mainDataGrid.Columns.Add(dgCol);
+            grid.Columns.Add(dgCol);
         }
     }
 

@@ -160,7 +160,29 @@ public partial class MainWindowViewModel : ViewModelBase
 
             ?? SelectedDeviceShellScript as object
 
-            ?? SelectedComplianceScript as object;
+            ?? SelectedComplianceScript as object
+
+            ?? SelectedAdmxFile as object
+
+            ?? SelectedReusablePolicySetting as object
+
+            ?? SelectedNotificationTemplate as object
+
+            ?? SelectedQualityUpdateProfile as object
+
+            ?? SelectedDriverUpdateProfile as object
+
+            ?? SelectedAppleDepSetting as object
+
+            ?? SelectedDeviceCategory as object
+
+            ?? SelectedVppToken as object
+
+            ?? SelectedCloudPcProvisioningPolicy as object
+
+            ?? SelectedCloudPcUserSetting as object
+
+            ?? SelectedRoleAssignment as object;
 
 
 
@@ -230,6 +252,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
             DeviceComplianceScript cs => cs.DisplayName ?? "Compliance Script",
 
+            GroupPolicyUploadedDefinitionFile admx => admx.FileName ?? "ADMX File",
+            DeviceManagementReusablePolicySetting rps => rps.DisplayName ?? "Reusable Policy Setting",
+            NotificationMessageTemplate nmt => nmt.DisplayName ?? "Notification Template",
+            WindowsQualityUpdateProfile qup => qup.DisplayName ?? "Quality Update Profile",
+            WindowsDriverUpdateProfile dup => dup.DisplayName ?? "Driver Update Profile",
+            DepOnboardingSetting dep => dep.AppleIdentifier ?? "Apple DEP Setting",
+            DeviceCategory dc => dc.DisplayName ?? "Device Category",
+            VppToken vpp => vpp.OrganizationName ?? "VPP Token",
+            CloudPcProvisioningPolicy cppol => cppol.DisplayName ?? "Cloud PC Provisioning Policy",
+            CloudPcUserSetting cpus => cpus.DisplayName ?? "Cloud PC User Setting",
+            DeviceAndAppManagementRoleAssignment ra => ra.DisplayName ?? "Role Assignment",
+
             _ => "Item"
 
         };
@@ -240,7 +274,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         {
 
-            var json = JsonSerializer.Serialize(item, item.GetType(), new JsonSerializerOptions
+            var jsonOptions = new JsonSerializerOptions
 
             {
 
@@ -248,7 +282,85 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
 
-            });
+            };
+
+            var baseJson = JsonSerializer.Serialize(item, item.GetType(), jsonOptions);
+
+            // Enrich with detail data that isn't in the raw Graph object
+            string json;
+            using var doc = JsonDocument.Parse(baseJson);
+            using var stream = new System.IO.MemoryStream();
+            using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
+            {
+                writer.WriteStartObject();
+
+                // Copy all original properties
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                    prop.WriteTo(writer);
+
+                // Add settings catalog settings
+                if (item is DeviceManagementConfigurationPolicy && SelectedItemCatalogSettings.Count > 0)
+                {
+                    writer.WriteStartObject("_settings");
+                    foreach (var s in SelectedItemCatalogSettings)
+                        writer.WriteString(s.Label, s.Value);
+                    writer.WriteEndObject();
+                }
+
+                // Add device configuration settings
+                if (item is DeviceConfiguration)
+                {
+                    if (SelectedItemConfigurationSettings.Count > 0)
+                    {
+                        writer.WriteStartObject("_settings");
+                        foreach (var s in SelectedItemConfigurationSettings)
+                            writer.WriteString(s.Label, s.Value);
+                        writer.WriteEndObject();
+                    }
+                }
+
+                // Add compliance settings
+                if (item is DeviceCompliancePolicy cp)
+                {
+                    var settings = ExtractComplianceSettings(cp);
+                    if (settings.Count > 0)
+                    {
+                        writer.WriteStartObject("_settings");
+                        foreach (var (label, value) in settings)
+                            writer.WriteString(label, value);
+                        writer.WriteEndObject();
+                    }
+                }
+
+                // Add script content
+                if (item is DeviceHealthScript or DeviceManagementScript or DeviceShellScript or DeviceComplianceScript)
+                {
+                    if (SelectedItemDetectionScript is { Length: > 0 } and not "Loading...")
+                        writer.WriteString("_detectionScript", SelectedItemDetectionScript);
+                    if (SelectedItemRemediationScript is { Length: > 0 } and not "Loading...")
+                        writer.WriteString("_remediationScript", SelectedItemRemediationScript);
+                }
+
+                // Add assignments
+                if (SelectedItemAssignments.Count > 0)
+                {
+                    writer.WriteStartArray("_assignments");
+                    foreach (var a in SelectedItemAssignments)
+                    {
+                        writer.WriteStartObject();
+                        writer.WriteString("intent", a.Intent);
+                        writer.WriteString("target", a.Target);
+                        writer.WriteString("groupId", a.GroupId);
+                        writer.WriteString("targetKind", a.TargetKind);
+                        writer.WriteEndObject();
+                    }
+                    writer.WriteEndArray();
+                }
+
+                writer.WriteEndObject();
+            }
+
+            json = Encoding.UTF8.GetString(stream.ToArray());
 
             ViewRawJsonRequested?.Invoke(title, json);
 
@@ -301,6 +413,14 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "Last Modified", cfg.LastModifiedDateTime?.ToString("g"));
 
             Append(sb, "Version", cfg.Version?.ToString());
+
+            if (SelectedItemConfigurationSettings.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("SETTINGS:");
+                foreach (var s in SelectedItemConfigurationSettings)
+                    sb.AppendLine($"  {s.Label}: {s.Value}");
+            }
 
             AppendAssignments(sb);
 
@@ -413,6 +533,15 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "Created", sc.CreatedDateTime?.ToString("g"));
 
             Append(sb, "Last Modified", sc.LastModifiedDateTime?.ToString("g"));
+
+            // SETTINGS section
+            if (SelectedItemCatalogSettings.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("SETTINGS");
+                foreach (var setting in SelectedItemCatalogSettings)
+                    sb.AppendLine($"  {setting.Label}: {setting.Value}");
+            }
 
             AppendAssignments(sb);
 
@@ -729,6 +858,22 @@ public partial class MainWindowViewModel : ViewModelBase
             if (SelectedItemVersion is { Length: > 0 })
                 Append(sb, "Version", SelectedItemVersion);
 
+            // SCRIPTS section
+            if (SelectedItemDetectionScript is { Length: > 0 } and not "Loading...")
+            {
+                sb.AppendLine();
+                sb.AppendLine("DETECTION SCRIPT");
+                sb.AppendLine(SelectedItemDetectionScript);
+            }
+            if (SelectedItemRemediationScript is { Length: > 0 } and not "Loading...")
+            {
+                sb.AppendLine();
+                sb.AppendLine("REMEDIATION SCRIPT");
+                sb.AppendLine(SelectedItemRemediationScript);
+            }
+
+            AppendAssignments(sb);
+
         }
 
         else if (SelectedMacCustomAttribute is { } macCustomAttribute)
@@ -872,11 +1017,23 @@ public partial class MainWindowViewModel : ViewModelBase
             if (SelectedCAPolicyExcludeLocations.Count > 0)
                 Append(sb, "Exclude Locations", string.Join(", ", SelectedCAPolicyExcludeLocations));
 
+            if (SelectedCAPolicyIncludeUsers.Count > 0)
+                Append(sb, "Include Users", string.Join(", ", SelectedCAPolicyIncludeUsers));
+
+            if (SelectedCAPolicyExcludeUsers.Count > 0)
+                Append(sb, "Exclude Users", string.Join(", ", SelectedCAPolicyExcludeUsers));
+
             if (SelectedCAPolicyIncludeGroups.Count > 0)
                 Append(sb, "Include Groups", string.Join(", ", SelectedCAPolicyIncludeGroups));
 
             if (SelectedCAPolicyExcludeGroups.Count > 0)
                 Append(sb, "Exclude Groups", string.Join(", ", SelectedCAPolicyExcludeGroups));
+
+            if (SelectedCAPolicyIncludeRoles.Count > 0)
+                Append(sb, "Include Roles", string.Join(", ", SelectedCAPolicyIncludeRoles));
+
+            if (SelectedCAPolicyExcludeRoles.Count > 0)
+                Append(sb, "Exclude Roles", string.Join(", ", SelectedCAPolicyExcludeRoles));
 
             if (SelectedCAPolicyIncludeApps.Count > 0)
                 Append(sb, "Include Apps", string.Join(", ", SelectedCAPolicyIncludeApps));
@@ -940,6 +1097,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "ID", dms.Id);
 
+            // SCRIPT CONTENT
+            if (SelectedItemDetectionScript is { Length: > 0 } and not "Loading...")
+            {
+                sb.AppendLine();
+                sb.AppendLine("SCRIPT CONTENT");
+                sb.AppendLine(SelectedItemDetectionScript);
+            }
+
             AppendAssignments(sb);
 
         }
@@ -970,6 +1135,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Append(sb, "ID", dss.Id);
 
+            // SCRIPT CONTENT
+            if (SelectedItemDetectionScript is { Length: > 0 } and not "Loading...")
+            {
+                sb.AppendLine();
+                sb.AppendLine("SCRIPT CONTENT");
+                sb.AppendLine(SelectedItemDetectionScript);
+            }
+
             AppendAssignments(sb);
 
         }
@@ -997,6 +1170,14 @@ public partial class MainWindowViewModel : ViewModelBase
             Append(sb, "Created", cs.CreatedDateTime?.ToString("g"));
 
             Append(sb, "Last Modified", cs.LastModifiedDateTime?.ToString("g"));
+
+            // SCRIPT CONTENT
+            if (SelectedItemDetectionScript is { Length: > 0 } and not "Loading...")
+            {
+                sb.AppendLine();
+                sb.AppendLine("DETECTION SCRIPT");
+                sb.AppendLine(SelectedItemDetectionScript);
+            }
 
         }
 
@@ -1130,6 +1311,101 @@ public partial class MainWindowViewModel : ViewModelBase
 
         }
 
+        else if (SelectedAdmxFile is { } admx)
+        {
+            sb.AppendLine("=== ADMX File ===");
+            sb.AppendLine($"File Name: {admx.FileName}");
+            sb.AppendLine($"Status: {admx.Status}");
+            sb.AppendLine($"Target Prefix: {admx.TargetPrefix}");
+            sb.AppendLine($"Target Namespace: {admx.TargetNamespace}");
+            sb.AppendLine($"Last Modified: {admx.LastModifiedDateTime:g}");
+        }
+        else if (SelectedReusablePolicySetting is { } rps)
+        {
+            sb.AppendLine("=== Reusable Policy Setting ===");
+            sb.AppendLine($"Display Name: {rps.DisplayName}");
+            sb.AppendLine($"Description: {rps.Description}");
+            sb.AppendLine($"Setting Definition ID: {rps.SettingDefinitionId}");
+            sb.AppendLine($"Referencing Policies: {rps.ReferencingConfigurationPolicyCount ?? 0}");
+            sb.AppendLine($"Created: {rps.CreatedDateTime:g}");
+            sb.AppendLine($"Last Modified: {rps.LastModifiedDateTime:g}");
+        }
+        else if (SelectedNotificationTemplate is { } nmt)
+        {
+            sb.AppendLine("=== Notification Template ===");
+            sb.AppendLine($"Display Name: {nmt.DisplayName}");
+            sb.AppendLine($"Description: {nmt.Description}");
+            sb.AppendLine($"Default Locale: {nmt.DefaultLocale}");
+            sb.AppendLine($"Branding Options: {nmt.BrandingOptions}");
+            sb.AppendLine($"Last Modified: {nmt.LastModifiedDateTime:g}");
+        }
+        else if (SelectedQualityUpdateProfile is { } qup)
+        {
+            sb.AppendLine("=== Quality Update Profile ===");
+            sb.AppendLine($"Display Name: {qup.DisplayName}");
+            sb.AppendLine($"Description: {qup.Description}");
+            sb.AppendLine($"Deployable Content: {qup.DeployableContentDisplayName}");
+            sb.AppendLine($"Created: {qup.CreatedDateTime:g}");
+            sb.AppendLine($"Last Modified: {qup.LastModifiedDateTime:g}");
+        }
+        else if (SelectedDriverUpdateProfile is { } dup)
+        {
+            sb.AppendLine("=== Driver Update Profile ===");
+            sb.AppendLine($"Display Name: {dup.DisplayName}");
+            sb.AppendLine($"Description: {dup.Description}");
+            sb.AppendLine($"Approval Type: {dup.ApprovalType}");
+            sb.AppendLine($"Created: {dup.CreatedDateTime:g}");
+            sb.AppendLine($"Last Modified: {dup.LastModifiedDateTime:g}");
+        }
+        else if (SelectedAppleDepSetting is { } dep)
+        {
+            sb.AppendLine("=== Apple DEP Setting ===");
+            sb.AppendLine($"Apple Identifier: {dep.AppleIdentifier}");
+            sb.AppendLine($"Token Name: {dep.TokenName}");
+            sb.AppendLine($"Token Type: {dep.TokenType}");
+            sb.AppendLine($"Token Expires: {dep.TokenExpirationDateTime:g}");
+            sb.AppendLine($"Synced Devices: {dep.SyncedDeviceCount}");
+        }
+        else if (SelectedDeviceCategory is { } dc)
+        {
+            sb.AppendLine("=== Device Category ===");
+            sb.AppendLine($"Display Name: {dc.DisplayName}");
+            sb.AppendLine($"Description: {dc.Description}");
+            sb.AppendLine($"ID: {dc.Id}");
+        }
+        else if (SelectedVppToken is { } vpp)
+        {
+            sb.AppendLine("=== VPP Token ===");
+            sb.AppendLine($"Organization: {vpp.OrganizationName}");
+            sb.AppendLine($"Apple ID: {vpp.AppleId}");
+            sb.AppendLine($"State: {vpp.State}");
+            sb.AppendLine($"Token Expires: {vpp.ExpirationDateTime:g}");
+        }
+        else if (SelectedCloudPcProvisioningPolicy is { } cpPol)
+        {
+            sb.AppendLine("=== Cloud PC Provisioning Policy ===");
+            sb.AppendLine($"Display Name: {cpPol.DisplayName}");
+            sb.AppendLine($"Description: {cpPol.Description}");
+            sb.AppendLine($"Image: {cpPol.ImageDisplayName}");
+            sb.AppendLine($"Enable SSO: {cpPol.EnableSingleSignOn}");
+            sb.AppendLine($"Local Admin: {cpPol.LocalAdminEnabled}");
+        }
+        else if (SelectedCloudPcUserSetting is { } cpUs)
+        {
+            sb.AppendLine("=== Cloud PC User Setting ===");
+            sb.AppendLine($"Display Name: {cpUs.DisplayName}");
+            sb.AppendLine($"Self-Service: {cpUs.SelfServiceEnabled}");
+            sb.AppendLine($"Local Admin: {cpUs.LocalAdminEnabled}");
+        }
+        else if (SelectedRoleAssignment is { } ra)
+        {
+            sb.AppendLine("=== Role Assignment ===");
+            sb.AppendLine($"Display Name: {ra.DisplayName}");
+            sb.AppendLine($"Description: {ra.Description}");
+            sb.AppendLine($"Scope Type: {ra.ScopeType}");
+            sb.AppendLine($"Resource Scopes: {string.Join(", ", ra.ResourceScopes ?? [])}");
+        }
+
 
 
         return sb.ToString();
@@ -1206,21 +1482,42 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private List<(string Label, string Value)> ExtractComplianceSettings(DeviceCompliancePolicy policy)
     {
+        // Reuse the generic extractor — compliance policies are just another Graph object
+        return ExtractGraphObjectSettings(policy);
+    }
+
+    /// <summary>
+    /// Generic settings extractor that works on any Graph SDK model.
+    /// Serializes the object to JSON and extracts all non-metadata properties
+    /// for human-readable display.
+    /// </summary>
+    private List<(string Label, string Value)> ExtractGraphObjectSettings(object graphObject)
+    {
         var settings = new List<(string Label, string Value)>();
 
-        // Properties to exclude (metadata, organizational, actions — displayed elsewhere)
+        // Metadata properties displayed elsewhere in the Properties section
         var excludedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Id", "DisplayName", "Description", "OdataType", "CreatedDateTime",
             "LastModifiedDateTime", "Version", "RoleScopeTagIds", "Assignments",
             "ScheduledActionsForRule", "AdditionalData", "BackingStore",
-            "@odata.context", "@odata.type"
+            "@odata.context", "@odata.type", "SupportsScopeTags",
+            "DeviceManagementApplicabilityRuleOsEdition",
+            "DeviceManagementApplicabilityRuleOsVersion",
+            "DeviceManagementApplicabilityRuleDeviceMode"
+        };
+
+        // Graph navigation properties that are empty collection stubs (not real settings)
+        var navigationProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "DeviceStatuses", "UserStatuses", "DeviceStatusOverview", "UserStatusOverview",
+            "DeviceSettingStateSummaries", "GroupAssignments", "DeviceStates",
+            "ScheduledActionsForRule"
         };
 
         try
         {
-            // Serialize with the runtime type so all derived properties are included
-            var json = JsonSerializer.Serialize(policy, policy.GetType(), new JsonSerializerOptions
+            var json = JsonSerializer.Serialize(graphObject, graphObject.GetType(), new JsonSerializerOptions
             {
                 WriteIndented = false
             });
@@ -1230,6 +1527,8 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 if (excludedProperties.Contains(prop.Name))
                     continue;
+                if (navigationProperties.Contains(prop.Name))
+                    continue;
 
                 var label = FormatPropertyName(prop.Name);
                 var formattedValue = FormatJsonElementValue(prop.Value);
@@ -1238,7 +1537,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            DebugLog.LogError($"ComplianceSettings: Failed to extract settings: {ex.Message}");
+            DebugLog.LogError($"ExtractGraphObjectSettings: Failed to extract settings: {ex.Message}");
         }
 
         return settings;
@@ -1281,12 +1580,101 @@ public partial class MainWindowViewModel : ViewModelBase
             JsonValueKind.Null or JsonValueKind.Undefined => "Not Configured",
             JsonValueKind.String => element.GetString() is { Length: > 0 } s ? s : "Not Configured",
             JsonValueKind.Number => element.ToString(),
-            JsonValueKind.Array => element.GetArrayLength() > 0
-                ? string.Join(", ", element.EnumerateArray().Select(e => e.ToString()))
-                : "None",
-            JsonValueKind.Object => "(complex)",
+            JsonValueKind.Array => FormatJsonArray(element),
+            JsonValueKind.Object => FormatJsonObject(element),
             _ => element.ToString()
         };
+    }
+
+    /// <summary>
+    /// Properties that are Graph SDK / backing store internals and should never be shown.
+    /// </summary>
+    private static readonly HashSet<string> BackingStoreProperties = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AdditionalData", "BackingStore", "InitializationCompleted",
+        "ReturnOnlyChangedValues", "OdataType", "@odata.type"
+    };
+
+    /// <summary>
+    /// Formats a JSON array for display, handling arrays of primitives and arrays of objects.
+    /// </summary>
+    private static string FormatJsonArray(JsonElement element)
+    {
+        if (element.GetArrayLength() == 0)
+            return "None";
+
+        var items = element.EnumerateArray().ToList();
+
+        // Array of primitives (strings, numbers, bools)
+        if (items.All(i => i.ValueKind is JsonValueKind.String or JsonValueKind.Number
+                                       or JsonValueKind.True or JsonValueKind.False))
+        {
+            return string.Join(", ", items.Select(i => FormatJsonElementValue(i)));
+        }
+
+        // Array of objects — extract meaningful values from each
+        var parts = new List<string>();
+        foreach (var item in items)
+        {
+            if (item.ValueKind == JsonValueKind.Object)
+            {
+                var meaningful = ExtractMeaningfulObjectValues(item);
+                if (!string.IsNullOrEmpty(meaningful))
+                    parts.Add(meaningful);
+            }
+            else
+            {
+                parts.Add(FormatJsonElementValue(item));
+            }
+        }
+
+        return parts.Count > 0 ? string.Join("; ", parts) : "None";
+    }
+
+    /// <summary>
+    /// Formats a JSON object for display by extracting its meaningful properties.
+    /// </summary>
+    private static string FormatJsonObject(JsonElement element)
+    {
+        var meaningful = ExtractMeaningfulObjectValues(element);
+        return !string.IsNullOrEmpty(meaningful) ? meaningful : "Not Configured";
+    }
+
+    /// <summary>
+    /// Extracts human-readable key=value pairs from a JSON object,
+    /// filtering out Graph SDK backing store internals.
+    /// </summary>
+    private static string ExtractMeaningfulObjectValues(JsonElement obj)
+    {
+        var parts = new List<string>();
+        foreach (var prop in obj.EnumerateObject())
+        {
+            // Skip backing store / SDK internal properties
+            if (BackingStoreProperties.Contains(prop.Name))
+                continue;
+
+            // Skip nulls
+            if (prop.Value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                continue;
+
+            // For simple values, show key=value
+            var val = prop.Value.ValueKind switch
+            {
+                JsonValueKind.String => prop.Value.GetString(),
+                JsonValueKind.Number => prop.Value.ToString(),
+                JsonValueKind.True => "Yes",
+                JsonValueKind.False => "No",
+                JsonValueKind.Array when prop.Value.GetArrayLength() == 0 => null,
+                JsonValueKind.Array => FormatJsonArray(prop.Value),
+                JsonValueKind.Object => null, // Don't recurse infinitely into nested objects
+                _ => null
+            };
+
+            if (!string.IsNullOrEmpty(val))
+                parts.Add($"{FormatPropertyName(prop.Name)}: {val}");
+        }
+
+        return string.Join(", ", parts);
     }
 
     private static string? TryReadStringProperty(object? instance, string propertyName)
@@ -1368,8 +1756,10 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Resolves an application ID to a well-known display name using the shared
     /// MicrosoftApps.json registry, or returns the ID if unknown.
     /// </summary>
-    private static string ResolveApplicationId(string? id) =>
-        Intune.Commander.Core.Models.WellKnownAppRegistry.Resolve(id);
+    private static string ResolveApplicationId(string? id)
+    {
+        return Intune.Commander.Core.Models.WellKnownAppRegistry.Resolve(id);
+    }
 
     /// <summary>
     /// Decodes a Base64-encoded string (commonly used for script content).
@@ -1389,7 +1779,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private static string FormatAuthMethodMode(AuthenticationMethodModes mode) =>
-        System.Text.RegularExpressions.Regex.Replace(mode.ToString(), "(?<=[a-z])(?=[A-Z])", " ");
-
+    private static string FormatAuthMethodMode(AuthenticationMethodModes mode)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(mode.ToString(), "(?<=[a-z])(?=[A-Z])", " ");
+    }
 }

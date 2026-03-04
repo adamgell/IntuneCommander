@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+             x:Class="Intune.Commander.Desktop.Views.Controls.DetailPaneHeaderControl"
+             x:DataType="vm:MainWindowViewModel">
+    <StackPanel>
+        <DockPanel Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                <Button Content="🔄 Refresh"
+                        Command="{Binding RefreshSelectedItemCommand}"
+                        IsEnabled="{Binding CanRefreshSelectedItem}"
+                        Classes="Small"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="Refresh this item from Graph" />
+                <Button Content="📄 JSON"
+                        Command="{Binding ViewRawJsonCommand}"
+                        IsEnabled="{Binding CanRefreshSelectedItem}"
+                        Classes="Small"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="View raw Graph JSON object" />
+                <Button Content="📋 Copy"
+                        Command="{Binding CopyDetailsToClipboardCommand}"
+                        Classes="Small"
+                        VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="Details"
+                       FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Padding="20"/>
+        </DockPanel>
+
+        <!-- Loading indicator for detail fetch -->
+        <ProgressBar IsIndeterminate="True"
+                     IsVisible="{Binding IsLoadingDetails}"
+                     Height="2" Margin="0,0,0,4" />
+    </StackPanel>
+</UserControl>

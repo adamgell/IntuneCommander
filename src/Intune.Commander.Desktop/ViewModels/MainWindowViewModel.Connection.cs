@@ -187,13 +187,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _deviceCategoryService = new DeviceCategoryService(_graphClient);
 
+            _directoryObjectResolver = new DirectoryObjectResolver(_graphClient);
+
             _conditionalAccessPptExportService = new ConditionalAccessPptExportService(
                 _conditionalAccessPolicyService,
                 _namedLocationService,
                 _authenticationStrengthService,
                 _authenticationContextService,
                 _applicationService,
-                new DirectoryObjectResolver(_graphClient));
+                _directoryObjectResolver);
 
             ExportConditionalAccessPowerPointCommand.NotifyCanExecuteChanged();
 

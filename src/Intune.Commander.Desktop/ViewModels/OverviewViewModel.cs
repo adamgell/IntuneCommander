@@ -209,37 +209,70 @@ public partial class OverviewViewModel : ObservableObject
     public Action<string>? NavigateToCategory { get; set; }
 
     [RelayCommand]
-    private void NavigateToDeviceConfigs() => NavigateToCategory?.Invoke("Device Configurations");
+    private void NavigateToDeviceConfigs()
+    {
+        NavigateToCategory?.Invoke("Device Configurations");
+    }
 
     [RelayCommand]
-    private void NavigateToCompliancePolicies() => NavigateToCategory?.Invoke("Compliance Policies");
+    private void NavigateToCompliancePolicies()
+    {
+        NavigateToCategory?.Invoke("Compliance Policies");
+    }
 
     [RelayCommand]
-    private void NavigateToApplications() => NavigateToCategory?.Invoke("Applications");
+    private void NavigateToApplications()
+    {
+        NavigateToCategory?.Invoke("Applications");
+    }
 
     [RelayCommand]
-    private void NavigateToUnassignedApps() => NavigateToCategory?.Invoke("Applications");
+    private void NavigateToUnassignedApps()
+    {
+        NavigateToCategory?.Invoke("Applications");
+    }
 
     [RelayCommand]
-    private void NavigateToSettingsCatalog() => NavigateToCategory?.Invoke("Settings Catalog");
+    private void NavigateToSettingsCatalog()
+    {
+        NavigateToCategory?.Invoke("Settings Catalog");
+    }
 
     [RelayCommand]
-    private void NavigateToEndpointSecurity() => NavigateToCategory?.Invoke("Endpoint Security");
+    private void NavigateToEndpointSecurity()
+    {
+        NavigateToCategory?.Invoke("Endpoint Security");
+    }
 
     [RelayCommand]
-    private void NavigateToAdministrativeTemplates() => NavigateToCategory?.Invoke("Administrative Templates");
+    private void NavigateToAdministrativeTemplates()
+    {
+        NavigateToCategory?.Invoke("Administrative Templates");
+    }
 
     [RelayCommand]
-    private void NavigateToConditionalAccess() => NavigateToCategory?.Invoke("Conditional Access");
+    private void NavigateToConditionalAccess()
+    {
+        NavigateToCategory?.Invoke("Conditional Access");
+    }
 
     [RelayCommand]
-    private void NavigateToEnrollmentConfigs() => NavigateToCategory?.Invoke("Enrollment Configurations");
+    private void NavigateToEnrollmentConfigs()
+    {
+        NavigateToCategory?.Invoke("Enrollment Configurations");
+    }
 
     [RelayCommand]
-    private void NavigateToScripts() => NavigateToCategory?.Invoke("Device Management Scripts");
+    private void NavigateToScripts()
+    {
+        NavigateToCategory?.Invoke("Device Management Scripts");
+    }
 
     [RelayCommand]
-    private void NavigateToAppProtection() => NavigateToCategory?.Invoke("App Protection Policies");
+    private void NavigateToAppProtection()
+    {
+        NavigateToCategory?.Invoke("App Protection Policies");
+    }
 
     private void BuildRecentlyModified(
         IReadOnlyList<DeviceConfiguration> configs,

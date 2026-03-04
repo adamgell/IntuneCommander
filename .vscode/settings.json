@@ -13,5 +13,6 @@
   "chat.viewSessions.enabled": true,
   "editor.aiStats.enabled": true,
   "github.copilot.chat.agentCustomizationSkill.enabled": true,
-  "github.copilot.chat.askQuestions.enabled": true
+  "github.copilot.chat.askQuestions.enabled": true,
+  "powershell.pester.codeLens": false
 }

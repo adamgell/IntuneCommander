@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+             xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:icons="clr-namespace:Material.Icons;assembly=Material.Icons"
+             x:Class="Intune.Commander.Desktop.Views.Controls.NavSidebarControl"
+             x:DataType="vm:MainWindowViewModel">
+    <DockPanel Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+
+        <!-- App title header -->
+        <Border DockPanel.Dock="Top" Padding="16,14,16,10"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ShieldKey}"
+                                 Width="20" Height="20"
+                                 Foreground="{DynamicResource SystemControlForegroundAccentBrush}" />
+                <TextBlock Text="Intune Commander" FontSize="{StaticResource FontSizeSubheading}" FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!-- Scrollable nav list -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="0" Margin="0,8,0,16">
+
+                <!-- OVERVIEW section label -->
+                <TextBlock Text="OVERVIEW" FontSize="{StaticResource FontSizeCaption}" FontWeight="SemiBold"
+                           Foreground="{DynamicResource AppTextSecondaryBrush}"
+                           Margin="18,4,0,2" />
+
+                <!-- Overview nav item -->
+                <Button Command="{Binding SelectNavItemCommand}" CommandParameter="Overview"
+                        Classes="NavItem"
+                        Classes.active="{Binding IsOverviewCategory}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <mi:MaterialIcon Kind="{x:Static icons:MaterialIconKind.ViewDashboard}"
+                                         Width="16" Height="16" VerticalAlignment="Center" />
+                        <TextBlock Text="Overview" FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Nav groups (each group becomes a section) -->
+                <ItemsControl ItemsSource="{Binding NavGroups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:NavCategoryGroup">
+                            <StackPanel Margin="0,10,0,0">
+                                <!-- Section header label -->
+                                <TextBlock Text="{Binding NameUpper}" FontSize="{StaticResource FontSizeCaption}" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                           Margin="18,4,0,2" />
+                                <!-- Child nav items -->
+                                <ItemsControl ItemsSource="{Binding Children}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:NavCategory">
+                                            <Button Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).SelectNavItemCommand}"
+                                                    CommandParameter="{Binding Name}"
+                                                    Classes="NavItem"
+                                                    Classes.active="{Binding IsSelected}">
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <mi:MaterialIcon Kind="{Binding Icon}" Width="18" Height="18" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSizeBody}"
+                                                               VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

@@ -11,8 +11,12 @@ namespace Intune.Commander.Desktop.Converters;
 public class BoolToChevronConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is true ? "▾" : "▸";
+    {
+        return value is true ? "▾" : "▸";
+    }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => BindingOperations.DoNothing;
+    {
+        return BindingOperations.DoNothing;
+    }
 }
