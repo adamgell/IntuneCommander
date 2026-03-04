@@ -83,7 +83,7 @@ If any breaking changes exist:
 
 3. **Update Documentation**
    - Update CHANGELOG.md for user-facing changes
-    - Update CLAUDE.md if changing patterns
+   - Update CLAUDE.md if changing patterns
    - Add XML doc comments for public APIs
 
 4. **Commit Messages**
@@ -266,7 +266,7 @@ The project uses a Wave system for implementing new Intune object types. See `do
 - **Wave 4**: Autopilot, Device Management
 - **Wave 5**: Conditional Access, Identity
 
-If contributing a new service, refer to the appropriate Wave document for detailed requirements and up-to-date progress.
+If contributing a new service, refer to [SERVICE-IMPLEMENTATION-PLAN.md](../docs/SERVICE-IMPLEMENTATION-PLAN.md) and the corresponding [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for detailed requirements and up-to-date progress.
 
 ## License
 
