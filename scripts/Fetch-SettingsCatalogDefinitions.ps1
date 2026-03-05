@@ -18,12 +18,11 @@
     eliminating the need for runtime Graph calls to resolve setting display
     names, descriptions, and allowed values.
 
+    The definitions are Microsoft's global schema and are identical across
+    all cloud environments, so this always fetches from the Commercial endpoint.
+
 .PARAMETER OutputDir
     Directory to write JSON files. Defaults to src/Intune.Commander.Core/Assets.
-
-.PARAMETER Cloud
-    Target cloud environment. Defaults to Commercial.
-    Valid values: Commercial, GCCHigh, DoD
 
 .EXAMPLE
     $env:AZURE_TENANT_ID = "..."
@@ -33,9 +32,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$OutputDir,
-    [ValidateSet("Commercial", "GCCHigh", "DoD")]
-    [string]$Cloud = "Commercial"
+    [string]$OutputDir
 )
 
 Set-StrictMode -Version Latest
@@ -65,25 +62,15 @@ if (-not (Test-Path $OutputDir)) {
 $settingsFile   = Join-Path $OutputDir "settings-catalog-definitions.json"
 $categoriesFile = Join-Path $OutputDir "settings-catalog-categories.json"
 
-# ── Cloud endpoints ──
-
-$graphEndpoint = switch ($Cloud) {
-    "Commercial" { "https://graph.microsoft.com" }
-    "GCCHigh"    { "https://graph.microsoft.us" }
-    "DoD"        { "https://dod-graph.microsoft.us" }
-}
-
-$loginEndpoint = switch ($Cloud) {
-    "Commercial" { "https://login.microsoftonline.com" }
-    "GCCHigh"    { "https://login.microsoftonline.us" }
-    "DoD"        { "https://login.microsoftonline.us" }
-}
-
+# Settings Catalog definitions are Microsoft's global schema -- identical
+# across Commercial, GCC, GCC-High, and DoD. Always fetch from Commercial.
+$graphEndpoint = "https://graph.microsoft.com"
+$loginEndpoint = "https://login.microsoftonline.com"
 $scope = "$graphEndpoint/.default"
 
 # ── Acquire token ──
 
-Write-Host "Authenticating to $Cloud cloud..."
+Write-Host "Authenticating..."
 $tokenBody = @{
     grant_type    = "client_credentials"
     client_id     = $clientId
