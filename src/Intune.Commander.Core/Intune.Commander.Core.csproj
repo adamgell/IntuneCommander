@@ -13,6 +13,8 @@
     <EmbeddedResource Include="Assets\PolicyTemplate.pptx" />
     <EmbeddedResource Include="Assets\PolicyTemplateImage.pptx" />
     <EmbeddedResource Include="Assets\MicrosoftApps.json" />
+    <EmbeddedResource Include="Assets\settings-catalog-definitions.json" />
+    <EmbeddedResource Include="Assets\settings-catalog-categories.json" />
   </ItemGroup>
 
   <ItemGroup>

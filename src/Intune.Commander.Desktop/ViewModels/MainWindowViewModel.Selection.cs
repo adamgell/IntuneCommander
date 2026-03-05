@@ -3225,6 +3225,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(id)) return "";
 
+        // Try the embedded definitions first — gives real display names from Graph schema
+        var displayName = Core.Models.SettingsCatalogDefinitionRegistry.ResolveDisplayName(id);
+        if (displayName != null) return displayName;
+
+        // Fallback: parse the definition ID into a readable label
         // Strip known vendor path prefixes
         foreach (var prefix in new[] {
             "device_vendor_msft_policy_config_",
