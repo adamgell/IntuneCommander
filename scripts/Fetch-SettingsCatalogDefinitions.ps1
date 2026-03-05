@@ -90,8 +90,7 @@ $headers = @{ Authorization = "Bearer $accessToken" }
 function Invoke-GraphPaginated {
     param(
         [string]$Uri,
-        [string]$Label,
-        [int]$MaxRetries = 3
+        [string]$Label
     )
 
     $all = [System.Collections.Generic.List[object]]::new()
@@ -100,36 +99,20 @@ function Invoke-GraphPaginated {
 
     while ($nextLink) {
         Write-Host "  $Label - page $page..."
-        $response = $null
-        for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
-            try {
-                $response = Invoke-RestMethod -Uri $nextLink -Headers $headers -Method Get
-                break
+        try {
+            $response = Invoke-RestMethod -Uri $nextLink -Headers $headers -Method Get
+        }
+        catch {
+            $status = $_.Exception.Response.StatusCode.value__
+            if ($status -eq 429) {
+                $retryAfter = 30
+                $retryHeader = $_.Exception.Response.Headers | Where-Object { $_.Key -eq "Retry-After" }
+                if ($retryHeader) { $retryAfter = [int]$retryHeader.Value[0] }
+                Write-Warning "  Throttled (429). Waiting ${retryAfter}s..."
+                Start-Sleep -Seconds $retryAfter
+                continue
             }
-            catch {
-                $status = $_.Exception.Response.StatusCode.value__
-                if ($status -eq 429) {
-                    $retryAfter = 30
-                    $retryHeader = $_.Exception.Response.Headers | Where-Object { $_.Key -eq "Retry-After" }
-                    if ($retryHeader) { $retryAfter = [int]$retryHeader.Value[0] }
-                    Write-Warning "  Throttled (429). Waiting ${retryAfter}s..."
-                    Start-Sleep -Seconds $retryAfter
-                    continue
-                }
-                elseif ($status -eq 500 -and $attempt -lt $MaxRetries) {
-                    $wait = [math]::Pow(2, $attempt)
-                    Write-Warning "  HTTP 500 on page $page, attempt $attempt. Retrying in ${wait}s..."
-                    Start-Sleep -Seconds $wait
-                    continue
-                }
-                elseif ($status -eq 500) {
-                    Write-Warning "  HTTP 500 exhausted retries on page $page. Returning $($all.Count) items collected so far."
-                    return $all
-                }
-                else {
-                    throw
-                }
-            }
+            throw
         }
 
         if ($response.value) {
