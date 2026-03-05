@@ -41,7 +41,7 @@ jobs:
                   src/Intune.Commander.Core/Assets/settings-catalog-categories.json.gz
           $status = git status --porcelain
           if ($status) {
-            git commit -m "chore: update settings catalog definitions [skip ci]"
+            git commit -m "chore: update settings catalog definitions"
             git push
             Write-Host "Committed settings catalog updates."
           } else {
