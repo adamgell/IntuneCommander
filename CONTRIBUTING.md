@@ -14,7 +14,7 @@ Use conventional commit format with priority labels:
 Examples:
 feat(auth): add certificate authentication [P1]
 fix(ui): resolve dark mode contrast issue [P1]
-docs: update ARCHITECTURE.md with cache patterns [P2]
+docs: update CLAUDE.md with cache patterns [P2]
 refactor(services): extract common pagination helper [P3]
 test(core): add unit tests for ProfileService [P2]
 ```
@@ -83,7 +83,7 @@ If any breaking changes exist:
 
 3. **Update Documentation**
    - Update CHANGELOG.md for user-facing changes
-   - Update ARCHITECTURE.md if changing patterns
+   - Update CLAUDE.md if changing patterns
    - Add XML doc comments for public APIs
 
 4. **Commit Messages**
@@ -211,9 +211,8 @@ public async Task MethodName_Scenario_ExpectedBehavior()
 ### Documentation Files
 
 - **CHANGELOG.md**: User-facing changes, release notes
-- **ARCHITECTURE.md**: Architectural decisions and patterns
+- **CLAUDE.md**: Architectural decisions and patterns
 - **README.md**: Getting started, build instructions
-- **PR_STATUS.md**: Current PR organization (update as needed)
 
 ## Review Process
 
@@ -236,7 +235,7 @@ public async Task MethodName_Scenario_ExpectedBehavior()
 
 ## PR Priorities and Merge Order
 
-See [PR_STATUS.md](PR_STATUS.md) for current PR organization and recommended merge order.
+See [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for current PR organization and recommended merge order.
 
 **General Priority Order:**
 
@@ -246,14 +245,14 @@ See [PR_STATUS.md](PR_STATUS.md) for current PR organization and recommended mer
 
 **Dependencies:**
 
-- Check PR_STATUS.md for PR dependencies
+- Check GitHub Issues for PR dependencies
 - Base your branch on `main` unless depending on another PR
 - Coordinate with maintainers if multiple PRs affect same code
 
 ## Getting Help
 
-- **Questions about implementation**: Check `CLAUDE.md` and `ARCHITECTURE.md`
-- **Questions about PR process**: See `PR_STATUS.md`
+- **Questions about implementation**: Check `CLAUDE.md`
+- **Questions about PR process**: See [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues)
 - **Questions about code patterns**: See `.github/copilot-instructions.md`
 - **Stuck on something?**: Open a draft PR and ask for guidance
 
@@ -267,7 +266,7 @@ The project uses a Wave system for implementing new Intune object types. See `do
 - **Wave 4**: Autopilot, Device Management
 - **Wave 5**: Conditional Access, Identity
 
-If contributing a new service, refer to the appropriate Wave document for detailed requirements and up-to-date progress.
+If contributing a new service, refer to [SERVICE-IMPLEMENTATION-PLAN.md](docs/SERVICE-IMPLEMENTATION-PLAN.md) and the corresponding [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for detailed requirements and up-to-date progress.
 
 ## License
 

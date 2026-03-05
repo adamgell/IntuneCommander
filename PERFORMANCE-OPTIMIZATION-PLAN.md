@@ -629,6 +629,6 @@ private async void ApplyFilter()
 ## References
 
 - **Profiler Session**: `Report20260223-1536.diagsession`
-- **Architecture Docs**: `docs/ARCHITECTURE.md`
+- **Architecture Docs**: `CLAUDE.md`
 - **Copilot Instructions**: `.github/copilot-instructions.md`
 - **Contributing Guide**: `CONTRIBUTING.md` (Async-First UI Rule)
