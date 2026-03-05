@@ -38,4 +38,14 @@ public partial class OnDemandDeployWindow : SukiWindow
     {
         Close();
     }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        if (DataContext is OnDemandDeployViewModel vm)
+        {
+            vm.StopMonitoring();
+        }
+
+        base.OnClosing(e);
+    }
 }
