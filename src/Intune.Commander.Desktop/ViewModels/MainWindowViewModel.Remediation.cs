@@ -15,6 +15,7 @@ public partial class MainWindowViewModel
     {
         if (_deviceHealthScriptService == null) return;
 
+        var version = ++_loadRunSummaryVersion;
         IsLoadingRunSummary = true;
         SelectedScriptRunSummary = null;
         SelectedScriptDeviceRunStates.Clear();
@@ -27,7 +28,7 @@ public partial class MainWindowViewModel
             await Task.WhenAll(summaryTask, statesTask);
 
             // Guard: selection may have changed while loading
-            if (SelectedDeviceHealthScript?.Id != scriptId) return;
+            if (_loadRunSummaryVersion != version) return;
 
             SelectedScriptRunSummary = summaryTask.Result;
 
@@ -40,7 +41,9 @@ public partial class MainWindowViewModel
         }
         finally
         {
-            IsLoadingRunSummary = false;
+            // Only clear the loading indicator if this request is still the most recent
+            if (_loadRunSummaryVersion == version)
+                IsLoadingRunSummary = false;
         }
     }
 

@@ -227,6 +227,7 @@ public partial class OnDemandDeployViewModel : ViewModelBase
         }
         finally
         {
+            StopMonitoringInternal();
             IsMonitoring = false;
         }
     }

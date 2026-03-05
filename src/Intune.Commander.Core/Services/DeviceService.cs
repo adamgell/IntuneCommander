@@ -55,7 +55,8 @@ public class DeviceService(GraphServiceClient graphClient) : IDeviceService
             if (response?.Value != null)
                 result.AddRange(response.Value);
         }
-        catch
+        catch (OperationCanceledException) { throw; }
+        catch (ApiException)
         {
             // $search may not be available; fall back to contains $filter
             var escapedFilter = trimmed.Replace("'", "''");
@@ -73,7 +74,8 @@ public class DeviceService(GraphServiceClient graphClient) : IDeviceService
                 if (containsFallback?.Value != null)
                     result.AddRange(containsFallback.Value);
             }
-            catch
+            catch (OperationCanceledException) { throw; }
+            catch (ApiException)
             {
                 // contains not supported; last resort startsWith
                 var startsWith = await _graphClient.DeviceManagement.ManagedDevices.GetAsync(req =>

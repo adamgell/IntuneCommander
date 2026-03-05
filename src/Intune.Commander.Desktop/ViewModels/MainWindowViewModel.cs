@@ -606,6 +606,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoadingRunSummary;
 
+    private int _loadRunSummaryVersion;
+
     [ObservableProperty]
     private ObservableCollection<OnDemandDeploymentRecord> _onDemandDeployments = [];
 
