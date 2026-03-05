@@ -3226,7 +3226,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrEmpty(id)) return "";
 
         // Try the embedded definitions first — gives real display names from Graph schema
-        var displayName = Core.Models.SettingsCatalogDefinitionRegistry.ResolveDisplayName(id);
+        var displayName = Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.ResolveDisplayName(id);
         if (displayName != null) return displayName;
 
         // Fallback: parse the definition ID into a readable label
