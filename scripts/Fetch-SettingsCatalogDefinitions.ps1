@@ -68,15 +68,15 @@ $categoriesFile = Join-Path $OutputDir "settings-catalog-categories.json"
 # ── Cloud endpoints ──
 
 $graphEndpoint = switch ($Cloud) {
-    "GCCHigh" { "https://graph.microsoft.us" }
-    "DoD"     { "https://dod-graph.microsoft.us" }
-    default   { "https://graph.microsoft.com" }
+    "Commercial" { "https://graph.microsoft.com" }
+    "GCCHigh"    { "https://graph.microsoft.us" }
+    "DoD"        { "https://dod-graph.microsoft.us" }
 }
 
 $loginEndpoint = switch ($Cloud) {
-    "GCCHigh" { "https://login.microsoftonline.us" }
-    "DoD"     { "https://login.microsoftonline.us" }
-    default   { "https://login.microsoftonline.com" }
+    "Commercial" { "https://login.microsoftonline.com" }
+    "GCCHigh"    { "https://login.microsoftonline.us" }
+    "DoD"        { "https://login.microsoftonline.us" }
 }
 
 $scope = "$graphEndpoint/.default"
