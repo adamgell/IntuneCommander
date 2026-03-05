@@ -116,7 +116,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
             // Pre-warm the Settings Catalog definition registry off the UI thread
             // so the first policy click doesn't stall deserializing the embedded JSON.
-            _ = Task.Run(() => _ = Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.HasDefinitions);
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    // Trigger lazy initialization of the settings catalog definition registry.
+                    var _ = Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.HasDefinitions;
+                }
+                catch (Exception ex)
+                {
+                    DebugLog.LogError("SettingsCatalog", $"Failed to warm SettingsCatalogDefinitionRegistry: {ex}");
+                }
+            });
 
             _configProfileService = new ConfigurationProfileService(_graphClient);
 
