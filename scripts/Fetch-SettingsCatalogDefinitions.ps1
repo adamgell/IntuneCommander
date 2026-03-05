@@ -142,6 +142,9 @@ Write-Host ""
 Write-Host "Fetching configuration settings (definitions)..."
 # No $select -- setting definitions are polymorphic (choice, simple, group subtypes)
 # and $select on the base type rejects sub-type-only fields like 'options'.
+# $top=200 balances throughput vs stability. The configurationSettings endpoint is
+# backed by Cosmos DB and becomes unreliable with large page sizes (skip-token
+# failures / HTTP 500s). 200 keeps pages manageable while limiting round-trips.
 $settingsUri = "$graphEndpoint/beta/deviceManagement/configurationSettings?`$top=200"
 $settings = Invoke-GraphPaginated -Uri $settingsUri -Label "Settings"
 Write-Host "  Retrieved $($settings.Count) settings."
