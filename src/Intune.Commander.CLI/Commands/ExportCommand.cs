@@ -40,6 +40,7 @@ public static class ExportCommand
             var candidates = new[] { "all" }.Concat(AllTypes);
             return candidates.Where(t => t.StartsWith(current, StringComparison.OrdinalIgnoreCase));
         });
+        var normalize = new Option<bool>("--normalize", "Normalize exported JSON (strip volatile fields, sort keys/arrays) for drift comparison");
 
         command.AddOption(profile);
         command.AddOption(tenantId);
@@ -48,6 +49,7 @@ public static class ExportCommand
         command.AddOption(cloud);
         command.AddOption(output);
         command.AddOption(types);
+        command.AddOption(normalize);
 
         command.SetHandler(async context =>
         {
@@ -59,6 +61,7 @@ public static class ExportCommand
                 context.ParseResult.GetValueForOption(cloud),
                 context.ParseResult.GetValueForOption(output)!,
                 context.ParseResult.GetValueForOption(types) ?? "all",
+                context.ParseResult.GetValueForOption(normalize),
                 context.GetCancellationToken());
         });
         return command;
@@ -72,6 +75,7 @@ public static class ExportCommand
         string? cloud,
         string output,
         string types,
+        bool shouldNormalize,
         CancellationToken cancellationToken)
     {
         using var provider = CliServices.CreateServiceProvider();
@@ -430,6 +434,14 @@ public static class ExportCommand
         }
 
         await exportService.SaveMigrationTableAsync(migrationTable, output, cancellationToken);
+
+        if (shouldNormalize)
+        {
+            Console.Error.WriteLine("Normalizing exported JSON...");
+            var normalizer = provider.GetRequiredService<IExportNormalizer>();
+            await normalizer.NormalizeDirectoryAsync(output, cancellationToken);
+        }
+
         OutputFormatter.WriteJsonToStdout(new CommandResult { Command = "export", Count = count, Path = output, DryRun = false });
     }
 
