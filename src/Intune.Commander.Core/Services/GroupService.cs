@@ -131,7 +131,12 @@ public class GroupService : IGroupService
 
             return new GroupMemberCounts(users, devices, groups, users + devices + groups);
         }
-        catch (Exception)
+        catch (OperationCanceledException)
+        {
+            // Preserve cooperative cancellation for callers.
+            throw;
+        }
+        catch (ApiException)
         {
             // Fallback: paginate through members (some sovereign clouds may not support $count)
             return await GetMemberCountsByPaginationAsync(groupId, cancellationToken);
