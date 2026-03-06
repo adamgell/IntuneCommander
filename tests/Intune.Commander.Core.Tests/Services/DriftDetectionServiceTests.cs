@@ -34,11 +34,12 @@ public class DriftDetectionServiceTests : IDisposable
     [Fact]
     public async Task CompareAsync_NoDrift_ReturnsNoChanges()
     {
+        // Same id, only volatile fields differ (id stripped by normalizer, version stripped by normalizer)
         WritePolicy(_baselinePath, "CompliancePolicies", "PolicyA.json", """
             { "displayName":"Policy A", "passwordMinimumLength":12, "id":"x1", "version":1 }
             """);
         WritePolicy(_currentPath, "CompliancePolicies", "PolicyA.json", """
-            { "displayName":"Policy A", "passwordMinimumLength":12, "id":"x2", "version":2 }
+            { "displayName":"Policy A", "passwordMinimumLength":12, "id":"x1", "version":2 }
             """);
 
         var report = await _sut.CompareAsync(_baselinePath, _currentPath);
@@ -204,6 +205,58 @@ public class DriftDetectionServiceTests : IDisposable
 
         Assert.False(report.DriftDetected);
         Assert.Empty(report.Changes);
+    }
+
+    [Fact]
+    public async Task CompareAsync_RenamedPolicy_SameId_DetectedAsModifiedNotDeleteAndAdd()
+    {
+        // Baseline: "PolicyA.json" — Current: renamed to "PolicyA-New.json" but same id
+        WritePolicy(_baselinePath, "CompliancePolicies", "PolicyA.json",
+            """{ "id":"policy-abc", "displayName":"Policy A", "passwordMinimumLength":12 }""");
+        WritePolicy(_currentPath, "CompliancePolicies", "PolicyA-New.json",
+            """{ "id":"policy-abc", "displayName":"Policy A New", "passwordMinimumLength":12 }""");
+
+        var report = await _sut.CompareAsync(_baselinePath, _currentPath);
+
+        // Should be one "modified" (Low — only displayName changed), NOT a delete+add pair
+        var change = Assert.Single(report.Changes);
+        Assert.Equal("modified", change.ChangeType);
+        Assert.Equal(DriftSeverity.Low, change.Severity);
+        Assert.Equal("CompliancePolicy", change.ObjectType);
+        // Name should reflect the new (current) display name
+        Assert.Equal("PolicyA-New", change.Name);
+        // The displayName field change must be captured in the field-level details
+        Assert.Contains(change.Fields, f => f.Path.Contains("displayName", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task CompareAsync_RenamedWrappedExport_SameId_DetectedAsModified()
+    {
+        // Wrapped export format: { "policy": { "id": "...", ... } }
+        WritePolicy(_baselinePath, "CompliancePolicies", "OldName.json",
+            """{ "policy": { "id":"sc-xyz", "displayName":"Old Name" }, "assignments": [] }""");
+        WritePolicy(_currentPath, "CompliancePolicies", "NewName.json",
+            """{ "policy": { "id":"sc-xyz", "displayName":"New Name" }, "assignments": [] }""");
+
+        var report = await _sut.CompareAsync(_baselinePath, _currentPath);
+
+        var change = Assert.Single(report.Changes);
+        Assert.Equal("modified", change.ChangeType);
+        Assert.Equal(DriftSeverity.Low, change.Severity);
+    }
+
+    [Fact]
+    public async Task CompareAsync_TrulyNewPolicy_NoPriorId_ClassifiedAdded()
+    {
+        // A new policy that doesn't exist in baseline at all (different id, different file)
+        WritePolicy(_currentPath, "CompliancePolicies", "BrandNew.json",
+            """{ "id":"new-policy-999", "displayName":"Brand New Policy" }""");
+
+        var report = await _sut.CompareAsync(_baselinePath, _currentPath);
+
+        var change = Assert.Single(report.Changes);
+        Assert.Equal("added", change.ChangeType);
+        Assert.Equal(DriftSeverity.Medium, change.Severity);
     }
 
     private static void WritePolicy(string root, string folder, string fileName, string json)
