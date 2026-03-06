@@ -68,8 +68,29 @@ public sealed class DriftDetectionService(IExportNormalizer normalizer) : IDrift
             var baselineJson = await File.ReadAllTextAsync(baselineFile, cancellationToken);
             var currentJson = await File.ReadAllTextAsync(currentFile, cancellationToken);
 
-            var normalizedBaseline = normalizer.NormalizeJson(baselineJson);
-            var normalizedCurrent = normalizer.NormalizeJson(currentJson);
+            string normalizedBaseline;
+            string normalizedCurrent;
+            try
+            {
+                normalizedBaseline = normalizer.NormalizeJson(baselineJson);
+            }
+            catch (JsonException ex)
+            {
+                throw new JsonException(
+                    $"Failed to normalize baseline JSON for '{relativePath}'.",
+                    ex);
+            }
+
+            try
+            {
+                normalizedCurrent = normalizer.NormalizeJson(currentJson);
+            }
+            catch (JsonException ex)
+            {
+                throw new JsonException(
+                    $"Failed to normalize current JSON for '{relativePath}'.",
+                    ex);
+            }
 
             if (string.Equals(normalizedBaseline, normalizedCurrent, StringComparison.Ordinal))
                 continue;

@@ -31,9 +31,16 @@ public sealed class ExportNormalizer : IExportNormalizer
             if (string.Equals(Path.GetFileName(file), "migration-table.json", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            var content = await File.ReadAllTextAsync(file, cancellationToken);
-            var normalized = NormalizeJson(content);
-            await File.WriteAllTextAsync(file, normalized, cancellationToken);
+            try
+            {
+                var content = await File.ReadAllTextAsync(file, cancellationToken);
+                var normalized = NormalizeJson(content);
+                await File.WriteAllTextAsync(file, normalized, cancellationToken);
+            }
+            catch (JsonException ex)
+            {
+                throw new JsonException($"Failed to normalize JSON file '{file}'", ex);
+            }
         }
     }
 

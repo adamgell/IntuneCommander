@@ -123,7 +123,15 @@ public static class AlertCommand
         }
 
         var json = await File.ReadAllTextAsync(reportPath, cancellationToken);
-        return JsonSerializer.Deserialize<DriftReport>(json, JsonOptions);
+        try
+        {
+            return JsonSerializer.Deserialize<DriftReport>(json, JsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            Console.Error.WriteLine($"Failed to parse drift report JSON '{reportPath}': {ex.Message}");
+            return null;
+        }
     }
 
     private static async Task<int> SendTeamsAsync(string reportPath, string webhook, CancellationToken cancellationToken)

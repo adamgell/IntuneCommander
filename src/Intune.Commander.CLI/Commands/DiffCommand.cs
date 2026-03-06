@@ -4,6 +4,7 @@ using Intune.Commander.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.Text;
+using System.Text.Json;
 
 namespace Intune.Commander.CLI.Commands;
 
@@ -73,6 +74,11 @@ public static class DiffCommand
         catch (DirectoryNotFoundException ex)
         {
             Console.Error.WriteLine(ex.Message);
+            return 1;
+        }
+        catch (JsonException ex)
+        {
+            Console.Error.WriteLine($"Failed to parse export JSON: {ex.Message}");
             return 1;
         }
 

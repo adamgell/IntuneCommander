@@ -106,7 +106,8 @@ public class ExportNormalizerTests : IDisposable
 
         var result = _sut.NormalizeJson(json);
 
-        // Top-level "id" in nested is stripped because the normalizer strips by key name
+        // Nested "id" is stripped because the normalizer strips by key name
+        Assert.DoesNotContain("\"id\":", result);
         Assert.Contains("value", result);
         Assert.Contains("displayName", result);
     }
