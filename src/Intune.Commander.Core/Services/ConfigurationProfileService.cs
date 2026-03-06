@@ -21,6 +21,10 @@ public class ConfigurationProfileService : IConfigurationProfileService
             .GetAsync(req =>
             {
                 req.QueryParameters.Top = 200;
+                req.QueryParameters.Select = [
+                    "id", "displayName", "description", "createdDateTime",
+                    "lastModifiedDateTime", "version", "roleScopeTagIds"
+                ];
             }, cancellationToken);
 
         while (response != null)

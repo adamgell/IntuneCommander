@@ -22,6 +22,10 @@ public class ApplicationService : IApplicationService
             .GetAsync(req =>
             {
                 req.QueryParameters.Top = 200;
+                req.QueryParameters.Select = [
+                    "id", "displayName", "publisher", "description",
+                    "createdDateTime", "lastModifiedDateTime", "publishingState"
+                ];
             }, cancellationToken);
 
         while (response != null)

@@ -134,6 +134,19 @@ public class GroupServiceTests
     }
 
     [Fact]
+    public void Interface_DefinesGetMemberCountsAsyncMethod()
+    {
+        var method = typeof(IGroupService).GetMethod("GetMemberCountsAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<GroupMemberCounts>), method.ReturnType);
+
+        var parameters = method.GetParameters();
+        Assert.Equal(2, parameters.Length);
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+    }
+
+    [Fact]
     public async Task SearchGroupsAsync_EmptyQuery_ReturnsEmptyWithoutGraphCall()
     {
         var sut = new GroupService(null!);

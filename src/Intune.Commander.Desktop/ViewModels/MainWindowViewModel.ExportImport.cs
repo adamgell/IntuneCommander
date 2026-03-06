@@ -387,8 +387,12 @@ public partial class MainWindowViewModel : ViewModelBase
             if (IsDeviceConfigCategory && SelectedConfiguration != null)
             {
                 StatusText = $"Exporting {SelectedConfiguration.DisplayName}...";
+                // Re-fetch full object — list uses $select and may have partial data
+                var fullConfig = _configProfileService != null && SelectedConfiguration.Id != null
+                    ? await _configProfileService.GetDeviceConfigurationAsync(SelectedConfiguration.Id, cancellationToken)
+                    : null;
                 await _exportService.ExportDeviceConfigurationAsync(
-                    SelectedConfiguration, outputPath, migrationTable, cancellationToken);
+                    fullConfig ?? SelectedConfiguration, outputPath, migrationTable, cancellationToken);
             }
             else if (IsCompliancePolicyCategory && SelectedCompliancePolicy != null)
             {
@@ -402,11 +406,16 @@ public partial class MainWindowViewModel : ViewModelBase
             else if (IsApplicationCategory && SelectedApplication != null)
             {
                 StatusText = $"Exporting {SelectedApplication.DisplayName}...";
+                // Re-fetch full object — list uses $select and may have partial data
+                var fullApp = _applicationService != null && SelectedApplication.Id != null
+                    ? await _applicationService.GetApplicationAsync(SelectedApplication.Id, cancellationToken)
+                    : null;
+                var appToExport = fullApp ?? SelectedApplication;
                 var assignments = _applicationService != null && SelectedApplication.Id != null
                     ? await _applicationService.GetAssignmentsAsync(SelectedApplication.Id, cancellationToken)
                     : [];
                 await _exportService.ExportApplicationAsync(
-                    SelectedApplication, assignments, outputPath, migrationTable, cancellationToken);
+                    appToExport, assignments, outputPath, migrationTable, cancellationToken);
             }
             else if (IsEndpointSecurityCategory && SelectedEndpointSecurityIntent != null)
             {
@@ -621,13 +630,16 @@ public partial class MainWindowViewModel : ViewModelBase
             var migrationTable = new MigrationTable();
             var count = 0;
 
-            // Export device configs
-            if (DeviceConfigurations.Any())
+            // Export device configs (re-fetch full objects — list uses $select)
+            if (DeviceConfigurations.Any() && _configProfileService != null)
             {
                 StatusText = "Exporting device configurations...";
                 foreach (var config in DeviceConfigurations)
                 {
-                    await _exportService.ExportDeviceConfigurationAsync(config, outputPath, migrationTable, cancellationToken);
+                    var fullConfig = config.Id != null
+                        ? await _configProfileService.GetDeviceConfigurationAsync(config.Id, cancellationToken)
+                        : null;
+                    await _exportService.ExportDeviceConfigurationAsync(fullConfig ?? config, outputPath, migrationTable, cancellationToken);
                     count++;
                 }
             }
@@ -646,16 +658,20 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
 
-            // Export applications with assignments
+            // Export applications with assignments (re-fetch full objects — list uses $select)
             if (Applications.Any() && _applicationService != null)
             {
                 StatusText = "Exporting applications...";
                 foreach (var app in Applications)
                 {
+                    var fullApp = app.Id != null
+                        ? await _applicationService.GetApplicationAsync(app.Id, cancellationToken)
+                        : null;
+                    var appToExport = fullApp ?? app;
                     var assignments = app.Id != null
                         ? await _applicationService.GetAssignmentsAsync(app.Id, cancellationToken)
                         : [];
-                    await _exportService.ExportApplicationAsync(app, assignments, outputPath, migrationTable, cancellationToken);
+                    await _exportService.ExportApplicationAsync(appToExport, assignments, outputPath, migrationTable, cancellationToken);
                     count++;
                 }
             }

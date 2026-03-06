@@ -274,4 +274,39 @@ public class CacheServiceTests : IDisposable
 
         Assert.Equal(0, removed);
     }
+
+    // DTO with many nullable fields to verify WhenWritingNull optimization
+    private record NullHeavyItem(
+        string Name,
+        string? Description,
+        string? Category,
+        int? Count,
+        DateTime? CreatedAt,
+        string? Tag1,
+        string? Tag2,
+        string? Tag3);
+
+    [Fact]
+    public void Set_and_Get_roundtrips_objects_with_many_null_fields()
+    {
+        var items = new List<NullHeavyItem>
+        {
+            new("Item1", null, null, null, null, null, null, null),
+            new("Item2", "Has description", null, 42, null, null, null, null),
+            new("Item3", null, "CategoryA", null, DateTime.UtcNow, null, null, null)
+        };
+
+        _sut.Set("tenant1", "NullHeavy", items);
+
+        var result = _sut.Get<NullHeavyItem>("tenant1", "NullHeavy");
+
+        Assert.NotNull(result);
+        Assert.Equal(3, result.Count);
+        Assert.Equal("Item1", result[0].Name);
+        Assert.Null(result[0].Description);
+        Assert.Null(result[0].Count);
+        Assert.Equal("Has description", result[1].Description);
+        Assert.Equal(42, result[1].Count);
+        Assert.Equal("CategoryA", result[2].Category);
+    }
 }
