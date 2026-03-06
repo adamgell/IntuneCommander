@@ -125,7 +125,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
                 catch (Exception ex)
                 {
-                    DebugLog.LogError("SettingsCatalog", $"Failed to warm SettingsCatalogDefinitionRegistry: {ex}");
+                    DebugLog.LogError($"[SettingsCatalog] Failed to warm SettingsCatalogDefinitionRegistry: {ex.Message}", ex);
                 }
             });
 

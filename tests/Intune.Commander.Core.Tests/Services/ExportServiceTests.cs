@@ -1345,6 +1345,8 @@ public class ExportServiceTests : IDisposable
 
         var folder = Path.Combine(_tempDir, "DeviceConfigurations");
         Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+    }
+
     [Fact]
     public async Task ExportConditionalAccessPolicy_CreatesJsonFile()
     {

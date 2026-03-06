@@ -43,7 +43,7 @@ public partial class OnDemandDeployWindow : SukiWindow
     {
         if (DataContext is OnDemandDeployViewModel vm)
         {
-            vm.StopMonitoring();
+            vm.StopMonitoringCommand.Execute(null);
         }
 
         base.OnClosing(e);
