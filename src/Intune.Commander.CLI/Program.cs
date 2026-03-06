@@ -11,6 +11,8 @@ root.AddCommand(ExportCommand.Build());
 root.AddCommand(ImportCommand.Build());
 root.AddCommand(ListCommand.Build());
 root.AddCommand(ProfileCommand.Build());
+root.AddCommand(DiffCommand.Build());
+root.AddCommand(AlertCommand.Build());
 root.AddCommand(CompletionCommand.Build());
 
 return await root.InvokeAsync(args);

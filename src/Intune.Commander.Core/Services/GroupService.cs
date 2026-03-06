@@ -102,12 +102,55 @@ public class GroupService : IGroupService
 
     public async Task<GroupMemberCounts> GetMemberCountsAsync(string groupId, CancellationToken cancellationToken = default)
     {
+        // Try efficient $count with type-cast segments (3 lightweight requests instead of N paginated)
+        try
+        {
+            var userCountTask = _graphClient.Groups[groupId].Members.GraphUser.Count
+                .GetAsync(req =>
+                {
+                    req.Headers.Add("ConsistencyLevel", "eventual");
+                }, cancellationToken);
+
+            var deviceCountTask = _graphClient.Groups[groupId].Members.GraphDevice.Count
+                .GetAsync(req =>
+                {
+                    req.Headers.Add("ConsistencyLevel", "eventual");
+                }, cancellationToken);
+
+            var groupCountTask = _graphClient.Groups[groupId].Members.GraphGroup.Count
+                .GetAsync(req =>
+                {
+                    req.Headers.Add("ConsistencyLevel", "eventual");
+                }, cancellationToken);
+
+            await Task.WhenAll(userCountTask, deviceCountTask, groupCountTask);
+
+            var users = (int)(userCountTask.Result ?? 0);
+            var devices = (int)(deviceCountTask.Result ?? 0);
+            var groups = (int)(groupCountTask.Result ?? 0);
+
+            return new GroupMemberCounts(users, devices, groups, users + devices + groups);
+        }
+        catch (OperationCanceledException)
+        {
+            // Preserve cooperative cancellation for callers.
+            throw;
+        }
+        catch (ApiException)
+        {
+            // Fallback: paginate through members (some sovereign clouds may not support $count)
+            return await GetMemberCountsByPaginationAsync(groupId, cancellationToken);
+        }
+    }
+
+    private async Task<GroupMemberCounts> GetMemberCountsByPaginationAsync(string groupId, CancellationToken cancellationToken)
+    {
         int users = 0, devices = 0, nestedGroups = 0;
 
         var response = await _graphClient.Groups[groupId].Members
             .GetAsync(req =>
             {
-                req.QueryParameters.Select = new[] { "id" };
+                req.QueryParameters.Select = ["id"];
                 req.QueryParameters.Top = 200;
             }, cancellationToken);
 

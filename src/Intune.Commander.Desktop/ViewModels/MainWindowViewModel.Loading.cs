@@ -66,6 +66,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>
     /// Refreshes a single collection during a full refresh.
     /// Does not manage IsBusy (caller owns that). Collects errors into a list.
+    /// Thread-safe: errors list is accessed under lock to support parallel calls.
     /// </summary>
     private async Task RefreshCollectionAsync<T>(
         Func<CancellationToken, Task<List<T>>> fetch,
@@ -90,7 +91,7 @@ public partial class MainWindowViewModel : ViewModelBase
             setLoadedFlag?.Invoke(false);
             var detail = FormatGraphError(ex);
             DebugLog.LogError($"Failed to load {displayName}: {detail}", ex);
-            errors.Add($"{errorLabel}: {detail}");
+            lock (errors) { errors.Add($"{errorLabel}: {detail}"); }
         }
     }
 
@@ -523,35 +524,39 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
-            // --- Core types (always refreshed) ---
+            // --- Core types (always refreshed, in parallel) ---
+
+            var coreTasks = new List<Task>();
 
             if (_configProfileService != null)
-                await RefreshCollectionAsync(
+                coreTasks.Add(RefreshCollectionAsync(
                     ct => _configProfileService.ListDeviceConfigurationsAsync(ct),
                     items => DeviceConfigurations = items,
                     null, "device configuration(s)", "Device Configs",
-                    errors, cancellationToken);
+                    errors, cancellationToken));
 
             if (_compliancePolicyService != null)
-                await RefreshCollectionAsync(
+                coreTasks.Add(RefreshCollectionAsync(
                     ct => _compliancePolicyService.ListCompliancePoliciesAsync(ct),
                     items => CompliancePolicies = items,
                     null, "compliance policy(ies)", "Compliance Policies",
-                    errors, cancellationToken);
+                    errors, cancellationToken));
 
             if (_applicationService != null)
-                await RefreshCollectionAsync(
+                coreTasks.Add(RefreshCollectionAsync(
                     ct => _applicationService.ListApplicationsAsync(ct),
                     items => Applications = items,
                     null, "application(s)", "Applications",
-                    errors, cancellationToken);
+                    errors, cancellationToken));
 
             if (_settingsCatalogService != null)
-                await RefreshCollectionAsync(
+                coreTasks.Add(RefreshCollectionAsync(
                     ct => _settingsCatalogService.ListSettingsCatalogPoliciesAsync(ct),
                     items => SettingsCatalogPolicies = items,
                     null, "settings catalog policy(ies)", "Settings Catalog",
-                    errors, cancellationToken);
+                    errors, cancellationToken));
+
+            await Task.WhenAll(coreTasks);
 
             // --- Lazy types (conditional, with skip logging) ---
 
@@ -1360,11 +1365,11 @@ public partial class MainWindowViewModel : ViewModelBase
         var downloadTasks = BuildDownloadTaskList(tenantId, ct);
         var total = downloadTasks.Count;
 
-        DebugLog.Log("DownloadAll", $"Starting download of {total} data types (parallel=5)");
+        DebugLog.Log("DownloadAll", $"Starting download of {total} data types (parallel=10)");
 
         try
         {
-            using var semaphore = new SemaphoreSlim(5, 5);
+            using var semaphore = new SemaphoreSlim(10, 10);
 
             var tasks = downloadTasks.Select(async entry =>
             {

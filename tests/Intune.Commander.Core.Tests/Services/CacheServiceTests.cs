@@ -1,4 +1,8 @@
+using System.Reflection;
+using System.Text.Json;
+using Intune.Commander.Core.Models;
 using Intune.Commander.Core.Services;
+using LiteDB;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -273,5 +277,64 @@ public class CacheServiceTests : IDisposable
         var removed = _sut.CleanupExpired();
 
         Assert.Equal(0, removed);
+    }
+
+    // DTO with many nullable fields to verify WhenWritingNull optimization
+    private record NullHeavyItem(
+        string Name,
+        string? Description,
+        string? Category,
+        int? Count,
+        DateTime? CreatedAt,
+        string? Tag1,
+        string? Tag2,
+        string? Tag3);
+
+    [Fact]
+    public void Set_omits_null_properties_from_stored_json()
+    {
+        var items = new List<NullHeavyItem>
+        {
+            new("Item1", null, null, null, null, null, null, null),
+            new("Item2", "Has description", null, 42, null, null, null, null),
+            new("Item3", null, "CategoryA", null, DateTime.UtcNow, null, null, null)
+        };
+
+        _sut.Set("tenant1", "NullHeavy", items);
+
+        // Read the raw JSON payload from the underlying LiteDB collection
+        var collection = (ILiteCollection<CacheEntry>)typeof(CacheService)
+            .GetField("_collection", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(_sut)!;
+        var entry = collection.FindById("tenant1|NullHeavy");
+        Assert.NotNull(entry);
+
+        using var doc = JsonDocument.Parse(entry.JsonData);
+        var elements = doc.RootElement.EnumerateArray().ToList();
+
+        // Item1 has 7 null fields — only "name" should be present
+        var item1Props = elements[0].EnumerateObject().Select(p => p.Name).ToList();
+        Assert.Contains("name", item1Props);
+        Assert.DoesNotContain("description", item1Props);
+        Assert.DoesNotContain("category", item1Props);
+        Assert.DoesNotContain("count", item1Props);
+        Assert.DoesNotContain("tag1", item1Props);
+
+        // Item2 has name + description + count, the rest null
+        var item2Props = elements[1].EnumerateObject().Select(p => p.Name).ToList();
+        Assert.Contains("name", item2Props);
+        Assert.Contains("description", item2Props);
+        Assert.Contains("count", item2Props);
+        Assert.DoesNotContain("category", item2Props);
+        Assert.DoesNotContain("tag1", item2Props);
+
+        // Verify round-trip still works
+        var result = _sut.Get<NullHeavyItem>("tenant1", "NullHeavy");
+        Assert.NotNull(result);
+        Assert.Equal(3, result.Count);
+        Assert.Equal("Item1", result[0].Name);
+        Assert.Null(result[0].Description);
+        Assert.Equal("Has description", result[1].Description);
+        Assert.Equal(42, result[1].Count);
     }
 }
