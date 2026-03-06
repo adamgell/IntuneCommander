@@ -10,4 +10,8 @@ public interface IDeviceHealthScriptService
     Task<DeviceHealthScript> CreateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default);
     Task<DeviceHealthScript> UpdateDeviceHealthScriptAsync(DeviceHealthScript script, CancellationToken cancellationToken = default);
     Task DeleteDeviceHealthScriptAsync(string id, CancellationToken cancellationToken = default);
+
+    Task<DeviceHealthScriptRunSummary?> GetRunSummaryAsync(string scriptId, CancellationToken cancellationToken = default);
+    Task<List<DeviceHealthScriptDeviceState>> GetDeviceRunStatesAsync(string scriptId, CancellationToken cancellationToken = default);
+    Task InitiateOnDemandRemediationAsync(string managedDeviceId, string scriptId, CancellationToken cancellationToken = default);
 }

@@ -20,7 +20,7 @@ public class DeviceHealthScriptService : IDeviceHealthScriptService
         var response = await _graphClient.DeviceManagement.DeviceHealthScripts
             .GetAsync(req =>
             {
-                req.QueryParameters.Top = 200;
+                req.QueryParameters.Top = 999;
             }, cancellationToken);
 
         while (response != null)
@@ -80,5 +80,54 @@ public class DeviceHealthScriptService : IDeviceHealthScriptService
     {
         await _graphClient.DeviceManagement.DeviceHealthScripts[id]
             .DeleteAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<DeviceHealthScriptRunSummary?> GetRunSummaryAsync(string scriptId, CancellationToken cancellationToken = default)
+    {
+        return await _graphClient.DeviceManagement.DeviceHealthScripts[scriptId]
+            .RunSummary.GetAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task<List<DeviceHealthScriptDeviceState>> GetDeviceRunStatesAsync(string scriptId, CancellationToken cancellationToken = default)
+    {
+        var result = new List<DeviceHealthScriptDeviceState>();
+
+        var response = await _graphClient.DeviceManagement.DeviceHealthScripts[scriptId]
+            .DeviceRunStates.GetAsync(req =>
+            {
+                req.QueryParameters.Top = 999;
+                req.QueryParameters.Expand = ["managedDevice"];
+            }, cancellationToken);
+
+        while (response != null)
+        {
+            if (response.Value != null)
+                result.AddRange(response.Value);
+
+            if (!string.IsNullOrEmpty(response.OdataNextLink))
+            {
+                response = await _graphClient.DeviceManagement.DeviceHealthScripts[scriptId]
+                    .DeviceRunStates.WithUrl(response.OdataNextLink)
+                    .GetAsync(cancellationToken: cancellationToken);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    public async Task InitiateOnDemandRemediationAsync(string managedDeviceId, string scriptId, CancellationToken cancellationToken = default)
+    {
+        var body = new Microsoft.Graph.Beta.DeviceManagement.ManagedDevices.Item
+            .InitiateOnDemandProactiveRemediation.InitiateOnDemandProactiveRemediationPostRequestBody
+        {
+            ScriptPolicyId = scriptId
+        };
+
+        await _graphClient.DeviceManagement.ManagedDevices[managedDeviceId]
+            .InitiateOnDemandProactiveRemediation.PostAsync(body, cancellationToken: cancellationToken);
     }
 }

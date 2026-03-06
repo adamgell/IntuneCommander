@@ -63,8 +63,18 @@ public partial class MainWindow : SukiWindow
     {
         base.OnClosed(e);
         // Ensure all child windows are closed and the process exits cleanly.
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            desktop.Shutdown();
+        // SukiUI may throw during shutdown when its SukiEffect disposes —
+        // this is a known framework issue and is harmless at exit time.
+        try
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                desktop.Shutdown();
+        }
+        catch (InvalidOperationException)
+        {
+            // SukiEffect.EnsureDisposed() can throw if effects are already
+            // disposed during the shutdown sequence. Safe to ignore.
+        }
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -122,6 +132,7 @@ public partial class MainWindow : SukiWindow
             _vm.ViewRawJsonRequested -= OnViewRawJsonRequested;
             _vm.SaveFileRequested -= OnSaveFileRequested;
             _vm.OpenAfterExportRequested -= OnOpenAfterExportRequested;
+            _vm.OpenOnDemandDeployRequested = null;
             _vm.PropertyChanged -= OnViewModelPropertyChanged;
             _vm = null;
         }
@@ -134,6 +145,7 @@ public partial class MainWindow : SukiWindow
             vm.ViewRawJsonRequested += OnViewRawJsonRequested;
             vm.SaveFileRequested += OnSaveFileRequested;
             vm.OpenAfterExportRequested += OnOpenAfterExportRequested;
+            vm.OpenOnDemandDeployRequested = OnOpenOnDemandDeployRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
         }
     }
@@ -445,6 +457,21 @@ public partial class MainWindow : SukiWindow
             DataContext = lookupVm
         };
         window.Show(this); // non-modal so the user can still browse
+    }
+
+    private Task OnOpenOnDemandDeployRequested(Microsoft.Graph.Beta.Models.DeviceHealthScript script)
+    {
+        if (_vm == null) return Task.CompletedTask;
+
+        var deployVm = _vm.CreateOnDemandDeployViewModel(script);
+        if (deployVm == null) return Task.CompletedTask;
+
+        var window = new OnDemandDeployWindow
+        {
+            DataContext = deployVm
+        };
+        window.Show(this);
+        return Task.CompletedTask;
     }
 
     private async Task<bool> OnSwitchProfileRequested(TenantProfile target)

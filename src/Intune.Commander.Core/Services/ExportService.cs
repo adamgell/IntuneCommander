@@ -76,14 +76,29 @@ public class ExportService : IExportService
     /// Returns a unique .json file path under <paramref name="folderPath"/>.
     /// If the sanitized name already exists as a file (collision), appends the
     /// object's <paramref name="id"/> to disambiguate rather than overwriting.
+    /// When both name and id collide (or id is null), falls back to a numeric suffix.
     /// </summary>
     private static string GetUniqueFilePath(string folderPath, string name, string? id)
     {
         var sanitized = SanitizeFileName(name);
         var path = Path.Combine(folderPath, $"{sanitized}.json");
-        if (File.Exists(path) && !string.IsNullOrEmpty(id))
-            path = Path.Combine(folderPath, $"{sanitized}_{SanitizeFileName(id)}.json");
-        return path;
+        if (!File.Exists(path))
+            return path;
+
+        if (!string.IsNullOrEmpty(id))
+        {
+            var idPath = Path.Combine(folderPath, $"{sanitized}_{SanitizeFileName(id)}.json");
+            if (!File.Exists(idPath))
+                return idPath;
+        }
+
+        // Name (and optionally id) both collided — use numeric suffix
+        for (var i = 1; ; i++)
+        {
+            var candidate = Path.Combine(folderPath, $"{sanitized}_{i}.json");
+            if (!File.Exists(candidate))
+                return candidate;
+        }
     }
 
     public async Task ExportCompliancePolicyAsync(
@@ -727,14 +742,19 @@ public class ExportService : IExportService
         DeviceHealthScript script,
         string outputPath,
         MigrationTable migrationTable,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        List<DeviceHealthScriptAssignment>? assignments = null)
     {
         var folderPath = Path.Combine(outputPath, "DeviceHealthScripts");
         Directory.CreateDirectory(folderPath);
 
         var filePath = GetUniqueFilePath(folderPath, script.DisplayName ?? script.Id ?? "unknown", script.Id);
 
-        var json = JsonSerializer.Serialize(script, script.GetType(), JsonOptions);
+        object exportPayload = assignments != null
+            ? new Models.DeviceHealthScriptExport { Script = script, Assignments = assignments }
+            : script;
+
+        var json = JsonSerializer.Serialize(exportPayload, exportPayload.GetType(), JsonOptions);
         await File.WriteAllTextAsync(filePath, json, cancellationToken);
 
         if (script.Id != null)

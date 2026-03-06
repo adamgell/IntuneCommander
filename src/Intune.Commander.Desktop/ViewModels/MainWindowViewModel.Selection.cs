@@ -1740,13 +1740,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedItemPlatform = "";
 
-        
+        SelectedScriptRunSummary = null;
+        SelectedScriptDeviceRunStates.Clear();
+
         // Common properties
         SelectedItemDescription = value?.Description ?? "";
         SelectedItemRoleScopeTags = value?.RoleScopeTagIds != null
             ? new ObservableCollection<string>(value.RoleScopeTagIds.Select(t => t ?? ""))
             : [];
-        
+
         // Health Script specific
         SelectedItemPublisher = value?.Publisher ?? "";
         SelectedItemRunAsAccount = value?.RunAsAccount.HasValue == true
@@ -1763,6 +1765,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _ = LoadDeviceHealthScriptAssignmentsAsync(value.Id);
             _ = LoadDeviceHealthScriptDetailsAsync(value.Id);
+            _ = LoadRunSummaryAndDeviceStatesAsync(value.Id);
         }
 
         OnPropertyChanged(nameof(CanRefreshSelectedItem));

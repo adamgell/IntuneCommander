@@ -219,6 +219,27 @@ public class ProfileServiceTests : IDisposable
         Assert.Empty(service.Profiles);
     }
 
+    [Fact]
+    public async Task LoadAsync_DecryptionFails_ReturnsEmptyStoreInsteadOfCrashing()
+    {
+        var encryption = Substitute.For<IProfileEncryptionService>();
+        encryption.Decrypt(Arg.Any<string>()).Returns(_ => throw new Exception("Key rotated"));
+
+        var path = Path.Combine(Path.GetTempPath(), $"dec-fail-{Guid.NewGuid():N}.json");
+        try
+        {
+            // Write an "encrypted" file that the mock will fail to decrypt
+            await File.WriteAllTextAsync(path, "INTUNEMANAGER_ENC:corrupted-data");
+
+            var svc = new ProfileService(path, encryption: encryption);
+            await svc.LoadAsync();
+
+            // Should not throw — should gracefully fall back to empty store
+            Assert.Empty(svc.Profiles);
+        }
+        finally { if (File.Exists(path)) File.Delete(path); }
+    }
+
     private static TenantProfile CreateTestProfile(string name) => new()
     {
         Name = name,

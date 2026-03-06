@@ -53,7 +53,7 @@ public interface IExportService
     Task ExportAutopilotProfileAsync(WindowsAutopilotDeploymentProfile profile, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
     Task ExportAutopilotProfilesAsync(IEnumerable<WindowsAutopilotDeploymentProfile> profiles, string outputPath, CancellationToken cancellationToken = default);
 
-    Task ExportDeviceHealthScriptAsync(DeviceHealthScript script, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);
+    Task ExportDeviceHealthScriptAsync(DeviceHealthScript script, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default, List<DeviceHealthScriptAssignment>? assignments = null);
     Task ExportDeviceHealthScriptsAsync(IEnumerable<DeviceHealthScript> scripts, string outputPath, CancellationToken cancellationToken = default);
 
     Task ExportMacCustomAttributeAsync(DeviceCustomAttributeShellScript script, string outputPath, MigrationTable migrationTable, CancellationToken cancellationToken = default);

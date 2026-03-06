@@ -1314,6 +1314,37 @@ public class ExportServiceTests : IDisposable
         Assert.Empty(table.Entries);
     }
 
+    // --- GetUniqueFilePath collision edge cases ---
+
+    [Fact]
+    public async Task ExportDeviceConfigurations_DuplicateNamesWithNullIds_BothFilesCreated()
+    {
+        // Two configs with the same display name and null IDs must not overwrite each other
+        var configs = new[]
+        {
+            new DeviceConfiguration { Id = null, DisplayName = "Same Name" },
+            new DeviceConfiguration { Id = null, DisplayName = "Same Name" }
+        };
+
+        await _service.ExportDeviceConfigurationsAsync(configs, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
+    }
+
+    [Fact]
+    public async Task ExportDeviceConfigurations_DuplicateNamesWithEmptyIds_BothFilesCreated()
+    {
+        var configs = new[]
+        {
+            new DeviceConfiguration { Id = "", DisplayName = "Same Name" },
+            new DeviceConfiguration { Id = "", DisplayName = "Same Name" }
+        };
+
+        await _service.ExportDeviceConfigurationsAsync(configs, _tempDir);
+
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        Assert.Equal(2, Directory.GetFiles(folder, "*.json").Length);
     [Fact]
     public async Task ExportConditionalAccessPolicy_CreatesJsonFile()
     {

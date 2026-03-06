@@ -4,7 +4,8 @@
              xmlns:conv="using:Intune.Commander.Desktop.Converters"
              xmlns:controls="using:Intune.Commander.Desktop.Views.Controls"
              x:Class="Intune.Commander.Desktop.Views.Controls.Details.DeviceHealthScriptDetailPanel"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:MainWindowViewModel"
+             MaxWidth="420">
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="4">
             <TextBlock Text="Device Health Script" Classes="SectionHeader" />
@@ -89,6 +90,107 @@
                         </Border>
                     </Expander>
                 </StackPanel>
+            </Border>
+
+            <!-- Section: Run Summary -->
+            <TextBlock Text="Run Summary" Classes="SectionHeaderSpaced" />
+            <Border Classes="SectionCard">
+                <Panel>
+                    <!-- Loading spinner -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                IsVisible="{Binding IsLoadingRunSummary}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Margin="0,8">
+                        <ProgressBar IsIndeterminate="True" Width="120" Height="8"
+                                     Foreground="{DynamicResource ProgressBarForegroundBrush}"
+                                     Background="{DynamicResource ProgressBarBackgroundBrush}"
+                                     CornerRadius="4" />
+                        <TextBlock Text="Loading..." FontSize="{StaticResource FontSizeCaption}" Opacity="0.7" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Summary counts -->
+                    <StackPanel IsVisible="{Binding !IsLoadingRunSummary}">
+                        <Grid ColumnDefinitions="*,*,*,*" Margin="0,4"
+                              IsVisible="{Binding SelectedScriptRunSummary, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="No Issues" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding SelectedScriptRunSummary.NoIssueDetectedDeviceCount}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource SuccessBadgeBrush}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Detected" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding SelectedScriptRunSummary.IssueDetectedDeviceCount}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource WarningBadgeBrush}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Remediated" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding SelectedScriptRunSummary.IssueRemediatedDeviceCount}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource InfoBadgeBrush}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Errors" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding SelectedScriptRunSummary.IssueReoccurredDeviceCount}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource ErrorBadgeBrush}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="No run summary available"
+                                   IsVisible="{Binding SelectedScriptRunSummary, Converter={x:Static ObjectConverters.IsNull}}"
+                                   FontSize="{StaticResource FontSizeBody}" Opacity="0.5"
+                                   HorizontalAlignment="Center" Margin="0,8" />
+                    </StackPanel>
+                </Panel>
+            </Border>
+
+            <!-- Deploy On-Demand button -->
+            <Button Content="Deploy On-Demand"
+                    Command="{Binding OpenOnDemandDeployCommand}"
+                    HorizontalAlignment="Right"
+                    Margin="0,4,0,0"
+                    Classes="Medium Accent" />
+
+            <!-- Section: Device Run States -->
+            <TextBlock Text="Device Run States" Classes="SectionHeaderSpaced" />
+            <Border Classes="SectionCard">
+                <Panel>
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                IsVisible="{Binding IsLoadingRunSummary}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Margin="0,8">
+                        <ProgressBar IsIndeterminate="True" Width="120" Height="8"
+                                     Foreground="{DynamicResource ProgressBarForegroundBrush}"
+                                     Background="{DynamicResource ProgressBarBackgroundBrush}"
+                                     CornerRadius="4" />
+                        <TextBlock Text="Loading..." FontSize="{StaticResource FontSizeCaption}" Opacity="0.7" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding !IsLoadingRunSummary}">
+                        <DataGrid ItemsSource="{Binding SelectedScriptDeviceRunStates}"
+                                  IsVisible="{Binding SelectedScriptDeviceRunStates.Count}"
+                                  IsReadOnly="True"
+                                  CanUserSortColumns="True"
+                                  CanUserResizeColumns="True"
+                                  MaxHeight="300"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="1"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Device"
+                                                    Binding="{Binding ManagedDevice.DeviceName}"
+                                                    Width="*" />
+                                <DataGridTextColumn Header="Detection"
+                                                    Binding="{Binding DetectionState}"
+                                                    Width="90" />
+                                <DataGridTextColumn Header="Remediation"
+                                                    Binding="{Binding RemediationState}"
+                                                    Width="95" />
+                                <DataGridTextColumn Header="Last Updated"
+                                                    Binding="{Binding LastStateUpdateDateTime}"
+                                                    Width="120" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Text="No device run states available"
+                                   IsVisible="{Binding !SelectedScriptDeviceRunStates.Count}"
+                                   FontSize="{StaticResource FontSizeBody}" Opacity="0.5"
+                                   HorizontalAlignment="Center" Margin="0,8" />
+                    </StackPanel>
+                </Panel>
             </Border>
 
             <!-- Section: Assignments -->

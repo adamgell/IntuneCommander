@@ -168,6 +168,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _autopilotService = new AutopilotService(_graphClient);
 
             _deviceHealthScriptService = new DeviceHealthScriptService(_graphClient);
+            _deviceService = new DeviceService(_graphClient);
 
             _macCustomAttributeService = new MacCustomAttributeService(_graphClient);
 
@@ -614,6 +615,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedDeviceHealthScript = null;
 
+        SelectedScriptRunSummary = null;
+        SelectedScriptDeviceRunStates.Clear();
+        OnDemandDeployments.Clear();
+
         MacCustomAttributes.Clear();
 
         SelectedMacCustomAttribute = null;
@@ -763,6 +768,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _autopilotService = null;
 
         _deviceHealthScriptService = null;
+        _deviceService = null;
 
         _macCustomAttributeService = null;
 

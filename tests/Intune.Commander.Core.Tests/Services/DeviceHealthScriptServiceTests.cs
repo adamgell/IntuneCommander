@@ -80,10 +80,10 @@ public class DeviceHealthScriptServiceTests
     }
 
     [Fact]
-    public void Interface_HasSixMethods()
+    public void Interface_HasNineMethods()
     {
         var methods = typeof(IDeviceHealthScriptService).GetMethods();
-        Assert.Equal(6, methods.Length);
+        Assert.Equal(9, methods.Length);
     }
 
     [Fact]
@@ -139,5 +139,45 @@ public class DeviceHealthScriptServiceTests
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(field);
         Assert.Equal(typeof(GraphServiceClient), field.FieldType);
+    }
+
+    [Fact]
+    public void Interface_DefinesGetRunSummaryMethod()
+    {
+        var method = typeof(IDeviceHealthScriptService).GetMethod("GetRunSummaryAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<DeviceHealthScriptRunSummary?>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(2, parameters.Length);
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+        Assert.True(parameters[1].HasDefaultValue);
+    }
+
+    [Fact]
+    public void Interface_DefinesGetDeviceRunStatesMethod()
+    {
+        var method = typeof(IDeviceHealthScriptService).GetMethod("GetDeviceRunStatesAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<DeviceHealthScriptDeviceState>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(2, parameters.Length);
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+        Assert.True(parameters[1].HasDefaultValue);
+    }
+
+    [Fact]
+    public void Interface_DefinesInitiateOnDemandRemediationMethod()
+    {
+        var method = typeof(IDeviceHealthScriptService).GetMethod("InitiateOnDemandRemediationAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(3, parameters.Length);
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(string), parameters[1].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[2].ParameterType);
+        Assert.True(parameters[2].HasDefaultValue);
     }
 }

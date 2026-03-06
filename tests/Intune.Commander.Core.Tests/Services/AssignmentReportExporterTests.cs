@@ -397,4 +397,39 @@ public class AssignmentReportExporterTests
 
         Assert.DoesNotContain("SomeModeValue", csv);
     }
+
+    // ── CSV formula injection prevention ──────────────────────────────────────────
+
+    [Theory]
+    [InlineData("=SUM(A1)", "'=SUM(A1)")]
+    [InlineData("+cmd|' /C calc'!A0", "'+cmd|' /C calc'!A0")]
+    [InlineData("-1+1", "'-1+1")]
+    [InlineData("@SUM(A1:A2)", "'@SUM(A1:A2)")]
+    public void GenerateCsv_FormulaInjectionCharacters_ArePrefixed(string malicious, string expectedContent)
+    {
+        var rows = new List<AssignmentReportRow>
+        {
+            new() { PolicyName = malicious, PolicyType = "Type", Platform = "Windows" }
+        };
+
+        var csv = AssignmentReportExporter.GenerateCsv("Overview", rows);
+
+        // The CSV-quoted value should contain the prefixed string
+        Assert.Contains(expectedContent, csv);
+    }
+
+    [Fact]
+    public void GenerateCsv_SafeValues_NotPrefixed()
+    {
+        var rows = new List<AssignmentReportRow>
+        {
+            new() { PolicyName = "Normal Policy", PolicyType = "Type", Platform = "Windows" }
+        };
+
+        var csv = AssignmentReportExporter.GenerateCsv("Overview", rows);
+
+        // Normal values should not get a leading single-quote
+        Assert.Contains("\"Normal Policy\"", csv);
+        Assert.DoesNotContain("'Normal", csv);
+    }
 }

@@ -188,6 +188,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private IAutopilotService? _autopilotService;
 
     private IDeviceHealthScriptService? _deviceHealthScriptService;
+    private IDeviceService? _deviceService;
 
     private IMacCustomAttributeService? _macCustomAttributeService;
 
@@ -607,7 +608,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool _deviceHealthScriptsLoaded;
 
+    [ObservableProperty]
+    private DeviceHealthScriptRunSummary? _selectedScriptRunSummary;
 
+    [ObservableProperty]
+    private ObservableCollection<DeviceHealthScriptDeviceState> _selectedScriptDeviceRunStates = [];
+
+    [ObservableProperty]
+    private bool _isLoadingRunSummary;
+
+    [ObservableProperty]
+    private ObservableCollection<OnDemandDeploymentRecord> _onDemandDeployments = [];
+
+    public Func<DeviceHealthScript, Task>? OpenOnDemandDeployRequested { get; set; }
 
     // --- Mac Custom Attributes ---
 
