@@ -117,6 +117,7 @@
         <suki:SukiTheme ThemeColor="Blue" />
         <mi:MaterialIconStyles />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Simple.xaml"/>
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Simple/AvaloniaEdit.xaml" />
 
         <!-- ═══ Global Font Size Override ═══ -->
         <!-- Set FontSize on the root window (inherited by children) -->

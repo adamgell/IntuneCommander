@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 
 using CommunityToolkit.Mvvm.Input;
 
+using Intune.Commander.Core.Formatters;
+
 using Microsoft.Graph.Beta.Models;
 
 
@@ -3140,7 +3142,18 @@ public partial class MainWindowViewModel : ViewModelBase
             var items = new List<AssignmentDisplayItem>();
 
             foreach (var a in assignments)
-                items.Add(await MapAssignmentAsync(a.Target));
+            {
+                var baseItem = await MapAssignmentAsync(a.Target);
+                items.Add(new HealthScriptAssignmentDisplayItem
+                {
+                    Target = baseItem.Target,
+                    GroupId = baseItem.GroupId,
+                    TargetKind = baseItem.TargetKind,
+                    Intent = baseItem.Intent,
+                    Schedule = RunScheduleFormatter.Format(a.RunSchedule),
+                    RunRemediation = a.RunRemediationScript ?? false
+                });
+            }
 
             if (SelectedDeviceHealthScript?.Id == scriptId)
                 SelectedItemAssignments = new ObservableCollection<AssignmentDisplayItem>(items);
