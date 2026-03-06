@@ -238,14 +238,14 @@
                 <StackPanel Grid.Column="0" Spacing="4">
                     <TextBlock Text="Detection Script" Classes="SectionHeader" />
                     <controls:PowerShellCodeBlock
-                        Code="{ReflectionBinding SelectedItemDetectionScript}" />
+                        Code="{Binding SelectedItemDetectionScript}" />
                 </StackPanel>
 
                 <!-- Remediation Script -->
                 <StackPanel Grid.Column="2" Spacing="4">
                     <TextBlock Text="Remediation Script" Classes="SectionHeader" />
                     <controls:PowerShellCodeBlock
-                        Code="{ReflectionBinding SelectedItemRemediationScript}" />
+                        Code="{Binding SelectedItemRemediationScript}" />
                 </StackPanel>
             </Grid>
         </Grid>

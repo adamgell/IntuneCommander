@@ -52,7 +52,7 @@ public partial class PowerShellCodeBlock : UserControl
                 installation.SetGrammar(
                     registryOptions.GetScopeByLanguageId(psLang.Id));
         }
-        catch
+        catch (Exception)
         {
             // Syntax highlighting unavailable — editor still works for plain text
         }
