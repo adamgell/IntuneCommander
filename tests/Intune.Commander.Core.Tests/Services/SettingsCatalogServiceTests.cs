@@ -98,10 +98,10 @@ public class SettingsCatalogServiceTests
     }
 
     [Fact]
-    public void Interface_HasSixMethods()
+    public void Interface_HasNineMethods()
     {
         var methods = typeof(ISettingsCatalogService).GetMethods();
-        Assert.Equal(6, methods.Length);
+        Assert.Equal(9, methods.Length);
     }
 
     // The configurationPolicies endpoint returns HTTP 500 on certain Cosmos DB skip-token
@@ -124,5 +124,43 @@ public class SettingsCatalogServiceTests
         Assert.NotNull(field);
         var value = (int)field.GetValue(null)!;
         Assert.True(value >= 2, "MaxRetries should be at least 2 to handle transient 500s");
+    }
+
+    [Fact]
+    public void Interface_DefinesUpdateMetadataMethod()
+    {
+        var method = typeof(ISettingsCatalogService).GetMethod("UpdateSettingsCatalogPolicyMetadataAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<DeviceManagementConfigurationPolicy>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(DeviceManagementConfigurationPolicy), parameters[1].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[2].ParameterType);
+        Assert.True(parameters[2].HasDefaultValue);
+    }
+
+    [Fact]
+    public void Interface_DefinesDeleteMethod()
+    {
+        var method = typeof(ISettingsCatalogService).GetMethod("DeleteSettingsCatalogPolicyAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
+        Assert.True(parameters[1].HasDefaultValue);
+    }
+
+    [Fact]
+    public void Interface_DefinesUpdatePolicySettingsMethod()
+    {
+        var method = typeof(ISettingsCatalogService).GetMethod("UpdatePolicySettingsAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(List<DeviceManagementConfigurationSetting>), parameters[1].ParameterType);
+        Assert.Equal(typeof(CancellationToken), parameters[2].ParameterType);
+        Assert.True(parameters[2].HasDefaultValue);
     }
 }

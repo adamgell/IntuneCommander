@@ -134,4 +134,67 @@ public class SettingsCatalogService : ISettingsCatalogService
                 },
                 cancellationToken: cancellationToken);
     }
+
+    public async Task<DeviceManagementConfigurationPolicy> UpdateSettingsCatalogPolicyMetadataAsync(string id, DeviceManagementConfigurationPolicy policy, CancellationToken cancellationToken = default)
+    {
+        var result = await _graphClient.DeviceManagement.ConfigurationPolicies[id]
+            .PatchAsync(policy, cancellationToken: cancellationToken);
+
+        return await GraphPatchHelper.PatchWithGetFallbackAsync(
+            result, () => GetSettingsCatalogPolicyAsync(id, cancellationToken), "settings catalog policy");
+    }
+
+    public async Task DeleteSettingsCatalogPolicyAsync(string id, CancellationToken cancellationToken = default)
+    {
+        await _graphClient.DeviceManagement.ConfigurationPolicies[id]
+            .DeleteAsync(cancellationToken: cancellationToken);
+    }
+
+    public async Task UpdatePolicySettingsAsync(string policyId, List<DeviceManagementConfigurationSetting> settings, CancellationToken cancellationToken = default)
+    {
+        // Step 1: Capture original settings for rollback
+        var originalSettings = await GetPolicySettingsAsync(policyId, cancellationToken);
+
+        // Step 2: Delete all existing settings
+        try
+        {
+            foreach (var existing in originalSettings)
+            {
+                if (existing.Id is not null)
+                {
+                    await _graphClient.DeviceManagement.ConfigurationPolicies[policyId]
+                        .Settings[existing.Id]
+                        .DeleteAsync(cancellationToken: cancellationToken);
+                }
+            }
+
+            // Step 3: POST each new setting (with Id = null)
+            foreach (var setting in settings)
+            {
+                setting.Id = null;
+                await _graphClient.DeviceManagement.ConfigurationPolicies[policyId]
+                    .Settings.PostAsync(setting, cancellationToken: cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Best-effort rollback: re-POST original settings
+            try
+            {
+                foreach (var original in originalSettings)
+                {
+                    original.Id = null;
+                    await _graphClient.DeviceManagement.ConfigurationPolicies[policyId]
+                        .Settings.PostAsync(original, cancellationToken: cancellationToken);
+                }
+            }
+            catch (Exception rollbackEx)
+            {
+                throw new AggregateException(
+                    "Failed to update policy settings and rollback also failed", ex, rollbackEx);
+            }
+
+            throw;
+        }
+    }
 }
