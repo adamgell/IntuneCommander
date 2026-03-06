@@ -18,10 +18,7 @@ public class CloudPcUserSettingsService : ICloudPcUserSettingsService
         var result = new List<CloudPcUserSetting>();
 
         var response = await _graphClient.DeviceManagement.VirtualEndpoint.UserSettings
-            .GetAsync(req =>
-            {
-                req.QueryParameters.Top = 999;
-            }, cancellationToken);
+            .GetAsync(cancellationToken: cancellationToken);
 
         while (response != null)
         {
