@@ -173,8 +173,14 @@ if ($orphanIds) {
             $fetched++
         }
         catch {
-            $status = $_.Exception.Response.StatusCode.value__
-            Write-Warning "  Could not fetch category $catId (status $status) -- skipping"
+            $response = $_.Exception.Response
+            if ($response -and $response.StatusCode) {
+                $status = $response.StatusCode.value__
+                Write-Warning "  Could not fetch category $catId (status $status) -- skipping"
+            }
+            else {
+                Write-Warning "  Could not fetch category $catId (no HTTP response) -- $($_.Exception.Message)"
+            }
         }
     }
     Write-Host "  Fetched $fetched/$(@($orphanIds).Count) orphan categories."
