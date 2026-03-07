@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+---
+
+## [0.5.0] — 2026-03-07
+
 ### Added
 
 - **Directory Object Resolver** — new `IDirectoryObjectResolver` / `DirectoryObjectResolver` in Core
