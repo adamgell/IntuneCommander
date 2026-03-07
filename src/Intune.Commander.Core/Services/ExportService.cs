@@ -75,7 +75,17 @@ public class ExportService : IExportService
     {
         EnsureFolder(outputPath);
         var filePath = Path.Combine(outputPath, "migration-table.json");
-        await WriteJsonFileAsync(filePath, table, cancellationToken);
+
+        try
+        {
+            await WriteJsonFileAsync(filePath, table, cancellationToken);
+        }
+        finally
+        {
+            // ExportService can live for an entire desktop session, so clear any
+            // cached file reservations after each completed export batch.
+            _folderStates.Clear();
+        }
     }
 
     // Use a fixed set of Windows-invalid filename chars so sanitization is

@@ -86,6 +86,70 @@ public sealed class ExportServiceEdgeCaseTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveMigrationTableAsync_ResetsReservedFileNamesAfterDeletedFile()
+    {
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        var firstTable = new MigrationTable();
+        var secondTable = new MigrationTable();
+
+        await _sut.ExportDeviceConfigurationAsync(new DeviceConfiguration
+        {
+            Id = "cfg-1",
+            DisplayName = "Same Name"
+        }, _tempDir, firstTable);
+        await _sut.SaveMigrationTableAsync(firstTable, _tempDir);
+
+        File.Delete(Path.Combine(folder, "Same Name.json"));
+
+        await _sut.ExportDeviceConfigurationAsync(new DeviceConfiguration
+        {
+            Id = "cfg-2",
+            DisplayName = "Same Name"
+        }, _tempDir, secondTable);
+
+        var files = Directory.GetFiles(folder, "*.json")
+            .Select(Path.GetFileName)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Single(files);
+        Assert.Contains("Same Name.json", files);
+    }
+
+    [Fact]
+    public async Task SaveMigrationTableAsync_RefreshesFolderStateForExternalFiles()
+    {
+        var folder = Path.Combine(_tempDir, "DeviceConfigurations");
+        var firstTable = new MigrationTable();
+        var secondTable = new MigrationTable();
+
+        await _sut.ExportDeviceConfigurationAsync(new DeviceConfiguration
+        {
+            Id = "cfg-1",
+            DisplayName = "Alpha"
+        }, _tempDir, firstTable);
+        await _sut.SaveMigrationTableAsync(firstTable, _tempDir);
+
+        var externalPath = Path.Combine(folder, "Bravo.json");
+        await File.WriteAllTextAsync(externalPath, "{ \"displayName\": \"external\" }");
+
+        await _sut.ExportDeviceConfigurationAsync(new DeviceConfiguration
+        {
+            Id = "cfg-2",
+            DisplayName = "Bravo"
+        }, _tempDir, secondTable);
+
+        var files = Directory.GetFiles(folder, "*.json")
+            .Select(Path.GetFileName)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Contains("Bravo.json", files);
+        Assert.Contains("Bravo_cfg-2.json", files);
+        Assert.Contains("external", await File.ReadAllTextAsync(externalPath));
+    }
+
+    [Fact]
     public async Task SaveMigrationTableAsync_OverwritesExistingFile()
     {
         await File.WriteAllTextAsync(Path.Combine(_tempDir, "migration-table.json"), "{ \"entries\": [] }");

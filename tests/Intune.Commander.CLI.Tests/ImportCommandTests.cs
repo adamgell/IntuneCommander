@@ -65,6 +65,34 @@ public sealed class ImportCommandTests : IDisposable
     }
 
     [Fact]
+    public async Task Build_DryRunDriverUpdatesFolder_ValidatesExportedProfiles()
+    {
+        var exportDir = Path.Combine(_tempDir, "driver-updates-export");
+        Directory.CreateDirectory(Path.Combine(exportDir, "DriverUpdates"));
+
+        await File.WriteAllTextAsync(
+            Path.Combine(exportDir, "DriverUpdates", "Driver Update.json"),
+            JsonSerializer.Serialize(new WindowsDriverUpdateProfile
+            {
+                Id = "dup-1",
+                DisplayName = "Driver Update"
+            }));
+
+        var result = await InvokeAsync("import", "--folder", exportDir, "--dry-run");
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(string.IsNullOrWhiteSpace(result.StdErr));
+
+        using var document = JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+
+        Assert.Equal(1, root.GetProperty("result").GetProperty("count").GetInt32());
+        Assert.Equal(1, root.GetProperty("summary").GetProperty("total").GetInt32());
+        Assert.Equal(1, root.GetProperty("summary").GetProperty("perTypeCounts").GetProperty("driverUpdateProfiles").GetInt32());
+        Assert.Equal(0, root.GetProperty("summary").GetProperty("validationErrorCount").GetInt32());
+    }
+
+    [Fact]
     public async Task Build_DryRunMissingFolder_FailsCleanly()
     {
         var missingFolder = Path.Combine(_tempDir, "does-not-exist");

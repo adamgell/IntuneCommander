@@ -73,7 +73,7 @@ public static class ImportCommand
         new("deviceShellScripts", "DeviceShellScripts", static (service, filePath, cancellationToken) => ReadAsObjectAsync(service.ReadDeviceShellScriptAsync, filePath, cancellationToken)),
         new("complianceScripts", "ComplianceScripts", static (service, filePath, cancellationToken) => ReadAsObjectAsync(service.ReadComplianceScriptAsync, filePath, cancellationToken)),
         new("qualityUpdateProfiles", "QualityUpdates", static (service, filePath, cancellationToken) => ReadAsObjectAsync(service.ReadQualityUpdateProfileAsync, filePath, cancellationToken)),
-        new("driverUpdateProfiles", "DriverUpdateProfiles", static (service, filePath, cancellationToken) => ReadAsObjectAsync(service.ReadDriverUpdateProfileAsync, filePath, cancellationToken)),
+        new("driverUpdateProfiles", "DriverUpdates", static (service, filePath, cancellationToken) => ReadAsObjectAsync(service.ReadDriverUpdateProfileAsync, filePath, cancellationToken)),
         new("settingsCatalogPolicies", "SettingsCatalog", static (service, filePath, cancellationToken) => ReadAsObjectAsync(service.ReadSettingsCatalogPolicyAsync, filePath, cancellationToken))
     ];
 
