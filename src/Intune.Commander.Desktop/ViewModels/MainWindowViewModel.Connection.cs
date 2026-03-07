@@ -815,7 +815,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _baselineService = null;
         _baselineViewModel = null;
-        ActiveSettingsEditor = null;
         SettingsCatalogViewMode = SettingsCatalogViewMode.Policies;
 
         _groupNameCache.Clear();

@@ -380,8 +380,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private SettingsCatalogViewMode _settingsCatalogViewMode = SettingsCatalogViewMode.Policies;
 
-    [ObservableProperty]
-    private SettingsPolicyEditorViewModel? _activeSettingsEditor;
+    public event Action<SettingsPolicyEditorViewModel>? OpenSettingsEditorRequested;
 
     public bool IsSettingsCatalogInPoliciesMode => SettingsCatalogViewMode == SettingsCatalogViewMode.Policies;
 
@@ -412,14 +411,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var editor = new SettingsPolicyEditorViewModel(_settingsCatalogService, SelectedSettingsCatalogPolicy);
         await editor.LoadSettingsAsync(ct);
-        ActiveSettingsEditor = editor;
-    }
-
-    [RelayCommand]
-    private void CloseSettingsEditor()
-    {
-        ActiveSettingsEditor?.UnsubscribeFromSettings();
-        ActiveSettingsEditor = null;
+        OpenSettingsEditorRequested?.Invoke(editor);
     }
 
     // --- Endpoint Security ---

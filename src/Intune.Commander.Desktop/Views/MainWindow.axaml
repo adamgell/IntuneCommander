@@ -227,13 +227,6 @@
                                                         <details:CompliancePolicyDetailPanel IsVisible="{Binding SelectedCompliancePolicy, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
                             <!-- ═══════════════════════════════════════════ -->
-                            <!-- Settings Policy Editor (overlays detail)   -->
-                            <!-- ═══════════════════════════════════════════ -->
-                            <details:SettingsPolicyEditorPanel
-                                DataContext="{Binding ActiveSettingsEditor}"
-                                IsVisible="{Binding $parent[suki:SukiWindow].((vm:MainWindowViewModel)DataContext).ActiveSettingsEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
-
-                            <!-- ═══════════════════════════════════════════ -->
                             <!-- Settings Catalog details                   -->
                             <!-- ═══════════════════════════════════════════ -->
                                                         <details:SettingsCatalogDetailPanel IsVisible="{Binding SelectedSettingsCatalogPolicy, Converter={x:Static ObjectConverters.IsNotNull}}" />

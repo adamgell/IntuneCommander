@@ -133,6 +133,7 @@ public partial class MainWindow : SukiWindow
             _vm.SaveFileRequested -= OnSaveFileRequested;
             _vm.OpenAfterExportRequested -= OnOpenAfterExportRequested;
             _vm.OpenOnDemandDeployRequested = null;
+            _vm.OpenSettingsEditorRequested -= OnOpenSettingsEditorRequested;
             _vm.PropertyChanged -= OnViewModelPropertyChanged;
             _vm = null;
         }
@@ -146,6 +147,7 @@ public partial class MainWindow : SukiWindow
             vm.SaveFileRequested += OnSaveFileRequested;
             vm.OpenAfterExportRequested += OnOpenAfterExportRequested;
             vm.OpenOnDemandDeployRequested = OnOpenOnDemandDeployRequested;
+            vm.OpenSettingsEditorRequested += OnOpenSettingsEditorRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
         }
     }
@@ -520,6 +522,17 @@ public partial class MainWindow : SukiWindow
     private void OnViewRawJsonRequested(string title, string json)
     {
         var window = new RawJsonWindow(title, json);
+        window.Show(this);
+    }
+
+    private void OnOpenSettingsEditorRequested(SettingsPolicyEditorViewModel editor)
+    {
+        var window = new SettingsPolicyEditorWindow
+        {
+            DataContext = editor,
+            Title = $"Policy Editor — {editor.PolicyName}"
+        };
+        window.EditorClosed += () => editor.UnsubscribeFromSettings();
         window.Show(this);
     }
 
