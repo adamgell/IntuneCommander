@@ -83,9 +83,6 @@ website/docs/
 .vscode/mcp.json
 <<<<<<< Updated upstream
 .github/agents/
-=======
-.github/agents/
 !.github/agents/
 !.github/agents/*.agent.md
 /artifacts
->>>>>>> Stashed changes
