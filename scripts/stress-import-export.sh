@@ -266,18 +266,18 @@ def mutate_assignment(node):
     return False
 
 def mutate_security(node):
-    security_keys = ("password", "mfa", "encryption", "bitlocker", "isenabled", "state")
+    security_tokens = ("password", "mfa", "encryption", "bitlocker")
 
     if isinstance(node, dict):
         for key, value in node.items():
             lowered = key.lower()
-            if any(token in lowered for token in security_keys):
-                if lowered.endswith("state") and isinstance(value, str):
-                    node[key] = "reportOnly"
-                    return True
-                if lowered == "isenabled" and isinstance(value, bool):
-                    node[key] = False
-                    return True
+            if lowered == "state" and isinstance(value, str):
+                node[key] = "reportOnly"
+                return True
+            if lowered == "isenabled" and isinstance(value, bool):
+                node[key] = False
+                return True
+            if any(token in lowered for token in security_tokens):
                 if isinstance(value, bool):
                     node[key] = not value
                     return True
