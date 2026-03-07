@@ -45,6 +45,9 @@ public partial class BaselineViewModel : ViewModelBase
     [ObservableProperty]
     private BaselineComparisonResult? _comparisonResult;
 
+    [ObservableProperty]
+    private DeviceManagementConfigurationPolicy? _selectedComparisonPolicy;
+
     // TODO: ES/Compliance inline editing
     // TODO: Deploy to Existing for ES/Compliance types
     public bool IsCompareAvailable => ActiveBaselineType == BaselinePolicyType.SettingsCatalog;
@@ -124,8 +127,9 @@ public partial class BaselineViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task CompareWithTenantPolicyAsync(string? tenantPolicyId, CancellationToken ct)
+    private async Task CompareWithTenantPolicyAsync(CancellationToken ct)
     {
+        var tenantPolicyId = SelectedComparisonPolicy?.Id;
         if (SelectedBaseline is null || string.IsNullOrEmpty(tenantPolicyId)) return;
         if (ActiveBaselineType != BaselinePolicyType.SettingsCatalog) return;
 
@@ -213,10 +217,8 @@ public partial class BaselineViewModel : ViewModelBase
 
         if (created.Id is not null && settings.Count > 0)
         {
-            // Use CancellationToken.None: once the policy is created, we must finish
-            // adding settings to avoid leaving an orphaned empty policy in the tenant
             await _settingsCatalogService.UpdatePolicySettingsAsync(
-                created.Id, settings, CancellationToken.None);
+                created.Id, settings, ct);
         }
     }
 

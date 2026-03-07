@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intune.Commander.CLI", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intune.Commander.CLI.Tests", "tests\Intune.Commander.CLI.Tests\Intune.Commander.CLI.Tests.csproj", "{C7F2C5D7-C27A-4F90-AFD0-D20684FAC3BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intune.Commander.Desktop.Tests", "tests\Intune.Commander.Desktop.Tests\Intune.Commander.Desktop.Tests.csproj", "{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,18 @@ Global
 		{C7F2C5D7-C27A-4F90-AFD0-D20684FAC3BB}.Release|x64.Build.0 = Release|Any CPU
 		{C7F2C5D7-C27A-4F90-AFD0-D20684FAC3BB}.Release|x86.ActiveCfg = Release|Any CPU
 		{C7F2C5D7-C27A-4F90-AFD0-D20684FAC3BB}.Release|x86.Build.0 = Release|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Debug|x64.Build.0 = Debug|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Debug|x86.Build.0 = Debug|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Release|x64.ActiveCfg = Release|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Release|x64.Build.0 = Release|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Release|x86.ActiveCfg = Release|Any CPU
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,5 +111,6 @@ Global
 		{9A1B7C26-8F96-4736-81E9-D4E0AB685A5F} = {DFE65D82-4EC2-4749-9DA1-5E8A6FA9BD38}
 		{46D33C06-C9A9-4737-8C80-E700FF5CFB11} = {8DC50F0D-5063-4560-B9FD-DAAFA03AD2E9}
 		{C7F2C5D7-C27A-4F90-AFD0-D20684FAC3BB} = {DFE65D82-4EC2-4749-9DA1-5E8A6FA9BD38}
+		{A3E8F261-9D47-4B2E-9C0F-E5D1B7A2C834} = {DFE65D82-4EC2-4749-9DA1-5E8A6FA9BD38}
 	EndGlobalSection
 EndGlobal

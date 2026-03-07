@@ -32,16 +32,18 @@ public partial class GroupPickerViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value)
     {
+        // Cancel in-flight debounce without disposing to avoid ObjectDisposedException
+        // in Task.Delay continuations that are still running.
         _debounceCts?.Cancel();
-        _debounceCts?.Dispose();
         if (string.IsNullOrWhiteSpace(value))
         {
             _debounceCts = null;
             Groups.Clear();
             return;
         }
-        _debounceCts = new CancellationTokenSource();
-        _ = DebounceSearchAsync(_debounceCts.Token);
+        var cts = new CancellationTokenSource();
+        _debounceCts = cts;
+        _ = DebounceSearchAsync(cts.Token);
     }
 
     private async Task DebounceSearchAsync(CancellationToken ct)
@@ -57,8 +59,8 @@ public partial class GroupPickerViewModel : ViewModelBase
     [RelayCommand]
     private async Task SearchGroupsAsync(CancellationToken ct)
     {
+        // Cancel in-flight debounce without disposing to avoid ObjectDisposedException.
         _debounceCts?.Cancel();
-        _debounceCts?.Dispose();
         _debounceCts = null;
         await SearchGroupsCoreAsync(ct);
     }

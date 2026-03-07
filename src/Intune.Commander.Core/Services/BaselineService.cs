@@ -204,14 +204,29 @@ public sealed class BaselineService : IBaselineService
 
     private static string ExtractValueFromInstance(DeviceManagementConfigurationSettingInstance? instance)
     {
-        return instance switch
+        if (instance is null)
+            return "";
+
+        switch (instance)
         {
-            DeviceManagementConfigurationChoiceSettingInstance c
-                => c.ChoiceSettingValue?.Value ?? "",
-            DeviceManagementConfigurationSimpleSettingInstance s
-                => ExtractSimpleValue(s.SimpleSettingValue),
-            _ => ""
-        };
+            case DeviceManagementConfigurationChoiceSettingInstance c:
+                return c.ChoiceSettingValue?.Value ?? "";
+            case DeviceManagementConfigurationSimpleSettingInstance s:
+                return ExtractSimpleValue(s.SimpleSettingValue);
+            default:
+                // For group/collection/other instance types, serialize to JSON and reuse
+                // the same extraction logic as the baseline JSON path so comparisons are consistent.
+                try
+                {
+                    var json = JsonSerializer.Serialize(instance, JsonOptions);
+                    using var doc = JsonDocument.Parse(json);
+                    return ExtractValueFromJson(doc.RootElement);
+                }
+                catch (JsonException)
+                {
+                    return "";
+                }
+        }
     }
 
     private static string ExtractSimpleValue(DeviceManagementConfigurationSimpleSettingValue? value)

@@ -226,7 +226,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <ComboBox ItemsSource="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).SettingsCatalogPolicies}"
-                                          x:Name="ComparePolicySelector"
+                                          SelectedItem="{Binding SelectedComparisonPolicy}"
                                           MinWidth="300"
                                           PlaceholderText="Select a tenant policy to compare...">
                                     <ComboBox.ItemTemplate>
@@ -237,9 +237,7 @@
                                 </ComboBox>
                                 <Button Content="Compare"
                                         Command="{Binding CompareWithTenantPolicyCommand}"
-                                        x:CompileBindings="False"
-                                        CommandParameter="{Binding #ComparePolicySelector.SelectedItem.Id}"
-                                        IsEnabled="{Binding #ComparePolicySelector.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                        IsEnabled="{Binding SelectedComparisonPolicy, Converter={x:Static ObjectConverters.IsNotNull}}" />
                             </StackPanel>
 
                             <!-- Comparison results -->

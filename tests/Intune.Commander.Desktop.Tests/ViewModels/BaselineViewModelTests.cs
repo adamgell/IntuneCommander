@@ -5,7 +5,7 @@ using Intune.Commander.Desktop.ViewModels;
 using Microsoft.Graph.Beta.Models;
 using NSubstitute;
 
-namespace Intune.Commander.Core.Tests.ViewModels;
+namespace Intune.Commander.Desktop.Tests.ViewModels;
 
 public class BaselineViewModelTests
 {

@@ -1,7 +1,7 @@
 using Intune.Commander.Desktop.ViewModels.Settings;
 using Microsoft.Graph.Beta.Models;
 
-namespace Intune.Commander.Core.Tests.ViewModels.Settings;
+namespace Intune.Commander.Desktop.Tests.ViewModels.Settings;
 
 public class SettingViewModelFactoryTests
 {

@@ -64,8 +64,8 @@ public partial class SettingsPolicyEditorViewModel : ViewModelBase
 
             var vms = settings.Select(SettingViewModelFactory.Create).ToList();
 
-            // Subscribe to IsModified changes on each VM
-            foreach (var vm in vms)
+            // Subscribe to IsModified changes on each VM, including nested children
+            foreach (var vm in GetAllSettingVmsRecursive(vms))
                 vm.PropertyChanged += OnSettingPropertyChanged;
 
             BuildCategoryTree(vms);
@@ -146,8 +146,8 @@ public partial class SettingsPolicyEditorViewModel : ViewModelBase
 
             await _settingsCatalogService.UpdatePolicySettingsAsync(_policy.Id, updatedSettings, ct);
 
-            // Reset IsModified on all VMs after successful save
-            foreach (var vm in allVms)
+            // Reset IsModified on all VMs (including nested children) after successful save
+            foreach (var vm in GetAllSettingVmsRecursive(allVms))
                 vm.IsModified = false;
 
             _originalSettings = updatedSettings;
@@ -233,13 +233,27 @@ public partial class SettingsPolicyEditorViewModel : ViewModelBase
 
     public void UnsubscribeFromSettings()
     {
-        foreach (var vm in CategoryTree.SelectMany(GetAllSettings))
+        foreach (var vm in CategoryTree.SelectMany(c => GetAllSettingVmsRecursive(c.Settings)))
             vm.PropertyChanged -= OnSettingPropertyChanged;
     }
 
     private void OnSettingPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(SettingViewModelBase.IsModified))
-            HasUnsavedChanges = CategoryTree.SelectMany(GetAllSettings).Any(vm => vm.IsModified);
+            HasUnsavedChanges = CategoryTree
+                .SelectMany(c => GetAllSettingVmsRecursive(c.Settings))
+                .Any(vm => vm.IsModified);
+    }
+
+    private static IEnumerable<SettingViewModelBase> GetAllSettingVmsRecursive(
+        IEnumerable<SettingViewModelBase> vms)
+    {
+        foreach (var vm in vms)
+        {
+            yield return vm;
+            if (vm is GroupSettingViewModel gvm)
+                foreach (var child in GetAllSettingVmsRecursive(gvm.Children))
+                    yield return child;
+        }
     }
 }

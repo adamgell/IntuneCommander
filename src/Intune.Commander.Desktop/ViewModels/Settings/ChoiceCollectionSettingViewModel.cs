@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using Microsoft.Graph.Beta.Models;
 
@@ -9,6 +10,14 @@ public partial class ChoiceCollectionSettingViewModel : SettingViewModelBase
     public ObservableCollection<ChoiceOption> SelectedOptions { get; } = [];
 
     public ObservableCollection<ChoiceOption> AvailableOptions { get; } = [];
+
+    public ChoiceCollectionSettingViewModel()
+    {
+        SelectedOptions.CollectionChanged += OnSelectedOptionsChanged;
+    }
+
+    private void OnSelectedOptionsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => IsModified = true;
 
     public override DeviceManagementConfigurationSetting ToGraphSetting()
     {

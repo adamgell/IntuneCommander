@@ -4,7 +4,7 @@ using Intune.Commander.Desktop.ViewModels.Settings;
 using Microsoft.Graph.Beta.Models;
 using NSubstitute;
 
-namespace Intune.Commander.Core.Tests.ViewModels;
+namespace Intune.Commander.Desktop.Tests.ViewModels;
 
 public class SettingsPolicyEditorViewModelTests
 {
