@@ -99,12 +99,6 @@ public class ExportService : IExportService
         return string.IsNullOrEmpty(sanitized) ? "unnamed" : sanitized;
     }
 
-    /// <summary>
-    /// Returns a unique .json file path under <paramref name="folderPath"/>.
-    /// If the sanitized name already exists as a file (collision), appends the
-    /// object's <paramref name="id"/> to disambiguate rather than overwriting.
-    /// When both name and id collide (or id is null), falls back to a numeric suffix.
-    /// </summary>
     private void EnsureFolder(string folderPath)
     {
         var state = GetOrCreateFolderState(folderPath);
@@ -115,6 +109,12 @@ public class ExportService : IExportService
         state.DirectoryEnsured = true;
     }
 
+    /// <summary>
+    /// Returns a unique .json file path under <paramref name="folderPath"/>.
+    /// If the sanitized name already exists as a file (collision), appends the
+    /// object's <paramref name="id"/> to disambiguate rather than overwriting.
+    /// When both name and id collide (or id is null), falls back to a numeric suffix.
+    /// </summary>
     private string GetUniqueFilePath(string folderPath, string name, string? id)
     {
         var state = GetOrCreateFolderState(folderPath);
