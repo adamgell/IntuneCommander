@@ -1,0 +1,128 @@
+<suki:SukiWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+        xmlns:models="using:Intune.Commander.Desktop.Models"
+        xmlns:suki="https://github.com/kikipoulet/SukiUI"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="Intune.Commander.Desktop.Views.GroupPickerWindow"
+        x:DataType="vm:GroupPickerViewModel"
+        Title="Select Groups"
+        Width="700" Height="600"
+        MinWidth="500" MinHeight="400"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="16">
+
+        <!-- Bottom: OK / Cancel -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+            <Button Content="OK" Click="OnOkClick" Classes="Flat Accent Large" MinWidth="80" />
+            <Button Content="Cancel" Click="OnCancelClick" Classes="Large" MinWidth="80" />
+        </StackPanel>
+
+        <!-- All Devices / All Users checkboxes -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
+            <CheckBox Content="All Devices" IsChecked="{Binding IncludeAllDevices}" />
+            <CheckBox Content="All Users" IsChecked="{Binding IncludeAllUsers}" />
+        </StackPanel>
+
+        <!-- Search bar -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Right" Content="Search"
+                    Command="{Binding SearchGroupsCommand}"
+                    IsEnabled="{Binding !IsSearching}"
+                    Margin="8,0,0,0"
+                    Classes="Large"
+                    HorizontalContentAlignment="Center" />
+            <TextBox Text="{Binding SearchText}"
+                     Watermark="Search groups by name or GUID..."
+                     KeyDown="OnSearchKeyDown"
+                     FontSize="{StaticResource FontSizeSubheading}" Padding="8" />
+        </DockPanel>
+
+        <!-- Error message -->
+        <Border DockPanel.Dock="Top"
+                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Background="{DynamicResource AppErrorBackgroundBrush}" CornerRadius="{StaticResource RadiusSmall}" Padding="8" Margin="0,0,0,8">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" />
+        </Border>
+
+        <!-- Search progress -->
+        <ProgressBar DockPanel.Dock="Top"
+                     IsIndeterminate="True"
+                     IsVisible="{Binding IsSearching}"
+                     Height="4" Margin="0,0,0,8"
+                     Foreground="{DynamicResource ProgressBarForegroundBrush}"
+                     Background="{DynamicResource ProgressBarBackgroundBrush}"
+                     CornerRadius="2" />
+
+        <!-- Two-panel layout: search results + selected groups -->
+        <Grid RowDefinitions="*,8,*">
+
+            <!-- Search results -->
+            <DockPanel Grid.Row="0">
+                <TextBlock DockPanel.Dock="Top" Text="Search Results" FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSizeBody}" Margin="0,0,0,4" />
+                <ListBox ItemsSource="{Binding Groups}"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         BorderThickness="1"
+                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:GroupSelectionItem">
+                            <DockPanel Margin="4,2">
+                                <Button DockPanel.Dock="Right" Content="Add"
+                                        Click="OnAddGroupClick"
+                                        Padding="8,2" Margin="8,0,0,0"
+                                        VerticalAlignment="Center" />
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding GroupType}" Opacity="0.6" />
+                                    <TextBlock Text="{Binding GroupId}" Opacity="0.3"
+                                               FontSize="{StaticResource FontSizeCaption}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <!-- Selected groups -->
+            <DockPanel Grid.Row="2">
+                <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSizeBody}" Margin="0,0,0,4">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Selected Groups ({0})">
+                            <Binding Path="SelectedGroups.Count" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <ListBox ItemsSource="{Binding SelectedGroups}"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         BorderThickness="1"
+                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:GroupSelectionItem">
+                            <DockPanel Margin="4,2">
+                                <Button DockPanel.Dock="Right" Content="Remove"
+                                        Click="OnRemoveGroupClick"
+                                        Padding="8,2" Margin="8,0,0,0"
+                                        VerticalAlignment="Center" />
+                                <CheckBox DockPanel.Dock="Right" Content="Exclude"
+                                          IsChecked="{Binding IsExclusion}"
+                                          VerticalAlignment="Center" Margin="8,0,0,0" />
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding GroupType}" Opacity="0.6" />
+                                </StackPanel>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+        </Grid>
+
+    </DockPanel>
+</suki:SukiWindow>

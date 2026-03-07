@@ -1,0 +1,218 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+             xmlns:suki="https://github.com/kikipoulet/SukiUI"
+             xmlns:settings="using:Intune.Commander.Desktop.ViewModels.Settings"
+             x:Class="Intune.Commander.Desktop.Views.Controls.Details.SettingsPolicyEditorPanel"
+             x:DataType="vm:SettingsPolicyEditorViewModel">
+
+    <UserControl.DataTemplates>
+
+        <!-- ChoiceSettingViewModel -->
+        <DataTemplate DataType="settings:ChoiceSettingViewModel">
+            <Panel>
+                <Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="3,0,0,0"
+                        IsVisible="{Binding IsModified}" />
+                <StackPanel Spacing="4" Margin="8,6">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                               ToolTip.Tip="{Binding Description}" />
+                    <ComboBox ItemsSource="{Binding Options}"
+                              SelectedItem="{Binding SelectedOption}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="settings:ChoiceOption">
+                                <TextBlock Text="{Binding DisplayName}" ToolTip.Tip="{Binding Description}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <!-- Dependent child settings -->
+                    <ItemsControl ItemsSource="{Binding Children}"
+                                  IsVisible="{Binding Children.Count}"
+                                  Margin="16,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentControl Content="{Binding}" Margin="0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Panel>
+        </DataTemplate>
+
+        <!-- ChoiceCollectionSettingViewModel -->
+        <DataTemplate DataType="settings:ChoiceCollectionSettingViewModel">
+            <Panel>
+                <Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="3,0,0,0"
+                        IsVisible="{Binding IsModified}" />
+                <StackPanel Spacing="4" Margin="8,6">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                               ToolTip.Tip="{Binding Description}" />
+                    <ListBox ItemsSource="{Binding AvailableOptions}"
+                             SelectedItems="{Binding SelectedOptions}"
+                             SelectionMode="Multiple,Toggle"
+                             MaxHeight="200">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="settings:ChoiceOption">
+                                <TextBlock Text="{Binding DisplayName}" ToolTip.Tip="{Binding Description}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Panel>
+        </DataTemplate>
+
+        <!-- SimpleStringSettingViewModel -->
+        <DataTemplate DataType="settings:SimpleStringSettingViewModel">
+            <Panel>
+                <Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="3,0,0,0"
+                        IsVisible="{Binding IsModified}" />
+                <StackPanel Spacing="4" Margin="8,6">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                               ToolTip.Tip="{Binding Description}" />
+                    <TextBox Text="{Binding Value}" />
+                </StackPanel>
+            </Panel>
+        </DataTemplate>
+
+        <!-- SimpleIntegerSettingViewModel -->
+        <DataTemplate DataType="settings:SimpleIntegerSettingViewModel">
+            <Panel>
+                <Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="3,0,0,0"
+                        IsVisible="{Binding IsModified}" />
+                <StackPanel Spacing="4" Margin="8,6">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                               ToolTip.Tip="{Binding Description}" />
+                    <NumericUpDown Value="{Binding Value}"
+                                   Minimum="{Binding Minimum}"
+                                   Maximum="{Binding Maximum}"
+                                   FormatString="0" />
+                </StackPanel>
+            </Panel>
+        </DataTemplate>
+
+        <!-- SimpleCollectionSettingViewModel -->
+        <DataTemplate DataType="settings:SimpleCollectionSettingViewModel">
+            <Panel>
+                <Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="3,0,0,0"
+                        IsVisible="{Binding IsModified}" />
+                <StackPanel Spacing="4" Margin="8,6">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                               ToolTip.Tip="{Binding Description}" />
+                    <ItemsControl ItemsSource="{Binding Values}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding .}" Margin="0,2" IsReadOnly="True" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Panel>
+        </DataTemplate>
+
+        <!-- GroupSettingViewModel (recursive via ContentControl) -->
+        <DataTemplate DataType="settings:GroupSettingViewModel">
+            <Panel>
+                <Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="3,0,0,0"
+                        IsVisible="{Binding IsModified}" />
+                <StackPanel Spacing="4" Margin="8,6">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                               ToolTip.Tip="{Binding Description}" />
+                    <ItemsControl ItemsSource="{Binding Children}" Margin="16,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentControl Content="{Binding}" Margin="0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Panel>
+        </DataTemplate>
+
+        <!-- UnknownSettingViewModel -->
+        <DataTemplate DataType="settings:UnknownSettingViewModel">
+            <Border Padding="8,6" Opacity="0.6">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding DisplayName, FallbackValue='Unknown Setting'}" FontWeight="SemiBold"
+                               ToolTip.Tip="{Binding Description}" />
+                    <TextBlock Text="{Binding SettingDefinitionId}" FontSize="{StaticResource FontSizeCaption}"
+                               Foreground="{DynamicResource AppTextSecondaryBrush}" FontStyle="Italic" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+    </UserControl.DataTemplates>
+
+    <DockPanel>
+        <!-- Header: Policy name + description -->
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Close Editor"
+                        Click="OnCloseEditorClick" />
+                <TextBlock Text="Editing Policy" FontWeight="Bold" VerticalAlignment="Center"
+                           FontSize="{StaticResource FontSizeSubheading}" />
+                <TextBlock Text="(unsaved changes)" VerticalAlignment="Center"
+                           Foreground="Orange" FontStyle="Italic"
+                           IsVisible="{Binding HasUnsavedChanges}" />
+            </StackPanel>
+            <TextBox Text="{Binding PolicyName}" Watermark="Policy Name" />
+            <TextBox Text="{Binding PolicyDescription}" Watermark="Description" />
+        </StackPanel>
+
+        <!-- Toolbar -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+            <Button Content="Save Metadata" Command="{Binding SaveMetadataCommand}" />
+            <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}" />
+            <Button Content="Discard Changes" Command="{Binding DiscardChangesCommand}" />
+        </StackPanel>
+
+        <!-- Error display -->
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}"
+                   TextWrapping="Wrap" FontSize="{StaticResource FontSizeCaption}" Margin="0,0,0,4"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+        <!-- Busy indicator -->
+        <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4" Margin="0,0,0,4" />
+
+        <!-- Main content: Category tree (left) + Settings (right) -->
+        <Grid ColumnDefinitions="250,8,*">
+            <!-- Category tree -->
+            <Border Grid.Column="0" BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    BorderThickness="0,0,1,0">
+                <TreeView ItemsSource="{Binding CategoryTree}"
+                          SelectedItem="{Binding SelectedCategory}">
+                    <TreeView.ItemTemplate>
+                        <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="settings:CategoryNodeViewModel">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding DisplayName}" />
+                                <TextBlock Text="{Binding Settings.Count, StringFormat='({0})'}"
+                                           FontSize="{StaticResource FontSizeCaption}"
+                                           Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </TreeDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Border>
+
+            <!-- Splitter area -->
+            <GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="Transparent" />
+
+            <!-- Settings panel -->
+            <ScrollViewer Grid.Column="2" Padding="8,0">
+                <StackPanel>
+                    <TextBlock Text="Select a category to view settings"
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"
+                               VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,20"
+                               IsVisible="{Binding !CurrentSettings.Count}" />
+                    <ItemsControl ItemsSource="{Binding CurrentSettings}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentControl Content="{Binding}" Margin="0,4" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</UserControl>

@@ -10,4 +10,7 @@ public interface ISettingsCatalogService
     Task<List<DeviceManagementConfigurationSetting>> GetPolicySettingsAsync(string policyId, CancellationToken cancellationToken = default);
     Task<DeviceManagementConfigurationPolicy> CreateSettingsCatalogPolicyAsync(DeviceManagementConfigurationPolicy policy, CancellationToken cancellationToken = default);
     Task AssignSettingsCatalogPolicyAsync(string policyId, List<DeviceManagementConfigurationPolicyAssignment> assignments, CancellationToken cancellationToken = default);
+    Task<DeviceManagementConfigurationPolicy> UpdateSettingsCatalogPolicyMetadataAsync(string id, DeviceManagementConfigurationPolicy policy, CancellationToken cancellationToken = default);
+    Task DeleteSettingsCatalogPolicyAsync(string id, CancellationToken cancellationToken = default);
+    Task UpdatePolicySettingsAsync(string policyId, List<DeviceManagementConfigurationSetting> settings, CancellationToken cancellationToken = default);
 }

@@ -220,6 +220,8 @@ public partial class MainWindowViewModel : ViewModelBase
             _cloudPcUserSettingsService = new CloudPcUserSettingsService(_graphClient);
             _vppTokenService = new VppTokenService(_graphClient);
 
+            _baselineService = new BaselineService();
+
             _importService = new ImportService(
 
                 _configProfileService,
@@ -810,6 +812,10 @@ public partial class MainWindowViewModel : ViewModelBase
         _vppTokenService = null;
 
         _importService = null;
+
+        _baselineService = null;
+        _baselineViewModel = null;
+        SettingsCatalogViewMode = SettingsCatalogViewMode.Policies;
 
         _groupNameCache.Clear();
 

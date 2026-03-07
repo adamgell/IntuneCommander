@@ -15,6 +15,9 @@
     <EmbeddedResource Include="Assets\MicrosoftApps.json" />
     <EmbeddedResource Include="Assets\settings-catalog-definitions.json.gz" />
     <EmbeddedResource Include="Assets\settings-catalog-categories.json.gz" />
+    <EmbeddedResource Include="Assets\oib-sc-baselines.json.gz" />
+    <EmbeddedResource Include="Assets\oib-es-baselines.json.gz" />
+    <EmbeddedResource Include="Assets\oib-compliance-baselines.json.gz" />
   </ItemGroup>
 
   <ItemGroup>

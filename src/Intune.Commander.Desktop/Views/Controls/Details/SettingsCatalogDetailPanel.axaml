@@ -4,126 +4,321 @@
              xmlns:conv="using:Intune.Commander.Desktop.Converters"
              xmlns:controls="using:Intune.Commander.Desktop.Views.Controls"
              xmlns:models="using:Intune.Commander.Desktop.Models"
+             xmlns:coreModels="using:Intune.Commander.Core.Models"
+             xmlns:graphModels="using:Microsoft.Graph.Beta.Models"
              x:Class="Intune.Commander.Desktop.Views.Controls.Details.SettingsCatalogDetailPanel"
              x:DataType="vm:MainWindowViewModel">
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="4">
 
-            <!-- Section: Properties -->
-            <TextBlock Text="Properties" Classes="SectionHeader" />
-            <Border Classes="SectionCard">
-                <StackPanel Spacing="10" DataContext="{Binding SelectedSettingsCatalogPolicy}">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Name" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Type" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="Platforms" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding Platforms}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Technologies" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding Technologies}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                    </Grid>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="ID" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding Id}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.8" />
-                    </StackPanel>
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="Is Assigned" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding IsAssigned}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Role Scope Tags" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding RoleScopeTagIds, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="Created" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Last Modified" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                    </Grid>
+    <!-- Mode Toggle Bar -->
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
+            <ToggleButton Content="Policies"
+                          IsChecked="{Binding IsSettingsCatalogInPoliciesMode, Mode=OneWay}"
+                          Command="{Binding ToggleSettingsCatalogViewModeCommand}"
+                          IsVisible="{Binding IsSettingsCatalogInBaselinesMode}" />
+            <ToggleButton Content="Baselines"
+                          IsChecked="{Binding IsSettingsCatalogInBaselinesMode, Mode=OneWay}"
+                          Command="{Binding ToggleSettingsCatalogViewModeCommand}"
+                          IsVisible="{Binding IsSettingsCatalogInPoliciesMode}" />
+            <TextBlock Text="Policies" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0"
+                       IsVisible="{Binding IsSettingsCatalogInPoliciesMode}" />
+            <TextBlock Text="Baselines" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0"
+                       IsVisible="{Binding IsSettingsCatalogInBaselinesMode}" />
+        </StackPanel>
+
+        <!-- ============================== -->
+        <!-- POLICIES MODE                  -->
+        <!-- ============================== -->
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                      IsVisible="{Binding IsSettingsCatalogInPoliciesMode}">
+            <StackPanel Spacing="4">
+
+                <!-- Action Buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+                    <Button Content="Edit Policy"
+                            Command="{Binding EditSelectedSettingsCatalogPolicyCommand}"
+                            IsEnabled="{Binding SelectedSettingsCatalogPolicy, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </StackPanel>
-            </Border>
 
-            <!-- Section: Catalog Details -->
-            <TextBlock Text="Catalog Details" Classes="SectionHeader" />
-            <Border Classes="SectionCard">
-                <StackPanel Spacing="10">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Settings Count" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding SelectedItemSettingsCount}" FontSize="{StaticResource FontSizeBody}" />
+                <!-- Section: Properties -->
+                <TextBlock Text="Properties" Classes="SectionHeader" />
+                <Border Classes="SectionCard">
+                    <StackPanel Spacing="10" DataContext="{Binding SelectedSettingsCatalogPolicy}">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Name" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Type" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="Platforms" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding Platforms}" FontSize="{StaticResource FontSizeBody}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Technologies" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding Technologies}" FontSize="{StaticResource FontSizeBody}" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="ID" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding Id}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.8" />
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="Is Assigned" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding IsAssigned}" FontSize="{StaticResource FontSizeBody}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Role Scope Tags" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding RoleScopeTagIds, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="Created" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Last Modified" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Template Families" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <ItemsControl ItemsSource="{Binding SelectedItemTemplateFamilies}">
+                </Border>
+
+                <!-- Section: Catalog Details -->
+                <TextBlock Text="Catalog Details" Classes="SectionHeader" />
+                <Border Classes="SectionCard">
+                    <StackPanel Spacing="10">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Settings Count" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <SelectableTextBlock Text="{Binding SelectedItemSettingsCount}" FontSize="{StaticResource FontSizeBody}" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Template Families" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                            <ItemsControl ItemsSource="{Binding SelectedItemTemplateFamilies}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="{StaticResource RadiusSmall}"
+                                                Padding="6,2" Margin="0,0,4,4">
+                                            <SelectableTextBlock Text="{Binding}" FontSize="{StaticResource FontSizeCaption}" Foreground="White" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                            <TextBlock Text="No families"
+                                       Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="{StaticResource FontSizeBody}"
+                                       IsVisible="{Binding !SelectedItemTemplateFamilies.Count}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Section: SETTINGS -->
+                <TextBlock Text="SETTINGS" Classes="SectionHeader" />
+                <Border Classes="SectionCard">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="No settings loaded — select item and click Refresh if list is empty."
+                                   Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                   FontSize="{StaticResource FontSizeCaption}"
+                                   IsVisible="{Binding !SelectedItemCatalogSettings.Count}"
+                                   TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding SelectedItemCatalogSettings}">
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="{StaticResource RadiusSmall}"
-                                            Padding="6,2" Margin="0,0,4,4">
-                                        <SelectableTextBlock Text="{Binding}" FontSize="{StaticResource FontSizeCaption}" Foreground="White" />
+                                <DataTemplate x:DataType="models:SettingItem">
+                                    <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                                            BorderThickness="0,0,0,1" Padding="4,6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSizeBody}"
+                                                       Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                       TextWrapping="Wrap" VerticalAlignment="Center" />
+                                            <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" FontSize="{StaticResource FontSizeBody}"
+                                                                 FontWeight="SemiBold" HorizontalAlignment="Right"
+                                                                 VerticalAlignment="Center" TextWrapping="Wrap"
+                                                                 MaxWidth="300"
+                                                                 Margin="16,0,0,0" />
+                                        </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
                         </ItemsControl>
-                        <TextBlock Text="No families"
-                                   Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="{StaticResource FontSizeBody}"
-                                   IsVisible="{Binding !SelectedItemTemplateFamilies.Count}" />
                     </StackPanel>
-                </StackPanel>
-            </Border>
+                </Border>
 
-            <!-- Section: SETTINGS -->
-            <TextBlock Text="SETTINGS" Classes="SectionHeader" />
-            <Border Classes="SectionCard">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="No settings loaded — select item and click Refresh if list is empty."
-                               Foreground="{DynamicResource AppTextSecondaryBrush}"
-                               FontSize="{StaticResource FontSizeCaption}"
-                               IsVisible="{Binding !SelectedItemCatalogSettings.Count}"
-                               TextWrapping="Wrap" />
-                    <ItemsControl ItemsSource="{Binding SelectedItemCatalogSettings}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:SettingItem">
-                                <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                                        BorderThickness="0,0,0,1" Padding="4,6">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSizeBody}"
-                                                   Foreground="{DynamicResource AppTextSecondaryBrush}"
-                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
-                                        <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" FontSize="{StaticResource FontSizeBody}"
-                                                             FontWeight="SemiBold" HorizontalAlignment="Right"
-                                                             VerticalAlignment="Center" TextWrapping="Wrap"
-                                                             MaxWidth="300"
-                                                             Margin="16,0,0,0" />
-                                    </Grid>
-                                </Border>
+                <!-- Section: Assignments -->
+                <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ============================== -->
+        <!-- BASELINES MODE                 -->
+        <!-- ============================== -->
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                      IsVisible="{Binding $parent[DockPanel].((vm:MainWindowViewModel)DataContext).IsSettingsCatalogInBaselinesMode}"
+                      DataContext="{Binding BaselineVm}">
+            <StackPanel Spacing="8" x:DataType="vm:BaselineViewModel">
+
+                <!-- Sub-tab selector: SC / ES / Compliance -->
+                <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
+                    <RadioButton Content="Settings Catalog" GroupName="BaselineType"
+                                 IsChecked="{Binding IsSettingsCatalogSelected, Mode=OneWay}"
+                                 Command="{Binding SetBaselineTypeCommand}"
+                                 CommandParameter="{x:Static coreModels:BaselinePolicyType.SettingsCatalog}" />
+                    <RadioButton Content="Endpoint Security" GroupName="BaselineType"
+                                 IsChecked="{Binding IsEndpointSecuritySelected, Mode=OneWay}"
+                                 Command="{Binding SetBaselineTypeCommand}"
+                                 CommandParameter="{x:Static coreModels:BaselinePolicyType.EndpointSecurity}" />
+                    <RadioButton Content="Compliance" GroupName="BaselineType"
+                                 IsChecked="{Binding IsComplianceSelected, Mode=OneWay}"
+                                 Command="{Binding SetBaselineTypeCommand}"
+                                 CommandParameter="{x:Static coreModels:BaselinePolicyType.Compliance}" />
+                </StackPanel>
+
+                <!-- Category filter -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Category:" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding Categories}"
+                              SelectedItem="{Binding CategoryFilter}"
+                              MinWidth="200" />
+                </StackPanel>
+
+                <!-- Baseline list -->
+                <TextBlock Text="Baselines" Classes="SectionHeader" />
+                <Border Classes="SectionCard" MinHeight="100" MaxHeight="250">
+                    <ListBox ItemsSource="{Binding Baselines}"
+                             SelectedItem="{Binding SelectedBaseline}"
+                             MaxHeight="240">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="coreModels:BaselinePolicy">
+                                <StackPanel Spacing="2" Margin="4,2">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding Description}" FontSize="{StaticResource FontSizeCaption}"
+                                               Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                               TextWrapping="Wrap" MaxLines="2"
+                                               IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <TextBlock Text="{Binding Category}" FontSize="{StaticResource FontSizeCaption}"
+                                               Foreground="{DynamicResource SystemAccentColor}" />
+                                </StackPanel>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+
+                <!-- Deploy buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                    <Button Content="Deploy as New"
+                            Command="{Binding DeployAsNewCommand}"
+                            IsEnabled="{Binding SelectedBaseline, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </StackPanel>
-            </Border>
 
-            <!-- Section: Assignments -->
-            <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
+                <!-- Compare Section (SC sub-tab only) -->
+                <StackPanel Spacing="8" IsVisible="{Binding IsCompareAvailable}">
+                    <TextBlock Text="Compare with Tenant Policy" Classes="SectionHeader" Margin="0,8,0,0" />
+                    <Border Classes="SectionCard">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ComboBox ItemsSource="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).SettingsCatalogPolicies}"
+                                          SelectedItem="{Binding SelectedComparisonPolicy}"
+                                          MinWidth="300"
+                                          PlaceholderText="Select a tenant policy to compare...">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="graphModels:DeviceManagementConfigurationPolicy">
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Content="Compare"
+                                        Command="{Binding CompareWithTenantPolicyCommand}"
+                                        IsEnabled="{Binding SelectedComparisonPolicy, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            </StackPanel>
 
-        </StackPanel>
-    </ScrollViewer>
+                            <!-- Comparison results -->
+                            <StackPanel IsVisible="{Binding ComparisonResult, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="16">
+                                    <TextBlock FontSize="{StaticResource FontSizeCaption}">
+                                        <Run Text="Matching: " />
+                                        <Run Text="{Binding ComparisonResult.Matching.Count, Mode=OneWay}" FontWeight="SemiBold" />
+                                    </TextBlock>
+                                    <TextBlock FontSize="{StaticResource FontSizeCaption}">
+                                        <Run Text="Drifted: " />
+                                        <Run Text="{Binding ComparisonResult.Drifted.Count, Mode=OneWay}" FontWeight="SemiBold" Foreground="Orange" />
+                                    </TextBlock>
+                                    <TextBlock FontSize="{StaticResource FontSizeCaption}">
+                                        <Run Text="Missing: " />
+                                        <Run Text="{Binding ComparisonResult.Missing.Count, Mode=OneWay}" FontWeight="SemiBold" Foreground="{DynamicResource AppErrorTextBrush}" />
+                                    </TextBlock>
+                                    <TextBlock FontSize="{StaticResource FontSizeCaption}">
+                                        <Run Text="Extra: " />
+                                        <Run Text="{Binding ComparisonResult.Extra.Count, Mode=OneWay}" FontWeight="SemiBold" />
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Drifted settings -->
+                                <TextBlock Text="Drifted Settings" FontWeight="SemiBold"
+                                           IsVisible="{Binding ComparisonResult.Drifted.Count, Mode=OneWay}" />
+                                <ItemsControl ItemsSource="{Binding ComparisonResult.Drifted}"
+                                              IsVisible="{Binding ComparisonResult.Drifted.Count, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="coreModels:BaselineSettingComparison">
+                                            <Border BorderBrush="Orange" BorderThickness="2,0,0,0"
+                                                    Padding="8,4" Margin="0,2">
+                                                <StackPanel Spacing="2">
+                                                    <SelectableTextBlock Text="{Binding SettingDefinitionId}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.7" />
+                                                    <Grid ColumnDefinitions="*,*">
+                                                        <StackPanel Grid.Column="0" Spacing="1">
+                                                            <TextBlock Text="Baseline" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                            <SelectableTextBlock Text="{Binding BaselineValue}" FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="1" Spacing="1">
+                                                            <TextBlock Text="Tenant" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                                            <SelectableTextBlock Text="{Binding TenantValue}" FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Missing settings -->
+                                <TextBlock Text="Missing from Tenant" FontWeight="SemiBold"
+                                           IsVisible="{Binding ComparisonResult.Missing.Count, Mode=OneWay}" />
+                                <ItemsControl ItemsSource="{Binding ComparisonResult.Missing}"
+                                              IsVisible="{Binding ComparisonResult.Missing.Count, Mode=OneWay}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="coreModels:BaselineSettingComparison">
+                                            <Border BorderBrush="{DynamicResource AppErrorTextBrush}" BorderThickness="2,0,0,0"
+                                                    Padding="8,4" Margin="0,2">
+                                                <StackPanel Spacing="2">
+                                                    <SelectableTextBlock Text="{Binding SettingDefinitionId}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.7" />
+                                                    <TextBlock Text="{Binding BaselineValue}" FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Busy indicator -->
+                            <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Error display -->
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}"
+                           TextWrapping="Wrap" FontSize="{StaticResource FontSizeCaption}"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </UserControl>

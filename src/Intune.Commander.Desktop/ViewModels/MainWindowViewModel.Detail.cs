@@ -80,7 +80,31 @@ public partial class MainWindowViewModel : ViewModelBase
 
     }
 
+    public SettingsPolicyEditorViewModel? CreateSettingsPolicyEditorViewModel(
+        DeviceManagementConfigurationPolicy policy)
+    {
+        if (_settingsCatalogService == null) return null;
+        return new SettingsPolicyEditorViewModel(_settingsCatalogService, policy);
+    }
 
+    public BaselineViewModel? GetBaselineViewModel()
+    {
+        if (_baselineViewModel is not null) return _baselineViewModel;
+
+        if (_baselineService == null || _settingsCatalogService == null ||
+            _endpointSecurityService == null || _compliancePolicyService == null ||
+            _groupService == null)
+            return null;
+
+        _baselineViewModel = new BaselineViewModel(
+            _baselineService,
+            _settingsCatalogService,
+            _endpointSecurityService,
+            _compliancePolicyService,
+            _groupService);
+
+        return _baselineViewModel;
+    }
 
     [RelayCommand]
 

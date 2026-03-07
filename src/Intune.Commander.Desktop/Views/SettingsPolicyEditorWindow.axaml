@@ -1,0 +1,13 @@
+<suki:SukiWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:suki="https://github.com/kikipoulet/SukiUI"
+        xmlns:vm="using:Intune.Commander.Desktop.ViewModels"
+        xmlns:details="using:Intune.Commander.Desktop.Views.Controls.Details"
+        x:Class="Intune.Commander.Desktop.Views.SettingsPolicyEditorWindow"
+        x:DataType="vm:SettingsPolicyEditorViewModel"
+        Title="Policy Editor"
+        Width="1000" Height="700"
+        WindowStartupLocation="CenterOwner">
+
+    <details:SettingsPolicyEditorPanel DataContext="{Binding}" Margin="12" />
+</suki:SukiWindow>

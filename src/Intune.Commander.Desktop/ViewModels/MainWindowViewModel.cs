@@ -222,6 +222,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private IPermissionCheckService? _permissionCheckService;
     private IDirectoryObjectResolver? _directoryObjectResolver;
 
+    private IBaselineService? _baselineService;
+    private BaselineViewModel? _baselineViewModel;
+
     /// <summary>
     /// When true, Conditional Access policy exports will replace GUIDs with
     /// human-readable display names for users, groups, apps, locations, etc.
@@ -374,7 +377,42 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private DeviceManagementConfigurationPolicy? _selectedSettingsCatalogPolicy;
 
+    [ObservableProperty]
+    private SettingsCatalogViewMode _settingsCatalogViewMode = SettingsCatalogViewMode.Policies;
 
+    public event Action<SettingsPolicyEditorViewModel>? OpenSettingsEditorRequested;
+
+    public bool IsSettingsCatalogInPoliciesMode => SettingsCatalogViewMode == SettingsCatalogViewMode.Policies;
+
+    public bool IsSettingsCatalogInBaselinesMode => SettingsCatalogViewMode == SettingsCatalogViewMode.Baselines;
+
+    public BaselineViewModel? BaselineVm => GetBaselineViewModel();
+
+    partial void OnSettingsCatalogViewModeChanged(SettingsCatalogViewMode value)
+    {
+        OnPropertyChanged(nameof(IsSettingsCatalogInPoliciesMode));
+        OnPropertyChanged(nameof(IsSettingsCatalogInBaselinesMode));
+        if (value == SettingsCatalogViewMode.Baselines)
+            OnPropertyChanged(nameof(BaselineVm));
+    }
+
+    [RelayCommand]
+    private void ToggleSettingsCatalogViewMode()
+    {
+        SettingsCatalogViewMode = SettingsCatalogViewMode == SettingsCatalogViewMode.Policies
+            ? SettingsCatalogViewMode.Baselines
+            : SettingsCatalogViewMode.Policies;
+    }
+
+    [RelayCommand]
+    private async Task EditSelectedSettingsCatalogPolicyAsync(CancellationToken ct)
+    {
+        if (SelectedSettingsCatalogPolicy is null || _settingsCatalogService is null) return;
+
+        var editor = new SettingsPolicyEditorViewModel(_settingsCatalogService, SelectedSettingsCatalogPolicy);
+        await editor.LoadSettingsAsync(ct);
+        OpenSettingsEditorRequested?.Invoke(editor);
+    }
 
     // --- Endpoint Security ---
 

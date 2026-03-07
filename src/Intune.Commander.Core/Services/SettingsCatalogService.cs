@@ -134,4 +134,94 @@ public class SettingsCatalogService : ISettingsCatalogService
                 },
                 cancellationToken: cancellationToken);
     }
+
+    public async Task<DeviceManagementConfigurationPolicy> UpdateSettingsCatalogPolicyMetadataAsync(string id, DeviceManagementConfigurationPolicy policy, CancellationToken cancellationToken = default)
+    {
+        var metadataOnly = new DeviceManagementConfigurationPolicy
+        {
+            Name = policy.Name,
+            Description = policy.Description,
+            RoleScopeTagIds = policy.RoleScopeTagIds
+        };
+
+        var result = await _graphClient.DeviceManagement.ConfigurationPolicies[id]
+            .PatchAsync(metadataOnly, cancellationToken: cancellationToken);
+
+        return await GraphPatchHelper.PatchWithGetFallbackAsync(
+            result, () => GetSettingsCatalogPolicyAsync(id, cancellationToken), "settings catalog policy");
+    }
+
+    public async Task DeleteSettingsCatalogPolicyAsync(string id, CancellationToken cancellationToken = default)
+    {
+        await _graphClient.DeviceManagement.ConfigurationPolicies[id]
+            .DeleteAsync(cancellationToken: cancellationToken);
+    }
+
+    // TODO: Consider $batch optimization (20 requests/batch)
+    public async Task UpdatePolicySettingsAsync(string policyId, List<DeviceManagementConfigurationSetting> settings, CancellationToken cancellationToken = default)
+    {
+        // Step 1: Capture original settings for rollback
+        var originalSettings = await GetPolicySettingsAsync(policyId, cancellationToken);
+
+        // Steps 2+3 are wrapped in try so that any failure (including cancellation)
+        // triggers a best-effort rollback to the original settings.
+        try
+        {
+            // Step 2: Delete all existing settings
+            foreach (var existing in originalSettings)
+            {
+                if (existing.Id is not null)
+                {
+                    await _graphClient.DeviceManagement.ConfigurationPolicies[policyId]
+                        .Settings[existing.Id]
+                        .DeleteAsync(cancellationToken: cancellationToken);
+                }
+            }
+
+            // Step 3: POST each new setting (create copies to avoid mutating the caller's list)
+            foreach (var setting in settings)
+            {
+                var toPost = new DeviceManagementConfigurationSetting
+                {
+                    SettingInstance = setting.SettingInstance
+                };
+                await _graphClient.DeviceManagement.ConfigurationPolicies[policyId]
+                    .Settings.PostAsync(toPost, cancellationToken: cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Best-effort rollback: clear whatever partial state exists, re-POST originals.
+            // Use CancellationToken.None — rollback must complete regardless.
+            try
+            {
+                var current = await GetPolicySettingsAsync(policyId);
+                foreach (var c in current)
+                {
+                    if (c.Id is not null)
+                    {
+                        await _graphClient.DeviceManagement.ConfigurationPolicies[policyId]
+                            .Settings[c.Id].DeleteAsync();
+                    }
+                }
+
+                foreach (var original in originalSettings)
+                {
+                    var toPost = new DeviceManagementConfigurationSetting
+                    {
+                        SettingInstance = original.SettingInstance
+                    };
+                    await _graphClient.DeviceManagement.ConfigurationPolicies[policyId]
+                        .Settings.PostAsync(toPost);
+                }
+            }
+            catch (Exception rollbackEx)
+            {
+                throw new AggregateException(
+                    "Failed to update policy settings and rollback also failed", ex, rollbackEx);
+            }
+
+            throw;
+        }
+    }
 }

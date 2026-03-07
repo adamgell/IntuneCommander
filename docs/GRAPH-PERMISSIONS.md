@@ -63,7 +63,7 @@ All permissions below are **Application** type (not Delegated) and require **adm
 | AppProtectionPolicyService | `/deviceAppManagement/managedAppPolicies` | List, Get, Create, Update, Delete |
 | AdministrativeTemplateService | `/deviceManagement/groupPolicyConfigurations` | List, Get, Create, Update, Delete, GetAssignments, Assign |
 | EndpointSecurityService | `/deviceManagement/intents` | List, Get, Create, Update, Delete, GetAssignments, Assign |
-| SettingsCatalogService | `/deviceManagement/configurationPolicies` | List, Get, GetAssignments |
+| SettingsCatalogService | `/deviceManagement/configurationPolicies` | List, Get, Create, Update, Delete, GetAssignments, GetSettings, UpdateSettings |
 | EnrollmentConfigurationService | `/deviceManagement/deviceEnrollmentConfigurations` | List (x4 variants), Get, Create, Update, Delete |
 | AutopilotService | `/deviceManagement/windowsAutopilotDeploymentProfiles` | List, Get, Create, Update, Delete |
 | FeatureUpdateProfileService | `/deviceManagement/windowsFeatureUpdateProfiles` | List, Get, Create, Update, Delete |
