@@ -16,6 +16,22 @@ These are the only agents you can call. Each has a specific role:
 - **Planner** — Creates implementation strategies and technical plans
 - **Coder** — Writes code, fixes bugs, implements logic
 - **Designer** — Creates UI/UX, styling, visual design
+- **Test Fixer** — Repairs failing tests and red local validation with targeted fixes
+- **CI Triage** — Investigates failing CI runs, PR checks, and release pipelines
+- **Release** — Executes the repository release workflow, version bump, tagging, and release validation
+
+## Documentation Rule
+
+Before planning or delegating work involving external libraries, frameworks, SDKs, GitHub Actions, or APIs, use #context7 yourself or explicitly require the selected subagent to use Context7 before acting.
+
+## Agent Selection
+
+- Use **Planner** first to break down the request and expose dependencies.
+- Use **Test Fixer** when the goal is to turn failing local tests or red validation green.
+- Use **CI Triage** when the problem is a failing GitHub Actions run, PR check, release workflow, or environment-specific regression.
+- Use **Release** when the user explicitly wants to cut a versioned release, bump release metadata, tag a release, or publish from `main`.
+- Use **Coder** for general implementation once the failure mode or requested behavior is understood.
+- Use **Designer** for UI/UX work.
 
 ## Execution Model
 
