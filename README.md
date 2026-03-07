@@ -154,6 +154,28 @@ Application Assignments · Dynamic Groups · Assigned Groups
 
 ## Features
 
+### Offline CLI Validation Workflow
+
+For CLI/Core hardening, the recommended workflow is:
+
+1. Run a one-time authenticated export with normalized JSON:
+   `ic export --profile <name> --output <folder> --normalize`
+2. Re-run file-only validation as often as needed:
+   `ic import --folder <folder> --dry-run`
+3. Compare baseline/current snapshots without touching Graph:
+   `ic diff --baseline <baseline-folder> --current <current-folder> --format markdown`
+
+`ic import --dry-run` validates the export folder structure and JSON payloads without authenticating to Graph or creating objects in Intune, but it will not catch Graph-side constraints that only appear during a real create call. If malformed files are found, the command returns a non-zero exit code and includes a structured `validationErrors` array while continuing to scan the remaining files. For larger repeatable runs, use `scripts/stress-import-export.sh` with either `--profile <name>` for a fresh export or `--seed <folder>` to reuse an existing normalized export.
+
+Examples:
+
+- Fresh export + offline stress run:
+  `scripts/stress-import-export.sh --profile <name> --workspace artifacts/stress-run`
+- Reuse an existing normalized export:
+  `scripts/stress-import-export.sh --seed artifacts/tenant-export --scale 5 --mutate-count 10`
+
+The stress harness writes dry-run JSON, diff reports, and a lightweight benchmark summary into the selected workspace so you can track CLI/Core behavior over time.
+
 ### Conditional Access PowerPoint Export
 
 Export Conditional Access policies to a comprehensive PowerPoint presentation with:
@@ -210,4 +232,3 @@ Additional thanks to Merill Fernando for originally creating [idPowerToys](https
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting pull requests, code standards, and development workflow.
-

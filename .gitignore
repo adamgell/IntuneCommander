@@ -83,3 +83,4 @@ tests/Intune.Commander.Core.Tests/coverage.json
 website/docs/
 .vscode/mcp.json
 .github/agents/
+/artifacts
