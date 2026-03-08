@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune Commander - Pass 2 Style Mockups</title>
+<style>
+  :root {
+    --page-top: #122030;
+    --page-bottom: #0a0f15;
+    --panel: #131a23;
+    --panel-alt: #1b2430;
+    --border: #394655;
+    --border-strong: #5a697b;
+    --text: #edf3fb;
+    --text-muted: #b8c4d4;
+    --text-soft: #8f9eb1;
+    --accent: #7eaef8;
+    --accent-strong: #2c6fd1;
+    --pick: #a4c5ff;
+    --current: #8fd6aa;
+    --shadow: 0 24px 56px rgba(0, 0, 0, 0.42);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top right, rgba(63, 127, 232, 0.2), transparent 24%),
+      linear-gradient(180deg, var(--page-top), var(--page-bottom));
+    color: var(--text);
+    font: 14px/1.5 "Trebuchet MS", "Segoe UI", sans-serif;
+    padding: 28px;
+  }
+
+  .page {
+    max-width: 1580px;
+    margin: 0 auto;
+    display: grid;
+    gap: 18px;
+  }
+
+  .hero,
+  .legend,
+  .style-card {
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .hero {
+    padding: 20px 22px;
+    background: linear-gradient(180deg, rgba(29, 39, 52, 0.98), rgba(18, 24, 33, 0.99));
+  }
+
+  .eyebrow {
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .hero h1 {
+    margin: 8px 0 8px;
+    font-size: 30px;
+    line-height: 1.15;
+  }
+
+  .hero p {
+    margin: 0;
+    max-width: 82ch;
+    color: var(--text-muted);
+  }
+
+  .hero-chips,
+  .legend,
+  .style-head__chips,
+  .mock-toolbar__left,
+  .mock-toolbar__right,
+  .mock-context__items,
+  .mock-status__left,
+  .mock-status__right,
+  .mock-header__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hero-chips {
+    margin-top: 14px;
+  }
+
+  .chip,
+  .meta-chip,
+  .mock-chip,
+  .mock-status-pill {
+    padding: 4px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .meta-chip.pick {
+    color: #eaf2ff;
+    border-color: rgba(164, 197, 255, 0.34);
+    background: rgba(164, 197, 255, 0.12);
+  }
+
+  .meta-chip.current {
+    color: #e7faed;
+    border-color: rgba(143, 214, 170, 0.34);
+    background: rgba(143, 214, 170, 0.12);
+  }
+
+  .legend {
+    padding: 12px 14px;
+    background: linear-gradient(180deg, rgba(30, 39, 50, 0.96), rgba(17, 23, 31, 0.98));
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+  }
+
+  .swatch {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border-strong);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .swatch.pick {
+    background: rgba(164, 197, 255, 0.16);
+  }
+
+  .swatch.current {
+    background: rgba(143, 214, 170, 0.16);
+  }
+
+  .style-card {
+    background: linear-gradient(180deg, rgba(23, 30, 40, 0.98), rgba(12, 18, 25, 0.99));
+    overflow: hidden;
+  }
+
+  .style-head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(180deg, rgba(40, 50, 63, 0.9), rgba(24, 31, 41, 0.94));
+  }
+
+  .style-head__eyebrow {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .style-head h2 {
+    margin: 6px 0 6px;
+    font-size: 24px;
+    line-height: 1.15;
+  }
+
+  .style-head p {
+    margin: 0;
+    max-width: 72ch;
+    color: var(--text-muted);
+  }
+
+  .style-body {
+    padding: 18px;
+  }
+
+  .mock-window {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--window-border, #4d5c6d);
+    background: var(--window-bg, #293342);
+    color: var(--window-text, #eef4fc);
+  }
+
+  .mock-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 31px;
+    padding: 0 7px 0 10px;
+    background: linear-gradient(90deg, var(--title-start, #2855a3), var(--title-end, #173a72));
+    color: var(--title-text, #ffffff);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  }
+
+  .mock-app-icon {
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: linear-gradient(135deg, #edf4ff, #78a4ef);
+    flex-shrink: 0;
+  }
+
+  .mock-titletext {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mock-caption {
+    margin-left: auto;
+    display: flex;
+    gap: 2px;
+  }
+
+  .mock-caption button {
+    width: 20px;
+    height: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.16);
+    color: inherit;
+    padding: 0;
+    font: inherit;
+  }
+
+  .mock-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 28px;
+    padding: 0 11px;
+    background: linear-gradient(180deg, var(--menu-top, #4d5967), var(--menu-bottom, #39434f));
+    color: var(--menu-text, #f4f7fb);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+    font-size: 12px;
+  }
+
+  .mock-menu__item {
+    padding: 3px 2px;
+  }
+
+  .mock-menu__item.active {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .mock-menu__popup {
+    position: absolute;
+    top: calc(100% - 1px);
+    left: 10px;
+    width: 184px;
+    padding: 6px;
+    border: 1px solid var(--popup-border, rgba(255, 255, 255, 0.12));
+    background: linear-gradient(180deg, var(--popup-top, #485564), var(--popup-bottom, #313944));
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
+    z-index: 3;
+  }
+
+  .mock-menu__entry {
+    padding: 7px 9px;
+  }
+
+  .mock-menu__entry.highlight {
+    background: linear-gradient(180deg, var(--popup-highlight-top, rgba(67, 110, 189, 0.84)), var(--popup-highlight-bottom, rgba(37, 75, 140, 0.92)));
+  }
+
+  .mock-menu__divider {
+    height: 1px;
+    margin: 5px 2px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .mock-toolbar,
+  .mock-context,
+  .mock-status {
+    position: relative;
+    z-index: 1;
+  }
+
+  .mock-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 42px;
+    padding: 7px 12px;
+    background: linear-gradient(180deg, var(--toolbar-top, #576272), var(--toolbar-bottom, #434d5c));
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.36);
+  }
+
+  .mock-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--button-border, #69798b);
+    background: linear-gradient(180deg, var(--button-top, #627183), var(--button-bottom, #4b5767));
+    color: var(--button-text, #f5f7fb);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+  }
+
+  .mock-button.primary {
+    background: linear-gradient(180deg, var(--primary-top, #4e82d7), var(--primary-bottom, #295eba));
+    border-color: var(--primary-border, #88b4f5);
+  }
+
+  .mock-glyph {
+    width: 12px;
+    height: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: linear-gradient(135deg, #f7fbff, #93afd7);
+    flex-shrink: 0;
+  }
+
+  .mock-toolbar__note,
+  .mock-panel__subtitle,
+  .mock-header__copy,
+  .mock-helper,
+  .mock-property p {
+    color: var(--copy-text, #b9c5d5);
+  }
+
+  .mock-context {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    background: linear-gradient(180deg, var(--context-top, #2f3945), var(--context-bottom, #252d37));
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  }
+
+  .mock-context__label {
+    color: var(--text-soft, #93a1b3);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .mock-select,
+  .mock-chip,
+  .mock-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--copy-text, #b9c5d5);
+    white-space: nowrap;
+  }
+
+  .mock-select::after {
+    content: "v";
+    color: var(--text-soft, #93a1b3);
+    font-size: 11px;
+    margin-left: 8px;
+  }
+
+  .mock-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #6fd48f;
+    box-shadow: 0 0 0 3px rgba(111, 212, 143, 0.12);
+    flex-shrink: 0;
+  }
+
+  .mock-shell {
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+    min-height: 640px;
+    background: var(--surface, #121923);
+  }
+
+  .mock-nav {
+    padding: 14px 0;
+    background: linear-gradient(180deg, var(--nav-top, #151c25), var(--nav-bottom, #0f151d));
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mock-nav__header {
+    padding: 0 14px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mock-nav__title {
+    color: var(--text-soft, #93a1b3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .mock-nav__subtitle {
+    margin-top: 4px;
+    color: var(--copy-text, #b9c5d5);
+  }
+
+  .mock-nav__group {
+    padding-top: 12px;
+  }
+
+  .mock-nav__group-label {
+    padding: 0 14px 7px;
+    color: var(--text-soft, #93a1b3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+  }
+
+  .mock-nav__item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 14px;
+    color: var(--copy-text, #b9c5d5);
+  }
+
+  .mock-nav__item.active {
+    background: linear-gradient(180deg, var(--selected-top, rgba(62, 102, 189, 0.34)), var(--selected-bottom, rgba(28, 56, 108, 0.44)));
+    color: var(--window-text, #ffffff);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.38);
+  }
+
+  .mock-nav__icon {
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, rgba(56, 72, 97, 0.96), rgba(27, 39, 56, 0.98));
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .mock-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: linear-gradient(180deg, var(--main-top, rgba(24, 33, 44, 0.98)), var(--main-bottom, rgba(12, 19, 26, 0.99)));
+  }
+
+  .mock-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, var(--header-top, rgba(31, 41, 54, 0.94)), var(--header-bottom, rgba(21, 29, 38, 0.98)));
+  }
+
+  .mock-header__crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mock-header__crumb {
+    padding: 3px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--copy-text, #b9c5d5);
+    white-space: nowrap;
+  }
+
+  .mock-header h3 {
+    margin: 10px 0 8px;
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .mock-grid {
+    padding: 18px 20px 20px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 16px;
+  }
+
+  .mock-panel {
+    min-width: 0;
+    border: 1px solid var(--panel-border, rgba(255, 255, 255, 0.1));
+    background: linear-gradient(180deg, var(--panel-top, rgba(26, 36, 49, 0.98)), var(--panel-bottom, rgba(16, 23, 32, 0.99)));
+  }
+
+  .mock-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(180deg, var(--panel-head-top, rgba(43, 54, 69, 0.94)), var(--panel-head-bottom, rgba(28, 37, 48, 0.96)));
+  }
+
+  .mock-panel__title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .mock-panel__badge {
+    color: var(--text-soft, #93a1b3);
+    font-size: 12px;
+  }
+
+  .mock-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mock-field {
+    width: 100%;
+    min-height: 30px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--field-bg, #0f151d);
+    color: var(--window-text, #eef4fc);
+  }
+
+  .mock-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .mock-table th,
+  .mock-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mock-table th {
+    color: var(--text-soft, #93a1b3);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .mock-table tr.selected {
+    background: linear-gradient(180deg, var(--row-selected-top, rgba(57, 101, 188, 0.34)), var(--row-selected-bottom, rgba(31, 57, 111, 0.42)));
+  }
+
+  .mock-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--copy-text, #b9c5d5);
+    white-space: nowrap;
+  }
+
+  .mock-pill.warn {
+    border-color: rgba(232, 194, 106, 0.28);
+    background: rgba(232, 194, 106, 0.1);
+    color: #ffe0ab;
+  }
+
+  .mock-details {
+    padding: 14px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .mock-property {
+    display: grid;
+    grid-template-columns: 136px minmax(0, 1fr);
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .mock-property__name {
+    color: var(--text-soft, #93a1b3);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .mock-property__value {
+    color: var(--window-text, #eef4fc);
+  }
+
+  .mock-callout {
+    padding: 12px 13px;
+    border: 1px solid rgba(126, 174, 248, 0.24);
+    background: rgba(126, 174, 248, 0.08);
+    color: var(--copy-text, #b9c5d5);
+  }
+
+  .mock-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 12px;
+    background: linear-gradient(180deg, var(--status-top, #303844), var(--status-bottom, #242b35));
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--copy-text, #b9c5d5);
+    font-size: 12px;
+  }
+
+  .mock-window--mmc {
+    --window-bg: #7d8896;
+    --window-border: #5f6c7a;
+    --surface: #111923;
+    --title-start: #0b3477;
+    --title-end: #5f8cca;
+    --menu-top: #788392;
+    --menu-bottom: #626c79;
+    --toolbar-top: #8793a3;
+    --toolbar-bottom: #6f7b89;
+    --context-top: #5f6b79;
+    --context-bottom: #4f5966;
+    --nav-top: #d6dbe2;
+    --nav-bottom: #b8c0ca;
+    --main-top: rgba(17, 25, 35, 0.99);
+    --main-bottom: rgba(11, 17, 24, 0.99);
+    --header-top: rgba(29, 40, 54, 0.96);
+    --header-bottom: rgba(18, 26, 35, 0.99);
+    --panel-top: rgba(235, 239, 244, 0.98);
+    --panel-bottom: rgba(206, 214, 223, 0.99);
+    --panel-head-top: rgba(226, 232, 239, 0.98);
+    --panel-head-bottom: rgba(195, 204, 214, 0.99);
+    --panel-border: #7f8d9d;
+    --field-bg: #f6f8fb;
+    --window-text: #11161e;
+    --copy-text: #354253;
+    --text-soft: #4d5a69;
+    --selected-top: rgba(58, 104, 183, 0.35);
+    --selected-bottom: rgba(31, 61, 112, 0.42);
+    --row-selected-top: rgba(62, 105, 189, 0.42);
+    --row-selected-bottom: rgba(41, 73, 132, 0.5);
+    --status-top: #7a8695;
+    --status-bottom: #66717f;
+    --button-border: #6f7c8b;
+    --button-top: #f5f7f9;
+    --button-bottom: #d0d7df;
+    --button-text: #16202d;
+    --primary-top: #f5f8fd;
+    --primary-bottom: #d9e4f8;
+    --primary-border: #5b7fb4;
+    --popup-top: #e3e8ee;
+    --popup-bottom: #c7cfd8;
+    --popup-border: #778595;
+    --popup-highlight-top: rgba(81, 119, 189, 0.92);
+    --popup-highlight-bottom: rgba(47, 84, 149, 0.98);
+    --menu-text: #10161d;
+    --title-text: #ffffff;
+  }
+
+  .mock-window--mmc .mock-nav__item,
+  .mock-window--mmc .mock-nav__header,
+  .mock-window--mmc .mock-nav__group-label {
+    color: #243343;
+  }
+
+  .mock-window--mmc .mock-nav__icon {
+    background: linear-gradient(135deg, #eff3f8, #ccd4df);
+    color: #2f568d;
+    border-color: rgba(60, 76, 96, 0.16);
+  }
+
+  .mock-window--mmc .mock-panel {
+    box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.55), inset -1px -1px 0 rgba(75, 87, 101, 0.22);
+  }
+
+  .mock-window--mmc .mock-field,
+  .mock-window--mmc .mock-table {
+    color: #11161e;
+  }
+
+  .mock-window--mmc .mock-table th {
+    background: rgba(51, 71, 98, 0.08);
+  }
+
+  .mock-window--mmc .mock-toolbar__note,
+  .mock-window--mmc .mock-header__copy,
+  .mock-window--mmc .mock-panel__subtitle,
+  .mock-window--mmc .mock-helper,
+  .mock-window--mmc .mock-status {
+    color: #23313f;
+  }
+
+  .mock-window--mmc .mock-chip,
+  .mock-window--mmc .mock-status-pill,
+  .mock-window--mmc .mock-select {
+    border-color: rgba(54, 66, 81, 0.18);
+    background: rgba(255, 255, 255, 0.4);
+    color: #23313f;
+  }
+
+  .mock-window--explorer {
+    --window-bg: #2f3946;
+    --window-border: #536173;
+    --surface: #121923;
+    --title-start: #1f4f9b;
+    --title-end: #17396f;
+    --menu-top: #4b5664;
+    --menu-bottom: #37414c;
+    --toolbar-top: #596576;
+    --toolbar-bottom: #434f5e;
+    --context-top: #29333f;
+    --context-bottom: #1f2832;
+    --nav-top: #151c25;
+    --nav-bottom: #0f151d;
+    --main-top: rgba(22, 30, 40, 0.98);
+    --main-bottom: rgba(12, 18, 25, 0.99);
+    --header-top: rgba(29, 39, 51, 0.96);
+    --header-bottom: rgba(20, 28, 38, 0.98);
+    --panel-top: rgba(25, 35, 47, 0.98);
+    --panel-bottom: rgba(17, 24, 33, 0.99);
+    --panel-head-top: rgba(44, 55, 69, 0.92);
+    --panel-head-bottom: rgba(29, 38, 49, 0.96);
+    --panel-border: rgba(255, 255, 255, 0.1);
+    --field-bg: #0f151d;
+    --window-text: #eef4fc;
+    --copy-text: #b8c4d4;
+    --text-soft: #90a0b2;
+    --selected-top: rgba(53, 98, 184, 0.34);
+    --selected-bottom: rgba(29, 55, 102, 0.42);
+    --row-selected-top: rgba(56, 103, 190, 0.34);
+    --row-selected-bottom: rgba(30, 58, 111, 0.42);
+    --status-top: #303844;
+    --status-bottom: #242b35;
+    --button-border: #526071;
+    --button-top: #5d6877;
+    --button-bottom: #46515f;
+    --button-text: #f2f6fc;
+    --primary-top: #4d7fd0;
+    --primary-bottom: #295fb9;
+    --primary-border: #82aff4;
+    --popup-top: #43505d;
+    --popup-bottom: #313943;
+    --popup-border: #607083;
+    --popup-highlight-top: rgba(62, 107, 185, 0.8);
+    --popup-highlight-bottom: rgba(37, 75, 140, 0.86);
+    --menu-text: #f3f6fb;
+    --title-text: #ffffff;
+  }
+
+  .mock-window--office {
+    --window-bg: #464e59;
+    --window-border: #687382;
+    --surface: #141a22;
+    --title-start: #395987;
+    --title-end: #244263;
+    --menu-top: #736f72;
+    --menu-bottom: #5e5c61;
+    --toolbar-top: #9a969b;
+    --toolbar-bottom: #79767b;
+    --context-top: #4d4f57;
+    --context-bottom: #3d4047;
+    --nav-top: #1c2029;
+    --nav-bottom: #12161d;
+    --main-top: rgba(24, 29, 37, 0.98);
+    --main-bottom: rgba(13, 17, 23, 0.99);
+    --header-top: rgba(35, 40, 48, 0.96);
+    --header-bottom: rgba(22, 27, 34, 0.98);
+    --panel-top: rgba(30, 35, 43, 0.98);
+    --panel-bottom: rgba(19, 23, 29, 0.99);
+    --panel-head-top: rgba(84, 84, 89, 0.92);
+    --panel-head-bottom: rgba(62, 62, 67, 0.96);
+    --panel-border: rgba(255, 255, 255, 0.1);
+    --field-bg: #10151c;
+    --window-text: #edf2f9;
+    --copy-text: #c0c7d2;
+    --text-soft: #a0a7b4;
+    --selected-top: rgba(98, 121, 173, 0.34);
+    --selected-bottom: rgba(64, 79, 117, 0.42);
+    --row-selected-top: rgba(81, 104, 156, 0.34);
+    --row-selected-bottom: rgba(50, 66, 100, 0.44);
+    --status-top: #44464d;
+    --status-bottom: #30333a;
+    --button-border: #6a6e77;
+    --button-top: #d3d2d6;
+    --button-bottom: #b3b1b7;
+    --button-text: #1d2229;
+    --primary-top: #eceaf0;
+    --primary-bottom: #cbc8d1;
+    --primary-border: #6379a6;
+    --popup-top: #d6d4d8;
+    --popup-bottom: #b8b6bb;
+    --popup-border: #74777f;
+    --popup-highlight-top: rgba(90, 111, 163, 0.92);
+    --popup-highlight-bottom: rgba(63, 80, 120, 0.98);
+    --menu-text: #171c22;
+    --title-text: #f9fbff;
+  }
+
+  .mock-window--office .mock-toolbar {
+    border-bottom: 0;
+  }
+
+  .mock-bandrow {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    padding: 9px 12px;
+    background: linear-gradient(180deg, #8b878d, #6d6a70);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.34);
+  }
+
+  .mock-band {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+    padding: 8px 9px;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    background: linear-gradient(180deg, rgba(219, 217, 221, 0.34), rgba(177, 173, 179, 0.24));
+  }
+
+  .mock-band__title {
+    color: #f3f4f7;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mock-band__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .mock-window--office .mock-button {
+    min-height: 30px;
+  }
+
+  .mock-window--office .mock-nav__item.active {
+    box-shadow: inset 3px 0 0 rgba(164, 197, 255, 0.75);
+  }
+
+  @media (max-width: 1180px) {
+    .style-head {
+      flex-direction: column;
+    }
+
+    .mock-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 920px) {
+    .mock-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .mock-nav {
+      border-right: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">Pass 2 / shell flavor comparison</div>
+      <h1>Three shell-style mockups using the same app content</h1>
+      <p>
+        Each mockup holds the other decisions steady: slim context strip, Group Lookup promoted in the main command band,
+        Disconnect in File, and tenant/cloud/console caption branding. That way you can compare shell flavor without the result getting muddy.
+      </p>
+      <div class="hero-chips">
+        <span class="chip">Question 1 comparison only</span>
+        <span class="chip">Shared choices: 2:B 3:A 4:C 5:B</span>
+        <span class="chip">Chrome tuned per style, same app content underneath</span>
+      </div>
+    </section>
+
+    <section class="legend" aria-label="Legend">
+      <span class="legend-item"><span class="swatch pick" aria-hidden="true"></span>Original pick</span>
+      <span class="legend-item"><span class="swatch current" aria-hidden="true"></span>Current direction</span>
+      <span class="legend-item"><span class="swatch" aria-hidden="true"></span>Alternate comparison style</span>
+    </section>
+
+    <section class="style-card">
+      <div class="style-head">
+        <div>
+          <div class="style-head__eyebrow">Style A</div>
+          <h2>MMC admin console</h2>
+          <p>
+            This direction leans into a stricter enterprise-console feel: heavier bevels, denser split panes, and more obvious control surfaces.
+            It reads like a management console first and an app second.
+          </p>
+        </div>
+        <div class="style-head__chips">
+          <span class="meta-chip pick">Original pick</span>
+          <span class="meta-chip">Most explicit console framing</span>
+        </div>
+      </div>
+      <div class="style-body">
+        <section class="mock-window mock-window--mmc" aria-label="MMC style mockup">
+          <div class="mock-titlebar">
+            <div class="mock-app-icon" aria-hidden="true"></div>
+            <div class="mock-titletext">Contoso / Commercial / Admin Console</div>
+            <div class="mock-caption" aria-hidden="true">
+              <button type="button">_</button>
+              <button type="button">[]</button>
+              <button type="button">X</button>
+            </div>
+          </div>
+          <div class="mock-menu">
+            <span class="mock-menu__item active">File</span>
+            <span class="mock-menu__item">View</span>
+            <span class="mock-menu__item">Action</span>
+            <span class="mock-menu__item">Window</span>
+            <span class="mock-menu__item">Help</span>
+            <div class="mock-menu__popup" aria-label="MMC file menu">
+              <div class="mock-menu__entry">Open profile</div>
+              <div class="mock-menu__entry">Switch tenant</div>
+              <div class="mock-menu__entry highlight">Recent exports</div>
+              <div class="mock-menu__divider" aria-hidden="true"></div>
+              <div class="mock-menu__entry">Preferences</div>
+              <div class="mock-menu__entry">Disconnect</div>
+            </div>
+          </div>
+          <div class="mock-toolbar">
+            <div class="mock-toolbar__left">
+              <div class="mock-button primary"><span class="mock-glyph"></span>Group Lookup</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Refresh</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Compare</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Export</div>
+            </div>
+            <div class="mock-toolbar__right">
+              <span class="mock-toolbar__note">Denser, more formal command framing.</span>
+            </div>
+          </div>
+          <div class="mock-context">
+            <span class="mock-context__label">Profile</span>
+            <span class="mock-select">Admin Ops - Primary</span>
+            <div class="mock-context__items">
+              <span class="mock-chip"><span class="mock-dot" aria-hidden="true"></span>Connected</span>
+              <span class="mock-chip">Tenant: contoso.onmicrosoft.com</span>
+              <span class="mock-chip">Cloud: Commercial</span>
+            </div>
+          </div>
+          <div class="mock-shell">
+            <aside class="mock-nav">
+              <div class="mock-nav__header">
+                <div class="mock-nav__title">Console tree</div>
+                <div class="mock-nav__subtitle">Management-first information scent.</div>
+              </div>
+              <div class="mock-nav__group">
+                <div class="mock-nav__group-label">Root</div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">OV</span><span>Overview</span></div>
+                <div class="mock-nav__item active"><span class="mock-nav__icon">DC</span><span>Device Configurations</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">SC</span><span>Settings Catalog</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">CP</span><span>Compliance Policies</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">RP</span><span>Reports</span></div>
+              </div>
+            </aside>
+            <main class="mock-main">
+              <div class="mock-header">
+                <div class="mock-header__crumbs">
+                  <span class="mock-header__crumb">Policies</span>
+                  <span class="mock-header__crumb">Device Configurations</span>
+                  <span class="mock-header__crumb">Selected: Windows hardening baseline</span>
+                </div>
+                <h3>Structured management console shell</h3>
+                <div class="mock-header__copy">
+                  The working surface feels more like a console snap-in: command surfaces look deliberate, detail areas read like formal property sheets,
+                  and the left rail behaves more like a scope tree than a navigation sidebar.
+                </div>
+                <div class="mock-header__chips">
+                  <span class="mock-chip">Primary action stays visible</span>
+                  <span class="mock-chip">Disconnect stays in File</span>
+                </div>
+              </div>
+              <div class="mock-grid">
+                <section class="mock-panel">
+                  <div class="mock-panel__head">
+                    <div>
+                      <div class="mock-panel__title">Managed objects</div>
+                      <div class="mock-panel__subtitle">Scan, select, inspect.</div>
+                    </div>
+                    <div class="mock-panel__badge">42 items</div>
+                  </div>
+                  <div class="mock-search">
+                    <input class="mock-field" type="text" value="hardening" aria-label="Search MMC objects">
+                    <div class="mock-button"><span class="mock-glyph"></span>Find</div>
+                  </div>
+                  <table class="mock-table">
+                    <thead>
+                      <tr><th>Name</th><th>Platform</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr class="selected"><td>Windows hardening baseline</td><td>Windows 11</td><td><span class="mock-pill warn">Needs review</span></td></tr>
+                      <tr><td>AVD session host profile</td><td>Windows multi-session</td><td><span class="mock-pill">Healthy</span></td></tr>
+                      <tr><td>Edge security defaults</td><td>Windows 10/11</td><td><span class="mock-pill">Healthy</span></td></tr>
+                      <tr><td>Shared device lockdown</td><td>Kiosk</td><td><span class="mock-pill warn">Draft</span></td></tr>
+                    </tbody>
+                  </table>
+                </section>
+                <section class="mock-panel">
+                  <div class="mock-panel__head">
+                    <div>
+                      <div class="mock-panel__title">Property sheet</div>
+                      <div class="mock-panel__subtitle">More formal, more rigid.</div>
+                    </div>
+                    <div class="mock-panel__badge">Settings Catalog</div>
+                  </div>
+                  <div class="mock-details">
+                    <div class="mock-property">
+                      <div class="mock-property__name">Display name</div>
+                      <div class="mock-property__value">Windows hardening baseline</div>
+                    </div>
+                    <div class="mock-property">
+                      <div class="mock-property__name">Assignments</div>
+                      <div class="mock-property__value">All corporate devices, SG-Admin-Workstations, SG-JumpHosts, excluding SG-BreakGlass.</div>
+                    </div>
+                    <div class="mock-property">
+                      <div class="mock-property__name">Recent drift</div>
+                      <div class="mock-property__value">Five settings changed since the previous export, including SmartScreen, admin logon visibility, and remote desktop scope.</div>
+                    </div>
+                    <div class="mock-callout">This is the most "management console" answer to the brief: serious, explicit, and more procedural.</div>
+                  </div>
+                </section>
+              </div>
+            </main>
+          </div>
+          <div class="mock-status">
+            <div class="mock-status__left">
+              <span class="mock-status-pill">Console tree loaded</span>
+              <span class="mock-status-pill">Profile strip active</span>
+            </div>
+            <div class="mock-status__right">
+              <span>Style A</span>
+              <span>File &gt; Disconnect</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="style-card">
+      <div class="style-head">
+        <div>
+          <div class="style-head__eyebrow">Style B</div>
+          <h2>Explorer workspace</h2>
+          <p>
+            This direction keeps the darker blue-grey personality while softening the shell into something more familiar and less ceremonial.
+            It is still admin-focused, but the workspace feels calmer and easier to live in day-to-day.
+          </p>
+        </div>
+        <div class="style-head__chips">
+          <span class="meta-chip current">Current direction</span>
+          <span class="meta-chip">Calmer daily-driver shell</span>
+        </div>
+      </div>
+      <div class="style-body">
+        <section class="mock-window mock-window--explorer" aria-label="Explorer style mockup">
+          <div class="mock-titlebar">
+            <div class="mock-app-icon" aria-hidden="true"></div>
+            <div class="mock-titletext">Contoso / Commercial / Admin Console</div>
+            <div class="mock-caption" aria-hidden="true">
+              <button type="button">_</button>
+              <button type="button">[]</button>
+              <button type="button">X</button>
+            </div>
+          </div>
+          <div class="mock-menu">
+            <span class="mock-menu__item active">File</span>
+            <span class="mock-menu__item">Edit</span>
+            <span class="mock-menu__item">View</span>
+            <span class="mock-menu__item">Tools</span>
+            <span class="mock-menu__item">Help</span>
+            <div class="mock-menu__popup" aria-label="Explorer file menu">
+              <div class="mock-menu__entry">Open profile</div>
+              <div class="mock-menu__entry">Switch tenant</div>
+              <div class="mock-menu__entry highlight">Recent exports</div>
+              <div class="mock-menu__divider" aria-hidden="true"></div>
+              <div class="mock-menu__entry">Preferences</div>
+              <div class="mock-menu__entry">Disconnect</div>
+            </div>
+          </div>
+          <div class="mock-toolbar">
+            <div class="mock-toolbar__left">
+              <div class="mock-button primary"><span class="mock-glyph"></span>Group Lookup</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Refresh</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Compare</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Export</div>
+            </div>
+            <div class="mock-toolbar__right">
+              <span class="mock-toolbar__note">Stable command band, lighter shell ceremony.</span>
+            </div>
+          </div>
+          <div class="mock-context">
+            <span class="mock-context__label">Profile</span>
+            <span class="mock-select">Admin Ops - Primary</span>
+            <div class="mock-context__items">
+              <span class="mock-chip"><span class="mock-dot" aria-hidden="true"></span>Connected</span>
+              <span class="mock-chip">Tenant: contoso.onmicrosoft.com</span>
+              <span class="mock-chip">Cloud: Commercial</span>
+              <span class="mock-chip">Scope: Production</span>
+            </div>
+          </div>
+          <div class="mock-shell">
+            <aside class="mock-nav">
+              <div class="mock-nav__header">
+                <div class="mock-nav__title">Explorer shell</div>
+                <div class="mock-nav__subtitle">Predictable left rail, calmer working surface.</div>
+              </div>
+              <div class="mock-nav__group">
+                <div class="mock-nav__group-label">Overview</div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">OV</span><span>Overview</span></div>
+              </div>
+              <div class="mock-nav__group">
+                <div class="mock-nav__group-label">Policies</div>
+                <div class="mock-nav__item active"><span class="mock-nav__icon">DC</span><span>Device Configurations</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">SC</span><span>Settings Catalog</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">CP</span><span>Compliance Policies</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">SR</span><span>Scripts</span></div>
+              </div>
+              <div class="mock-nav__group">
+                <div class="mock-nav__group-label">Apps and groups</div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">AP</span><span>Applications</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">GR</span><span>Assignments</span></div>
+              </div>
+            </aside>
+            <main class="mock-main">
+              <div class="mock-header">
+                <div class="mock-header__crumbs">
+                  <span class="mock-header__crumb">Policies</span>
+                  <span class="mock-header__crumb">Device Configurations</span>
+                  <span class="mock-header__crumb">Selected: Windows hardening baseline</span>
+                </div>
+                <h3>Explorer-like admin workspace</h3>
+                <div class="mock-header__copy">
+                  The structure feels familiar without going soft: obvious primary actions, a visible session strip,
+                  and a list/detail split that lets the content do more of the talking.
+                </div>
+                <div class="mock-header__chips">
+                  <span class="mock-chip">Group Lookup stays prominent</span>
+                  <span class="mock-chip">Profile stays visible without crowding commands</span>
+                </div>
+              </div>
+              <div class="mock-grid">
+                <section class="mock-panel">
+                  <div class="mock-panel__head">
+                    <div>
+                      <div class="mock-panel__title">Configuration list</div>
+                      <div class="mock-panel__subtitle">Browse, scan, select.</div>
+                    </div>
+                    <div class="mock-panel__badge">42 visible items</div>
+                  </div>
+                  <div class="mock-search">
+                    <input class="mock-field" type="text" value="hardening" aria-label="Search Explorer objects">
+                    <div class="mock-button"><span class="mock-glyph"></span>Find</div>
+                  </div>
+                  <table class="mock-table">
+                    <thead>
+                      <tr><th>Name</th><th>Platform</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr class="selected"><td>Windows hardening baseline</td><td>Windows 11</td><td><span class="mock-pill warn">Needs review</span></td></tr>
+                      <tr><td>AVD session host profile</td><td>Windows multi-session</td><td><span class="mock-pill">Healthy</span></td></tr>
+                      <tr><td>Edge security defaults</td><td>Windows 10/11</td><td><span class="mock-pill">Healthy</span></td></tr>
+                      <tr><td>BitLocker escrow validation</td><td>Windows 11</td><td><span class="mock-pill">Healthy</span></td></tr>
+                    </tbody>
+                  </table>
+                </section>
+                <section class="mock-panel">
+                  <div class="mock-panel__head">
+                    <div>
+                      <div class="mock-panel__title">Selected item details</div>
+                      <div class="mock-panel__subtitle">Property-sheet rhythm, but less rigid.</div>
+                    </div>
+                    <div class="mock-panel__badge">Settings Catalog</div>
+                  </div>
+                  <div class="mock-details">
+                    <div class="mock-property">
+                      <div class="mock-property__name">Display name</div>
+                      <div class="mock-property__value">Windows hardening baseline</div>
+                    </div>
+                    <div class="mock-property">
+                      <div class="mock-property__name">Assignments</div>
+                      <div class="mock-property__value">All corporate devices, SG-Admin-Workstations, SG-JumpHosts. Excludes SG-BreakGlass.</div>
+                    </div>
+                    <div class="mock-property">
+                      <div class="mock-property__name">Recent drift</div>
+                      <div class="mock-property__value">Five settings changed since the previous export, including SmartScreen, admin logon visibility, and remote desktop scope.</div>
+                    </div>
+                    <div class="mock-callout">This is the most balanced option if you want the app to feel like a serious desktop tool without slipping into costume.</div>
+                  </div>
+                </section>
+              </div>
+            </main>
+          </div>
+          <div class="mock-status">
+            <div class="mock-status__left">
+              <span class="mock-status-pill">Status: Connected</span>
+              <span class="mock-status-pill">Context strip active</span>
+            </div>
+            <div class="mock-status__right">
+              <span>Style B</span>
+              <span>Current direction</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="style-card">
+      <div class="style-head">
+        <div>
+          <div class="style-head__eyebrow">Style C</div>
+          <h2>Office 2000 command bands</h2>
+          <p>
+            This version emphasizes horizontal command organization and banded tool areas. It feels more like a power-user productivity application,
+            with shell energy concentrated in the upper chrome rather than the left rail.
+          </p>
+        </div>
+        <div class="style-head__chips">
+          <span class="meta-chip">Most command-band driven</span>
+          <span class="meta-chip">Heavier productivity-app vibe</span>
+        </div>
+      </div>
+      <div class="style-body">
+        <section class="mock-window mock-window--office" aria-label="Office 2000 style mockup">
+          <div class="mock-titlebar">
+            <div class="mock-app-icon" aria-hidden="true"></div>
+            <div class="mock-titletext">Contoso / Commercial / Admin Console</div>
+            <div class="mock-caption" aria-hidden="true">
+              <button type="button">_</button>
+              <button type="button">[]</button>
+              <button type="button">X</button>
+            </div>
+          </div>
+          <div class="mock-menu">
+            <span class="mock-menu__item active">File</span>
+            <span class="mock-menu__item">Edit</span>
+            <span class="mock-menu__item">View</span>
+            <span class="mock-menu__item">Tools</span>
+            <span class="mock-menu__item">Window</span>
+            <span class="mock-menu__item">Help</span>
+            <div class="mock-menu__popup" aria-label="Office style file menu">
+              <div class="mock-menu__entry">Open profile</div>
+              <div class="mock-menu__entry">Switch tenant</div>
+              <div class="mock-menu__entry highlight">Recent exports</div>
+              <div class="mock-menu__divider" aria-hidden="true"></div>
+              <div class="mock-menu__entry">Preferences</div>
+              <div class="mock-menu__entry">Disconnect</div>
+            </div>
+          </div>
+          <div class="mock-toolbar">
+            <div class="mock-toolbar__left">
+              <div class="mock-button primary"><span class="mock-glyph"></span>Group Lookup</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Refresh</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Compare</div>
+              <div class="mock-button"><span class="mock-glyph"></span>Export</div>
+            </div>
+            <div class="mock-toolbar__right">
+              <span class="mock-toolbar__note">More emphasis on command organization.</span>
+            </div>
+          </div>
+          <div class="mock-bandrow">
+            <div class="mock-band">
+              <div class="mock-band__title">Workspace</div>
+              <div class="mock-band__row">
+                <div class="mock-button"><span class="mock-glyph"></span>Policy list</div>
+                <div class="mock-button"><span class="mock-glyph"></span>Assignments</div>
+              </div>
+            </div>
+            <div class="mock-band">
+              <div class="mock-band__title">Actions</div>
+              <div class="mock-band__row">
+                <div class="mock-button"><span class="mock-glyph"></span>Publish</div>
+                <div class="mock-button"><span class="mock-glyph"></span>Review</div>
+              </div>
+            </div>
+            <div class="mock-band">
+              <div class="mock-band__title">View</div>
+              <div class="mock-band__row">
+                <div class="mock-button"><span class="mock-glyph"></span>Details</div>
+                <div class="mock-button"><span class="mock-glyph"></span>Columns</div>
+              </div>
+            </div>
+          </div>
+          <div class="mock-context">
+            <span class="mock-context__label">Profile</span>
+            <span class="mock-select">Admin Ops - Primary</span>
+            <div class="mock-context__items">
+              <span class="mock-chip"><span class="mock-dot" aria-hidden="true"></span>Connected</span>
+              <span class="mock-chip">Tenant: contoso.onmicrosoft.com</span>
+              <span class="mock-chip">Cloud: Commercial</span>
+            </div>
+          </div>
+          <div class="mock-shell">
+            <aside class="mock-nav">
+              <div class="mock-nav__header">
+                <div class="mock-nav__title">Navigation</div>
+                <div class="mock-nav__subtitle">Command bands do more of the identity work.</div>
+              </div>
+              <div class="mock-nav__group">
+                <div class="mock-nav__group-label">Overview</div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">OV</span><span>Overview</span></div>
+              </div>
+              <div class="mock-nav__group">
+                <div class="mock-nav__group-label">Policies</div>
+                <div class="mock-nav__item active"><span class="mock-nav__icon">DC</span><span>Device Configurations</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">SC</span><span>Settings Catalog</span></div>
+                <div class="mock-nav__item"><span class="mock-nav__icon">CP</span><span>Compliance Policies</span></div>
+              </div>
+            </aside>
+            <main class="mock-main">
+              <div class="mock-header">
+                <div class="mock-header__crumbs">
+                  <span class="mock-header__crumb">Policies</span>
+                  <span class="mock-header__crumb">Device Configurations</span>
+                  <span class="mock-header__crumb">Selected: Windows hardening baseline</span>
+                </div>
+                <h3>Command-band heavy workspace</h3>
+                <div class="mock-header__copy">
+                  The workspace itself stays readable, but the top of the shell becomes much more expressive. This is the most "tool surface"
+                  oriented option of the three.
+                </div>
+                <div class="mock-header__chips">
+                  <span class="mock-chip">Bands carry more of the personality</span>
+                  <span class="mock-chip">Good for action-rich workflows</span>
+                </div>
+              </div>
+              <div class="mock-grid">
+                <section class="mock-panel">
+                  <div class="mock-panel__head">
+                    <div>
+                      <div class="mock-panel__title">Policy list</div>
+                      <div class="mock-panel__subtitle">Explorer-like content inside a banded shell.</div>
+                    </div>
+                    <div class="mock-panel__badge">42 visible items</div>
+                  </div>
+                  <div class="mock-search">
+                    <input class="mock-field" type="text" value="hardening" aria-label="Search Office style objects">
+                    <div class="mock-button"><span class="mock-glyph"></span>Find</div>
+                  </div>
+                  <table class="mock-table">
+                    <thead>
+                      <tr><th>Name</th><th>Platform</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr class="selected"><td>Windows hardening baseline</td><td>Windows 11</td><td><span class="mock-pill warn">Needs review</span></td></tr>
+                      <tr><td>AVD session host profile</td><td>Windows multi-session</td><td><span class="mock-pill">Healthy</span></td></tr>
+                      <tr><td>Edge security defaults</td><td>Windows 10/11</td><td><span class="mock-pill">Healthy</span></td></tr>
+                      <tr><td>Shared device lockdown</td><td>Kiosk</td><td><span class="mock-pill warn">Draft</span></td></tr>
+                    </tbody>
+                  </table>
+                </section>
+                <section class="mock-panel">
+                  <div class="mock-panel__head">
+                    <div>
+                      <div class="mock-panel__title">Review surface</div>
+                      <div class="mock-panel__subtitle">More command-centric than MMC, more theatrical than Explorer.</div>
+                    </div>
+                    <div class="mock-panel__badge">Ready for compare</div>
+                  </div>
+                  <div class="mock-details">
+                    <div class="mock-property">
+                      <div class="mock-property__name">Display name</div>
+                      <div class="mock-property__value">Windows hardening baseline</div>
+                    </div>
+                    <div class="mock-property">
+                      <div class="mock-property__name">Assignments</div>
+                      <div class="mock-property__value">All corporate devices, SG-Admin-Workstations, SG-JumpHosts. Excludes SG-BreakGlass.</div>
+                    </div>
+                    <div class="mock-property">
+                      <div class="mock-property__name">Recent drift</div>
+                      <div class="mock-property__value">Five settings changed since the previous export, including SmartScreen, admin logon visibility, and remote desktop scope.</div>
+                    </div>
+                    <div class="mock-callout">This is the most distinctive top-chrome treatment, but it also risks feeling more nostalgic and less restrained.</div>
+                  </div>
+                </section>
+              </div>
+            </main>
+          </div>
+          <div class="mock-status">
+            <div class="mock-status__left">
+              <span class="mock-status-pill">Bands visible</span>
+              <span class="mock-status-pill">Profile strip active</span>
+            </div>
+            <div class="mock-status__right">
+              <span>Style C</span>
+              <span>File &gt; Disconnect</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

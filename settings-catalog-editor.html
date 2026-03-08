@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune Commander — Settings Catalog Editor Wizard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg-root: #0D1117;
+    --bg-surface: #161B22;
+    --bg-elevated: #1C2230;
+    --bg-card: #21283690;
+    --bg-hover: #30363D;
+    --bg-input: #0D111780;
+    --border: #30363D;
+    --border-subtle: #21283690;
+    --text-primary: #E6EDF3;
+    --text-secondary: #8B949E;
+    --text-muted: #6E7681;
+    --accent: #2563EB;
+    --accent-light: #3B82F6;
+    --accent-dim: #1D4ED8;
+    --accent-bg: rgba(37, 99, 235, 0.12);
+    --accent-bg-strong: rgba(37, 99, 235, 0.22);
+    --success: #2EA043;
+    --success-bg: rgba(46, 160, 67, 0.15);
+    --warning: #D29922;
+    --warning-bg: rgba(210, 153, 34, 0.15);
+    --error: #F85149;
+    --error-bg: rgba(248, 81, 73, 0.12);
+    --purple: #A78BFA;
+    --purple-bg: rgba(167, 139, 250, 0.12);
+    --teal: #2DD4BF;
+    --teal-bg: rgba(45, 212, 191, 0.12);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+    --transition: 150ms ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    background: var(--bg-root);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ── App Shell ── */
+  .app-shell {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    height: 100vh;
+  }
+
+  /* ── Title Bar ── */
+  .title-bar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo {
+    font-weight: 700;
+    font-size: 13px;
+    background: linear-gradient(135deg, #60A5FA, #A78BFA);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+  }
+  .breadcrumb {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .breadcrumb span { color: var(--text-muted); }
+  .breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover { color: var(--accent-light); }
+  .breadcrumb .current { color: var(--text-primary); font-weight: 600; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .unsaved-badge {
+    background: var(--warning-bg);
+    color: var(--warning);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--text-muted); background: var(--bg-hover); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dim); }
+  .btn-success { background: var(--success); border-color: var(--success); color: #fff; }
+  .btn-success:hover { opacity: 0.9; }
+  .btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover { color: var(--text-primary); background: var(--bg-hover); }
+  .btn-danger-ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
+  .btn-danger-ghost:hover { color: var(--error); background: var(--error-bg); }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Wizard Tabs ── */
+  .wizard-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+  .wizard-tab {
+    padding: 11px 24px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .wizard-tab:hover { color: var(--text-secondary); }
+  .wizard-tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+  .wizard-tab.completed { color: var(--text-secondary); }
+  .tab-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--bg-hover);
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .wizard-tab.active .tab-num { background: var(--accent); color: #fff; }
+  .wizard-tab.completed .tab-num { background: var(--success); color: #fff; }
+
+  /* ── Tab Content ── */
+  .tab-content { display: none; overflow: hidden; height: 100%; }
+  .tab-content.active { display: flex; flex-direction: column; }
+
+  /* ══════════════════════════════════ */
+  /* TAB 1: BASICS                     */
+  /* ══════════════════════════════════ */
+  .basics-tab {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 32px;
+    width: 100%;
+    overflow-y: auto;
+  }
+  .basics-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+  .basics-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+  }
+  .form-group { margin-bottom: 24px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .form-label .required { color: var(--error); margin-left: 2px; }
+  .form-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color var(--transition);
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+  .form-input::placeholder { color: var(--text-muted); }
+  textarea.form-input { min-height: 80px; resize: vertical; }
+  .form-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .form-section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    background: var(--bg-surface);
+    margin-bottom: 24px;
+  }
+  .form-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-select {
+    width: 100%;
+    appearance: none;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 36px 10px 14px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' fill='none' stroke='%238B949E' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color var(--transition);
+  }
+  .form-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+
+  /* Info card */
+  .info-card {
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: var(--radius-lg);
+    background: var(--accent-bg);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .info-card-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .info-card-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ══════════════════════════════════ */
+  /* TAB 2: CONFIGURATION              */
+  /* ══════════════════════════════════ */
+  .config-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    overflow: hidden;
+    flex: 1;
+  }
+  .config-layout.picker-open { grid-template-columns: 1fr 400px; }
+
+  /* Editor content: sidebar + settings */
+  .editor-wrap {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .editor-toolbar {
+    padding: 10px 20px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .editor-toolbar-spacer { flex: 1; }
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius-md);
+    padding: 5px 14px;
+    color: var(--accent-light);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all var(--transition);
+  }
+  .add-btn:hover { background: var(--accent-bg); border-style: solid; }
+  .add-btn .plus { font-size: 16px; font-weight: 300; }
+
+  .editor-body {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  /* Category sidebar */
+  .cat-sidebar {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    background: var(--bg-surface);
+    padding: 8px 0;
+  }
+  .cat-sidebar-label {
+    padding: 6px 16px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .cat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: all var(--transition);
+    border-left: 3px solid transparent;
+  }
+  .cat-item:hover { background: var(--bg-hover); }
+  .cat-item.active { background: var(--accent-bg); border-left-color: var(--accent); }
+  .cat-item.active .cat-name { color: var(--accent-light); font-weight: 600; }
+  .cat-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg-elevated);
+    padding: 1px 7px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .cat-item.active .cat-count { background: var(--accent-bg-strong); color: var(--accent-light); }
+
+  /* Settings panel */
+  .settings-panel {
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+  .settings-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .settings-count { font-size: 12px; color: var(--text-secondary); }
+  .settings-count strong { color: var(--text-primary); font-weight: 600; }
+
+  /* Setting card */
+  .setting-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 6px;
+    transition: all var(--transition);
+    overflow: hidden;
+  }
+  .setting-card:hover { border-color: var(--text-muted); }
+  .setting-card.modified { border-left: 3px solid var(--accent); }
+  .sc-inner { padding: 12px 16px; }
+  .setting-card.modified .sc-inner { padding-left: 13px; }
+  .sc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .sc-name { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .sc-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; line-height: 1.4; }
+  .sc-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .sc-info-btn, .sc-remove-btn {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-muted); font-size: 11px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .sc-info-btn:hover { border-color: var(--accent); color: var(--accent-light); background: var(--accent-bg); }
+  .sc-remove-btn { border: none; opacity: 0; }
+  .setting-card:hover .sc-remove-btn { opacity: 1; }
+  .sc-remove-btn:hover { color: var(--error); background: var(--error-bg); }
+  .sc-control { margin-top: 8px; }
+
+  /* Toggle */
+  .toggle-row { display: flex; align-items: center; gap: 10px; }
+  .toggle {
+    position: relative; width: 40px; height: 22px;
+    border-radius: 11px; background: var(--bg-hover);
+    border: 1px solid var(--border); cursor: pointer;
+    transition: all var(--transition); flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); border-color: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--text-secondary);
+    top: 2px; left: 2px; transition: all var(--transition);
+  }
+  .toggle.on::after { left: 20px; background: #fff; }
+  .toggle-label { font-size: 13px; font-weight: 500; }
+  .toggle-label.on { color: var(--accent-light); }
+
+  /* Select */
+  .sc-select {
+    appearance: none;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 6px 32px 6px 10px;
+    color: var(--text-primary);
+    font-family: inherit; font-size: 13px;
+    max-width: 380px; width: 100%;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' fill='none' stroke='%238B949E' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    transition: border-color var(--transition);
+  }
+  .sc-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+
+  /* Number input */
+  .num-group {
+    display: flex; max-width: 180px;
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .num-group:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+  .num-group input {
+    background: var(--bg-input); border: none;
+    padding: 6px 8px; color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    width: 100%; text-align: center;
+  }
+  .num-group input:focus { outline: none; }
+  .num-group button {
+    background: var(--bg-elevated); border: none;
+    border-left: 1px solid var(--border);
+    color: var(--text-secondary); padding: 0 10px;
+    cursor: pointer; font-size: 14px; transition: all var(--transition);
+  }
+  .num-group button:first-child { border-left: none; border-right: 1px solid var(--border); }
+  .num-group button:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  /* Nested children */
+  .sc-children {
+    border-top: 1px solid var(--border-subtle);
+    margin: 10px -16px -12px;
+    padding: 10px 16px 12px 32px;
+    background: rgba(0,0,0,0.15);
+  }
+  .child-name { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+
+  /* ── Settings Picker ── */
+  .picker {
+    border-left: 1px solid var(--border);
+    background: var(--bg-surface);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+  }
+  .picker-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .picker-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .picker-title { font-size: 15px; font-weight: 700; }
+  .picker-close {
+    width: 26px; height: 26px; border-radius: var(--radius-md);
+    border: none; background: transparent; color: var(--text-secondary);
+    font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .picker-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .picker-hint { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+  .picker-search {
+    display: flex; gap: 6px;
+  }
+  .picker-search-input {
+    flex: 1; background: var(--bg-input);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 7px 12px 7px 30px;
+    color: var(--text-primary); font-family: inherit; font-size: 13px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%236E7681' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 9px center;
+  }
+  .picker-search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+  .picker-search-btn {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 7px 12px;
+    color: var(--text-secondary); cursor: pointer; font-size: 12px;
+  }
+  .picker-search-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  .picker-body { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+  .picker-cats {
+    flex: 0 0 auto; max-height: 42%; overflow-y: auto;
+    border-bottom: 1px solid var(--border); padding: 6px 0;
+  }
+  .picker-sec-label {
+    padding: 4px 18px 4px; font-size: 10px; font-weight: 700;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .pcat {
+    padding: 5px 18px; cursor: pointer; font-size: 13px;
+    transition: all var(--transition);
+  }
+  .pcat:hover { background: var(--bg-hover); }
+  .pcat.selected { background: var(--accent-bg); color: var(--accent-light); font-weight: 500; }
+
+  .picker-settings { flex: 1; overflow-y: auto; }
+  .picker-settings-bar {
+    padding: 8px 18px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0;
+    background: var(--bg-surface); z-index: 1;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .picker-settings-count { font-size: 12px; color: var(--text-secondary); }
+  .picker-select-all {
+    background: var(--accent); border: none; color: #fff;
+    padding: 4px 10px; border-radius: var(--radius-md);
+    font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .picker-select-all:hover { background: var(--accent-dim); }
+  .psi {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 18px; border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer; transition: background var(--transition);
+  }
+  .psi:hover { background: var(--bg-hover); }
+  .psi.checked { background: var(--accent-bg); }
+  .pcb {
+    width: 18px; height: 18px; border: 2px solid var(--border);
+    border-radius: 3px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-input); transition: all var(--transition);
+  }
+  .pcb.checked { background: var(--accent); border-color: var(--accent); }
+  .pcb.checked::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 700; }
+  .psi-name { font-size: 13px; flex: 1; }
+  .psi-info {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-muted); font-size: 10px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .psi-info:hover { border-color: var(--accent); color: var(--accent-light); }
+
+  /* ══════════════════════════════════ */
+  /* TAB 3: ASSIGNMENTS                */
+  /* ══════════════════════════════════ */
+  .assign-tab {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    overflow: hidden;
+    height: 100%;
+  }
+  .assign-left {
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .assign-right {
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-root);
+  }
+  .assign-section-header {
+    padding: 14px 20px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
+  }
+  .assign-section-title {
+    font-size: 14px; font-weight: 700; margin-bottom: 2px;
+  }
+  .assign-section-desc { font-size: 12px; color: var(--text-secondary); }
+
+  /* Group Search */
+  .group-search-area { padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
+  .group-search-row { display: flex; gap: 8px; }
+  .group-search-input {
+    flex: 1; background: var(--bg-input);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 8px 12px 8px 32px;
+    color: var(--text-primary); font-family: inherit; font-size: 13px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%236E7681' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 10px center;
+    transition: border-color var(--transition);
+  }
+  .group-search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+
+  /* Group search results */
+  .group-results { overflow-y: auto; flex: 1; padding: 4px 0; }
+  .group-result {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 20px; cursor: pointer;
+    transition: background var(--transition);
+  }
+  .group-result:hover { background: var(--bg-hover); }
+  .group-icon {
+    width: 32px; height: 32px; border-radius: var(--radius-md);
+    background: var(--accent-bg); color: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .group-icon.security { background: var(--purple-bg); color: var(--purple); }
+  .group-icon.dynamic { background: var(--teal-bg); color: var(--teal); }
+  .group-info { flex: 1; min-width: 0; }
+  .group-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .group-type { font-size: 11px; color: var(--text-muted); }
+  .group-add-btn {
+    padding: 4px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-md); background: transparent;
+    color: var(--accent-light); font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--transition);
+    white-space: nowrap;
+  }
+  .group-add-btn:hover { background: var(--accent-bg); border-color: var(--accent); }
+
+  /* Quick targets */
+  .quick-targets {
+    padding: 10px 20px;
+    display: flex; gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
+  }
+  .quick-target-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all var(--transition);
+  }
+  .quick-target-btn:hover { background: var(--bg-hover); border-color: var(--text-muted); }
+  .quick-target-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-light); }
+  .qt-check {
+    width: 14px; height: 14px; border-radius: 3px;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; transition: all var(--transition);
+  }
+  .quick-target-btn.active .qt-check {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+
+  /* Assigned groups (right panel) */
+  .assigned-list { overflow-y: auto; flex: 1; padding: 8px 0; }
+  .assigned-empty {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-muted); font-size: 13px;
+  }
+  .assigned-empty-icon { font-size: 36px; margin-bottom: 8px; opacity: 0.3; }
+  .assigned-group {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background var(--transition);
+  }
+  .assigned-group:hover { background: var(--bg-hover); }
+  .assign-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 2px 8px; border-radius: 10px;
+  }
+  .assign-badge.include { background: var(--success-bg); color: var(--success); }
+  .assign-badge.exclude { background: var(--error-bg); color: var(--error); }
+  .assigned-group-info { flex: 1; min-width: 0; }
+  .assigned-group-name { font-size: 13px; font-weight: 500; }
+  .assigned-group-id { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .assigned-actions { display: flex; align-items: center; gap: 4px; }
+  .excl-toggle {
+    font-size: 11px; padding: 3px 8px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: transparent; color: var(--text-muted);
+    cursor: pointer; transition: all var(--transition);
+  }
+  .excl-toggle:hover { border-color: var(--error); color: var(--error); background: var(--error-bg); }
+  .excl-toggle.active { border-color: var(--error); color: var(--error); background: var(--error-bg); }
+  .remove-assigned {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: none; background: transparent;
+    color: var(--text-muted); font-size: 14px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition); opacity: 0;
+  }
+  .assigned-group:hover .remove-assigned { opacity: 1; }
+  .remove-assigned:hover { color: var(--error); background: var(--error-bg); }
+
+  /* Summary card in assignments */
+  .assign-summary {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-surface);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .assign-stat {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .assign-stat strong { color: var(--text-primary); font-weight: 700; font-size: 16px; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    padding: 10px 20px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bottom-nav-left { display: flex; align-items: center; gap: 8px; }
+  .bottom-nav-right { display: flex; align-items: center; gap: 8px; }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: 4px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--text-muted);
+  }
+  .status-dot {
+    display: inline-block;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--success); margin-right: 6px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 7px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  .design-tag {
+    position: fixed; bottom: 30px; right: 16px;
+    font-size: 9px; color: var(--text-muted); opacity: 0.4;
+    letter-spacing: 1px; text-transform: uppercase; z-index: 999;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Title Bar -->
+  <div class="title-bar">
+    <span class="logo">Intune Commander</span>
+    <div class="breadcrumb">
+      <a href="#">Settings Catalog</a>
+      <span>›</span>
+      <span class="current">AVD - Enhancement Settings</span>
+    </div>
+    <div class="header-right">
+      <span class="unsaved-badge">3 unsaved</span>
+    </div>
+  </div>
+
+  <!-- Wizard Tabs -->
+  <div class="wizard-tabs">
+    <div class="wizard-tab" onclick="switchTab(0)" id="wtab0">
+      <span class="tab-num" id="tnum0">1</span> Basics
+    </div>
+    <div class="wizard-tab" onclick="switchTab(1)" id="wtab1">
+      <span class="tab-num" id="tnum1">2</span> Configuration
+    </div>
+    <div class="wizard-tab" onclick="switchTab(2)" id="wtab2">
+      <span class="tab-num" id="tnum2">3</span> Assignments
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- TAB 1: BASICS                           -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="tab-content" id="tab0">
+    <div class="basics-tab">
+      <div class="basics-title">Policy Details</div>
+      <div class="basics-subtitle">Define the name, description, and platform for this Settings Catalog policy.</div>
+
+      <div class="info-card">
+        <div class="info-card-icon">i</div>
+        <div class="info-card-text">
+          Settings Catalog policies allow you to configure granular device settings from a unified catalog of all available settings. Changes are saved to Microsoft Intune via the Graph API.
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">General</div>
+        <div class="form-group">
+          <label class="form-label">Name <span class="required">*</span></label>
+          <input class="form-input" value="AVD - Enhancement Settings" placeholder="Enter policy name..." />
+          <div class="form-hint">A unique name to identify this policy in the Intune portal.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" placeholder="Describe the purpose of this policy...">Azure Virtual Desktop enhancement and optimization settings for session hosts.</textarea>
+          <div class="form-hint">Optional. Helps administrators understand the purpose of this policy.</div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Platform &amp; Technology</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Platforms</label>
+            <select class="form-select" disabled>
+              <option selected>Windows 10 and later</option>
+            </select>
+            <div class="form-hint">Read-only. Set when the policy was created.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Technologies</label>
+            <select class="form-select" disabled>
+              <option selected>MDM</option>
+            </select>
+            <div class="form-hint">Read-only. Determined by the policy type.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section" style="opacity: 0.7">
+        <div class="form-section-title">Metadata</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Policy ID</label>
+            <input class="form-input" value="af15c524-34d3-4fed-8fa1-f18f89d6df16" readonly style="opacity: 0.6; font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Modified</label>
+            <input class="form-input" value="March 4, 2026 at 2:15 PM" readonly style="opacity: 0.6;" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- TAB 2: CONFIGURATION                    -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="tab-content" id="tab1">
+    <div class="config-layout" id="configLayout">
+
+      <div class="editor-wrap">
+        <!-- Toolbar -->
+        <div class="editor-toolbar">
+          <button class="add-btn" onclick="togglePicker()"><span class="plus">+</span> Add settings</button>
+          <div class="editor-toolbar-spacer"></div>
+          <button class="btn btn-sm">Discard changes</button>
+        </div>
+
+        <!-- Category + Settings -->
+        <div class="editor-body">
+          <div class="cat-sidebar">
+            <div class="cat-sidebar-label">Categories</div>
+            <div class="cat-item active">
+              <span class="cat-name">Azure Virtual Desktop</span>
+              <span class="cat-count">7</span>
+            </div>
+            <div class="cat-item">
+              <span class="cat-name">Remote Desktop Services</span>
+              <span class="cat-count">4</span>
+            </div>
+            <div class="cat-item">
+              <span class="cat-name">Screen Capture</span>
+              <span class="cat-count">2</span>
+            </div>
+            <div class="cat-item">
+              <span class="cat-name">Graphics &amp; Display</span>
+              <span class="cat-count">3</span>
+            </div>
+            <div class="cat-item">
+              <span class="cat-name">Watermarking</span>
+              <span class="cat-count">1</span>
+            </div>
+            <div class="cat-item">
+              <span class="cat-name">Network</span>
+              <span class="cat-count">2</span>
+            </div>
+          </div>
+
+          <div class="settings-panel">
+            <div class="settings-panel-header">
+              <span class="settings-count"><strong>7</strong> settings in <strong>"Azure Virtual Desktop"</strong></span>
+            </div>
+
+            <!-- Toggle: Enabled -->
+            <div class="setting-card modified">
+              <div class="sc-inner">
+                <div class="sc-top">
+                  <div>
+                    <div class="sc-name">Enable screen capture protection</div>
+                    <div class="sc-desc">Controls whether screen capture is blocked for AVD sessions.</div>
+                  </div>
+                  <div class="sc-meta">
+                    <button class="sc-info-btn">i</button>
+                    <button class="sc-remove-btn">⊖</button>
+                  </div>
+                </div>
+                <div class="sc-control">
+                  <div class="toggle-row">
+                    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    <span class="toggle-label on">Enabled</span>
+                  </div>
+                </div>
+                <div class="sc-children">
+                  <div class="child-name">Screen Capture Protection Options (Device)</div>
+                  <select class="sc-select">
+                    <option selected>Block screen capture on client and server</option>
+                    <option>Block screen capture on client only</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggle: Enabled -->
+            <div class="setting-card modified">
+              <div class="sc-inner">
+                <div class="sc-top">
+                  <div><div class="sc-name">Enable Graphics related data logging</div></div>
+                  <div class="sc-meta">
+                    <button class="sc-info-btn">i</button>
+                    <button class="sc-remove-btn">⊖</button>
+                  </div>
+                </div>
+                <div class="sc-control">
+                  <div class="toggle-row">
+                    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    <span class="toggle-label on">Enabled</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggle: Enabled -->
+            <div class="setting-card modified">
+              <div class="sc-inner">
+                <div class="sc-top">
+                  <div>
+                    <div class="sc-name">Enable RDP Shortpath for managed networks</div>
+                    <div class="sc-desc">Allows UDP-based transport for AVD connections.</div>
+                  </div>
+                  <div class="sc-meta">
+                    <button class="sc-info-btn">i</button>
+                    <button class="sc-remove-btn">⊖</button>
+                  </div>
+                </div>
+                <div class="sc-control">
+                  <div class="toggle-row">
+                    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    <span class="toggle-label on">Enabled</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Integer -->
+            <div class="setting-card">
+              <div class="sc-inner">
+                <div class="sc-top">
+                  <div><div class="sc-name">Height of grid box in percent relative to QR code bitmap height (Device) *</div></div>
+                  <div class="sc-meta">
+                    <button class="sc-info-btn">i</button>
+                    <button class="sc-remove-btn">⊖</button>
+                  </div>
+                </div>
+                <div class="sc-control">
+                  <div class="num-group">
+                    <button>−</button>
+                    <input type="text" value="180" />
+                    <button>+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Integer -->
+            <div class="setting-card">
+              <div class="sc-inner">
+                <div class="sc-top">
+                  <div><div class="sc-name">QR code bitmap opacity (Device) *</div></div>
+                  <div class="sc-meta">
+                    <button class="sc-info-btn">i</button>
+                    <button class="sc-remove-btn">⊖</button>
+                  </div>
+                </div>
+                <div class="sc-control">
+                  <div class="num-group">
+                    <button>−</button>
+                    <input type="text" value="2000" />
+                    <button>+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggle -->
+            <div class="setting-card">
+              <div class="sc-inner">
+                <div class="sc-top">
+                  <div>
+                    <div class="sc-name">Enable watermarking</div>
+                    <div class="sc-desc">Adds a watermark to deter screen capture and info theft.</div>
+                  </div>
+                  <div class="sc-meta">
+                    <button class="sc-info-btn">i</button>
+                    <button class="sc-remove-btn">⊖</button>
+                  </div>
+                </div>
+                <div class="sc-control">
+                  <div class="toggle-row">
+                    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    <span class="toggle-label on">Enabled</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Integer -->
+            <div class="setting-card">
+              <div class="sc-inner">
+                <div class="sc-top">
+                  <div>
+                    <div class="sc-name">UDP port (Device) *</div>
+                    <div class="sc-desc">The UDP port for RDP Shortpath transport.</div>
+                  </div>
+                  <div class="sc-meta">
+                    <button class="sc-info-btn">i</button>
+                    <button class="sc-remove-btn">⊖</button>
+                  </div>
+                </div>
+                <div class="sc-control">
+                  <div class="num-group">
+                    <button>−</button>
+                    <input type="text" value="3390" />
+                    <button>+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="height:80px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Picker -->
+      <div class="picker" id="picker" style="display:none">
+        <div class="picker-header">
+          <div class="picker-title-row">
+            <span class="picker-title">Settings Picker</span>
+            <button class="picker-close" onclick="togglePicker()">×</button>
+          </div>
+          <div class="picker-hint">Use commas "," among search terms to lookup settings by keywords</div>
+          <div class="picker-search">
+            <input class="picker-search-input" placeholder="Search for a setting..." />
+            <button class="picker-search-btn">Search</button>
+          </div>
+        </div>
+        <div class="picker-body">
+          <div class="picker-cats">
+            <div class="picker-sec-label">Browse by category</div>
+            <div class="pcat">Attachment Manager</div>
+            <div class="pcat">Auditing</div>
+            <div class="pcat selected">Authentication</div>
+            <div class="pcat">Autoplay</div>
+            <div class="pcat">BitLocker</div>
+            <div class="pcat">BITS</div>
+            <div class="pcat">Bluetooth</div>
+            <div class="pcat">Browser</div>
+            <div class="pcat">Camera</div>
+            <div class="pcat">Connectivity</div>
+            <div class="pcat">Credential Providers</div>
+            <div class="pcat">Defender</div>
+          </div>
+          <div class="picker-settings">
+            <div class="picker-settings-bar">
+              <span class="picker-settings-count">9 settings in "Authentication"</span>
+              <button class="picker-select-all">Select all</button>
+            </div>
+            <div class="psi checked" onclick="toggleCheck(this)">
+              <div class="pcb checked"></div>
+              <span class="psi-name">Allow Aad Password Reset</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi" onclick="toggleCheck(this)">
+              <div class="pcb"></div>
+              <span class="psi-name">Allow EAP Cert SSO (User)</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi checked" onclick="toggleCheck(this)">
+              <div class="pcb checked"></div>
+              <span class="psi-name">Allow Fast Reconnect</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi" onclick="toggleCheck(this)">
+              <div class="pcb"></div>
+              <span class="psi-name">Allow Secondary Authentication Device</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi" onclick="toggleCheck(this)">
+              <div class="pcb"></div>
+              <span class="psi-name">Configure Web Sign In Allowed Urls</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi" onclick="toggleCheck(this)">
+              <div class="pcb"></div>
+              <span class="psi-name">Configure Webcam Access Domain Names</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi" onclick="toggleCheck(this)">
+              <div class="pcb"></div>
+              <span class="psi-name">Enable Fast First Sign In</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi" onclick="toggleCheck(this)">
+              <div class="pcb"></div>
+              <span class="psi-name">Enable Web Sign In</span>
+              <button class="psi-info">i</button>
+            </div>
+            <div class="psi" onclick="toggleCheck(this)">
+              <div class="pcb"></div>
+              <span class="psi-name">Preferred Aad Tenant Domain Name</span>
+              <button class="psi-info">i</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- TAB 3: ASSIGNMENTS                      -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="tab-content" id="tab2">
+    <div class="assign-tab">
+
+      <!-- Left: Group Search -->
+      <div class="assign-left">
+        <div class="assign-section-header">
+          <div class="assign-section-title">Add Groups</div>
+          <div class="assign-section-desc">Search for Azure AD groups to target with this policy.</div>
+        </div>
+
+        <!-- Quick targets -->
+        <div class="quick-targets">
+          <button class="quick-target-btn active" onclick="this.classList.toggle('active')">
+            <span class="qt-check">✓</span> All Devices
+          </button>
+          <button class="quick-target-btn" onclick="this.classList.toggle('active')">
+            <span class="qt-check"></span> All Users
+          </button>
+        </div>
+
+        <div class="group-search-area">
+          <div class="group-search-row">
+            <input class="group-search-input" placeholder="Search groups by name or GUID..." />
+            <button class="btn btn-sm">Search</button>
+          </div>
+        </div>
+
+        <div class="group-results">
+          <div class="group-result">
+            <div class="group-icon security">SG</div>
+            <div class="group-info">
+              <div class="group-name">SG-AVD-SessionHosts-Prod</div>
+              <div class="group-type">Security Group · Dynamic Device</div>
+            </div>
+            <button class="group-add-btn" onclick="this.textContent='Added'; this.style.color='var(--success)'; this.style.borderColor='var(--success)'">+ Add</button>
+          </div>
+          <div class="group-result">
+            <div class="group-icon dynamic">DG</div>
+            <div class="group-info">
+              <div class="group-name">SG-AVD-SessionHosts-Dev</div>
+              <div class="group-type">Security Group · Dynamic Device</div>
+            </div>
+            <button class="group-add-btn">+ Add</button>
+          </div>
+          <div class="group-result">
+            <div class="group-icon">M3</div>
+            <div class="group-info">
+              <div class="group-name">M365-AVD-Users</div>
+              <div class="group-type">Microsoft 365 Group · Assigned</div>
+            </div>
+            <button class="group-add-btn">+ Add</button>
+          </div>
+          <div class="group-result">
+            <div class="group-icon security">SG</div>
+            <div class="group-info">
+              <div class="group-name">SG-IT-Admins</div>
+              <div class="group-type">Security Group · Assigned</div>
+            </div>
+            <button class="group-add-btn">+ Add</button>
+          </div>
+          <div class="group-result">
+            <div class="group-icon dynamic">DG</div>
+            <div class="group-info">
+              <div class="group-name">DG-Windows-11-Devices</div>
+              <div class="group-type">Security Group · Dynamic Device</div>
+            </div>
+            <button class="group-add-btn">+ Add</button>
+          </div>
+          <div class="group-result">
+            <div class="group-icon">SG</div>
+            <div class="group-info">
+              <div class="group-name">SG-Contoso-AllEmployees</div>
+              <div class="group-type">Security Group · Assigned</div>
+            </div>
+            <button class="group-add-btn">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Assigned Groups -->
+      <div class="assign-right">
+        <div class="assign-section-header">
+          <div class="assign-section-title">Assigned Groups (3)</div>
+          <div class="assign-section-desc">Groups that will receive this policy. Toggle exclusion per group.</div>
+        </div>
+
+        <div class="assigned-list">
+          <!-- All Devices -->
+          <div class="assigned-group">
+            <div class="group-icon" style="background: var(--success-bg); color: var(--success); font-size: 11px;">ALL</div>
+            <div class="assigned-group-info">
+              <div class="assigned-group-name">All Devices</div>
+              <div class="assigned-group-id">Built-in target</div>
+            </div>
+            <div class="assigned-actions">
+              <span class="assign-badge include">Include</span>
+              <button class="remove-assigned" style="opacity:1">×</button>
+            </div>
+          </div>
+
+          <!-- Included group -->
+          <div class="assigned-group">
+            <div class="group-icon security">SG</div>
+            <div class="assigned-group-info">
+              <div class="assigned-group-name">SG-AVD-SessionHosts-Prod</div>
+              <div class="assigned-group-id">a1b2c3d4-e5f6-7890-abcd-ef1234567890</div>
+            </div>
+            <div class="assigned-actions">
+              <span class="assign-badge include">Include</span>
+              <button class="excl-toggle" onclick="toggleExclude(this)">Exclude</button>
+              <button class="remove-assigned" style="opacity:1">×</button>
+            </div>
+          </div>
+
+          <!-- Excluded group -->
+          <div class="assigned-group">
+            <div class="group-icon dynamic">DG</div>
+            <div class="assigned-group-info">
+              <div class="assigned-group-name">SG-IT-Admins</div>
+              <div class="assigned-group-id">b2c3d4e5-f6a7-8901-bcde-f12345678901</div>
+            </div>
+            <div class="assigned-actions">
+              <span class="assign-badge exclude">Exclude</span>
+              <button class="excl-toggle active" onclick="toggleExclude(this)">Include</button>
+              <button class="remove-assigned" style="opacity:1">×</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="assign-summary">
+          <div class="assign-stat"><strong>2</strong> included</div>
+          <div class="assign-stat"><strong>1</strong> excluded</div>
+          <div style="flex:1"></div>
+          <div class="assign-stat" style="font-size: 11px; color: var(--text-muted);">Changes saved with the policy</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Nav (always visible) -->
+  <div class="bottom-nav">
+    <div class="bottom-nav-left">
+      <button class="btn" id="prevBtn" onclick="prevTab()">← Previous</button>
+      <span style="font-size:11px; color:var(--text-muted)" id="stepLabel">Step 1 of 3</span>
+    </div>
+    <div class="bottom-nav-right">
+      <button class="btn" id="discardBtn">Discard all</button>
+      <button class="btn-primary btn" id="nextBtn" onclick="nextTab()">Next: Configuration →</button>
+      <button class="btn-success btn" id="saveBtn" style="display:none" onclick="alert('Policy saved!')">Review + Save</button>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span><span class="status-dot"></span>Connected to contoso.onmicrosoft.com (Commercial)</span>
+    <span>19 settings configured · 3 groups assigned</span>
+  </div>
+
+</div>
+
+<div class="design-tag">Design Mockup — Intune Commander</div>
+
+<script>
+  let currentTab = 0;
+
+  function switchTab(idx) {
+    currentTab = idx;
+    // Hide all
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.wizard-tab').forEach(t => {
+      t.classList.remove('active','completed');
+    });
+    // Show selected
+    document.getElementById('tab' + idx).classList.add('active');
+    document.getElementById('wtab' + idx).classList.add('active');
+    // Mark earlier as completed
+    for (let i = 0; i < idx; i++) {
+      document.getElementById('wtab' + i).classList.add('completed');
+      document.getElementById('tnum' + i).textContent = '✓';
+    }
+    // Reset later tabs
+    for (let i = idx; i < 3; i++) {
+      document.getElementById('tnum' + i).textContent = (i + 1).toString();
+    }
+    updateNav();
+  }
+
+  function nextTab() {
+    if (currentTab < 2) switchTab(currentTab + 1);
+  }
+  function prevTab() {
+    if (currentTab > 0) switchTab(currentTab - 1);
+  }
+
+  function updateNav() {
+    const prev = document.getElementById('prevBtn');
+    const next = document.getElementById('nextBtn');
+    const save = document.getElementById('saveBtn');
+    const label = document.getElementById('stepLabel');
+
+    prev.style.visibility = currentTab === 0 ? 'hidden' : 'visible';
+    label.textContent = `Step ${currentTab + 1} of 3`;
+
+    if (currentTab === 2) {
+      next.style.display = 'none';
+      save.style.display = '';
+    } else {
+      next.style.display = '';
+      save.style.display = 'none';
+      const names = ['Configuration', 'Assignments'];
+      next.textContent = `Next: ${names[currentTab]} →`;
+    }
+  }
+
+  function togglePicker() {
+    const layout = document.getElementById('configLayout');
+    const picker = document.getElementById('picker');
+    if (layout.classList.contains('picker-open')) {
+      layout.classList.remove('picker-open');
+      picker.style.display = 'none';
+    } else {
+      layout.classList.add('picker-open');
+      picker.style.display = 'flex';
+    }
+  }
+
+  function toggleCheck(el) {
+    el.classList.toggle('checked');
+    el.querySelector('.pcb').classList.toggle('checked');
+  }
+
+  function toggleExclude(btn) {
+    const card = btn.closest('.assigned-group');
+    const badge = card.querySelector('.assign-badge');
+    btn.classList.toggle('active');
+    if (badge.classList.contains('include')) {
+      badge.classList.remove('include');
+      badge.classList.add('exclude');
+      badge.textContent = 'Exclude';
+      btn.textContent = 'Include';
+    } else {
+      badge.classList.remove('exclude');
+      badge.classList.add('include');
+      badge.textContent = 'Include';
+      btn.textContent = 'Exclude';
+    }
+  }
+
+  // Init
+  switchTab(0);
+</script>
+</body>
+</html>

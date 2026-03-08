@@ -120,7 +120,7 @@ function Invoke-GraphPaginated {
             $all.AddRange($response.value)
         }
 
-        $nextLink = $response.'@odata.nextLink'
+        $nextLink = if ($response.PSObject.Properties['@odata.nextLink']) { $response.'@odata.nextLink' } else { $null }
         $page++
     }
 

@@ -49,6 +49,46 @@ public static class SettingsCatalogDefinitionRegistry
     }
 
     /// <summary>
+    /// Resolves a setting definition ID to its full embedded definition entry.
+    /// Returns <c>null</c> if not found.
+    /// </summary>
+    public static SettingDefinitionEntry? ResolveDefinition(string? definitionId)
+    {
+        if (string.IsNullOrEmpty(definitionId)) return null;
+        return Definitions.TryGetValue(definitionId, out var def) ? def : null;
+    }
+
+    /// <summary>
+    /// Resolves a setting definition ID to its help text.
+    /// Returns <c>null</c> if not found.
+    /// </summary>
+    public static string? ResolveHelpText(string? definitionId)
+    {
+        if (string.IsNullOrEmpty(definitionId)) return null;
+        return Definitions.TryGetValue(definitionId, out var def) ? def.HelpText : null;
+    }
+
+    /// <summary>
+    /// Resolves a choice option value to its human-readable display name using the embedded schema.
+    /// Returns <c>null</c> if the option cannot be found.
+    /// </summary>
+    public static string? ResolveOptionDisplayName(string? definitionId, string? optionId)
+    {
+        var option = ResolveOption(definitionId, optionId);
+        return option?.DisplayName ?? option?.Name;
+    }
+
+    /// <summary>
+    /// Resolves a choice option value to its description using the embedded schema.
+    /// Returns <c>null</c> if the option cannot be found.
+    /// </summary>
+    public static string? ResolveOptionDescription(string? definitionId, string? optionId)
+    {
+        var option = ResolveOption(definitionId, optionId);
+        return option?.Description;
+    }
+
+    /// <summary>
     /// Resolves a category ID to its display name.
     /// Returns the original <paramref name="categoryId"/> if not found.
     /// </summary>
@@ -63,6 +103,17 @@ public static class SettingsCatalogDefinitionRegistry
     /// Will be false if the placeholder JSON has not been replaced by the workflow.
     /// </summary>
     public static bool HasDefinitions => Definitions.Count > 0;
+
+    private static SettingDefinitionOption? ResolveOption(string? definitionId, string? optionId)
+    {
+        if (string.IsNullOrEmpty(definitionId) || string.IsNullOrEmpty(optionId)) return null;
+        if (!Definitions.TryGetValue(definitionId, out var definition) || definition.Options is not { Count: > 0 }) return null;
+
+        return definition.Options.FirstOrDefault(option =>
+            string.Equals(option.ItemId, optionId, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(option.Name, optionId, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(option.DisplayName, optionId, StringComparison.OrdinalIgnoreCase));
+    }
 
     private static IReadOnlyDictionary<string, SettingDefinitionEntry> LoadDefinitions()
     {

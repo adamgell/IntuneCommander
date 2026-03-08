@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune Commander - Pass 2 Option Layout</title>
+<style>
+  :root {
+    --page-top: #152233;
+    --page-bottom: #0b1016;
+    --panel: #131a23;
+    --panel-alt: #1a2430;
+    --chrome-top: #46515f;
+    --chrome-bottom: #353f4b;
+    --border: #3a4654;
+    --border-strong: #5a6879;
+    --text: #edf3fb;
+    --text-muted: #bac6d6;
+    --text-soft: #93a2b4;
+    --accent: #80b2ff;
+    --accent-strong: #2c6fd1;
+    --warning: #e8c26a;
+    --success: #6bd090;
+    --shadow: 0 18px 46px rgba(0, 0, 0, 0.42);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top right, rgba(61, 128, 232, 0.18), transparent 24%),
+      linear-gradient(180deg, var(--page-top), var(--page-bottom));
+    color: var(--text);
+    font: 14px/1.5 "Segoe UI", Tahoma, sans-serif;
+    padding: 28px;
+  }
+
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    gap: 18px;
+  }
+
+  .hero {
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(30, 41, 55, 0.97), rgba(18, 24, 33, 0.99));
+    box-shadow: var(--shadow);
+  }
+
+  .eyebrow {
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .hero h1 {
+    margin: 8px 0 6px;
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .hero p {
+    margin: 0;
+    max-width: 78ch;
+    color: var(--text-muted);
+  }
+
+  .summary-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .chip {
+    padding: 4px 9px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--panel-alt), var(--panel));
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .card-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(180deg, rgba(42, 54, 69, 0.92), rgba(28, 36, 46, 0.94));
+  }
+
+  .question-number {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .question-title {
+    margin-top: 6px;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .question-copy {
+    margin-top: 6px;
+    color: var(--text-muted);
+  }
+
+  .option-list {
+    padding: 12px 14px 14px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .option {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 11px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .option-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-strong);
+    background: linear-gradient(180deg, var(--chrome-top), var(--chrome-bottom));
+    font-weight: 700;
+  }
+
+  .option-title {
+    font-weight: 700;
+  }
+
+  .option-copy {
+    margin-top: 3px;
+    color: var(--text-muted);
+  }
+
+  .option.recommended {
+    border-color: rgba(128, 178, 255, 0.38);
+    background: rgba(128, 178, 255, 0.08);
+  }
+
+  .option.recommended .option-letter {
+    border-color: #86b7ff;
+    background: linear-gradient(180deg, #4d7fd0, #2c66c4);
+  }
+
+  .option.current {
+    border-color: rgba(107, 208, 144, 0.42);
+    background: rgba(107, 208, 144, 0.08);
+  }
+
+  .option.current .option-letter {
+    border-color: #7ae3a3;
+  }
+
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .badge {
+    padding: 2px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-soft);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .badge.pick {
+    color: #dcebff;
+    border-color: rgba(128, 178, 255, 0.38);
+    background: rgba(128, 178, 255, 0.12);
+  }
+
+  .badge.current {
+    color: #dff9e9;
+    border-color: rgba(107, 208, 144, 0.38);
+    background: rgba(107, 208, 144, 0.12);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(30, 38, 49, 0.95), rgba(18, 24, 33, 0.97));
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+  }
+
+  .legend-swatch {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border-strong);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .legend-swatch.pick {
+    background: rgba(128, 178, 255, 0.16);
+  }
+
+  .legend-swatch.current {
+    background: rgba(107, 208, 144, 0.16);
+  }
+
+  @media (max-width: 980px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">Pass 2 / original option set</div>
+      <h1>All original shell questions, laid out for review</h1>
+      <p>
+        This keeps the original A/B/C choices intact, but formats them as a clean comparison board.
+        Blue highlights show the original pick from the first pass. Green highlights show the currently agreed direction after the follow-up discussion.
+      </p>
+      <div class="summary-strip">
+        <span class="chip">Original picks: 1:A 2:B 3:A 4:C 5:B 6:B</span>
+        <span class="chip">Current direction: 1:B 2:B 3:A 4:C 5:B 6:B</span>
+        <span class="chip">Theme: dark blue-grey, not literal MMC</span>
+      </div>
+    </section>
+
+    <section class="legend" aria-label="Legend">
+      <span class="legend-item"><span class="legend-swatch pick" aria-hidden="true"></span>Original pick</span>
+      <span class="legend-item"><span class="legend-swatch current" aria-hidden="true"></span>Current direction</span>
+      <span class="legend-item"><span class="legend-swatch" aria-hidden="true"></span>Other available option</span>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="card-head">
+          <div class="question-number">Question 1</div>
+          <div class="question-title">Shell flavor</div>
+          <div class="question-copy">Which overall shell metaphor should pass 2 lean toward?</div>
+        </div>
+        <div class="option-list">
+          <div class="option recommended">
+            <div class="option-letter">A</div>
+            <div>
+              <div class="option-title">MMC admin console</div>
+              <div class="option-copy">Most explicit enterprise-console framing, with heavier classic admin cues.</div>
+              <div class="badge-row"><span class="badge pick">Original pick</span></div>
+            </div>
+          </div>
+          <div class="option current">
+            <div class="option-letter">B</div>
+            <div>
+              <div class="option-title">Explorer</div>
+              <div class="option-copy">A calmer, more familiar Windows workspace shell with list/detail emphasis.</div>
+              <div class="badge-row"><span class="badge current">Current direction</span></div>
+            </div>
+          </div>
+          <div class="option">
+            <div class="option-letter">C</div>
+            <div>
+              <div class="option-title">Office 2000 command bands</div>
+              <div class="option-copy">Pushes the shell further toward older productivity-app chrome and banded controls.</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="question-number">Question 2</div>
+          <div class="question-title">Profile switcher placement</div>
+          <div class="question-copy">Where should tenant/profile context live so it stays visible without crowding commands?</div>
+        </div>
+        <div class="option-list">
+          <div class="option">
+            <div class="option-letter">A</div>
+            <div>
+              <div class="option-title">Left in the main toolbar</div>
+              <div class="option-copy">Makes profile selection very prominent, but competes with high-frequency commands.</div>
+            </div>
+          </div>
+          <div class="option recommended current">
+            <div class="option-letter">B</div>
+            <div>
+              <div class="option-title">Slim context strip under toolbar</div>
+              <div class="option-copy">Separates session context from commands while keeping the active profile always visible.</div>
+              <div class="badge-row">
+                <span class="badge pick">Original pick</span>
+                <span class="badge current">Current direction</span>
+              </div>
+            </div>
+          </div>
+          <div class="option">
+            <div class="option-letter">C</div>
+            <div>
+              <div class="option-title">Nav header</div>
+              <div class="option-copy">Ties profile identity to the left rail, but makes switching feel more secondary.</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="question-number">Question 3</div>
+          <div class="question-title">Group Lookup placement</div>
+          <div class="question-copy">How prominent should Group Lookup be in the shell?</div>
+        </div>
+        <div class="option-list">
+          <div class="option recommended current">
+            <div class="option-letter">A</div>
+            <div>
+              <div class="option-title">Main left command band</div>
+              <div class="option-copy">Treats Group Lookup as a primary admin action available from anywhere.</div>
+              <div class="badge-row">
+                <span class="badge pick">Original pick</span>
+                <span class="badge current">Current direction</span>
+              </div>
+            </div>
+          </div>
+          <div class="option">
+            <div class="option-letter">B</div>
+            <div>
+              <div class="option-title">List-local tool row</div>
+              <div class="option-copy">More contextual, but easier to miss when working outside list-heavy views.</div>
+            </div>
+          </div>
+          <div class="option">
+            <div class="option-letter">C</div>
+            <div>
+              <div class="option-title">Menu only</div>
+              <div class="option-copy">Keeps the shell cleaner, but hides an action that sounds operationally important.</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="question-number">Question 4</div>
+          <div class="question-title">Disconnect treatment</div>
+          <div class="question-copy">How visible should Disconnect be in the persistent shell chrome?</div>
+        </div>
+        <div class="option-list">
+          <div class="option">
+            <div class="option-letter">A</div>
+            <div>
+              <div class="option-title">Visible button</div>
+              <div class="option-copy">Fastest to access, but visually elevates a lower-frequency session action.</div>
+            </div>
+          </div>
+          <div class="option">
+            <div class="option-letter">B</div>
+            <div>
+              <div class="option-title">Tiny far-right utility</div>
+              <div class="option-copy">Keeps it visible but de-emphasized, at the cost of discoverability and click target size.</div>
+            </div>
+          </div>
+          <div class="option recommended current">
+            <div class="option-letter">C</div>
+            <div>
+              <div class="option-title">File menu only</div>
+              <div class="option-copy">Makes Disconnect behave like a session command rather than a primary toolbar action.</div>
+              <div class="badge-row">
+                <span class="badge pick">Original pick</span>
+                <span class="badge current">Current direction</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="question-number">Question 5</div>
+          <div class="question-title">Top-left branding</div>
+          <div class="question-copy">What should the shell communicate first in the title area?</div>
+        </div>
+        <div class="option-list">
+          <div class="option">
+            <div class="option-letter">A</div>
+            <div>
+              <div class="option-title">Keep app title</div>
+              <div class="option-copy">Preserves product identity, but tells the user less about where they are connected.</div>
+            </div>
+          </div>
+          <div class="option recommended current">
+            <div class="option-letter">B</div>
+            <div>
+              <div class="option-title">Replace with “tenant + cloud + console” caption</div>
+              <div class="option-copy">Turns the title area into a context cue, which fits an admin workspace well.</div>
+              <div class="badge-row">
+                <span class="badge pick">Original pick</span>
+                <span class="badge current">Current direction</span>
+              </div>
+            </div>
+          </div>
+          <div class="option">
+            <div class="option-letter">C</div>
+            <div>
+              <div class="option-title">Almost no header at all</div>
+              <div class="option-copy">Minimalist, but removes useful ambient context and shell identity.</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="question-number">Question 6</div>
+          <div class="question-title">Chrome color</div>
+          <div class="question-copy">How far should the chrome move toward classic styling?</div>
+        </div>
+        <div class="option-list">
+          <div class="option">
+            <div class="option-letter">A</div>
+            <div>
+              <div class="option-title">Stay dark</div>
+              <div class="option-copy">Keeps the current modern-dark feel with the least shell contrast shift.</div>
+            </div>
+          </div>
+          <div class="option recommended current">
+            <div class="option-letter">B</div>
+            <div>
+              <div class="option-title">Dark content with slightly more classic neutral chrome</div>
+              <div class="option-copy">Preserves the darker blue-grey personality while giving the shell a clearer desktop-admin frame.</div>
+              <div class="badge-row">
+                <span class="badge pick">Original pick</span>
+                <span class="badge current">Current direction</span>
+              </div>
+            </div>
+          </div>
+          <div class="option">
+            <div class="option-letter">C</div>
+            <div>
+              <div class="option-title">Go much more retro</div>
+              <div class="option-copy">Pushes the visual language further into nostalgia, with more risk of looking costume-like.</div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

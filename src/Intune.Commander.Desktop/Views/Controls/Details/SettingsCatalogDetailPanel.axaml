@@ -6,95 +6,182 @@
              xmlns:models="using:Intune.Commander.Desktop.Models"
              x:Class="Intune.Commander.Desktop.Views.Controls.Details.SettingsCatalogDetailPanel"
              x:DataType="vm:MainWindowViewModel">
+    <UserControl.Styles>
+        <Style Selector="Border.SettingsStatCard">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+            <Setter Property="Padding" Value="8,6" />
+        </Style>
+        <Style Selector="Border.SettingsMetaChip">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Margin" Value="0,0,6,4" />
+        </Style>
+        <Style Selector="Border.SettingsEntryCard">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+        <Style Selector="Border.SettingsValueBadge">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+            <Setter Property="Padding" Value="10,5" />
+        </Style>
+    </UserControl.Styles>
+
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="4">
+            <Grid ColumnDefinitions="1.35*,*" ColumnSpacing="8">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Summary" Classes="SectionHeader" />
+                    <Border Classes="SectionCard">
+                        <StackPanel Spacing="10" DataContext="{Binding SelectedSettingsCatalogPolicy}">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="SETTINGS CATALOG POLICY"
+                                               FontSize="{StaticResource FontSizeCaption}"
+                                               Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                    <SelectableTextBlock Text="{Binding Name}"
+                                                         FontSize="{StaticResource FontSizeSubheading}"
+                                                         FontWeight="SemiBold"
+                                                         TextWrapping="Wrap" />
+                                    <SelectableTextBlock Text="{Binding OdataType}"
+                                                         FontSize="{StaticResource FontSizeCaption}"
+                                                         Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                         TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Border Grid.Column="1" Classes="SettingsStatCard" MinWidth="88">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="Settings"
+                                                   FontSize="{StaticResource FontSizeCaption}"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                        <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemSettingsCount}"
+                                                             FontSize="{StaticResource FontSizeSubheading}"
+                                                             FontWeight="SemiBold"
+                                                             HorizontalAlignment="Right" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
 
-            <!-- Section: Properties -->
-            <TextBlock Text="Properties" Classes="SectionHeader" />
-            <Border Classes="SectionCard">
-                <StackPanel Spacing="10" DataContext="{Binding SelectedSettingsCatalogPolicy}">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Name" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Type" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding OdataType}" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="Platforms" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding Platforms}" FontSize="{StaticResource FontSizeBody}" />
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                <Border Grid.Column="0" Classes="SettingsStatCard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="Platforms"
+                                                   FontSize="{StaticResource FontSizeCaption}"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                        <SelectableTextBlock Text="{Binding Platforms}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Classes="SettingsStatCard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="Technologies"
+                                                   FontSize="{StaticResource FontSizeCaption}"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                        <SelectableTextBlock Text="{Binding Technologies}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Classes="SettingsStatCard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="Template Families"
+                                                   FontSize="{StaticResource FontSizeCaption}"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                        <SelectableTextBlock Text="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTemplateFamilies.Count}"
+                                                             FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Catalog Families"
+                                           FontSize="{StaticResource FontSizeCaption}"
+                                           Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <ItemsControl ItemsSource="{Binding $parent[ScrollViewer].((vm:MainWindowViewModel)DataContext).SelectedItemTemplateFamilies}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Classes="SettingsMetaChip">
+                                                <SelectableTextBlock Text="{Binding}"
+                                                                     FontSize="{StaticResource FontSizeCaption}" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                <Border Grid.Column="0" Classes="SettingsStatCard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="Assigned"
+                                                   FontSize="{StaticResource FontSizeCaption}"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                        <SelectableTextBlock Text="{Binding IsAssigned}" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Classes="SettingsStatCard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="Created"
+                                                   FontSize="{StaticResource FontSizeCaption}"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                        <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}"
+                                                             TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Classes="SettingsStatCard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="Modified"
+                                                   FontSize="{StaticResource FontSizeCaption}"
+                                                   Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                        <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}"
+                                                             TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Role Scope Tags"
+                                           FontSize="{StaticResource FontSizeCaption}"
+                                           Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding RoleScopeTagIds, Converter={x:Static conv:StringListConverter.Instance}}"
+                                                     TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Policy ID"
+                                           FontSize="{StaticResource FontSizeCaption}"
+                                           Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                <SelectableTextBlock Text="{Binding Id}"
+                                                     FontSize="{StaticResource FontSizeCaption}"
+                                                     Opacity="0.8"
+                                                     TextWrapping="Wrap" />
+                            </StackPanel>
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Technologies" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding Technologies}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                    </Grid>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="ID" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding Id}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.8" />
-                    </StackPanel>
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="Is Assigned" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding IsAssigned}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Role Scope Tags" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding RoleScopeTagIds, Converter={x:Static conv:StringListConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="Created" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding CreatedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="2">
-                            <TextBlock Text="Last Modified" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                            <SelectableTextBlock Text="{Binding LastModifiedDateTime, Converter={x:Static conv:HumanDateTimeConverter.Instance}}" FontSize="{StaticResource FontSizeBody}" />
-                        </StackPanel>
-                    </Grid>
+                    </Border>
                 </StackPanel>
-            </Border>
 
-            <!-- Section: Catalog Details -->
-            <TextBlock Text="Catalog Details" Classes="SectionHeader" />
-            <Border Classes="SectionCard">
-                <StackPanel Spacing="10">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Settings Count" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <SelectableTextBlock Text="{Binding SelectedItemSettingsCount}" FontSize="{StaticResource FontSizeBody}" />
-                    </StackPanel>
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="Template Families" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource AppTextSecondaryBrush}" />
-                        <ItemsControl ItemsSource="{Binding SelectedItemTemplateFamilies}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="{StaticResource RadiusSmall}"
-                                            Padding="6,2" Margin="0,0,4,4">
-                                        <SelectableTextBlock Text="{Binding}" FontSize="{StaticResource FontSizeCaption}" Foreground="White" />
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
-                        <TextBlock Text="No families"
-                                   Foreground="{DynamicResource AppTextSecondaryBrush}" FontSize="{StaticResource FontSizeBody}"
-                                   IsVisible="{Binding !SelectedItemTemplateFamilies.Count}" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
+                <controls:AssignmentListControl Grid.Column="1"
+                                                Assignments="{Binding SelectedItemAssignments}" />
+            </Grid>
 
-            <!-- Section: SETTINGS -->
-            <TextBlock Text="SETTINGS" Classes="SectionHeader" />
+            <TextBlock Text="Settings" Classes="SectionHeaderSpaced" />
             <Border Classes="SectionCard">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="No settings loaded — select item and click Refresh if list is empty."
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Readable names, current values, category context, and catalog guidance are shown together for faster review."
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"
+                               FontSize="{StaticResource FontSizeCaption}"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="No settings loaded - select item and click Refresh if list is empty."
                                Foreground="{DynamicResource AppTextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeCaption}"
                                IsVisible="{Binding !SelectedItemCatalogSettings.Count}"
@@ -102,28 +189,59 @@
                     <ItemsControl ItemsSource="{Binding SelectedItemCatalogSettings}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:SettingItem">
-                                <Border BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                                        BorderThickness="0,0,0,1" Padding="4,6">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{StaticResource FontSizeBody}"
-                                                   Foreground="{DynamicResource AppTextSecondaryBrush}"
-                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
-                                        <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" FontSize="{StaticResource FontSizeBody}"
-                                                             FontWeight="SemiBold" HorizontalAlignment="Right"
-                                                             VerticalAlignment="Center" TextWrapping="Wrap"
-                                                             MaxWidth="300"
-                                                             Margin="16,0,0,0" />
-                                    </Grid>
+                                <Border Classes="SettingsEntryCard">
+                                    <StackPanel Spacing="6">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <StackPanel Grid.Column="0" Spacing="4">
+                                                <WrapPanel Orientation="Horizontal" ItemHeight="22">
+                                                    <Border Classes="SettingsMetaChip"
+                                                            IsVisible="{Binding Category, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                        <SelectableTextBlock Text="{Binding Category}"
+                                                                             FontSize="{StaticResource FontSizeCaption}" />
+                                                    </Border>
+                                                </WrapPanel>
+                                                <SelectableTextBlock Text="{Binding Label}"
+                                                                     FontWeight="SemiBold"
+                                                                     TextWrapping="Wrap" />
+                                            </StackPanel>
+                                            <Border Grid.Column="1"
+                                                    Classes="SettingsValueBadge"
+                                                    MaxWidth="320"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Top">
+                                                <SelectableTextBlock Text="{Binding Value}"
+                                                                     FontWeight="SemiBold"
+                                                                     TextWrapping="Wrap"
+                                                                     TextAlignment="Right" />
+                                            </Border>
+                                        </Grid>
+
+                                        <SelectableTextBlock Text="{Binding Description}"
+                                                             Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                             FontSize="{StaticResource FontSizeCaption}"
+                                                             TextWrapping="Wrap"
+                                                             IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="8"
+                                              IsVisible="{Binding DefinitionId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Definition ID"
+                                                       FontSize="{StaticResource FontSizeCaption}"
+                                                       Foreground="{DynamicResource AppTextSecondaryBrush}" />
+                                            <SelectableTextBlock Grid.Column="1"
+                                                                 Text="{Binding DefinitionId}"
+                                                                 FontSize="{StaticResource FontSizeCaption}"
+                                                                 Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                                 Opacity="0.85"
+                                                                 TextWrapping="Wrap" />
+                                        </Grid>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
             </Border>
-
-            <!-- Section: Assignments -->
-            <controls:AssignmentListControl Assignments="{Binding SelectedItemAssignments}" />
-
         </StackPanel>
     </ScrollViewer>
 </UserControl>

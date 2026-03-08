@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune Commander - Current MainWindow hybrid</title>
+<style>
+  :root {
+    --bg-root: #0d1117;
+    --bg-title: #1e3a8a;
+    --bg-title-2: #1d4ed8;
+    --bg-menu: #161b22;
+    --bg-toolbar: #1c2230;
+    --bg-nav: #161b22;
+    --bg-pane: #0f141b;
+    --bg-panel: #161b22;
+    --bg-panel-alt: #1c2230;
+    --bg-selected: #1f4b99;
+    --bg-hover: #212936;
+    --border: #30363d;
+    --border-soft: #212936;
+    --text: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.16);
+    --success: #2ea043;
+    --warning: #d29922;
+    --danger: #f85149;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 25%),
+      linear-gradient(180deg, #0b1016 0%, #0d1117 100%);
+    color: var(--text);
+    font: 13px/1.45 "Segoe UI", Inter, Arial, sans-serif;
+    padding: 24px;
+  }
+
+  .page {
+    max-width: 1480px;
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+  }
+
+  .briefing {
+    display: grid;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(22, 27, 34, 0.96), rgba(16, 21, 29, 0.98));
+    box-shadow: var(--shadow);
+  }
+
+  .briefing-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .briefing-copy {
+    color: var(--text-secondary);
+    max-width: 84ch;
+  }
+
+  .briefing-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 12px;
+  }
+
+  .note-card {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+
+  .note-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .token-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .token {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel-alt);
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .impact-list {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-secondary);
+  }
+
+  .impact-list li + li { margin-top: 6px; }
+
+  .window {
+    border: 1px solid #4b5563;
+    background: var(--bg-menu);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 31px;
+    padding: 0 6px 0 8px;
+    background: linear-gradient(90deg, var(--bg-title), var(--bg-title-2));
+    color: #fff;
+  }
+
+  .app-icon {
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, #dbeafe, #60a5fa);
+    border: 1px solid rgba(255,255,255,0.6);
+    flex-shrink: 0;
+  }
+
+  .title-text {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .caption-row {
+    margin-left: auto;
+    display: flex;
+    gap: 2px;
+  }
+
+  .caption-btn {
+    width: 20px;
+    height: 18px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-size: 11px;
+    padding: 0;
+  }
+
+  .menu-bar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-menu);
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-toolbar);
+  }
+
+  .toolbar-left,
+  .toolbar-right,
+  .subtoolbar-left,
+  .subtoolbar-right,
+  .status-left,
+  .status-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tool-btn,
+  .chip,
+  .mini-btn,
+  .status-pane,
+  .callout {
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, #232b3a, #1a2230);
+    color: var(--text);
+    min-height: 28px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .tool-btn.primary {
+    background: linear-gradient(180deg, #225bb6, #1f4b99);
+    border-color: #2e6cd1;
+  }
+
+  .tool-glyph {
+    width: 12px;
+    height: 12px;
+    border: 1px solid #6b7280;
+    background: linear-gradient(135deg, #f3f4f6, #93a7bf);
+    flex-shrink: 0;
+  }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+    min-height: 820px;
+  }
+
+  .nav {
+    border-right: 1px solid var(--border);
+    background: linear-gradient(180deg, #151b22, #10161d);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nav-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app-name {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .app-subtitle {
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .nav-body {
+    padding: 10px 0 16px;
+    overflow: auto;
+  }
+
+  .nav-group-title {
+    padding: 10px 16px 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px 8px 16px;
+    margin: 1px 8px;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    background: transparent;
+  }
+
+  .nav-item.active {
+    color: #fff;
+    background: linear-gradient(180deg, #2452a4, #1f4b99);
+    border-color: #326ed0;
+  }
+
+  .nav-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #445066;
+    background: #1d2634;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .nav-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg-pane);
+  }
+
+  .content-header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #171d26, #121820);
+  }
+
+  .breadcrumb-row,
+  .header-chip-row,
+  .panel-actions,
+  .detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .breadcrumb-row { margin-bottom: 8px; }
+
+  .crumb {
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+  }
+
+  .main-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .main-copy {
+    margin-top: 4px;
+    color: var(--text-secondary);
+    max-width: 78ch;
+  }
+
+  .header-chip-row {
+    margin-top: 10px;
+  }
+
+  .header-chip {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+  }
+
+  .subtoolbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-rows: 1fr 8px 0.78fr;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .panel {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .splitter {
+    background: linear-gradient(180deg, #273141, #1d2531);
+    border-top: 1px solid #3b4659;
+    border-bottom: 1px solid #121822;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .panel-subtitle {
+    color: var(--text-secondary);
+  }
+
+  .search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .field,
+  .combo {
+    min-height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    background: #0f141b;
+    color: var(--text);
+  }
+
+  .data-surface,
+  .detail-surface {
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    min-height: 0;
+    overflow: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #1b2330;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: top;
+  }
+
+  tbody tr.selected td {
+    background: rgba(31, 75, 153, 0.56);
+  }
+
+  .subtle {
+    color: var(--text-secondary);
+  }
+
+  .muted {
+    color: var(--text-muted);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 7px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel-alt);
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+
+  .badge.success { color: #c9f2d0; border-color: rgba(46, 160, 67, 0.4); background: rgba(46, 160, 67, 0.12); }
+  .badge.warn { color: #ffe2a6; border-color: rgba(210, 153, 34, 0.5); background: rgba(210, 153, 34, 0.12); }
+  .badge.danger { color: #ffc7c3; border-color: rgba(248, 81, 73, 0.5); background: rgba(248, 81, 73, 0.12); }
+  .badge.info { color: #b7d5ff; border-color: rgba(59, 130, 246, 0.45); background: rgba(59, 130, 246, 0.12); }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .detail-card {
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, #171d26, #121820);
+    padding: 10px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .detail-card.span-2 {
+    grid-column: span 2;
+  }
+
+  .detail-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+  }
+
+  .detail-kv {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .detail-k {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .callout-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 12px 10px;
+  }
+
+  .callout {
+    min-height: 24px;
+    padding: 0 8px;
+    color: var(--text-secondary);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .statusbar {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 0.9fr 0.8fr;
+    gap: 2px;
+    padding: 4px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-menu);
+  }
+
+  .status-pane {
+    min-height: 24px;
+    background: #141a22;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px rgba(46, 160, 67, 0.5);
+  }
+
+  .mini-note {
+    color: var(--text-secondary);
+    padding: 0 2px;
+  }
+
+  @media (max-width: 1280px) {
+    .briefing-grid,
+    .toolbar,
+    .subtoolbar,
+    .shell,
+    .detail-grid,
+    .statusbar {
+      grid-template-columns: 1fr;
+    }
+
+    .layout {
+      grid-template-rows: auto 8px auto;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <section class="briefing" aria-label="Feasibility assessment">
+      <div class="briefing-title">Current MainWindow + classic shell cues + reduced density</div>
+      <div class="briefing-copy">This mockup keeps your actual MainWindow architecture intact: <strong>Menu</strong>, <strong>MainToolbarControl</strong>, <strong>NavSidebarControl</strong>, <strong>ItemListPanelControl</strong>, splitter, and <strong>DetailPaneHeaderControl</strong>. The visual shift is mostly a shell and styling pass, so Avalonia is not the blocker; the real lift is normalizing dozens of detail panels and shared styles once the shell direction is chosen.</div>
+      <div class="briefing-grid">
+        <div class="note-card">
+          <div class="note-title">What is straightforward in Avalonia</div>
+          <div class="token-row">
+            <span class="token">Menu + toolbar rows</span>
+            <span class="token">Left nav bar</span>
+            <span class="token">Status bar segments</span>
+            <span class="token">Grid splitter layout</span>
+            <span class="token">DataGrid density tuning</span>
+          </div>
+        </div>
+        <div class="note-card">
+          <div class="note-title">What makes it a significant project</div>
+          <ol class="impact-list">
+            <li>The shell is easy; making every detail panel feel consistent is the bigger effort.</li>
+            <li>Your current Suki-based tokens would need either a hybrid theme layer or a stronger custom visual system.</li>
+            <li>Density, spacing, typography, and header patterns would need to be rolled out across many reusable controls.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="window" aria-labelledby="main-window-title">
+      <div class="title-bar">
+        <span class="app-icon" aria-hidden="true"></span>
+        <span class="title-text" id="main-window-title">Intune Commander - MainWindow hybrid concept (actual shell structure)</span>
+        <div class="caption-row" aria-hidden="true">
+          <button class="caption-btn" type="button">_</button>
+          <button class="caption-btn" type="button">[]</button>
+          <button class="caption-btn" type="button">X</button>
+        </div>
+      </div>
+
+      <div class="menu-bar" aria-label="Main menu">
+        <span>File</span>
+        <span>Reports</span>
+        <span>Options</span>
+        <span>Help</span>
+      </div>
+
+      <div class="toolbar" role="toolbar" aria-label="Main toolbar">
+        <div class="toolbar-left">
+          <button class="tool-btn" type="button"><span class="tool-glyph"></span>Actions</button>
+          <button class="tool-btn primary" type="button"><span class="tool-glyph"></span>Download All to Cache</button>
+          <button class="tool-btn" type="button"><span class="tool-glyph"></span>Refresh</button>
+        </div>
+        <div class="toolbar-right">
+          <div class="combo">Profile: Admin Ops</div>
+          <button class="tool-btn" type="button"><span class="tool-glyph"></span>Group Lookup</button>
+          <button class="tool-btn" type="button"><span class="tool-glyph"></span>Disconnect</button>
+        </div>
+      </div>
+
+      <div class="shell">
+        <aside class="nav" aria-label="Navigation sidebar">
+          <div class="nav-header">
+            <div class="app-name">Intune Commander</div>
+            <div class="app-subtitle">Classic shell, current app shape</div>
+          </div>
+          <div class="nav-body">
+            <div class="nav-group-title">Overview</div>
+            <div class="nav-item"><span class="nav-icon">OV</span><span class="nav-label">Overview</span></div>
+
+            <div class="nav-group-title">Configuration</div>
+            <div class="nav-item"><span class="nav-icon">DC</span><span class="nav-label">Device Configurations</span></div>
+            <div class="nav-item active"><span class="nav-icon">SC</span><span class="nav-label">Settings Catalog</span></div>
+            <div class="nav-item"><span class="nav-icon">CP</span><span class="nav-label">Compliance Policies</span></div>
+            <div class="nav-item"><span class="nav-icon">AT</span><span class="nav-label">Administrative Templates</span></div>
+
+            <div class="nav-group-title">Security</div>
+            <div class="nav-item"><span class="nav-icon">CA</span><span class="nav-label">Conditional Access</span></div>
+            <div class="nav-item"><span class="nav-icon">AF</span><span class="nav-label">Assignment Filters</span></div>
+            <div class="nav-item"><span class="nav-icon">PS</span><span class="nav-label">Policy Sets</span></div>
+
+            <div class="nav-group-title">Apps and devices</div>
+            <div class="nav-item"><span class="nav-icon">AP</span><span class="nav-label">Applications</span></div>
+            <div class="nav-item"><span class="nav-icon">DG</span><span class="nav-label">Dynamic Groups</span></div>
+            <div class="nav-item"><span class="nav-icon">AG</span><span class="nav-label">Assigned Groups</span></div>
+          </div>
+        </aside>
+
+        <main class="content">
+          <div class="content-header">
+            <div class="breadcrumb-row">
+              <span class="crumb">Tenant: contoso.onmicrosoft.com</span>
+              <span class="crumb">Category: Settings Catalog</span>
+              <span class="crumb">Connected</span>
+            </div>
+            <div class="main-title">Your current MainWindow, but calmer and more desktop-like.</div>
+            <div class="main-copy">This is the existing connected-state layout translated into a hybrid shell: the command surface is clearer, the left nav feels more intentional, the list view is slightly denser, and the detail pane reads more like a property sheet than a long wall of cards.</div>
+            <div class="header-chip-row">
+              <span class="header-chip">Current structure preserved</span>
+              <span class="header-chip">Explicit menu / toolbar / status bar</span>
+              <span class="header-chip">Reduced padding in list areas</span>
+              <span class="header-chip">Detail pane organized into denser property cards</span>
+            </div>
+          </div>
+
+          <div class="subtoolbar" aria-label="Category toolbar">
+            <div class="subtoolbar-left">
+              <div class="mini-note">Settings Catalog</div>
+              <button class="mini-btn" type="button">Export CSV</button>
+              <button class="mini-btn" type="button">Details: On</button>
+              <button class="mini-btn" type="button">Columns</button>
+            </div>
+            <div class="subtoolbar-right">
+              <span class="badge info">498 items</span>
+              <span class="badge warn">5 modified policies in current filter</span>
+            </div>
+          </div>
+
+          <div class="layout">
+            <section class="panel" aria-labelledby="list-panel-title">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title" id="list-panel-title">Item list panel (actual ItemListPanelControl shape)</div>
+                  <div class="panel-subtitle">Search, scan, select, then read details below.</div>
+                </div>
+                <div class="panel-actions">
+                  <span class="badge success">Detail pane visible</span>
+                  <span class="badge info">Frozen columns: 2</span>
+                </div>
+              </div>
+
+              <div class="search-row">
+                <input class="field" type="text" value="avd" aria-label="Search settings catalog policies">
+                <button class="tool-btn" type="button"><span class="tool-glyph"></span>Find</button>
+              </div>
+
+              <div class="data-surface">
+                <table aria-label="Settings Catalog policies list">
+                  <thead>
+                    <tr>
+                      <th style="width: 32%;">Name</th>
+                      <th style="width: 16%;">Platform</th>
+                      <th style="width: 14%;">Settings</th>
+                      <th style="width: 18%;">Modified</th>
+                      <th>Scope</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>AVD - Enhancement Settings</td>
+                      <td>Windows</td>
+                      <td>7</td>
+                      <td class="subtle">Today, 09:24</td>
+                      <td class="subtle">Session Hosts</td>
+                    </tr>
+                    <tr class="selected">
+                      <td>Windows hardening baseline</td>
+                      <td>Windows 11</td>
+                      <td>42</td>
+                      <td class="subtle">Today, 08:58</td>
+                      <td class="subtle">Admin Workstations</td>
+                    </tr>
+                    <tr>
+                      <td>Edge browser lockdown</td>
+                      <td>Windows</td>
+                      <td>14</td>
+                      <td class="subtle">Yesterday</td>
+                      <td class="subtle">Knowledge Workers</td>
+                    </tr>
+                    <tr>
+                      <td>Shared device kiosk baseline</td>
+                      <td>Windows</td>
+                      <td>18</td>
+                      <td class="subtle">Yesterday</td>
+                      <td class="subtle">Frontline Devices</td>
+                    </tr>
+                    <tr>
+                      <td>Defender ASR staging profile</td>
+                      <td>Windows</td>
+                      <td>11</td>
+                      <td class="subtle">2 days ago</td>
+                      <td class="subtle">Pilot Ring</td>
+                    </tr>
+                    <tr>
+                      <td>VPN and remote access baseline</td>
+                      <td>Windows</td>
+                      <td>9</td>
+                      <td class="subtle">3 days ago</td>
+                      <td class="subtle">Remote Users</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <div class="splitter" aria-hidden="true"></div>
+
+            <section class="panel" aria-labelledby="detail-panel-title">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title" id="detail-panel-title">Detail pane (actual DetailPaneHeaderControl + detail panels)</div>
+                  <div class="panel-subtitle">The density comes from better grouping, not tiny text.</div>
+                </div>
+                <div class="detail-actions">
+                  <button class="mini-btn" type="button">Refresh</button>
+                  <button class="mini-btn" type="button">JSON</button>
+                  <button class="mini-btn" type="button">Copy</button>
+                </div>
+              </div>
+
+              <div class="detail-surface">
+                <div class="detail-grid">
+                  <section class="detail-card">
+                    <div class="detail-card-title">Summary</div>
+                    <div class="detail-kv"><div class="detail-k">Name</div><div>Windows hardening baseline</div></div>
+                    <div class="detail-kv"><div class="detail-k">Type</div><div>Settings Catalog policy</div></div>
+                    <div class="detail-kv"><div class="detail-k">Platform</div><div>Windows 11 and later</div></div>
+                    <div class="detail-kv"><div class="detail-k">Owner</div><div>Adam - Admin Ops</div></div>
+                  </section>
+
+                  <section class="detail-card">
+                    <div class="detail-card-title">State</div>
+                    <div class="badge warn">Unsaved draft</div>
+                    <div class="badge info">5 modified settings</div>
+                    <div class="badge success">Last Graph refresh successful</div>
+                    <div class="detail-kv"><div class="detail-k">Drift</div><div>Export differs in 5 rows</div></div>
+                  </section>
+
+                  <section class="detail-card span-2">
+                    <div class="detail-card-title">Assignments</div>
+                    <div class="detail-kv"><div class="detail-k">Include</div><div>SG-Admin-Workstations, SG-JumpHosts, All Devices</div></div>
+                    <div class="detail-kv"><div class="detail-k">Exclude</div><div>SG-BreakGlass</div></div>
+                    <div class="detail-kv"><div class="detail-k">Notes</div><div>One overlap remains between All Devices and SG-Admin-Workstations; the UI surfaces it early instead of burying it lower in the pane.</div></div>
+                  </section>
+
+                  <section class="detail-card span-2">
+                    <div class="detail-card-title">Modified settings</div>
+                    <div class="detail-kv"><div class="detail-k">Email and webmail</div><div>Block executable content from email and webmail clients.</div></div>
+                    <div class="detail-kv"><div class="detail-k">Local admin</div><div>Hide local admin account from the logon screen.</div></div>
+                    <div class="detail-kv"><div class="detail-k">Remote desktop</div><div>Restrict inbound remote desktop to the secure admin segment.</div></div>
+                    <div class="detail-kv"><div class="detail-k">Readability goal</div><div>More compact rows, fewer oversized cards, and stronger labels make the pane feel denser without making it harder to read.</div></div>
+                  </section>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="callout-row" aria-label="Mapping to current Avalonia controls">
+            <span class="callout">Menu + status shell can live in MainWindow.axaml</span>
+            <span class="callout">Top command row is a restyle of MainToolbarControl</span>
+            <span class="callout">Left rail maps cleanly to NavSidebarControl</span>
+            <span class="callout">List/detail split already exists today</span>
+          </div>
+        </main>
+      </div>
+
+      <div class="statusbar" aria-label="Status bar">
+        <div class="status-pane"><span class="dot"></span>Connected to contoso.onmicrosoft.com</div>
+        <div class="status-pane">Cache: warm for 24 object types</div>
+        <div class="status-pane">Status: Ready</div>
+        <div class="status-pane">Debug Log</div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

@@ -3182,7 +3182,6 @@ public partial class MainWindowViewModel : ViewModelBase
             var settings = await _settingsCatalogService.GetPolicySettingsAsync(policyId);
             var items = new List<Models.SettingItem>();
 
-            // Metadata properties to exclude
             var excludedProps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "id", "@odata.type", "settingInstance@odata.type",
@@ -3193,35 +3192,31 @@ public partial class MainWindowViewModel : ViewModelBase
 
             foreach (var setting in settings)
             {
-                var defId = setting.SettingInstance?.SettingDefinitionId;
-                var label = FormatCatalogSettingLabel(defId);
+                var definitionId = setting.SettingInstance?.SettingDefinitionId;
 
-                // Serialize and extract values using JSON approach
                 try
                 {
                     var json = System.Text.Json.JsonSerializer.Serialize(setting, setting.GetType());
                     using var doc = System.Text.Json.JsonDocument.Parse(json);
-
-                    // Walk the JSON to extract leaf values
-                    FlattenCatalogSettingJson(doc.RootElement, label, items, excludedProps, 0);
+                    FlattenCatalogSettingJson(doc.RootElement, definitionId, items, excludedProps, 0);
                 }
                 catch
                 {
-                    // Fallback: use the SDK type extraction
-                    items.Add(new Models.SettingItem(label, ExtractSettingInstanceValue(setting.SettingInstance)));
+                    AddCatalogSettingItem(items, definitionId, ExtractSettingInstanceValue(setting.SettingInstance));
                 }
             }
 
-            // If flattening produced nothing meaningful, fall back
             if (items.Count == 0 && settings.Count > 0)
             {
-                items.AddRange(settings.Select(s => new Models.SettingItem(
-                    FormatCatalogSettingLabel(s.SettingInstance?.SettingDefinitionId),
-                    ExtractSettingInstanceValue(s.SettingInstance))));
+                items.AddRange(settings.Select(s => CreateCatalogSettingItem(
+                    s.SettingInstance?.SettingDefinitionId,
+                    [ExtractSettingInstanceValue(s.SettingInstance)])));
             }
 
             SelectedItemCatalogSettings = new ObservableCollection<Models.SettingItem>(
-                items.OrderBy(s => s.Label));
+                items.OrderBy(s => s.Category ?? string.Empty)
+                     .ThenBy(s => s.Label)
+                     .ThenBy(s => s.Value));
         }
         catch (Exception ex)
         {
@@ -3233,19 +3228,18 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>Extracts a human-readable label from a Settings Catalog setting definition ID.</summary>
     private static string FormatCatalogSettingLabel(string? id)
     {
-        if (string.IsNullOrEmpty(id)) return "";
+        if (string.IsNullOrEmpty(id)) return string.Empty;
 
-        // Try the embedded definitions first — gives real display names from Graph schema
         var displayName = Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.ResolveDisplayName(id);
-        if (displayName != null) return displayName;
+        if (!string.IsNullOrWhiteSpace(displayName)) return displayName;
 
-        // Fallback: parse the definition ID into a readable label
-        // Strip known vendor path prefixes
-        foreach (var prefix in new[] {
+        foreach (var prefix in new[]
+        {
             "device_vendor_msft_policy_config_",
             "user_vendor_msft_policy_config_",
             "device_vendor_msft_",
-            "user_vendor_msft_" })
+            "user_vendor_msft_"
+        })
         {
             if (id.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
@@ -3254,60 +3248,117 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
-        // Take meaningful segments (skip very long paths)
-        var parts = id.Split('_');
-        // Use last 2-3 segments for context, applying camelCase spacing
+        var parts = id.Split('_', StringSplitOptions.RemoveEmptyEntries);
         var meaningfulParts = parts.Length > 3 ? parts[^3..] : parts;
-        return string.Join(" \u203a ", meaningfulParts.Select(FormatPropertyName));
+        return string.Join(" › ", meaningfulParts.Select(HumanizeCatalogToken));
+    }
+
+    private static string? BuildCatalogSettingDescription(string? definitionId)
+    {
+        if (string.IsNullOrEmpty(definitionId)) return null;
+
+        return JoinNonEmpty(
+            Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.ResolveDescription(definitionId),
+            Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.ResolveHelpText(definitionId));
+    }
+
+    private static string? BuildCatalogSettingCategory(string? definitionId)
+    {
+        var definition = Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.ResolveDefinition(definitionId);
+        return string.IsNullOrWhiteSpace(definition?.CategoryId)
+            ? null
+            : Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.ResolveCategoryName(definition.CategoryId);
+    }
+
+    private static string JoinCatalogValues(string? definitionId, IEnumerable<string?> rawValues)
+    {
+        var values = rawValues
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => NormalizeCatalogSettingDisplayValue(definitionId, v!))
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return values.Count > 0 ? string.Join(", ", values) : "Not Configured";
+    }
+
+    private static Models.SettingItem CreateCatalogSettingItem(string? definitionId, IEnumerable<string?> rawValues)
+        => new(
+            FormatCatalogSettingLabel(definitionId),
+            JoinCatalogValues(definitionId, rawValues),
+            BuildCatalogSettingDescription(definitionId),
+            BuildCatalogSettingCategory(definitionId),
+            definitionId);
+
+    private static void AddCatalogSettingItem(List<Models.SettingItem> items, string? definitionId, params string?[] rawValues)
+        => items.Add(CreateCatalogSettingItem(definitionId, rawValues));
+
+    private static string? JoinNonEmpty(params string?[] values)
+    {
+        var parts = values
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v!.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return parts.Count > 0
+            ? string.Join(Environment.NewLine + Environment.NewLine, parts)
+            : null;
+    }
+
+    private static string HumanizeCatalogToken(string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return string.Empty;
+
+        var spaced = token.Replace('_', ' ');
+        spaced = System.Text.RegularExpressions.Regex.Replace(spaced, @"\s+", " ").Trim();
+        return FormatPropertyName(spaced);
     }
 
     /// <summary>Recursively walks a Settings Catalog setting JSON tree, extracting leaf values as SettingItems.</summary>
     private static void FlattenCatalogSettingJson(
-        System.Text.Json.JsonElement element, string parentLabel,
+        System.Text.Json.JsonElement element, string? parentDefinitionId,
         List<Models.SettingItem> items, HashSet<string> excludedProps, int depth)
     {
-        if (depth > 5) return; // safety cap
+        if (depth > 5) return;
+
+        var currentDefinitionId = element.TryGetProperty("settingDefinitionId", out var elementDefinitionId)
+            ? elementDefinitionId.GetString()
+            : parentDefinitionId;
 
         switch (element.ValueKind)
         {
             case System.Text.Json.JsonValueKind.Object:
-                // Look for "value" property (the actual setting value)
                 if (element.TryGetProperty("value", out var valProp))
                 {
-                    var formatted = FormatCatalogValue(valProp);
-                    if (!string.IsNullOrEmpty(formatted))
-                        items.Add(new Models.SettingItem(parentLabel, formatted));
+                    AddCatalogSettingItem(items, currentDefinitionId, FormatCatalogValue(currentDefinitionId, valProp));
                     return;
                 }
 
-                // Look for children array (group settings)
                 if (element.TryGetProperty("children", out var childrenProp) && childrenProp.ValueKind == System.Text.Json.JsonValueKind.Array)
                 {
                     foreach (var child in childrenProp.EnumerateArray())
                     {
-                        // Each child has settingDefinitionId and its own value
-                        var childIdStr = child.TryGetProperty("settingDefinitionId", out var childId)
-                            ? childId.GetString() : null;
-                        var childLabel = FormatCatalogSettingLabel(childIdStr);
-                        FlattenCatalogSettingJson(child, childLabel, items, excludedProps, depth + 1);
+                        var childDefinitionId = child.TryGetProperty("settingDefinitionId", out var childId)
+                            ? childId.GetString()
+                            : currentDefinitionId;
+                        FlattenCatalogSettingJson(child, childDefinitionId, items, excludedProps, depth + 1);
                     }
                     return;
                 }
 
-                // Walk into settingInstance if present
                 if (element.TryGetProperty("settingInstance", out var instanceProp))
                 {
-                    FlattenCatalogSettingJson(instanceProp, parentLabel, items, excludedProps, depth + 1);
+                    FlattenCatalogSettingJson(instanceProp, currentDefinitionId, items, excludedProps, depth + 1);
                     return;
                 }
 
-                // Walk into simpleSettingValue, choiceSettingValue etc.
                 foreach (var prop in element.EnumerateObject())
                 {
                     if (excludedProps.Contains(prop.Name)) continue;
-                    if (prop.Name.EndsWith("Value") || prop.Name.EndsWith("CollectionValue"))
+                    if (prop.Name.EndsWith("Value", StringComparison.Ordinal) || prop.Name.EndsWith("CollectionValue", StringComparison.Ordinal))
                     {
-                        FlattenCatalogSettingJson(prop.Value, parentLabel, items, excludedProps, depth + 1);
+                        FlattenCatalogSettingJson(prop.Value, currentDefinitionId, items, excludedProps, depth + 1);
                     }
                 }
                 break;
@@ -3318,21 +3369,21 @@ public partial class MainWindowViewModel : ViewModelBase
                 {
                     if (arrItem.ValueKind == System.Text.Json.JsonValueKind.Object)
                     {
-                        FlattenCatalogSettingJson(arrItem, parentLabel, items, excludedProps, depth + 1);
+                        FlattenCatalogSettingJson(arrItem, currentDefinitionId, items, excludedProps, depth + 1);
                     }
                     else
                     {
-                        arrayVals.Add(FormatCatalogValue(arrItem));
+                        arrayVals.Add(FormatCatalogValue(currentDefinitionId, arrItem));
                     }
                 }
                 if (arrayVals.Count > 0)
-                    items.Add(new Models.SettingItem(parentLabel, string.Join(", ", arrayVals)));
+                    AddCatalogSettingItem(items, currentDefinitionId, arrayVals.ToArray());
                 break;
         }
     }
 
     /// <summary>Formats a leaf JSON value for human-readable display in Settings Catalog.</summary>
-    private static string FormatCatalogValue(System.Text.Json.JsonElement element)
+    private static string FormatCatalogValue(string? definitionId, System.Text.Json.JsonElement element)
     {
         return element.ValueKind switch
         {
@@ -3340,23 +3391,29 @@ public partial class MainWindowViewModel : ViewModelBase
             System.Text.Json.JsonValueKind.False => "No",
             System.Text.Json.JsonValueKind.Null or System.Text.Json.JsonValueKind.Undefined => "Not Configured",
             System.Text.Json.JsonValueKind.Number => element.ToString(),
-            System.Text.Json.JsonValueKind.String => FormatCatalogStringValue(element.GetString()),
+            System.Text.Json.JsonValueKind.String => NormalizeCatalogSettingDisplayValue(definitionId, element.GetString()),
             _ => element.ToString()
         };
     }
 
     /// <summary>Formats a string value from Settings Catalog, handling choice IDs and plain strings.</summary>
-    private static string FormatCatalogStringValue(string? value)
+    private static string NormalizeCatalogSettingDisplayValue(string? definitionId, string? value)
     {
-        if (string.IsNullOrEmpty(value)) return "Not Configured";
+        if (string.IsNullOrWhiteSpace(value)) return "Not Configured";
 
-        // Choice values look like "device_vendor_msft_policy_config_..._somechoice_0"
-        // Take the last meaningful segment
-        if (value.Contains("_vendor_msft_") || value.Contains("_config_"))
+        var optionDisplayName = Intune.Commander.Core.Models.SettingsCatalogDefinitionRegistry.ResolveOptionDisplayName(definitionId, value);
+        if (!string.IsNullOrWhiteSpace(optionDisplayName)) return optionDisplayName;
+
+        if (value.Contains("_vendor_msft_", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("_config_", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains('_'))
         {
-            var lastSegment = value.Split('_').LastOrDefault() ?? value;
-            return FormatPropertyName(lastSegment);
+            var lastSegment = value.Split('_', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? value;
+            return HumanizeCatalogToken(lastSegment);
         }
+
+        if (!value.Contains(' ') && System.Text.RegularExpressions.Regex.IsMatch(value, "[a-z][A-Z]"))
+            return FormatPropertyName(value);
 
         return value;
     }

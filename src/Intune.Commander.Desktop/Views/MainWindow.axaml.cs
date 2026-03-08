@@ -92,11 +92,17 @@ public partial class MainWindow : SukiWindow
         if (importMenuItem != null)
             importMenuItem.Click += OnImportClick;
 
-        var groupLookupButton = this.GetVisualDescendants()
-                                    .OfType<Button>()
-                                    .FirstOrDefault(b => b.Name == "GroupLookupButton");
-        if (groupLookupButton != null)
-            groupLookupButton.Click += OnGroupLookupClick;
+        var groupLookupControl = this.GetVisualDescendants()
+                                    .FirstOrDefault(v => v.Name == "GroupLookupButton");
+        switch (groupLookupControl)
+        {
+            case Button groupLookupButton:
+                groupLookupButton.Click += OnGroupLookupClick;
+                break;
+            case MenuItem groupLookupMenuItem:
+                groupLookupMenuItem.Click += OnGroupLookupClick;
+                break;
+        }
 
         var columnChooserButton = this.GetVisualDescendants()
                                       .OfType<Button>()

@@ -4,12 +4,9 @@ namespace Intune.Commander.Core.Tests.Models;
 
 public class SettingsCatalogDefinitionRegistryTests
 {
-    // ── Embedded resource loading ──
-
     [Fact]
     public void Definitions_LoadsFromEmbeddedResource_DoesNotThrow()
     {
-        // Should return an empty dictionary from the placeholder JSON, not throw
         var definitions = SettingsCatalogDefinitionRegistry.Definitions;
         Assert.NotNull(definitions);
     }
@@ -21,59 +18,77 @@ public class SettingsCatalogDefinitionRegistryTests
         Assert.NotNull(categories);
     }
 
-    // ── ResolveDisplayName ──
-
     [Fact]
     public void ResolveDisplayName_NullInput_ReturnsNull()
-    {
-        Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDisplayName(null));
-    }
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDisplayName(null));
 
     [Fact]
     public void ResolveDisplayName_EmptyInput_ReturnsNull()
-    {
-        Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDisplayName(""));
-    }
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDisplayName(""));
 
     [Fact]
     public void ResolveDisplayName_UnknownId_ReturnsNull()
-    {
-        Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDisplayName("not_a_real_definition_id"));
-    }
-
-    // ── ResolveDescription ──
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDisplayName("not_a_real_definition_id"));
 
     [Fact]
     public void ResolveDescription_NullInput_ReturnsNull()
-    {
-        Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDescription(null));
-    }
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDescription(null));
 
     [Fact]
     public void ResolveDescription_EmptyInput_ReturnsNull()
-    {
-        Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDescription(""));
-    }
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDescription(""));
 
     [Fact]
     public void ResolveDescription_UnknownId_ReturnsNull()
-    {
-        Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDescription("not_a_real_definition_id"));
-    }
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDescription("not_a_real_definition_id"));
 
-    // ── ResolveCategoryName ──
+    [Fact]
+    public void ResolveHelpText_NullInput_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveHelpText(null));
+
+    [Fact]
+    public void ResolveHelpText_EmptyInput_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveHelpText(""));
+
+    [Fact]
+    public void ResolveHelpText_UnknownId_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveHelpText("not_a_real_definition_id"));
+
+    [Fact]
+    public void ResolveDefinition_NullInput_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDefinition(null));
+
+    [Fact]
+    public void ResolveDefinition_EmptyInput_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDefinition(""));
+
+    [Fact]
+    public void ResolveDefinition_UnknownId_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveDefinition("not_a_real_definition_id"));
+
+    [Fact]
+    public void ResolveOptionDisplayName_NullDefinition_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveOptionDisplayName(null, "opt-1"));
+
+    [Fact]
+    public void ResolveOptionDisplayName_NullOption_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveOptionDisplayName("def-1", null));
+
+    [Fact]
+    public void ResolveOptionDisplayName_UnknownDefinition_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveOptionDisplayName("missing", "opt-1"));
+
+    [Fact]
+    public void ResolveOptionDescription_UnknownDefinition_ReturnsNull()
+        => Assert.Null(SettingsCatalogDefinitionRegistry.ResolveOptionDescription("missing", "opt-1"));
 
     [Fact]
     public void ResolveCategoryName_NullInput_ReturnsEmpty()
-    {
-        Assert.Equal(string.Empty, SettingsCatalogDefinitionRegistry.ResolveCategoryName(null));
-    }
+        => Assert.Equal(string.Empty, SettingsCatalogDefinitionRegistry.ResolveCategoryName(null));
 
     [Fact]
     public void ResolveCategoryName_EmptyInput_ReturnsEmpty()
-    {
-        Assert.Equal(string.Empty, SettingsCatalogDefinitionRegistry.ResolveCategoryName(""));
-    }
+        => Assert.Equal(string.Empty, SettingsCatalogDefinitionRegistry.ResolveCategoryName(""));
 
     [Fact]
     public void ResolveCategoryName_UnknownId_ReturnsOriginalId()
@@ -82,16 +97,11 @@ public class SettingsCatalogDefinitionRegistryTests
         Assert.Equal(unknownId, SettingsCatalogDefinitionRegistry.ResolveCategoryName(unknownId));
     }
 
-    // ── HasDefinitions ──
-
     [Fact]
     public void HasDefinitions_PropertyAccessible_DoesNotThrow()
     {
-        // Should not throw regardless of whether definitions are populated or placeholder
         var _ = SettingsCatalogDefinitionRegistry.HasDefinitions;
     }
-
-    // ── Model types ──
 
     [Fact]
     public void SettingDefinitionEntry_PropertiesAreSettable()
