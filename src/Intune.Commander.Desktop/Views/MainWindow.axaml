@@ -26,9 +26,18 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
+    <suki:SukiWindow.Styles>
+        <Style Selector="Border.PrototypeStatusSegment">
+            <Setter Property="Background" Value="#1A1E23" />
+            <Setter Property="BorderBrush" Value="#474F5A" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="6,3" />
+        </Style>
+    </suki:SukiWindow.Styles>
+
     <DockPanel>
         <!-- Menu Bar -->
-        <Menu DockPanel.Dock="Top" IsVisible="{Binding IsConnected}">
+        <Menu DockPanel.Dock="Top" IsVisible="{Binding IsConnected}" Background="#242A31" Foreground="#E6EDF3" BorderBrush="#474F5A" BorderThickness="0,0,0,1" Padding="5,1">
             <MenuItem Header="File">
                 <MenuItem Header="Refresh" Command="{Binding RefreshCommand}" InputGesture="F5" />
                 <Separator />
@@ -57,40 +66,55 @@
         </Menu>
 
         <!-- Status Bar -->
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                Padding="8,6" MinHeight="36" IsVisible="{Binding IsConnected}">
-            <DockPanel>
-                <!-- Right side: Debug Log link + progress bar -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2"
-                            VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"
-                                 Width="200" Height="12"
-                                 Foreground="{DynamicResource ProgressBarForegroundBrush}" Background="{DynamicResource ProgressBarBackgroundBrush}"
-                                 VerticalAlignment="Center"
-                                 CornerRadius="{StaticResource RadiusMedium}">
-                    </ProgressBar>
-                    <Border Background="Transparent" Cursor="Hand" Padding="4,2"
-                            PointerPressed="OnDebugLogLinkPressed">
-                        <TextBlock Text="Debug Log" FontSize="{StaticResource FontSizeBody}"
-                                   Foreground="{DynamicResource SystemAccentColor}"
-                                   TextDecorations="Underline"
-                                   VerticalAlignment="Center" />
+        <Border DockPanel.Dock="Bottom"
+                Background="#242A31"
+                BorderBrush="#474F5A"
+                BorderThickness="0,1,0,0"
+                Padding="3"
+                MinHeight="32"
+                IsVisible="{Binding IsConnected}">
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                <Grid ColumnDefinitions="1.2*,1*,0.85*,Auto" ColumnSpacing="4">
+                    <Border Classes="PrototypeStatusSegment">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Border Width="8" Height="4" CornerRadius="4" Background="#2EA043" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
                     </Border>
-                </StackPanel>
 
-                <!-- Left side: Status text + error text -->
-                <StackPanel Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding StatusText}" FontSize="{StaticResource FontSizeBody}" />
-                    <TextBlock Text="{Binding CacheStatusText}" FontSize="{StaticResource FontSizeCaption}"
-                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
-                    <SelectableTextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="11"
-                                         TextWrapping="Wrap"
-                                         IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppErrorTextBrush}" FontSize="{StaticResource FontSizeCaption}"
-                               TextWrapping="Wrap"
-                               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                </StackPanel>
-            </DockPanel>
+                    <Border Grid.Column="1" Classes="PrototypeStatusSegment">
+                        <TextBlock Text="{Binding CacheStatusText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Border>
+
+                    <Border Grid.Column="2" Classes="PrototypeStatusSegment">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Working..." VerticalAlignment="Center" IsVisible="{Binding IsBusy}" />
+                            <TextBlock Text="Ready" VerticalAlignment="Center" IsVisible="{Binding !IsBusy}" />
+                            <ProgressBar IsIndeterminate="True"
+                                         IsVisible="{Binding IsBusy}"
+                                         Width="120"
+                                         Height="10"
+                                         Foreground="#3B82F6"
+                                         Background="#151A21"
+                                         VerticalAlignment="Center"
+                                         CornerRadius="0" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" Classes="PrototypeStatusSegment" Cursor="Hand" PointerPressed="OnDebugLogLinkPressed">
+                        <TextBlock Text="Debug Log" Foreground="#8BB2DE" VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Classes="PrototypeStatusSegment"
+                        IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="{DynamicResource AppErrorTextBrush}"
+                               FontSize="{StaticResource FontSizeCaption}"
+                               TextWrapping="Wrap" />
+                </Border>
+            </Grid>
         </Border>
 
         <!-- Main Content -->
@@ -111,7 +135,7 @@
                 <controls:MainToolbarControl DockPanel.Dock="Top" />
 
                 <!-- Body: custom sidebar + content -->
-                <Grid ColumnDefinitions="220,*">
+                <Grid ColumnDefinitions="196,*" Background="#11161D">
 
                     <!-- Sidebar -->
                     <controls:NavSidebarControl Grid.Column="0" />
@@ -119,9 +143,9 @@
                     <!-- Content area: top/bottom split with draggable splitter -->
                     <Grid Grid.Column="1">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="3*" MinHeight="150" />
+                            <RowDefinition Height="9*" MinHeight="132" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="2*" MinHeight="0" />
+                            <RowDefinition Height="11*" MinHeight="0" />
                         </Grid.RowDefinitions>
 
                         <!-- Item List (top) -->
@@ -135,7 +159,7 @@
 
                         <!-- Draggable splitter between list and detail -->
                         <GridSplitter Grid.Row="1"
-                                      Height="8"
+                                      Height="4"
                                       ResizeDirection="Rows"
                                       HorizontalAlignment="Stretch"
                                       Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
@@ -150,7 +174,7 @@
                         </GridSplitter>
 
                         <!-- Detail Pane (bottom) -->
-                        <DockPanel Grid.Row="2" Margin="8,4,8,8">
+                        <DockPanel Grid.Row="2" Margin="4,2,4,4">
                             <DockPanel.IsVisible>
                                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                                     <Binding Path="!IsOverviewCategory" />
