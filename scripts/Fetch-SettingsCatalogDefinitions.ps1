@@ -6,9 +6,16 @@
 
 .DESCRIPTION
     Authenticates via client credentials (AZURE_TENANT_ID, AZURE_CLIENT_ID,
-    AZURE_CLIENT_SECRET) and paginates through:
+    AZURE_CLIENT_SECRET) and paginates through all documented settings definition
+    and category collections:
       - GET /beta/deviceManagement/configurationSettings
+      - GET /beta/deviceManagement/complianceSettings
+      - GET /beta/deviceManagement/inventorySettings
+      - GET /beta/deviceManagement/reusableSettings
       - GET /beta/deviceManagement/configurationCategories
+      - GET /beta/deviceManagement/complianceCategories
+      - GET /beta/deviceManagement/inventoryCategories
+      - GET /beta/deviceManagement/reusableCategories
 
     Outputs two GZip-compressed JSON files:
       - settings-catalog-definitions.json.gz  (setting definitions)
@@ -91,20 +98,60 @@ $headers = @{ Authorization = "Bearer $accessToken" }
 function Invoke-GraphPaginated {
     param(
         [string]$Uri,
-        [string]$Label
+        [string]$Label,
+        [ref]$PaginationInfo,
+        [switch]$AllowNotFound
     )
 
     $all = [System.Collections.Generic.List[object]]::new()
     $page = 1
     $nextLink = $Uri
+    $seenLinks = [System.Collections.Generic.HashSet[string]]::new()
+
+    function Get-GraphNextLink {
+        param([object]$Response)
+
+        if ($null -eq $Response) { return $null }
+
+        if ($Response -is [System.Collections.IDictionary]) {
+            foreach ($key in @("@odata.nextLink", "@odata.nextlink")) {
+                if ($Response.Contains($key) -and $Response[$key]) {
+                    return [string]$Response[$key]
+                }
+            }
+        }
+
+        $nextLinkProperty = $Response.PSObject.Properties |
+            Where-Object { $_.Name -ieq "@odata.nextLink" } |
+            Select-Object -First 1
+        if ($nextLinkProperty -and $nextLinkProperty.Value) {
+            return [string]$nextLinkProperty.Value
+        }
+
+        return $null
+    }
 
     while ($nextLink) {
+        if (-not $seenLinks.Add($nextLink)) {
+            throw "Pagination loop detected while fetching $Label. Graph returned a previously seen nextLink."
+        }
+
         Write-Host "  $Label - page $page..."
         try {
             $response = Invoke-RestMethod -Uri $nextLink -Headers $headers -Method Get
         }
         catch {
             $responseMessage = $_.Exception.Response
+            $statusCode = $null
+            if ($responseMessage -and $responseMessage.StatusCode) {
+                $statusCode = $responseMessage.StatusCode.value__
+            }
+
+            if ($AllowNotFound -and $statusCode -eq 404 -and $page -eq 1) {
+                Write-Warning "  $Label endpoint is unavailable (404). Treating this collection as optional and continuing."
+                break
+            }
+
             if ($null -ne $responseMessage -and $responseMessage.StatusCode.value__ -eq 429) {
                 $retryAfter = 30
                 $retryHeader = $responseMessage.Headers | Where-Object { $_.Key -eq "Retry-After" }
@@ -120,34 +167,117 @@ function Invoke-GraphPaginated {
             $all.AddRange($response.value)
         }
 
-        $nextLink = if ($response.PSObject.Properties['@odata.nextLink']) { $response.'@odata.nextLink' } else { $null }
+        $nextLink = Get-GraphNextLink -Response $response
         $page++
+    }
+
+    if ($PaginationInfo) {
+        $PaginationInfo.Value = [pscustomobject]@{
+            PagesFetched = $page - 1
+            TotalItems   = $all.Count
+        }
     }
 
     return $all
 }
 
+function Merge-ById {
+    param(
+        [object[]]$Items,
+        [string]$Label
+    )
+
+    $seenIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $merged = [System.Collections.Generic.List[object]]::new()
+    $duplicateCount = 0
+
+    foreach ($item in $Items) {
+        if ($null -eq $item) { continue }
+
+        if (-not $item.id) {
+            $merged.Add($item)
+            continue
+        }
+
+        if ($seenIds.Add([string]$item.id)) {
+            $merged.Add($item)
+        }
+        else {
+            $duplicateCount++
+        }
+    }
+
+    if ($duplicateCount -gt 0) {
+        Write-Host "  Removed $duplicateCount duplicate $Label by id."
+    }
+
+    return $merged
+}
+
 # ── Fetch categories ──
 
 Write-Host ""
-Write-Host "Fetching configuration categories..."
+Write-Host "Fetching category collections..."
 $catSelect = "id,name,displayName,description,categoryDescription,helpText,platforms,technologies,settingUsage,parentCategoryId,rootCategoryId,childCategoryIds"
-$categoriesUri = "$graphEndpoint/beta/deviceManagement/configurationCategories?`$select=$catSelect"
-$categories = Invoke-GraphPaginated -Uri $categoriesUri -Label "Categories"
-Write-Host "  Retrieved $($categories.Count) categories."
+$categoryCollections = @(
+    @{ Path = "configurationCategories"; Label = "Categories:configuration" },
+    @{ Path = "complianceCategories"; Label = "Categories:compliance" },
+    @{ Path = "inventoryCategories"; Label = "Categories:inventory" },
+    @{ Path = "reusableCategories"; Label = "Categories:reusable" }
+)
+
+$allCategories = [System.Collections.Generic.List[object]]::new()
+foreach ($collection in $categoryCollections) {
+    $uri = "$graphEndpoint/beta/deviceManagement/$($collection.Path)?`$select=$catSelect"
+    $collectionItems = Invoke-GraphPaginated -Uri $uri -Label $collection.Label -AllowNotFound
+    Write-Host "  Retrieved $($collectionItems.Count) from $($collection.Path)."
+    $allCategories.AddRange($collectionItems)
+}
+
+$categories = Merge-ById -Items $allCategories -Label "categories"
+Write-Host "  Total categories after merge: $($categories.Count)"
 
 # ── Fetch setting definitions ──
 
 Write-Host ""
-Write-Host "Fetching configuration settings (definitions)..."
+Write-Host "Fetching settings definition collections..."
 # No $select -- setting definitions are polymorphic (choice, simple, group subtypes)
 # and $select on the base type rejects sub-type-only fields like 'options'.
 # $top=200 balances throughput vs stability. The configurationSettings endpoint is
 # backed by Cosmos DB and becomes unreliable with large page sizes (skip-token
 # failures / HTTP 500s). 200 keeps pages manageable while limiting round-trips.
-$settingsUri = "$graphEndpoint/beta/deviceManagement/configurationSettings?`$top=200"
-$settings = Invoke-GraphPaginated -Uri $settingsUri -Label "Settings"
-Write-Host "  Retrieved $($settings.Count) settings."
+$settingsPageSize = 200
+$settingsCollections = @(
+    @{ Path = "configurationSettings"; Label = "Settings:configuration" },
+    @{ Path = "complianceSettings"; Label = "Settings:compliance" },
+    @{ Path = "inventorySettings"; Label = "Settings:inventory" },
+    @{ Path = "reusableSettings"; Label = "Settings:reusable" }
+)
+
+$allSettings = [System.Collections.Generic.List[object]]::new()
+
+foreach ($collection in $settingsCollections) {
+    $settingsUri = "$graphEndpoint/beta/deviceManagement/$($collection.Path)?`$top=$settingsPageSize"
+    $paginationInfo = $null
+    $collectionItems = Invoke-GraphPaginated -Uri $settingsUri -Label $collection.Label -PaginationInfo ([ref]$paginationInfo) -AllowNotFound
+    Write-Host "  Retrieved $($collectionItems.Count) from $($collection.Path)."
+
+    $singlePageAtLimit = $paginationInfo.PagesFetched -eq 1 -and $collectionItems.Count -eq $settingsPageSize
+    if ($singlePageAtLimit) {
+        Write-Warning "Retrieved exactly one page at the configured limit ($settingsPageSize) from $($collection.Path). This can be normal for a single collection; merged-count validation across all collections remains the primary completeness guardrail."
+    }
+
+    $allSettings.AddRange($collectionItems)
+}
+
+$settings = Merge-ById -Items $allSettings -Label "settings definitions"
+Write-Host "  Total settings after merge: $($settings.Count)"
+
+$minimumExpectedSettings = 500
+$unexpectedlyLowSettingsCount = $settings.Count -lt $minimumExpectedSettings
+if ($unexpectedlyLowSettingsCount) {
+    throw "Retrieved only $($settings.Count) merged settings across all definition collections. This is unexpectedly low for Settings Catalog definitions and likely indicates incomplete paging or an upstream Graph issue. Aborting to prevent writing a truncated snapshot."
+}
 
 # ── Fetch orphan categories ──
 
@@ -167,10 +297,34 @@ if ($orphanIds) {
     Write-Host "Found $(@($orphanIds).Count) orphan category IDs. Fetching individually..."
     $fetched = 0
     foreach ($catId in $orphanIds) {
+        if ($knownCatIds.Contains($catId)) { continue }
+
+        $fetchedCategory = $null
         try {
-            $cat = Invoke-RestMethod -Uri "$graphEndpoint/beta/deviceManagement/configurationCategories/$($catId)?`$select=$catSelect" -Headers $headers -Method Get
-            $categories += $cat
-            $fetched++
+            foreach ($collection in $categoryCollections) {
+                try {
+                    $candidate = Invoke-RestMethod -Uri "$graphEndpoint/beta/deviceManagement/$($collection.Path)/$($catId)?`$select=$catSelect" -Headers $headers -Method Get
+                    if ($candidate -and $candidate.id) {
+                        $fetchedCategory = $candidate
+                        break
+                    }
+                }
+                catch {
+                    $response = $_.Exception.Response
+                    if ($response -and $response.StatusCode -and $response.StatusCode.value__ -eq 404) {
+                        continue
+                    }
+                    throw
+                }
+            }
+
+            if ($fetchedCategory -and $knownCatIds.Add([string]$fetchedCategory.id)) {
+                $categories += $fetchedCategory
+                $fetched++
+            }
+            elseif (-not $fetchedCategory) {
+                Write-Warning "  Could not fetch category $catId from any category collection -- skipping"
+            }
         }
         catch {
             $response = $_.Exception.Response

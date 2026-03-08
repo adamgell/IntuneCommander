@@ -12,6 +12,15 @@ public class SettingsCatalogDefinitionRegistryTests
     }
 
     [Fact]
+    public void Definitions_EmbeddedSnapshotCount_ExceedsSanityThreshold()
+    {
+        var definitions = SettingsCatalogDefinitionRegistry.Definitions;
+        Assert.True(
+            definitions.Count >= 100,
+            $"Expected at least 100 embedded setting definitions, but found {definitions.Count}. The embedded snapshot may be truncated.");
+    }
+
+    [Fact]
     public void Categories_LoadsFromEmbeddedResource_DoesNotThrow()
     {
         var categories = SettingsCatalogDefinitionRegistry.Categories;
