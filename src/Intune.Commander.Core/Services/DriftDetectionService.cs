@@ -236,7 +236,7 @@ public sealed class DriftDetectionService(IExportNormalizer normalizer) : IDrift
         if (path.Contains("password") || path.Contains("mfa") || path.Contains("encryption") || path.Contains("bitlocker"))
             return DriftSeverity.Critical;
 
-        if (path.Contains("isenabled") || path.EndsWith(".state", StringComparison.Ordinal))
+        if (path.Contains("isenabled") || path == "state" || path.EndsWith(".state", StringComparison.Ordinal))
         {
             var current = fieldChange.Current?.ToString();
             if (string.Equals(current, "reportOnly", StringComparison.OrdinalIgnoreCase))
