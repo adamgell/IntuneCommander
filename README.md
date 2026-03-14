@@ -2,15 +2,27 @@
 
 ![Intune Logo](docs/images/logo_small.png)
 
-Intune Commander is a cross-platform desktop application for managing Microsoft Intune configurations across Commercial, GCC, GCC-High, and DoD cloud environments. Built with .NET 10 and Avalonia UI, it reimagines the PowerShell-based IntuneManagement tool as a compiled, async-first application that eliminates the UI freezes, threading deadlocks, and data refresh issues common in PowerShell WPF tools.
+Intune Commander is a desktop application for managing Microsoft Intune configurations across Commercial, GCC, GCC-High, and DoD cloud environments. It reimagines the PowerShell-based IntuneManagement tool as a compiled, async-first application that eliminates the UI freezes, threading deadlocks, and data refresh issues common in PowerShell WPF tools.
 
-It supports multi-cloud and multi-tenant profiles with encrypted local storage, manages over 30 Intune object types (device configurations, compliance policies, conditional access policies, applications, and more), and provides bulk export/import in a JSON format compatible with the original PowerShell tool. Additional features include Conditional Access PowerPoint export, LiveCharts dashboards, debug logging, and raw JSON inspection.
+It supports multi-cloud and multi-tenant profiles with encrypted local storage, manages over 30 Intune object types (device configurations, compliance policies, conditional access policies, applications, and more), and provides bulk export/import in a JSON format compatible with the original PowerShell tool. Additional features include Conditional Access PowerPoint export, global search across all cached object types, debug logging, and raw JSON inspection.
+
+### UI Frontends
+
+Intune Commander ships with two UI frontends that share the same .NET Core backend:
+
+| Frontend | Host | Status | Description |
+|----------|------|--------|-------------|
+| **React** (new) | WPF + WebView2 | Active development | Modern React 19 / TypeScript UI with Zustand state management, communicating with .NET services via a typed async bridge protocol |
+| **Avalonia** (legacy) | Avalonia 11.3.x | Maintained | Original cross-platform desktop UI with CommunityToolkit.Mvvm, LiveCharts dashboards, and full feature coverage |
+
+The React frontend is the primary focus going forward. It currently supports the Settings Catalog workspace, global search, profile management, and auto-reconnect, with additional workspaces being ported incrementally.
 
 > **Platform Notes**
 >
 > - **Windows** is the recommended and fully supported platform.
-> - **macOS** has significant Avalonia limitations that currently require Device Code authentication instead of an interactive browser popup.
-> - **Linux** support is planned but will initially be limited to headless/Core scenarios, with scheduled report generation as the primary target use case.
+> - The React frontend requires Windows (WPF + WebView2).
+> - **macOS** support is coming soon but requires special care — code signing, notarization, and platform-specific auth flows (Device Code instead of interactive browser) all need dedicated attention.
+> - The Avalonia frontend supports macOS (with Device Code auth) and Linux (headless/Core scenarios planned).
 
 ## Project Overview
 
@@ -19,23 +31,40 @@ It supports multi-cloud and multi-tenant profiles with encrypted local storage, 
 - **Multi-cloud support:** Commercial, GCC, GCC-High, DoD tenants
 - **Multi-tenant:** Easy switching between tenant environments with profile management
 - **Native performance:** Compiled .NET code eliminates PowerShell threading issues
-- **Cross-platform:** Linux and macOS support via Avalonia (planned)
+- **Modern UI:** React 19 + TypeScript frontend with WPF/WebView2 host (Avalonia legacy frontend also available)
 - **Backward compatible:** Import/export compatible with PowerShell version JSON format
 
 ## Technology Stack
 
+### Core / Backend
+
 | Component | Technology |
 |-----------|-----------|
 | Runtime | .NET 10, C# 12 |
-| UI Framework | Avalonia 11.3.x (`.axaml` files, FluentTheme) |
-| MVVM | CommunityToolkit.Mvvm 8.2.x |
 | Authentication | Azure.Identity 1.17.x |
 | Graph API | **Microsoft.Graph.Beta** 5.130.x-preview |
 | Cache | LiteDB 5.0.x (AES-encrypted via DataProtection) |
-| Charts | LiveChartsCore.SkiaSharpView.Avalonia |
 | PowerPoint Export | Syncfusion.Presentation.Net.Core 28.1.x |
 | DI | Microsoft.Extensions.DependencyInjection 10.0.x |
 | Testing | xUnit |
+
+### React Frontend (primary)
+
+| Component | Technology |
+|-----------|-----------|
+| UI Framework | React 19, TypeScript 5.7 |
+| Build Tool | Vite 6.3 |
+| State Management | Zustand 5.0 |
+| Desktop Host | WPF (.NET 10) + Microsoft.Web.WebView2 |
+| IPC | Custom `ic/1` async bridge protocol (JSON-RPC style) |
+
+### Avalonia Frontend (legacy)
+
+| Component | Technology |
+|-----------|-----------|
+| UI Framework | Avalonia 11.3.x (`.axaml` files, FluentTheme) |
+| MVVM | CommunityToolkit.Mvvm 8.2.x |
+| Charts | LiveChartsCore.SkiaSharpView.Avalonia |
 
 > **Note:** This project uses `Microsoft.Graph.Beta`, **not** the stable `Microsoft.Graph` package. All models and `GraphServiceClient` come from `Microsoft.Graph.Beta.*`.
 
@@ -44,15 +73,15 @@ It supports multi-cloud and multi-tenant profiles with encrypted local storage, 
 ### Prerequisites
 
 - .NET 10 SDK
+- Node.js 18+ and npm (for the React frontend)
 - Visual Studio 2022, JetBrains Rider, or VS Code with C# Dev Kit
 - An Azure AD app registration with appropriate Microsoft Graph permissions (for use with the beta Microsoft Graph SDK/endpoint)
 - (Optional) Syncfusion license key for PowerPoint export feature - see [Syncfusion Licensing](#syncfusion-licensing)
-- (Optional) Avalonia Accelerate community license.
 
 ### Build & Run
 
 ```bash
-# Build all projects
+# Build all .NET projects
 dotnet build
 
 # Run unit tests
@@ -61,7 +90,11 @@ dotnet test
 # Run a single test class
 dotnet test --filter "FullyQualifiedName~ProfileServiceTests"
 
-# Run the desktop application
+# Run the React frontend (WPF + WebView2 host)
+cd intune-commander-react && npm install && npm run dev   # Start Vite dev server
+dotnet run --project src/Intune.Commander.DesktopReact     # Launch WPF host (loads from localhost:5173)
+
+# Run the Avalonia frontend (legacy)
 dotnet run --project src/Intune.Commander.Desktop
 ```
 
@@ -117,25 +150,40 @@ For **Government clouds** (GCC-High, DoD), register separate apps in the respect
 | Method | Description |
 |--------|-------------|
 | **Interactive** (default) | Browser popup with persistent token cache |
+| **Device Code** | Code-based flow for environments without browser access |
 | **Client Secret** | Unattended service principal authentication |
 
 ## Architecture Summary
 
 ```
 src/
-  Intune.Commander.Core/        # Business logic (.NET 10 class library)
-    Auth/                    # Azure.Identity credential providers
-    Models/                  # Enums, TenantProfile, ProfileStore, DTOs, CacheEntry
-    Services/                # 30+ Graph API services + ProfileService, CacheService, ExportService
-    Extensions/              # DI registration (AddIntuneManagerCore)
-  Intune.Commander.Desktop/     # Avalonia UI application
-    Views/                   # MainWindow, LoginView, OverviewView, DebugLogWindow, RawJsonWindow
-    ViewModels/              # MainWindowViewModel, LoginViewModel, OverviewViewModel
-    Services/                # DebugLogService (in-memory log, UI-thread-safe)
-    Converters/              # ComputedColumnConverters
+  Intune.Commander.Core/           # Business logic (.NET 10 class library)
+    Auth/                          # Azure.Identity credential providers
+    Models/                        # Enums, TenantProfile, ProfileStore, DTOs, CacheEntry
+    Services/                      # 30+ Graph API services + ProfileService, CacheService, ExportService
+    Extensions/                    # DI registration (AddIntuneCommanderCore)
+  Intune.Commander.DesktopReact/   # WPF + WebView2 host for React frontend
+    Bridge/                        # BridgeRouter, BridgeMessage protocol, IBridgeService
+    Services/                      # AuthBridge, ProfileBridge, SettingsCatalogBridge, SearchBridge
+    Models/                        # DTOs for bridge responses
+  Intune.Commander.Desktop/        # Avalonia UI application (legacy)
+    Views/                         # MainWindow, LoginView, OverviewView, DebugLogWindow, RawJsonWindow
+    ViewModels/                    # MainWindowViewModel, LoginViewModel, OverviewViewModel
+    Services/                      # DebugLogService (in-memory log, UI-thread-safe)
+intune-commander-react/            # React 19 + TypeScript frontend
+  src/
+    bridge/                        # WebView2 interop (typed async bridge client)
+    components/                    # login/, shell/, workspace/ components
+    store/                         # Zustand stores (appStore, searchStore, settingsCatalogStore)
+    types/                         # TypeScript models and interfaces
+    styles/                        # CSS design tokens and component styles
 tests/
-  Intune.Commander.Core.Tests/  # xUnit tests (200+ cases)
+  Intune.Commander.Core.Tests/     # xUnit tests (200+ cases)
 ```
+
+### Bridge Architecture (React frontend)
+
+The React frontend communicates with .NET Core services through a typed async bridge over WebView2's `postMessage` channel. The `ic/1` protocol supports commands (request/response) and events (push notifications). The WPF host is intentionally thin — it owns only the window lifecycle, WebView2 hosting, and file dialogs, while React owns all UI rendering and state management.
 
 Graph API services are created **after** authentication (`new XxxService(graphClient)`) — they are not registered in DI at startup.
 
@@ -153,6 +201,21 @@ Conditional Access · Assignment Filters · Policy Sets · Applications ·
 Application Assignments · Dynamic Groups · Assigned Groups
 
 ## Features
+
+### Global Search
+
+Search across all 24+ cached Intune object types instantly from the top bar. Results are grouped by category with direct navigation to the matching item's workspace. Search runs against locally cached data for instant results with no additional Graph API calls.
+
+### Settings Catalog Workspace
+
+Master-detail view for Settings Catalog policies with:
+- Policy list showing platform, profile type, scope tags, assignment status, and setting count
+- Detail panel with full policy metadata, resolved group assignments, and settings grouped by category
+- Human-readable setting names and values (MSFT prefixes stripped, enums resolved)
+
+### Auto-Reconnect
+
+On startup, the app automatically attempts to reconnect using the last active profile. If authentication succeeds silently, you go straight to the connected shell. If it fails, you land on the login screen without an error.
 
 ### Offline CLI Validation Workflow
 
