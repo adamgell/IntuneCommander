@@ -26,8 +26,7 @@ export function StatusBar() {
           {errorMessage}
         </span>
       )}
-
-      <span style={{ opacity: 0.5, cursor: 'default' }}>Debug Log</span>
+      
     </div>
   );
 }

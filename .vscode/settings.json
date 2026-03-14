@@ -14,5 +14,21 @@
   "editor.aiStats.enabled": true,
   "github.copilot.chat.agentCustomizationSkill.enabled": true,
   "github.copilot.chat.askQuestions.enabled": true,
-  "powershell.pester.codeLens": false
+  "powershell.enableProfileLoading": false,
+  "powershell.pester.codeLens": false,
+  "terminal.integrated.profiles.windows": {
+    "PowerShell (No Profile)": {
+      "path": "pwsh.exe",
+      "args": [
+        "-NoProfile"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell (No Profile)",
+  "terminal.integrated.automationProfile.windows": {
+    "path": "pwsh.exe",
+    "args": [
+      "-NoProfile"
+    ]
+  }
 }
