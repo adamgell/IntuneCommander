@@ -149,7 +149,7 @@ Each object type exports to its own subfolder under the chosen output directory 
 |----------|------|---------|---------|
 | CI — Test & Coverage | `.github/workflows/ci-test.yml` | All pushes + PRs to main | Unit tests with 40% line coverage threshold (coverlet.msbuild) |
 | CI — Integration Tests | `.github/workflows/ci-integration.yml` | Push/PR to main + manual | Graph API integration tests against live tenant |
-| Build Release | `.github/workflows/build-release.yml` | All pushes + PRs | Builds self-contained Windows x64 executable |
+| Build Release Artifacts | `.github/workflows/build-release.yml` | Push, PR, and manual dispatch | Builds unsigned desktop/CLI artifacts and a test MSI |
 
 - Unit test CI uses `--filter "Category!=Integration"` to skip integration tests
 - Integration CI requires repository secrets: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`

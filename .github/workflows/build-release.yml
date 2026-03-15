@@ -1,18 +1,44 @@
-name: Build Release Executable
+name: Build Release Artifacts
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for manual MSI builds (e.g. 0.4.5 or 0.4.5-beta1)"
+        required: false
+
+env:
+  DESKTOP_PROJECT: src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj
+  CLI_PROJECT: src/Intune.Commander.CLI/Intune.Commander.CLI.csproj
+  INSTALLER_PROJECT: src/Intune.Commander.Installer/Intune.Commander.Installer.wixproj
+  DESKTOP_PUBLISH_DIR: ./publish/desktop
+  CLI_PUBLISH_DIR: ./publish-cli/win-x64
+  INSTALLER_OUTPUT_DIR: ./publish/installer
+  REACT_DIR: intune-commander-react
 
 jobs:
   build:
     if: "!contains(github.event.head_commit.message || '', '[skip ci]')"
     runs-on: windows-latest
-    environment: production
     permissions:
       contents: read
 
     steps:
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="0.0.${{ github.run_number }}-${GITHUB_SHA::7}"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "msi_version=${VERSION%%-*}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -28,7 +54,7 @@ jobs:
 
       # Build React first so wwwroot is available for dotnet publish
       - name: Build React frontend
-        working-directory: intune-commander-react
+        working-directory: ${{ env.REACT_DIR }}
         run: |
           npm ci
           npm run build
@@ -36,7 +62,7 @@ jobs:
       - name: Verify React dist
         shell: bash
         run: |
-          if [ ! -f "intune-commander-react/dist/index.html" ]; then
+          if [ ! -f "${{ env.REACT_DIR }}/dist/index.html" ]; then
             echo "::error::React dist/index.html not found"
             exit 1
           fi
@@ -50,29 +76,73 @@ jobs:
       - name: Publish Windows x64 executable
         shell: pwsh
         run: |
-          dotnet publish src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj `
+          dotnet publish ${{ env.DESKTOP_PROJECT }} `
             --configuration Release `
             --runtime win-x64 `
             --self-contained true `
-            --output ./publish/desktop
+            --output ${{ env.DESKTOP_PUBLISH_DIR }} `
+            -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish CLI win-x64
+        shell: pwsh
+        run: |
+          dotnet publish ${{ env.CLI_PROJECT }} `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ${{ env.CLI_PUBLISH_DIR }} `
+            -p:PublishSingleFile=true `
+            -p:Version=${{ steps.version.outputs.version }}
 
       - name: Verify publish output
         shell: bash
         run: |
-          if [ ! -f "./publish/desktop/IntuneCommander.exe" ]; then
+          if [ ! -f "${{ env.DESKTOP_PUBLISH_DIR }}/IntuneCommander.exe" ]; then
             echo "::error::IntuneCommander.exe not found"
             exit 1
           fi
-          if [ ! -f "./publish/desktop/wwwroot/index.html" ]; then
+          if [ ! -f "${{ env.DESKTOP_PUBLISH_DIR }}/wwwroot/index.html" ]; then
             echo "::error::wwwroot/index.html not found - React assets missing from build"
             exit 1
           fi
+          if [ ! -f "${{ env.CLI_PUBLISH_DIR }}/ic.exe" ]; then
+            echo "::error::ic.exe not found"
+            exit 1
+          fi
 
-      - name: Upload artifact
+      - name: Build MSI installer
+        shell: pwsh
+        run: |
+          dotnet build ${{ env.INSTALLER_PROJECT }} `
+            --configuration Release `
+            -p:ProductVersion=${{ steps.version.outputs.msi_version }} `
+            -p:DisplayVersion=${{ steps.version.outputs.version }} `
+            -p:DesktopPublishDir="${{ github.workspace }}\publish\desktop" `
+            -p:CliPublishDir="${{ github.workspace }}\publish-cli\win-x64" `
+            -p:InstallerOutputDir="${{ github.workspace }}\publish\installer"
+
+      - name: Verify MSI output
+        shell: bash
+        run: |
+          MSI="${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi"
+          if [ ! -f "$MSI" ]; then
+            echo "::error::MSI not found at $MSI"
+            ls -la "${{ env.INSTALLER_OUTPUT_DIR }}/" || true
+            exit 1
+          fi
+
+      - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
         with:
           name: Intune.Commander-win-x64
-          path: ./publish/desktop/
+          path: ${{ env.DESKTOP_PUBLISH_DIR }}/
+          retention-days: 30
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IntuneCommander-test-msi
+          path: ${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi
           retention-days: 30
 
   publish-cli:
@@ -96,16 +166,16 @@ jobs:
       - name: Publish CLI win-x64
         shell: pwsh
         run: |
-          dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj `
+          dotnet publish ${{ env.CLI_PROJECT }} `
             --configuration Release `
             --runtime win-x64 `
             --self-contained true `
-            --output ./publish-cli/win-x64 `
+            --output ${{ env.CLI_PUBLISH_DIR }} `
             -p:PublishSingleFile=true
 
       - name: Upload CLI win-x64 artifact
         uses: actions/upload-artifact@v4
         with:
           name: Intune.Commander.CLI-win-x64
-          path: ./publish-cli/win-x64/ic.exe
+          path: ${{ env.CLI_PUBLISH_DIR }}/ic.exe
           retention-days: 30
