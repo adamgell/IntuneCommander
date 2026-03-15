@@ -67,7 +67,7 @@ const columns: GridColDef<PolicyListItem>[] = [
       value ? new Date(value).toLocaleString() : '',
   },
   {
-    field: 'lastModified',
+    field: 'lastModifiedDateTime',
     headerName: 'Modified',
     width: 170,
     valueFormatter: (value: string) =>

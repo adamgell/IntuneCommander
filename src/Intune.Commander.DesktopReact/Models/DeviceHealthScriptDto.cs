@@ -11,7 +11,7 @@ public sealed record HealthScriptListItem(
     bool EnforceSignatureCheck,
     bool IsGlobal,
     string CreatedDateTime,
-    string LastModified,
+    string LastModifiedDateTime,
     int DeviceHealthScriptType,
     bool HasRemediation,
     string Status,

@@ -9,7 +9,7 @@ export interface HealthScriptListItem {
   enforceSignatureCheck: boolean;
   isGlobal: boolean;
   createdDateTime: string;
-  lastModified: string;
+  lastModifiedDateTime: string;
   deviceHealthScriptType: number;
   hasRemediation: boolean;
   status: string;

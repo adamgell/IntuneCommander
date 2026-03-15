@@ -79,7 +79,7 @@ public class SettingsCatalogBridgeService
             ProfileType: FormatProfileType(p),
             Technologies: FormatTechnologies(p.Technologies),
             CreatedDateTime: p.CreatedDateTime?.ToString("o") ?? "",
-            LastModified: p.LastModifiedDateTime?.ToString("o") ?? "",
+            LastModifiedDateTime: p.LastModifiedDateTime?.ToString("o") ?? "",
             ScopeTag: FormatScopeTags(p.RoleScopeTagIds),
             IsAssigned: p.IsAssigned ?? false,
             SettingCount: p.SettingCount ?? 0

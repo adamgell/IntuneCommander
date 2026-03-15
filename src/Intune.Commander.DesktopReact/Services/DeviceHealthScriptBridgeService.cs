@@ -140,7 +140,7 @@ public class DeviceHealthScriptBridgeService
                 EnforceSignatureCheck: s.EnforceSignatureCheck ?? false,
                 IsGlobal: s.IsGlobalScript ?? false,
                 CreatedDateTime: s.CreatedDateTime?.ToString("o") ?? "",
-                LastModified: s.LastModifiedDateTime?.ToString("o") ?? "",
+                LastModifiedDateTime: s.LastModifiedDateTime?.ToString("o") ?? "",
                 DeviceHealthScriptType: (int)(s.DeviceHealthScriptType ?? 0),
                 HasRemediation: hasRemediation,
                 Status: status,

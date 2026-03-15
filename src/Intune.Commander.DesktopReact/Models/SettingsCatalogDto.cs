@@ -8,7 +8,7 @@ public sealed record PolicyListItem(
     string ProfileType,
     string Technologies,
     string CreatedDateTime,
-    string LastModified,
+    string LastModifiedDateTime,
     string ScopeTag,
     bool IsAssigned,
     int SettingCount);

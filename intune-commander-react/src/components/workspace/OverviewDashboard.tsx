@@ -193,10 +193,10 @@ export function OverviewDashboard() {
   const recentItems = useMemo(() => {
     const items: Array<{ name: string; type: string; modified: string; workspace: string }> = [];
     for (const p of policies) {
-      items.push({ name: p.name, type: 'Settings Catalog', modified: p.lastModified, workspace: 'settings-catalog' });
+      items.push({ name: p.name, type: 'Settings Catalog', modified: p.lastModifiedDateTime, workspace: 'settings-catalog' });
     }
     for (const s of scripts) {
-      items.push({ name: s.displayName, type: 'Health Script', modified: s.lastModified, workspace: 'detection-remediation' });
+      items.push({ name: s.displayName, type: 'Health Script', modified: s.lastModifiedDateTime, workspace: 'detection-remediation' });
     }
     return items
       .filter((i) => i.modified)
