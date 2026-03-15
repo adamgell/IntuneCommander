@@ -13,6 +13,12 @@
     <OutputName>IntuneCommander-$(DisplayVersion)-x64</OutputName>
   </PropertyGroup>
 
+  <!-- Normalize version inputs to strip any trailing whitespace from workflow outputs -->
+  <PropertyGroup>
+    <ProductVersion>$([System.String]::Copy('$(ProductVersion)').Trim())</ProductVersion>
+    <DisplayVersion>$([System.String]::Copy('$(DisplayVersion)').Trim())</DisplayVersion>
+  </PropertyGroup>
+
   <PropertyGroup>
     <DefineConstants>
       ProductVersion=$(ProductVersion);
@@ -23,7 +29,7 @@
 
   <Target Name="ValidateProductVersion" BeforeTargets="Build">
     <PropertyGroup>
-      <_ProductVersion>$(ProductVersion)</_ProductVersion>
+      <_ProductVersion>$([System.String]::Copy('$(ProductVersion)').Trim())</_ProductVersion>
     </PropertyGroup>
     <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(_ProductVersion)', '^\\d+\\.\\d+\\.\\d+$'))"
            Text="ProductVersion must be numeric in the form X.Y.Z but was '$(_ProductVersion)'." />
