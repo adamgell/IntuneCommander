@@ -28,6 +28,8 @@ public partial class App : Application
         services.AddSingleton<SearchBridgeService>();
         services.AddSingleton<CacheSyncBridgeService>();
         services.AddSingleton<DashboardBridgeService>();
+        services.AddSingleton<ApplicationBridgeService>();
+        services.AddSingleton<ConditionalAccessBridgeService>();
         services.AddSingleton<BridgeRouter>();
 
         Services = services.BuildServiceProvider();

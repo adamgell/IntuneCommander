@@ -1,49 +1,32 @@
+import type { ComponentType } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { OverviewDashboard } from '../workspace/OverviewDashboard';
 import { SettingsCatalogWorkspace } from '../workspace/SettingsCatalogWorkspace';
 import { DetectionRemediationWorkspace } from '../workspace/DetectionRemediationWorkspace';
 import { GlobalSearchResultsWorkspace } from '../workspace/GlobalSearchResultsWorkspace';
 import { CacheDevWorkspace } from '../workspace/CacheDevWorkspace';
+import { ApplicationsWorkspace } from '../workspace/ApplicationsWorkspace';
+import { ConditionalAccessWorkspace } from '../workspace/ConditionalAccessWorkspace';
+
+const workspaceMap: Record<string, ComponentType> = {
+  'global-search': GlobalSearchResultsWorkspace,
+  'overview': OverviewDashboard,
+  'settings-catalog': SettingsCatalogWorkspace,
+  'detection-remediation': DetectionRemediationWorkspace,
+  'cache-inspector': CacheDevWorkspace,
+  'applications': ApplicationsWorkspace,
+  'conditional-access': ConditionalAccessWorkspace,
+};
 
 export function ContentArea() {
   const activeSidebarItem = useAppStore((s) => s.activeSidebarItem);
 
-  if (activeSidebarItem === 'global-search') {
-    return (
-      <main className="content-area">
-        <GlobalSearchResultsWorkspace />
-      </main>
-    );
-  }
+  const WorkspaceComponent = activeSidebarItem ? workspaceMap[activeSidebarItem] : undefined;
 
-  if (activeSidebarItem === 'overview') {
+  if (WorkspaceComponent) {
     return (
       <main className="content-area">
-        <OverviewDashboard />
-      </main>
-    );
-  }
-
-  if (activeSidebarItem === 'settings-catalog') {
-    return (
-      <main className="content-area">
-        <SettingsCatalogWorkspace />
-      </main>
-    );
-  }
-
-  if (activeSidebarItem === 'detection-remediation') {
-    return (
-      <main className="content-area">
-        <DetectionRemediationWorkspace />
-      </main>
-    );
-  }
-
-  if (activeSidebarItem === 'cache-inspector') {
-    return (
-      <main className="content-area">
-        <CacheDevWorkspace />
+        <WorkspaceComponent />
       </main>
     );
   }

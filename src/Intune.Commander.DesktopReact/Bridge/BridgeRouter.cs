@@ -20,6 +20,8 @@ public class BridgeRouter : IBridgeService
     private readonly SearchBridgeService _searchBridge;
     private readonly CacheSyncBridgeService _cacheSyncBridge;
     private readonly DashboardBridgeService _dashboardBridge;
+    private readonly ApplicationBridgeService _applicationBridge;
+    private readonly ConditionalAccessBridgeService _conditionalAccessBridge;
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -38,7 +40,9 @@ public class BridgeRouter : IBridgeService
         DeviceBridgeService deviceBridge,
         SearchBridgeService searchBridge,
         CacheSyncBridgeService cacheSyncBridge,
-        DashboardBridgeService dashboardBridge)
+        DashboardBridgeService dashboardBridge,
+        ApplicationBridgeService applicationBridge,
+        ConditionalAccessBridgeService conditionalAccessBridge)
     {
         _profileBridge = profileBridge;
         _authBridge = authBridge;
@@ -50,6 +54,8 @@ public class BridgeRouter : IBridgeService
         _searchBridge = searchBridge;
         _cacheSyncBridge = cacheSyncBridge;
         _dashboardBridge = dashboardBridge;
+        _applicationBridge = applicationBridge;
+        _conditionalAccessBridge = conditionalAccessBridge;
     }
 
     public void Initialize(CoreWebView2 webView)
@@ -109,6 +115,10 @@ public class BridgeRouter : IBridgeService
             "cache.status" => await _cacheSyncBridge.GetStatusAsync(command.Payload),
             "cache.invalidate" => await _cacheSyncBridge.InvalidateAsync(command.Payload),
             "dashboard.complianceSummary" => await _dashboardBridge.GetComplianceSummaryAsync(command.Payload),
+            "apps.list" => await _applicationBridge.ListAsync(),
+            "apps.getDetail" => await _applicationBridge.GetDetailAsync(command.Payload),
+            "conditionalAccess.list" => await _conditionalAccessBridge.ListAsync(),
+            "conditionalAccess.getDetail" => await _conditionalAccessBridge.GetDetailAsync(command.Payload),
             _ => throw new NotSupportedException($"Unknown command: {command.Command}")
         };
     }

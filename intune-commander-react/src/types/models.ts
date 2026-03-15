@@ -79,13 +79,27 @@ export interface SidebarSection {
   items: SidebarItem[];
 }
 
-// Navigation definitions — only show workspaces that are built
+// Navigation definitions
 export const primaryNavTabs: PrimaryNavTab[] = [
   {
     id: 'configuration',
     label: 'Configuration',
     secondaryTabs: [
       { id: 'settings-catalog', label: 'Settings Catalog' },
+    ],
+  },
+  {
+    id: 'applications',
+    label: 'Applications',
+    secondaryTabs: [
+      { id: 'applications', label: 'App Gallery' },
+    ],
+  },
+  {
+    id: 'security',
+    label: 'Security',
+    secondaryTabs: [
+      { id: 'conditional-access', label: 'Conditional Access' },
     ],
   },
   {
@@ -96,3 +110,40 @@ export const primaryNavTabs: PrimaryNavTab[] = [
     ],
   },
 ];
+
+// Sidebar items per primary tab
+export const sidebarByTab: Record<string, SidebarSection[]> = {
+  configuration: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'overview', label: 'Overview' },
+        { id: 'settings-catalog', label: 'Settings Catalog' },
+      ],
+    },
+  ],
+  applications: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'applications', label: 'App Gallery' },
+      ],
+    },
+  ],
+  security: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'conditional-access', label: 'Conditional Access' },
+      ],
+    },
+  ],
+  devices: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'detection-remediation', label: 'Detection & Remediation' },
+      ],
+    },
+  ],
+};
