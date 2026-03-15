@@ -55,6 +55,27 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Determine MSI version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          # MSI ProductVersion fields must satisfy major < 256, minor < 256, build < 65536.
+          YEAR="$((10#$(date -u +%y)))"
+          MONTH="$((10#$(date -u +%m)))"
+          DAY="$((10#$(date -u +%d)))"
+          BUILD_NUMBER="$(( DAY * 1000 + (GITHUB_RUN_NUMBER % 1000) ))"
+          if [ "$YEAR" -ge 256 ] || [ "$MONTH" -ge 256 ] || [ "$BUILD_NUMBER" -ge 65536 ]; then
+            echo "::error::Computed MSI ProductVersion exceeds MSI limits: ${YEAR}.${MONTH}.${BUILD_NUMBER}"
+            exit 1
+          fi
+          PRODUCT_VERSION="${YEAR}.${MONTH}.${BUILD_NUMBER}"
+          DISPLAY_VERSION="${YEAR}.${MONTH}.${DAY}-run${GITHUB_RUN_NUMBER}"
+          echo "product_version=$PRODUCT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "display_version=$DISPLAY_VERSION" >> "$GITHUB_OUTPUT"
+          echo "ProductVersion: $PRODUCT_VERSION"
+          echo "DisplayVersion: $DISPLAY_VERSION"
+
       # Build React first so wwwroot is available for dotnet publish
       - name: Build React frontend
         working-directory: ${{ env.REACT_DIR }}
