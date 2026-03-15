@@ -13,6 +13,12 @@
     <OutputName>IntuneCommander-$(DisplayVersion)-x64</OutputName>
   </PropertyGroup>
 
+  <!-- Normalize version inputs to strip any trailing whitespace from workflow outputs -->
+  <PropertyGroup>
+    <ProductVersion>$([System.String]::Copy('$(ProductVersion)').Trim())</ProductVersion>
+    <DisplayVersion>$([System.String]::Copy('$(DisplayVersion)').Trim())</DisplayVersion>
+  </PropertyGroup>
+
   <PropertyGroup>
     <DefineConstants>
       ProductVersion=$(ProductVersion);
@@ -20,6 +26,21 @@
       CliPublishDir=$(CliPublishDir)
     </DefineConstants>
   </PropertyGroup>
+
+  <Target Name="ValidateProductVersion" BeforeTargets="Build">
+    <PropertyGroup>
+      <_ProductVersion>$([System.String]::Copy('$(ProductVersion)').Trim())</_ProductVersion>
+    </PropertyGroup>
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(_ProductVersion)', '^\\d+\\.\\d+\\.\\d+$'))"
+           Text="ProductVersion must be numeric in the form X.Y.Z but was '$(_ProductVersion)'." />
+    <PropertyGroup>
+      <_ProductVersionMajor>$([System.Int32]::Parse('$(_ProductVersion)'.Split('.')[0]))</_ProductVersionMajor>
+      <_ProductVersionMinor>$([System.Int32]::Parse('$(_ProductVersion)'.Split('.')[1]))</_ProductVersionMinor>
+      <_ProductVersionBuild>$([System.Int32]::Parse('$(_ProductVersion)'.Split('.')[2]))</_ProductVersionBuild>
+    </PropertyGroup>
+    <Error Condition="$(_ProductVersionMajor) &gt; 255 OR $(_ProductVersionMinor) &gt; 255 OR $(_ProductVersionBuild) &gt; 65535"
+           Text="ProductVersion '$(_ProductVersion)' exceeds MSI limits (max 255.255.65535)." />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
