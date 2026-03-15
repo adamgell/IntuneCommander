@@ -6,23 +6,26 @@ Intune Commander is a desktop application for managing Microsoft Intune configur
 
 It supports multi-cloud and multi-tenant profiles with encrypted local storage, manages over 30 Intune object types (device configurations, compliance policies, conditional access policies, applications, and more), and provides bulk export/import in a JSON format compatible with the original PowerShell tool. Additional features include Conditional Access PowerPoint export, global search across all cached object types, debug logging, and raw JSON inspection.
 
-### UI Frontends
+## Installation
 
-Intune Commander ships with two UI frontends that share the same .NET Core backend:
+### MSI Installer (recommended)
 
-| Frontend | Host | Status | Description |
-|----------|------|--------|-------------|
-| **React** (new) | WPF + WebView2 | Active development | Modern React 19 / TypeScript UI with Zustand state management, communicating with .NET services via a typed async bridge protocol |
-| **Avalonia** (legacy) | Avalonia 11.3.x | Maintained | Original cross-platform desktop UI with CommunityToolkit.Mvvm, LiveCharts dashboards, and full feature coverage |
+1. Go to the [**GitHub Releases**](https://github.com/adamgell/IntuneCommander/releases) page
+2. Download **`IntuneCommander-{version}-x64.msi`**
+3. Run the MSI — installs to `C:\Program Files\Intune Commander\` with a Start Menu shortcut
+4. The CLI tool (`ic.exe`) is included and added to your system PATH automatically
 
-The React frontend is the primary focus going forward. It currently supports the Settings Catalog workspace, global search, profile management, and auto-reconnect, with additional workspaces being ported incrementally.
+The MSI and all executables are code-signed via Azure Trusted Signing.
 
-> **Platform Notes**
->
-> - **Windows** is the recommended and fully supported platform.
-> - The React frontend requires Windows (WPF + WebView2).
-> - **macOS** support is coming soon but requires special care — code signing, notarization, and platform-specific auth flows (Device Code instead of interactive browser) all need dedicated attention.
-> - The Avalonia frontend supports macOS (with Device Code auth) and Linux (headless/Core scenarios planned).
+### Standalone CLI
+
+If you only need the CLI tool, download **`ic.exe`** from the same release page. It's a self-contained single-file executable — no installation required.
+
+### UI Frontend
+
+Intune Commander uses a modern React 19 / TypeScript UI hosted in WPF + WebView2. The React frontend supports Settings Catalog workspace, global search, profile management, and auto-reconnect, with additional workspaces being ported incrementally.
+
+> **Platform note:** Windows is the only supported platform. The app requires WebView2 Runtime (pre-installed on Windows 10 April 2018+ and all Windows 11 machines).
 
 ## Project Overview
 
@@ -31,7 +34,7 @@ The React frontend is the primary focus going forward. It currently supports the
 - **Multi-cloud support:** Commercial, GCC, GCC-High, DoD tenants
 - **Multi-tenant:** Easy switching between tenant environments with profile management
 - **Native performance:** Compiled .NET code eliminates PowerShell threading issues
-- **Modern UI:** React 19 + TypeScript frontend with WPF/WebView2 host (Avalonia legacy frontend also available)
+- **Modern UI:** React 19 + TypeScript frontend with WPF/WebView2 host
 - **Backward compatible:** Import/export compatible with PowerShell version JSON format
 
 ## Technology Stack
@@ -58,14 +61,6 @@ The React frontend is the primary focus going forward. It currently supports the
 | Desktop Host | WPF (.NET 10) + Microsoft.Web.WebView2 |
 | IPC | Custom `ic/1` async bridge protocol (JSON-RPC style) |
 
-### Avalonia Frontend (legacy)
-
-| Component | Technology |
-|-----------|-----------|
-| UI Framework | Avalonia 11.3.x (`.axaml` files, FluentTheme) |
-| MVVM | CommunityToolkit.Mvvm 8.2.x |
-| Charts | LiveChartsCore.SkiaSharpView.Avalonia |
-
 > **Note:** This project uses `Microsoft.Graph.Beta`, **not** the stable `Microsoft.Graph` package. All models and `GraphServiceClient` come from `Microsoft.Graph.Beta.*`.
 
 ## Getting Started
@@ -90,12 +85,9 @@ dotnet test
 # Run a single test class
 dotnet test --filter "FullyQualifiedName~ProfileServiceTests"
 
-# Run the React frontend (WPF + WebView2 host)
+# Run the desktop app (React + WPF/WebView2)
 cd intune-commander-react && npm install && npm run dev   # Start Vite dev server
 dotnet run --project src/Intune.Commander.DesktopReact     # Launch WPF host (loads from localhost:5173)
-
-# Run the Avalonia frontend (legacy)
-dotnet run --project src/Intune.Commander.Desktop
 ```
 
 ### Profile Management
@@ -166,10 +158,8 @@ src/
     Bridge/                        # BridgeRouter, BridgeMessage protocol, IBridgeService
     Services/                      # AuthBridge, ProfileBridge, SettingsCatalogBridge, SearchBridge
     Models/                        # DTOs for bridge responses
-  Intune.Commander.Desktop/        # Avalonia UI application (legacy)
-    Views/                         # MainWindow, LoginView, OverviewView, DebugLogWindow, RawJsonWindow
-    ViewModels/                    # MainWindowViewModel, LoginViewModel, OverviewViewModel
-    Services/                      # DebugLogService (in-memory log, UI-thread-safe)
+  Intune.Commander.CLI/            # Command-line interface (ic.exe)
+  Intune.Commander.Installer/      # WiX v5 MSI installer project
 intune-commander-react/            # React 19 + TypeScript frontend
   src/
     bridge/                        # WebView2 interop (typed async bridge client)
@@ -266,7 +256,7 @@ Export Conditional Access policies to a comprehensive PowerPoint presentation wi
 
 The PowerPoint export feature uses Syncfusion.Presentation.Net.Core, which requires a license key.
 
-**End users of the official `.exe` release do not need a key** — it is baked into the binary at build time.
+**End users of the official MSI release do not need a key** — it is baked into the binary at build time.
 
 **Community License (FREE):**
 
