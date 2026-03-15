@@ -57,10 +57,21 @@ public class DeviceServiceTests
     }
 
     [Fact]
-    public void Interface_HasTwoMethods()
+    public void Interface_HasThreeMethods()
     {
         var methods = typeof(IDeviceService).GetMethods();
-        Assert.Equal(2, methods.Length);
+        Assert.Equal(3, methods.Length);
+    }
+
+    [Fact]
+    public void Interface_DefinesListAllMethod()
+    {
+        var method = typeof(IDeviceService).GetMethod("ListAllDevicesAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task<List<ManagedDevice>>), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Single(parameters);
+        Assert.Equal(typeof(CancellationToken), parameters[0].ParameterType);
     }
 
     [Fact]

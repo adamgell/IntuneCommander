@@ -8,13 +8,14 @@ namespace Intune.Commander.Core.Tests.Extensions;
 
 public class ServiceCollectionExtensionsTests : IDisposable
 {
+    private readonly ServiceCollection _services;
     private readonly ServiceProvider _provider;
 
     public ServiceCollectionExtensionsTests()
     {
-        var services = new ServiceCollection();
-        services.AddIntuneCommanderCore();
-        _provider = services.BuildServiceProvider();
+        _services = [];
+        _services.AddIntuneCommanderCore();
+        _provider = _services.BuildServiceProvider();
     }
 
     public void Dispose()
@@ -87,25 +88,23 @@ public class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public void Resolves_ICacheService_As_Singleton()
+    public void Registers_ICacheService_As_Singleton()
     {
-        var svc1 = _provider.GetService<ICacheService>();
-        var svc2 = _provider.GetService<ICacheService>();
-        Assert.NotNull(svc1);
-        Assert.IsType<CacheService>(svc1);
-        Assert.Same(svc1, svc2);
+        var descriptor = Assert.Single(_services.Where(d => d.ServiceType == typeof(ICacheService)));
+        Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime);
+        Assert.NotNull(descriptor.ImplementationFactory);
     }
 
     [Fact]
     public void All_Expected_Services_Are_Registered()
     {
-        // Verify every service registered by AddIntuneCommanderCore is resolvable
-        Assert.NotNull(_provider.GetService<IDataProtectionProvider>());
-        Assert.NotNull(_provider.GetService<IProfileEncryptionService>());
-        Assert.NotNull(_provider.GetService<IAuthenticationProvider>());
-        Assert.NotNull(_provider.GetService<IntuneGraphClientFactory>());
-        Assert.NotNull(_provider.GetService<ProfileService>());
-        Assert.NotNull(_provider.GetService<IExportService>());
-        Assert.NotNull(_provider.GetService<ICacheService>());
+        // Verify every service registered by AddIntuneCommanderCore has a descriptor
+        Assert.Contains(_services, d => d.ServiceType == typeof(IDataProtectionProvider));
+        Assert.Contains(_services, d => d.ServiceType == typeof(IProfileEncryptionService));
+        Assert.Contains(_services, d => d.ServiceType == typeof(IAuthenticationProvider));
+        Assert.Contains(_services, d => d.ServiceType == typeof(IntuneGraphClientFactory));
+        Assert.Contains(_services, d => d.ServiceType == typeof(ProfileService));
+        Assert.Contains(_services, d => d.ServiceType == typeof(IExportService));
+        Assert.Contains(_services, d => d.ServiceType == typeof(ICacheService));
     }
 }

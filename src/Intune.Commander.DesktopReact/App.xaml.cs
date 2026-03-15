@@ -23,9 +23,17 @@ public partial class App : Application
         services.AddSingleton<AuthBridgeService>();
         services.AddSingleton<NavigationBridgeService>();
         services.AddSingleton<SettingsCatalogBridgeService>();
+        services.AddSingleton<DeviceHealthScriptBridgeService>();
+        services.AddSingleton<DeviceBridgeService>();
         services.AddSingleton<SearchBridgeService>();
+        services.AddSingleton<CacheSyncBridgeService>();
+        services.AddSingleton<DashboardBridgeService>();
         services.AddSingleton<BridgeRouter>();
 
         Services = services.BuildServiceProvider();
+
+        // In DEBUG builds, start a WebSocket server so the Vite dev server
+        // (browser on :5173) can talk to the .NET backend without WebView2.
+        Services.GetRequiredService<BridgeRouter>().StartDevWebSocket();
     }
 }

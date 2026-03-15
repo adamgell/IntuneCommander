@@ -9,29 +9,17 @@ interface SidebarSection {
 
 const sections: SidebarSection[] = [
   {
-    label: 'Quick access',
+    label: 'Workspaces',
     items: [
       { id: 'overview', label: 'Overview' },
-      { id: 'configuration-profiles', label: 'Configuration profiles' },
-      { id: 'device-health-scripts', label: 'Device health scripts' },
-      { id: 'assignment-reports', label: 'Assignment reports' },
-    ],
-  },
-  {
-    label: 'Favorites',
-    items: [
       { id: 'settings-catalog', label: 'Settings Catalog' },
-      { id: 'endpoint-security-profiles', label: 'Device Security' },
-      { id: 'compliance-policies', label: 'Compliance policies' },
+      { id: 'detection-remediation', label: 'Detection & Remediation' },
     ],
   },
   {
-    label: 'By platform',
+    label: 'Dev',
     items: [
-      { id: 'platform-windows', label: 'Windows 10 and later' },
-      { id: 'platform-macos', label: 'macOS' },
-      { id: 'platform-ios', label: 'iOS/iPadOS' },
-      { id: 'platform-android', label: 'Android Enterprise' },
+      { id: 'cache-inspector', label: 'Cache Inspector' },
     ],
   },
 ];

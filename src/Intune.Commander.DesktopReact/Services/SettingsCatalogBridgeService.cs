@@ -77,6 +77,8 @@ public class SettingsCatalogBridgeService
             Description: p.Description,
             Platform: FormatPlatforms(p.Platforms),
             ProfileType: FormatProfileType(p),
+            Technologies: FormatTechnologies(p.Technologies),
+            CreatedDateTime: p.CreatedDateTime?.ToString("o") ?? "",
             LastModified: p.LastModifiedDateTime?.ToString("o") ?? "",
             ScopeTag: FormatScopeTags(p.RoleScopeTagIds),
             IsAssigned: p.IsAssigned ?? false,
@@ -340,7 +342,7 @@ public class SettingsCatalogBridgeService
         var displayName = SettingsCatalogDefinitionRegistry.ResolveDisplayName(id);
         if (!string.IsNullOrWhiteSpace(displayName)) return displayName;
 
-        // Strip common prefixes and format the last segments
+        // Strip common prefixes
         foreach (var prefix in new[]
         {
             "device_vendor_msft_policy_config_",
@@ -357,8 +359,18 @@ public class SettingsCatalogBridgeService
         }
 
         var parts = id.Split('_', StringSplitOptions.RemoveEmptyEntries);
-        var meaningfulParts = parts.Length > 3 ? parts[^3..] : parts;
-        return string.Join(" > ", meaningfulParts.Select(HumanizeToken));
+
+        // Skip the first segment (category) since it's already shown as the group name
+        var labelParts = parts.Length > 1 ? parts[1..] : parts;
+
+        // Show the last meaningful segment as the label (the actual setting name)
+        var settingName = labelParts.Length > 0 ? labelParts[^1] : parts[^1];
+
+        // Insert spaces before uppercase letters in camelCase/PascalCase names
+        var spaced = Regex.Replace(settingName, @"(?<=[a-z0-9])(?=[A-Z])", " ");
+
+        // Title-case the first letter
+        return char.ToUpper(spaced[0]) + spaced[1..];
     }
 
     private static string ResolveCategoryForSetting(string? definitionId)
@@ -399,7 +411,10 @@ public class SettingsCatalogBridgeService
         if (string.IsNullOrWhiteSpace(token)) return string.Empty;
         var spaced = token.Replace('_', ' ');
         spaced = Regex.Replace(spaced, @"\s+", " ").Trim();
-        return FormatPascalCase(spaced);
+        spaced = FormatPascalCase(spaced);
+
+        // Title-case each word for readability (handles all-lowercase tokens like "allowencryptionoracle")
+        return Regex.Replace(spaced, @"\b(\w)", m => m.Value.ToUpperInvariant());
     }
 
     private static string FormatPascalCase(string input)

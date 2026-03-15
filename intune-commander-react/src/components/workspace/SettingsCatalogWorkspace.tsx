@@ -29,7 +29,6 @@ export function SettingsCatalogWorkspace() {
           </div>
         </div>
         <div className="workspace-actions">
-          <button className="ws-btn secondary" disabled>Columns</button>
           <button className="ws-btn primary" disabled>Export selected</button>
         </div>
       </div>

@@ -79,48 +79,20 @@ export interface SidebarSection {
   items: SidebarItem[];
 }
 
-// Navigation definitions
+// Navigation definitions — only show workspaces that are built
 export const primaryNavTabs: PrimaryNavTab[] = [
   {
     id: 'configuration',
     label: 'Configuration',
     secondaryTabs: [
-      { id: 'configuration-profiles', label: 'Configuration profiles' },
       { id: 'settings-catalog', label: 'Settings Catalog' },
-      { id: 'admin-templates', label: 'Admin templates' },
-    ],
-  },
-  {
-    id: 'endpoint-security',
-    label: 'Endpoint security',
-    secondaryTabs: [
-      { id: 'compliance-policies', label: 'Compliance policies' },
-      { id: 'endpoint-security-profiles', label: 'Security profiles' },
     ],
   },
   {
     id: 'devices',
     label: 'Devices',
     secondaryTabs: [
-      { id: 'device-categories', label: 'Device categories' },
-      { id: 'enrollment', label: 'Enrollment' },
-      { id: 'autopilot', label: 'Autopilot' },
-    ],
-  },
-  {
-    id: 'reports',
-    label: 'Reports',
-    secondaryTabs: [
-      { id: 'assignment-reports', label: 'Assignment reports' },
-      { id: 'device-health', label: 'Device health scripts' },
-    ],
-  },
-  {
-    id: 'automation',
-    label: 'Automation',
-    secondaryTabs: [
-      { id: 'device-scripts', label: 'Device scripts' },
-      { id: 'shell-scripts', label: 'Shell scripts' },
+      { id: 'detection-remediation', label: 'Detection & Remediation' },
     ],
   },
 ];

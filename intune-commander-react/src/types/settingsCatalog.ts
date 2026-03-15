@@ -4,6 +4,8 @@ export interface PolicyListItem {
   description?: string;
   platform: string;
   profileType: string;
+  technologies: string;
+  createdDateTime: string;
   lastModified: string;
   scopeTag: string;
   isAssigned: boolean;

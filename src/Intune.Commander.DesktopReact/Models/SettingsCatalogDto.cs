@@ -6,6 +6,8 @@ public sealed record PolicyListItem(
     string? Description,
     string Platform,
     string ProfileType,
+    string Technologies,
+    string CreatedDateTime,
     string LastModified,
     string ScopeTag,
     bool IsAssigned,
