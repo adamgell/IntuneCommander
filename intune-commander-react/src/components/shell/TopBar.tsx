@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { useSearchStore } from '../../store/searchStore';
 import { primaryNavTabs } from '../../types/models';
@@ -17,7 +18,7 @@ export function TopBar() {
 
   const currentPrimary = primaryNavTabs.find((t) => t.id === activePrimaryTab);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       clear();
       (e.target as HTMLInputElement).blur();

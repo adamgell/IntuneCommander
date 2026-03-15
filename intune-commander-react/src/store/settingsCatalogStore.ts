@@ -37,7 +37,7 @@ export const useSettingsCatalogStore = create<SettingsCatalogState>((set, get) =
   },
 
   selectPolicy: async (id: string) => {
-    set({ selectedPolicyId: id, isLoadingDetail: true, error: null });
+    set({ selectedPolicyId: id, policyDetail: null, isLoadingDetail: true, error: null });
     try {
       const detail = await sendCommand<PolicyDetail>('settingsCatalog.getDetail', { id });
       // Only update if still selected (user may have navigated away)

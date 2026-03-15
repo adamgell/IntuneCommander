@@ -29,7 +29,10 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   search: (query: string) => {
     set({ query });
 
-    if (debounceTimer) clearTimeout(debounceTimer);
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
 
     if (!query || query.trim().length < 2) {
       set({ results: [], isSearching: false });
@@ -42,6 +45,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     set({ isSearching: true });
 
     debounceTimer = setTimeout(async () => {
+      debounceTimer = null;
       try {
         const results = await sendCommand<SearchResult[]>('search.query', { query: query.trim() });
         // Only update if query hasn't changed
@@ -57,7 +61,10 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   },
 
   clear: () => {
-    if (debounceTimer) clearTimeout(debounceTimer);
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
     set({ query: '', results: [], isSearching: false });
   },
 }));

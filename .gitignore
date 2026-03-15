@@ -87,5 +87,6 @@ website/docs/
 # React frontend
 intune-commander-react/node_modules/
 intune-commander-react/dist/
+intune-commander-react/tsconfig.tsbuildinfo
 src/Intune.Commander.DesktopReact/wwwroot/
 /publish-cli

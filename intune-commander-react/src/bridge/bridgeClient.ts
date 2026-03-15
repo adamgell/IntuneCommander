@@ -108,15 +108,24 @@ export function onEvent(event: string, callback: (payload: unknown) => void): ()
 
 // ── Message handler (shared by WebView2 and WebSocket) ──────────────
 
+function isBridgeMessage(obj: unknown): obj is BridgeMessage {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const m = obj as Record<string, unknown>;
+  if (m.protocol !== 'ic/1') return false;
+  if (m.type === 'response' && typeof m.id === 'string') return true;
+  if (m.type === 'event' && typeof m.event === 'string') return true;
+  return false;
+}
+
 function handleMessage(e: MessageEvent) {
   let msg: BridgeMessage;
   try {
-    msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    const parsed = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    if (!isBridgeMessage(parsed)) return;
+    msg = parsed;
   } catch {
     return;
   }
-
-  if (msg.protocol !== 'ic/1') return;
 
   if (msg.type === 'response') {
     const pending = pendingRequests.get(msg.id);

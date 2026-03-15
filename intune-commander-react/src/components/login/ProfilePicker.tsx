@@ -30,6 +30,7 @@ export function ProfilePicker() {
           onClick={resetForm}
           disabled={isBusy}
           title="New Profile"
+          aria-label="New Profile"
         >
           +
         </button>
@@ -38,6 +39,7 @@ export function ProfilePicker() {
           onClick={() => void importProfiles()}
           disabled={isBusy}
           title="Import Profiles"
+          aria-label="Import Profiles"
         >
           &#8615;
         </button>
@@ -46,6 +48,7 @@ export function ProfilePicker() {
           onClick={() => void deleteProfile()}
           disabled={!selectedProfileId || isBusy}
           title="Delete Profile"
+          aria-label="Delete Profile"
         >
           &#128465;
         </button>
