@@ -38,7 +38,9 @@ jobs:
         id: version
         shell: bash
         run: |
-          VERSION="0.0.${GITHUB_RUN_NUMBER}"
+          DATE_CODE="$(date -u +%y%j)"
+          BUILD_NUMBER="$(( (GITHUB_RUN_NUMBER % 65534) + 1 ))"
+          VERSION="0.${DATE_CODE}.${BUILD_NUMBER}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       # Build React first so wwwroot is available for dotnet publish
@@ -108,9 +110,9 @@ jobs:
             -c Release `
             -p:ProductVersion=${{ steps.version.outputs.version }} `
             -p:DisplayVersion=${{ steps.version.outputs.version }} `
-            -p:DesktopPublishDir="${{ github.workspace }}\publish\desktop" `
-            -p:CliPublishDir="${{ github.workspace }}\publish\cli" `
-            -p:InstallerOutputDir="${{ github.workspace }}\publish\installer"
+            -p:DesktopPublishDir="${{ github.workspace }}\\publish\\desktop" `
+            -p:CliPublishDir="${{ github.workspace }}\\publish\\cli" `
+            -p:InstallerOutputDir="${{ github.workspace }}\\publish\\installer"
 
       - name: Verify MSI output
         shell: bash
