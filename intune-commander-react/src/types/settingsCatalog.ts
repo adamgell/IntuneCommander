@@ -7,7 +7,7 @@ export interface PolicyListItem {
   technologies: string;
   createdDateTime: string;
   lastModifiedDateTime: string;
-  scopeTag: string;
+  scopeTags: string[];
   isAssigned: boolean;
   settingCount: number;
 }
