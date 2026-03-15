@@ -40,7 +40,10 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     }
 
     // Navigate to search workspace as soon as the user starts typing
-    useAppStore.getState().setSidebarItem('global-search');
+    const { activeSidebarItem, setSidebarItem } = useAppStore.getState();
+    if (activeSidebarItem !== 'global-search') {
+      setSidebarItem('global-search');
+    }
 
     set({ isSearching: true });
 
