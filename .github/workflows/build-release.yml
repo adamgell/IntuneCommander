@@ -10,6 +10,7 @@ on:
         required: false
 
 env:
+  DEFAULT_MSI_VERSION_PREFIX: 0.0
   DESKTOP_PROJECT: src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj
   CLI_PROJECT: src/Intune.Commander.CLI/Intune.Commander.CLI.csproj
   INSTALLER_PROJECT: src/Intune.Commander.Installer/Intune.Commander.Installer.wixproj
@@ -33,10 +34,12 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
             VERSION="${{ github.event.inputs.version }}"
           else
-            VERSION="0.0.${{ github.run_number }}-${GITHUB_SHA::7}"
+            VERSION="${{ env.DEFAULT_MSI_VERSION_PREFIX }}.${{ github.run_number }}"
           fi
-
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # MSI ProductVersion must remain numeric (X.Y.Z), but DisplayVersion can
+          # retain prerelease/build suffixes for artifact naming and manual runs.
+          # Strip any prerelease suffix (e.g. 0.4.5-beta1 -> 0.4.5) for MSI metadata.
           echo "msi_version=${VERSION%%-*}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
@@ -113,13 +116,17 @@ jobs:
       - name: Build MSI installer
         shell: pwsh
         run: |
+          $desktopPublishDir = Join-Path $env:GITHUB_WORKSPACE ($env:DESKTOP_PUBLISH_DIR -replace '^[.][/\\]', '')
+          $cliPublishDir = Join-Path $env:GITHUB_WORKSPACE ($env:CLI_PUBLISH_DIR -replace '^[.][/\\]', '')
+          $installerOutputDir = Join-Path $env:GITHUB_WORKSPACE ($env:INSTALLER_OUTPUT_DIR -replace '^[.][/\\]', '')
+
           dotnet build ${{ env.INSTALLER_PROJECT }} `
             --configuration Release `
             -p:ProductVersion=${{ steps.version.outputs.msi_version }} `
             -p:DisplayVersion=${{ steps.version.outputs.version }} `
-            -p:DesktopPublishDir="${{ github.workspace }}\publish\desktop" `
-            -p:CliPublishDir="${{ github.workspace }}\publish-cli\win-x64" `
-            -p:InstallerOutputDir="${{ github.workspace }}\publish\installer"
+            -p:DesktopPublishDir="$desktopPublishDir" `
+            -p:CliPublishDir="$cliPublishDir" `
+            -p:InstallerOutputDir="$installerOutputDir"
 
       - name: Verify MSI output
         shell: bash
@@ -144,34 +151,6 @@ jobs:
           name: IntuneCommander-test-msi
           path: ${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi
           retention-days: 30
-
-  publish-cli:
-    if: "!contains(github.event.head_commit.message || '', '[skip ci]')"
-    runs-on: windows-latest
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "10.0.x"
-
-      - name: Restore dependencies
-        run: dotnet restore Intune.Commander.sln
-
-      - name: Publish CLI win-x64
-        shell: pwsh
-        run: |
-          dotnet publish ${{ env.CLI_PROJECT }} `
-            --configuration Release `
-            --runtime win-x64 `
-            --self-contained true `
-            --output ${{ env.CLI_PUBLISH_DIR }} `
-            -p:PublishSingleFile=true
 
       - name: Upload CLI win-x64 artifact
         uses: actions/upload-artifact@v4
