@@ -38,6 +38,8 @@ jobs:
         id: version
         shell: bash
         run: |
+          # MSI version fields must stay numeric and within 0-65535.
+          # Use yy+Julian day for the middle field and clamp the build field to 1-65535.
           DATE_CODE="$(date -u +%y%j)"
           BUILD_NUMBER="$(( (GITHUB_RUN_NUMBER % 65534) + 1 ))"
           VERSION="0.${DATE_CODE}.${BUILD_NUMBER}"
