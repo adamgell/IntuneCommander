@@ -15,6 +15,10 @@ import { DeviceConfigWorkspace } from '../workspace/DeviceConfigWorkspace';
 import { CompliancePolicyWorkspace } from '../workspace/CompliancePolicyWorkspace';
 import { EndpointSecurityWorkspace } from '../workspace/EndpointSecurityWorkspace';
 import { EnrollmentWorkspace } from '../workspace/EnrollmentWorkspace';
+import { DriftDetectionWorkspace } from '../workspace/DriftDetectionWorkspace';
+import { ExportImportWorkspace } from '../workspace/ExportImportWorkspace';
+import { TenantAdminWorkspace } from '../workspace/TenantAdminWorkspace';
+import { GroupsWorkspace } from '../workspace/GroupsWorkspace';
 
 const workspaceMap: Record<string, ComponentType> = {
   'global-search': GlobalSearchResultsWorkspace,
@@ -32,6 +36,10 @@ const workspaceMap: Record<string, ComponentType> = {
   'compliance-policy': CompliancePolicyWorkspace,
   'endpoint-security': EndpointSecurityWorkspace,
   'enrollment': EnrollmentWorkspace,
+  'drift-detection': DriftDetectionWorkspace,
+  'export-import': ExportImportWorkspace,
+  'tenant-admin': TenantAdminWorkspace,
+  'groups': GroupsWorkspace,
 };
 
 export function ContentArea() {

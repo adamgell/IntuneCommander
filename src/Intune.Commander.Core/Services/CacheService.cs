@@ -181,6 +181,17 @@ public class CacheService : ICacheService
         }
     }
 
+    public T? GetSingle<T>(string tenantId, string dataType) where T : class
+    {
+        var list = Get<T>(tenantId, dataType);
+        return list is [var item] ? item : null;
+    }
+
+    public void SetSingle<T>(string tenantId, string dataType, T item, TimeSpan? ttl = null) where T : class
+    {
+        Set(tenantId, dataType, new List<T> { item }, ttl);
+    }
+
     public void Invalidate(string tenantId, string? dataType = null)
     {
         lock (_syncRoot)
@@ -241,6 +252,12 @@ public class CacheService : ICacheService
 
     public Task SetAsync<T>(string tenantId, string dataType, List<T> items, TimeSpan? ttl = null)
         => Task.Run(() => Set(tenantId, dataType, items, ttl));
+
+    public Task<T?> GetSingleAsync<T>(string tenantId, string dataType) where T : class
+        => Task.Run(() => GetSingle<T>(tenantId, dataType));
+
+    public Task SetSingleAsync<T>(string tenantId, string dataType, T item, TimeSpan? ttl = null) where T : class
+        => Task.Run(() => SetSingle(tenantId, dataType, item, ttl));
 
     public Task InvalidateAsync(string tenantId, string? dataType = null)
         => Task.Run(() => Invalidate(tenantId, dataType));

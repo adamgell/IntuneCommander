@@ -30,6 +30,8 @@ public class BridgeRouter : IBridgeService
     private readonly CompliancePolicyBridgeService _compliancePolicyBridge;
     private readonly EndpointSecurityBridgeService _endpointSecurityBridge;
     private readonly EnrollmentBridgeService _enrollmentBridge;
+    private readonly DialogBridgeService _dialogBridge;
+    private readonly GroupBridgeService _groupBridge;
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -58,7 +60,9 @@ public class BridgeRouter : IBridgeService
         DeviceConfigBridgeService deviceConfigBridge,
         CompliancePolicyBridgeService compliancePolicyBridge,
         EndpointSecurityBridgeService endpointSecurityBridge,
-        EnrollmentBridgeService enrollmentBridge)
+        EnrollmentBridgeService enrollmentBridge,
+        DialogBridgeService dialogBridge,
+        GroupBridgeService groupBridge)
     {
         _profileBridge = profileBridge;
         _authBridge = authBridge;
@@ -80,6 +84,8 @@ public class BridgeRouter : IBridgeService
         _compliancePolicyBridge = compliancePolicyBridge;
         _endpointSecurityBridge = endpointSecurityBridge;
         _enrollmentBridge = enrollmentBridge;
+        _dialogBridge = dialogBridge;
+        _groupBridge = groupBridge;
     }
 
     public void Initialize(CoreWebView2 webView)
@@ -159,6 +165,17 @@ public class BridgeRouter : IBridgeService
             "endpointSecurity.getDetail" => await _endpointSecurityBridge.GetDetailAsync(command.Payload),
             "enrollment.list" => await _enrollmentBridge.ListAsync(),
             "enrollment.getDetail" => await _enrollmentBridge.GetDetailAsync(command.Payload),
+            "groups.list" => await _groupBridge.ListAsync(),
+            "groups.search" => await _groupBridge.SearchAsync(command.Payload),
+            "groups.getDetail" => await _groupBridge.GetDetailAsync(command.Payload),
+            "dialog.pickFolder" => await _dialogBridge.PickFolderAsync(),
+            "dialog.pickFile" => await _dialogBridge.PickFileAsync(
+                GetStringProp(command.Payload, "filter"),
+                GetStringProp(command.Payload, "title")),
+            "dialog.saveFile" => await _dialogBridge.SaveFileAsync(
+                GetStringProp(command.Payload, "filter"),
+                GetStringProp(command.Payload, "title"),
+                GetStringProp(command.Payload, "defaultFileName")),
             _ => throw new NotSupportedException($"Unknown command: {command.Command}")
         };
     }
@@ -220,5 +237,13 @@ public class BridgeRouter : IBridgeService
 
         Application.Current.Dispatcher.Invoke(() => _webView.PostWebMessageAsJson(json));
         return Task.CompletedTask;
+    }
+
+    private static string? GetStringProp(JsonElement? payload, string propertyName)
+    {
+        if (payload is null) return null;
+        return payload.Value.TryGetProperty(propertyName, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
     }
 }
