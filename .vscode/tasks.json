@@ -7,10 +7,13 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/Intune.Commander.sln",
-        "--no-restore"
+        "${workspaceFolder}/src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj"
       ],
       "problemMatcher": "$msCompile",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      },
       "group": {
         "kind": "build",
         "isDefault": true
@@ -22,12 +25,15 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/Intune.Commander.sln",
+        "${workspaceFolder}/src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj",
         "--configuration",
-        "Release",
-        "--no-restore"
+        "Release"
       ],
-      "problemMatcher": "$msCompile"
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
     },
     {
       "label": "restore",
@@ -35,9 +41,42 @@
       "type": "process",
       "args": [
         "restore",
+        "${workspaceFolder}/src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "build-solution",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--no-restore"
+      ],
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "restore-solution",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "restore",
         "${workspaceFolder}/Intune.Commander.sln"
       ],
-      "problemMatcher": []
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
     },
     {
       "label": "test",
@@ -50,6 +89,10 @@
         "Category!=Integration"
       ],
       "problemMatcher": "$msCompile",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      },
       "group": {
         "kind": "test",
         "isDefault": true
@@ -69,7 +112,11 @@
         "--filter",
         "Category!=Integration"
       ],
-      "problemMatcher": "$msCompile"
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
     },
     {
       "label": "clean",
@@ -79,7 +126,122 @@
         "clean",
         "${workspaceFolder}/Intune.Commander.sln"
       ],
-      "problemMatcher": "$msCompile"
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "build-desktop-react",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "group": "dotnet-dev"
+      }
+    },
+    {
+      "label": "npm-ci",
+      "type": "process",
+      "command": "npm",
+      "args": [
+        "ci"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/intune-commander-react"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "run-desktop-react",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "group": "app-dev"
+      }
+    },
+    {
+      "label": "run-desktop-avalonia",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "group": "app-dev"
+      }
+    },
+    {
+      "label": "react-dev-server",
+      "type": "process",
+      "command": "npm",
+      "args": [
+        "run",
+        "dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/intune-commander-react"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": ".+"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Local:\\s+https?://localhost:\\d+/"
+        }
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always",
+        "group": "app-dev"
+      }
+    },
+    {
+      "label": "dev-react-host",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "prepare-react-host-debug",
+        "run-desktop-react"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare-react-host-debug",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "build-desktop-react",
+        "npm-ci",
+        "react-dev-server"
+      ],
+      "problemMatcher": []
     }
   ]
 }

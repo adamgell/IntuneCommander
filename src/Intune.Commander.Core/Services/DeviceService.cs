@@ -9,7 +9,7 @@ public class DeviceService(GraphServiceClient graphClient) : IDeviceService
     private readonly GraphServiceClient _graphClient = graphClient;
 
     private static readonly string[] DeviceSelect =
-        ["id", "deviceName", "operatingSystem", "osVersion", "lastSyncDateTime", "managementState", "model", "manufacturer"];
+        ["id", "deviceName", "operatingSystem", "osVersion", "lastSyncDateTime", "managementState", "model", "manufacturer", "complianceState"];
 
     private const string WindowsFilter = "operatingSystem eq 'Windows'";
 
@@ -88,6 +88,34 @@ public class DeviceService(GraphServiceClient graphClient) : IDeviceService
                 if (startsWith?.Value != null)
                     result.AddRange(startsWith.Value);
             }
+        }
+
+        return result;
+    }
+
+    public async Task<List<ManagedDevice>> ListAllDevicesAsync(CancellationToken cancellationToken = default)
+    {
+        var result = new List<ManagedDevice>();
+        var response = await _graphClient.DeviceManagement.ManagedDevices.GetAsync(req =>
+        {
+            req.QueryParameters.Select = DeviceSelect;
+            req.QueryParameters.Top = 999;
+            req.QueryParameters.Orderby = ["deviceName"];
+        }, cancellationToken);
+
+        if (response?.Value != null)
+            result.AddRange(response.Value);
+
+        // Page through all results
+        var nextLink = response?.OdataNextLink;
+        while (nextLink is not null)
+        {
+            var nextPage = await _graphClient.DeviceManagement.ManagedDevices
+                .WithUrl(nextLink)
+                .GetAsync(cancellationToken: cancellationToken);
+            if (nextPage?.Value != null)
+                result.AddRange(nextPage.Value);
+            nextLink = nextPage?.OdataNextLink;
         }
 
         return result;
