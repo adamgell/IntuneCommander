@@ -11,6 +11,7 @@ public class CompliancePolicyBridgeService
     private readonly ICacheService _cache;
     private readonly ShellStateBridgeService _shellState;
     private const string CacheKey = "CompliancePolicies";
+    private const string CacheKeyList = "CompliancePolicies_List";
     private ICompliancePolicyService? _service;
 
     public CompliancePolicyBridgeService(AuthBridgeService authBridge, ICacheService cache, ShellStateBridgeService shellState)
@@ -35,21 +36,28 @@ public class CompliancePolicyBridgeService
         var service = GetService();
         var tenantId = GetTenantId();
 
+        // Return cached mapped list (includes assignment counts) to avoid N+1 on cache hits
         if (tenantId is not null)
         {
-            var cached = _cache.Get<DeviceCompliancePolicy>(tenantId, CacheKey);
-            if (cached is { Count: > 0 })
-                return await MapList(cached, service);
+            var cachedList = _cache.Get<CompliancePolicyListItemDto>(tenantId, CacheKeyList);
+            if (cachedList is { Count: > 0 })
+                return cachedList.ToArray();
         }
 
-        var policies = await service.ListCompliancePoliciesAsync();
-        if (tenantId is not null) _cache.Set(tenantId, CacheKey, policies);
-        return await MapList(policies, service);
+        var cached = tenantId is not null ? _cache.Get<DeviceCompliancePolicy>(tenantId, CacheKey) : null;
+        var policies = cached is { Count: > 0 } ? cached : await service.ListCompliancePoliciesAsync();
+        if (cached is not { Count: > 0 } && tenantId is not null)
+            _cache.Set(tenantId, CacheKey, policies);
+
+        var result = await MapList(policies, service);
+        if (tenantId is not null)
+            _cache.Set(tenantId, CacheKeyList, result.ToList());
+        return result;
     }
 
     private async Task<CompliancePolicyListItemDto[]> MapList(List<DeviceCompliancePolicy> policies, ICompliancePolicyService service)
     {
-        var sem = new SemaphoreSlim(5);
+        using var sem = new SemaphoreSlim(5);
         var counts = new Dictionary<string, int>();
         var tasks = policies.Where(p => p.Id is not null).Select(async p =>
         {
@@ -90,7 +98,8 @@ public class CompliancePolicyBridgeService
 
         var policy = await policyTask ?? throw new InvalidOperationException($"Policy {id} not found");
         var assignments = await assignmentsTask;
-        var groupNames = await ResolveGroupNames(assignments.Select(a => a.Target).ToList(), client);
+        var targets = assignments.Select(a => a.Target).ToList();
+        var groupNames = await GroupResolutionHelper.ResolveGroupNamesAsync(targets, client);
 
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
@@ -102,32 +111,8 @@ public class CompliancePolicyBridgeService
             CreatedDateTime: policy.CreatedDateTime?.ToString("o") ?? "",
             LastModifiedDateTime: policy.LastModifiedDateTime?.ToString("o") ?? "",
             RoleScopeTagIds: (policy.RoleScopeTagIds ?? []).ToArray(),
-            Assignments: MapAssignments(assignments.Select(a => a.Target).ToList(), groupNames),
+            Assignments: MapAssignments(targets, groupNames),
             RawJson: JsonSerializer.Serialize(policy, jsonOptions));
-    }
-
-    private static async Task<Dictionary<string, string>> ResolveGroupNames(
-        List<DeviceAndAppManagementAssignmentTarget?> targets,
-        Microsoft.Graph.Beta.GraphServiceClient client)
-    {
-        var groupIds = targets.OfType<GroupAssignmentTarget>().Select(g => g.GroupId)
-            .Concat(targets.OfType<ExclusionGroupAssignmentTarget>().Select(g => g.GroupId))
-            .Where(id => id is not null).Distinct().ToList();
-        var names = new Dictionary<string, string>();
-        var sem = new SemaphoreSlim(5);
-        var tasks = groupIds.Select(async gid =>
-        {
-            await sem.WaitAsync();
-            try
-            {
-                var g = await client.Groups[gid].GetAsync(r => r.QueryParameters.Select = ["displayName"]);
-                if (g?.DisplayName is not null) lock (names) names[gid!] = g.DisplayName;
-            }
-            catch { }
-            finally { sem.Release(); }
-        });
-        await Task.WhenAll(tasks);
-        return names;
     }
 
     private static AssignmentDto[] MapAssignments(List<DeviceAndAppManagementAssignmentTarget?> targets, Dictionary<string, string> groupNames)

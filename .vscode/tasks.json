@@ -7,7 +7,8 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj"
+        "${workspaceFolder}/Intune.Commander.sln",
+        "--no-restore"
       ],
       "problemMatcher": "$msCompile",
       "presentation": {
@@ -238,7 +239,6 @@
       "dependsOrder": "sequence",
       "dependsOn": [
         "build-desktop-react",
-        "npm-ci",
         "react-dev-server"
       ],
       "problemMatcher": []

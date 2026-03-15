@@ -127,11 +127,14 @@ public class ApplicationBridgeService
         var available = new List<AppAssignmentEntry>();
         var uninstall = new List<AppAssignmentEntry>();
 
+        // Pre-resolve all group names in parallel
+        await PreResolveGroupNamesAsync(assignments.Select(a => a.Target).ToList());
+
         foreach (var a in assignments)
         {
             var intent = a.Intent?.ToString() ?? "Unknown";
             var isExclusion = a.Target is ExclusionGroupAssignmentTarget;
-            var groupName = await ResolveAssignmentTargetNameAsync(a.Target);
+            var groupName = ResolveAssignmentTargetName(a.Target);
 
             var entry = new AppAssignmentEntry(groupName, intent, isExclusion, null, null);
 
@@ -156,46 +159,47 @@ public class ApplicationBridgeService
         return new AppAssignmentData(required.ToArray(), available.ToArray(), uninstall.ToArray());
     }
 
-    private async Task<string> ResolveAssignmentTargetNameAsync(DeviceAndAppManagementAssignmentTarget? target)
+    private async Task PreResolveGroupNamesAsync(List<DeviceAndAppManagementAssignmentTarget?> targets)
+    {
+        var groupIds = targets.OfType<GroupAssignmentTarget>().Select(g => g.GroupId)
+            .Concat(targets.OfType<ExclusionGroupAssignmentTarget>().Select(g => g.GroupId))
+            .Where(id => !string.IsNullOrEmpty(id) && Guid.TryParse(id, out _) && !_groupNameCache.ContainsKey(id!))
+            .Distinct()
+            .ToList();
+
+        if (groupIds.Count == 0) return;
+
+        var client = _authBridge.GraphClient;
+        if (client is null) return;
+
+        using var sem = new SemaphoreSlim(5);
+        var tasks = groupIds.Select(async gid =>
+        {
+            await sem.WaitAsync();
+            try
+            {
+                var g = await client.Groups[gid].GetAsync(r => r.QueryParameters.Select = ["displayName"]);
+                if (g?.DisplayName is not null)
+                    _groupNameCache[gid!] = g.DisplayName;
+                else
+                    _groupNameCache[gid!] = gid!;
+            }
+            catch { _groupNameCache[gid!] = gid!; }
+            finally { sem.Release(); }
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private string ResolveAssignmentTargetName(DeviceAndAppManagementAssignmentTarget? target)
     {
         return target switch
         {
             AllDevicesAssignmentTarget => "All Devices",
             AllLicensedUsersAssignmentTarget => "All Users",
-            ExclusionGroupAssignmentTarget excl => await ResolveGroupNameAsync(excl.GroupId),
-            GroupAssignmentTarget grp => await ResolveGroupNameAsync(grp.GroupId),
+            ExclusionGroupAssignmentTarget excl => _groupNameCache.GetValueOrDefault(excl.GroupId ?? "", excl.GroupId ?? "Unknown"),
+            GroupAssignmentTarget grp => _groupNameCache.GetValueOrDefault(grp.GroupId ?? "", grp.GroupId ?? "Unknown"),
             _ => "Unknown Target"
         };
-    }
-
-    private async Task<string> ResolveGroupNameAsync(string? groupId)
-    {
-        if (string.IsNullOrEmpty(groupId)) return "Unknown Group";
-        if (!Guid.TryParse(groupId, out _)) return groupId;
-        if (_groupNameCache.TryGetValue(groupId, out var cached)) return cached;
-
-        try
-        {
-            var client = _authBridge.GraphClient;
-            if (client != null)
-            {
-                var response = await client.Groups
-                    .GetAsync(req =>
-                    {
-                        req.QueryParameters.Filter = $"id eq '{groupId}'";
-                        req.QueryParameters.Select = ["displayName"];
-                        req.QueryParameters.Top = 1;
-                    });
-
-                var name = response?.Value?.FirstOrDefault()?.DisplayName ?? groupId;
-                _groupNameCache[groupId] = name;
-                return name;
-            }
-        }
-        catch { /* Fall back to GUID */ }
-
-        _groupNameCache[groupId] = groupId;
-        return groupId;
     }
 
     private static string FormatAppType(MobileApp app)
@@ -246,7 +250,6 @@ public class ApplicationBridgeService
     private static string? ExtractVersion(MobileApp app) => app switch
     {
         Win32LobApp w => w.DisplayVersion,
-        IosVppApp v => v.BundleId is not null ? v.VppTokenAppleId : null,
         _ => null
     };
 
@@ -285,7 +288,6 @@ public class ApplicationBridgeService
     private static double? ExtractSize(MobileApp app) => app switch
     {
         Win32LobApp w when w.Size is not null => Math.Round((double)w.Size / (1024 * 1024), 1),
-        MacOSDmgApp d when d.SizeInByte is not null => Math.Round((double)d.SizeInByte / (1024 * 1024), 1),
         _ => null
     };
 

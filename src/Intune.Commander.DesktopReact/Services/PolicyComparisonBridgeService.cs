@@ -139,7 +139,7 @@ public class PolicyComparisonBridgeService
 
             case "deviceConfiguration":
                 _configService ??= new ConfigurationProfileService(client);
-                var dc = await _configService.GetConfigurationProfileAsync(id)
+                var dc = await _configService.GetDeviceConfigurationAsync(id)
                     ?? throw new InvalidOperationException($"Profile {id} not found");
                 return (dc.DisplayName ?? dc.Id ?? id, JsonSerializer.Serialize(dc, options));
 
@@ -170,8 +170,8 @@ public class PolicyComparisonBridgeService
     {
         try
         {
-            var docA = JsonDocument.Parse(jsonA);
-            var docB = JsonDocument.Parse(jsonB);
+            using var docA = JsonDocument.Parse(jsonA);
+            using var docB = JsonDocument.Parse(jsonB);
             int total = 0, differing = 0;
             CompareElements(docA.RootElement, docB.RootElement, ref total, ref differing);
             return (total, differing);
@@ -258,7 +258,7 @@ public class PolicyComparisonBridgeService
     {
         _configService ??= new ConfigurationProfileService(client);
         var cached = tenantId is not null ? _cache.Get<DeviceConfiguration>(tenantId, CacheKeyDeviceConfig) : null;
-        var policies = cached is { Count: > 0 } ? cached : await _configService.ListConfigurationProfilesAsync();
+        var policies = cached is { Count: > 0 } ? cached : await _configService.ListDeviceConfigurationsAsync();
         if (cached is null or { Count: 0 } && tenantId is not null)
             _cache.Set(tenantId, CacheKeyDeviceConfig, policies);
         return policies.Select(p => new PolicySummaryItemDto(p.Id ?? "", p.DisplayName ?? "", "deviceConfiguration")).ToArray();

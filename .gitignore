@@ -72,8 +72,9 @@ example/
 .cursor/
 set-syncfusion-key.cmd
 
-publish/
-publish-cli/
+publish/osx-arm64/
+
+publish/osx-x64/
 plan-downloadAllToCache.prompt.md
 tests/Intune.Commander.Core.Tests/coverage.json
 
@@ -87,6 +88,4 @@ website/docs/
 # React frontend
 intune-commander-react/node_modules/
 intune-commander-react/dist/
-intune-commander-react/tsconfig.tsbuildinfo
 src/Intune.Commander.DesktopReact/wwwroot/
-/publish-cli

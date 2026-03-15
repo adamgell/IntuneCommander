@@ -133,9 +133,9 @@ public class ConditionalAccessBridgeService
     private static string SummarizePlatforms(ConditionalAccessPlatforms? platforms)
     {
         if (platforms is null) return "Any";
-        if (platforms.IncludePlatforms?.Contains("all") == true) return "All platforms";
+        if (platforms.IncludePlatforms?.Contains(ConditionalAccessDevicePlatform.All) == true) return "All platforms";
         return platforms.IncludePlatforms is { Count: > 0 }
-            ? string.Join(", ", platforms.IncludePlatforms)
+            ? string.Join(", ", platforms.IncludePlatforms.Select(p => p?.ToString() ?? ""))
             : "Any";
     }
 
@@ -185,8 +185,8 @@ public class ConditionalAccessBridgeService
                 ExcludeGroups: conditions?.Users?.ExcludeGroups?.ToArray() ?? [],
                 IncludeApplications: conditions?.Applications?.IncludeApplications?.ToArray() ?? [],
                 ExcludeApplications: conditions?.Applications?.ExcludeApplications?.ToArray() ?? [],
-                IncludePlatforms: conditions?.Platforms?.IncludePlatforms?.ToArray() ?? [],
-                ExcludePlatforms: conditions?.Platforms?.ExcludePlatforms?.ToArray() ?? [],
+                IncludePlatforms: conditions?.Platforms?.IncludePlatforms?.Select(p => p?.ToString() ?? "").ToArray() ?? [],
+                ExcludePlatforms: conditions?.Platforms?.ExcludePlatforms?.Select(p => p?.ToString() ?? "").ToArray() ?? [],
                 IncludeLocations: conditions?.Locations?.IncludeLocations?.ToArray() ?? [],
                 ExcludeLocations: conditions?.Locations?.ExcludeLocations?.ToArray() ?? [],
                 ClientAppTypes: conditions?.ClientAppTypes?.Select(t => t?.ToString() ?? "").ToArray() ?? [],

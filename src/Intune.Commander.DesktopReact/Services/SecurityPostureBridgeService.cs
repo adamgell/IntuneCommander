@@ -63,12 +63,12 @@ public class SecurityPostureBridgeService
         _namedLocationService ??= new NamedLocationService(client);
 
         // Fetch all data in parallel, using cache where available
-        var caTask = GetCachedOrFetch(tenantId, CacheKeyCA, () => _caService.ListPoliciesAsync());
-        var complianceTask = GetCachedOrFetch(tenantId, CacheKeyCompliance, () => _complianceService.ListCompliancePoliciesAsync());
-        var endpointTask = GetCachedOrFetch(tenantId, CacheKeyEndpointSecurity, () => _endpointSecurityService.ListEndpointSecurityIntentsAsync());
-        var appProtectionTask = GetCachedOrFetch(tenantId, CacheKeyAppProtection, () => _appProtectionService.ListAppProtectionPoliciesAsync());
-        var authStrengthTask = GetCachedOrFetch(tenantId, CacheKeyAuthStrength, () => _authStrengthService.ListAuthenticationStrengthPoliciesAsync());
-        var namedLocationsTask = GetCachedOrFetch(tenantId, CacheKeyNamedLocations, () => _namedLocationService.ListNamedLocationsAsync());
+        var caTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyCA, () => _caService.ListPoliciesAsync());
+        var complianceTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyCompliance, () => _complianceService.ListCompliancePoliciesAsync());
+        var endpointTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyEndpointSecurity, () => _endpointSecurityService.ListEndpointSecurityIntentsAsync());
+        var appProtectionTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyAppProtection, () => _appProtectionService.ListAppProtectionPoliciesAsync());
+        var authStrengthTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyAuthStrength, () => _authStrengthService.ListAuthenticationStrengthPoliciesAsync());
+        var namedLocationsTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyNamedLocations, () => _namedLocationService.ListNamedLocationsAsync());
 
         await Task.WhenAll(caTask, complianceTask, endpointTask, appProtectionTask, authStrengthTask, namedLocationsTask);
 
@@ -119,12 +119,12 @@ public class SecurityPostureBridgeService
         _authStrengthService ??= new AuthenticationStrengthService(client);
         _namedLocationService ??= new NamedLocationService(client);
 
-        var caTask = GetCachedOrFetch(tenantId, CacheKeyCA, () => _caService.ListPoliciesAsync());
-        var complianceTask = GetCachedOrFetch(tenantId, CacheKeyCompliance, () => _complianceService.ListCompliancePoliciesAsync());
-        var endpointTask = GetCachedOrFetch(tenantId, CacheKeyEndpointSecurity, () => _endpointSecurityService.ListEndpointSecurityIntentsAsync());
-        var appProtectionTask = GetCachedOrFetch(tenantId, CacheKeyAppProtection, () => _appProtectionService.ListAppProtectionPoliciesAsync());
-        var authStrengthTask = GetCachedOrFetch(tenantId, CacheKeyAuthStrength, () => _authStrengthService.ListAuthenticationStrengthPoliciesAsync());
-        var namedLocationsTask = GetCachedOrFetch(tenantId, CacheKeyNamedLocations, () => _namedLocationService.ListNamedLocationsAsync());
+        var caTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyCA, () => _caService.ListPoliciesAsync());
+        var complianceTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyCompliance, () => _complianceService.ListCompliancePoliciesAsync());
+        var endpointTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyEndpointSecurity, () => _endpointSecurityService.ListEndpointSecurityIntentsAsync());
+        var appProtectionTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyAppProtection, () => _appProtectionService.ListAppProtectionPoliciesAsync());
+        var authStrengthTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyAuthStrength, () => _authStrengthService.ListAuthenticationStrengthPoliciesAsync());
+        var namedLocationsTask = GroupResolutionHelper.GetCachedOrFetchAsync(_cache, tenantId, CacheKeyNamedLocations, () => _namedLocationService.ListNamedLocationsAsync());
 
         await Task.WhenAll(caTask, complianceTask, endpointTask, appProtectionTask, authStrengthTask, namedLocationsTask);
 
@@ -148,27 +148,9 @@ public class SecurityPostureBridgeService
             NamedLocations: (await namedLocationsTask).Select(p => new NamedLocationItem(
                 p.Id ?? "", p.DisplayName ?? "",
                 p is IpNamedLocation ? "IP" : p is CountryNamedLocation ? "Country" : "Unknown",
-                p is IpNamedLocation ip ? ip.IsTrusted ?? false :
-                p is CountryNamedLocation country ? country.IncludeUnknownCountriesAndRegions ?? false : false
+                p is IpNamedLocation ip ? ip.IsTrusted ?? false : false
             )).ToArray()
         );
-    }
-
-    private async Task<List<T>> GetCachedOrFetch<T>(string? tenantId, string cacheKey, Func<Task<List<T>>> fetcher) where T : class
-    {
-        if (tenantId is not null)
-        {
-            var cached = _cache.Get<T>(tenantId, cacheKey);
-            if (cached is { Count: > 0 })
-                return cached;
-        }
-
-        var data = await fetcher();
-
-        if (tenantId is not null)
-            _cache.Set(tenantId, cacheKey, data);
-
-        return data;
     }
 
     private static (int Score, ScoreCategory[] Breakdown, SecurityGap[] Gaps) ComputeSecurityScore(

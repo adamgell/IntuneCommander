@@ -2,18 +2,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach React Host (After Split Task)",
-      "type": "coreclr",
-      "request": "attach",
-      "processId": "${command:pickProcess}",
-      "justMyCode": true
-    },
-    {
-      "name": "Debug React Host (WPF)",
+      "name": "Debug React Host + Vite",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "prepare-react-host-debug",
-      "program": "${workspaceFolder}/src/Intune.Commander.DesktopReact/bin/Debug/net10.0-windows/Intune.Commander.DesktopReact.dll",
+      "program": "${workspaceFolder}/src/Intune.Commander.DesktopReact/bin/Debug/net10.0-windows/IntuneCommander.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/Intune.Commander.DesktopReact",
       "console": "integratedTerminal",

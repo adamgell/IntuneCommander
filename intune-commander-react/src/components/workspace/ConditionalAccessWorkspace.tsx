@@ -212,7 +212,7 @@ export function ConditionalAccessWorkspace() {
         {stateChips.map((chip) => (
           <button
             key={chip.label}
-            className={`platform-chip${stateFilter === chip.value ? ' active' : ''}${chip.value === null && stateFilter === null ? ' active' : ''}`}
+            className={`platform-chip${stateFilter === chip.value ? ' active' : ''}`}
             onClick={() => setStateFilter(chip.value)}
           >
             {chip.label}

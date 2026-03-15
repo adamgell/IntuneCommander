@@ -175,7 +175,7 @@ export function ApplicationsWorkspace() {
         {platformChips.map((chip) => (
           <button
             key={chip.label}
-            className={`platform-chip${platformFilter === chip.value ? ' active' : ''}${chip.value === null && platformFilter === null ? ' active' : ''}`}
+            className={`platform-chip${platformFilter === chip.value ? ' active' : ''}`}
             onClick={() => setPlatformFilter(chip.value)}
           >
             {chip.label}

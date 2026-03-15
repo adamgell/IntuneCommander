@@ -56,13 +56,13 @@ public class ScriptsHubBridgeService
         _healthService ??= new DeviceHealthScriptService(client);
 
         // Fetch all script types in parallel with caching
-        var psTask = GetCachedOrFetch<DeviceManagementScript>(tenantId, CacheKeyPowerShell,
+        var psTask = GroupResolutionHelper.GetCachedOrFetchAsync<DeviceManagementScript>(_cache, tenantId, CacheKeyPowerShell,
             () => _psService.ListDeviceManagementScriptsAsync());
-        var shellTask = GetCachedOrFetch<DeviceShellScript>(tenantId, CacheKeyShell,
+        var shellTask = GroupResolutionHelper.GetCachedOrFetchAsync<DeviceShellScript>(_cache, tenantId, CacheKeyShell,
             () => _shellService.ListDeviceShellScriptsAsync());
-        var complianceTask = GetCachedOrFetch<DeviceComplianceScript>(tenantId, CacheKeyCompliance,
+        var complianceTask = GroupResolutionHelper.GetCachedOrFetchAsync<DeviceComplianceScript>(_cache, tenantId, CacheKeyCompliance,
             () => _complianceService.ListComplianceScriptsAsync());
-        var healthTask = GetCachedOrFetch<DeviceHealthScript>(tenantId, CacheKeyHealth,
+        var healthTask = GroupResolutionHelper.GetCachedOrFetchAsync<DeviceHealthScript>(_cache, tenantId, CacheKeyHealth,
             () => _healthService.ListDeviceHealthScriptsAsync());
 
         await Task.WhenAll(psTask, shellTask, complianceTask, healthTask);
@@ -170,7 +170,8 @@ public class ScriptsHubBridgeService
         var script = await _psService.GetDeviceManagementScriptAsync(id)
             ?? throw new InvalidOperationException($"Script {id} not found");
         var assignments = await _psService.GetAssignmentsAsync(id);
-        var groupNames = await ResolveGroupNames(assignments.Select(a => a.Target).ToList(), client);
+        var psTargets = assignments.Select(a => a.Target).ToList();
+        var groupNames = await GroupResolutionHelper.ResolveGroupNamesAsync(psTargets, client);
 
         return new ScriptDetailDto(
             Id: script.Id ?? "",
@@ -186,7 +187,7 @@ public class ScriptsHubBridgeService
             ScriptContent: DecodeScript(script.ScriptContent),
             RemediationScriptContent: null,
             Language: "powershell",
-            Assignments: MapAssignments(assignments.Select(a => a.Target).ToList(), groupNames));
+            Assignments: MapAssignments(psTargets, groupNames));
     }
 
     private async Task<ScriptDetailDto> GetShellDetail(string id, Microsoft.Graph.Beta.GraphServiceClient client)
@@ -195,7 +196,8 @@ public class ScriptsHubBridgeService
         var script = await _shellService.GetDeviceShellScriptAsync(id)
             ?? throw new InvalidOperationException($"Script {id} not found");
         var assignments = await _shellService.GetAssignmentsAsync(id);
-        var groupNames = await ResolveGroupNames(assignments.Select(a => a.Target).ToList(), client);
+        var shTargets = assignments.Select(a => a.Target).ToList();
+        var groupNames = await GroupResolutionHelper.ResolveGroupNamesAsync(shTargets, client);
 
         return new ScriptDetailDto(
             Id: script.Id ?? "",
@@ -211,7 +213,7 @@ public class ScriptsHubBridgeService
             ScriptContent: DecodeScript(script.ScriptContent),
             RemediationScriptContent: null,
             Language: "shell",
-            Assignments: MapAssignments(assignments.Select(a => a.Target).ToList(), groupNames));
+            Assignments: MapAssignments(shTargets, groupNames));
     }
 
     private async Task<ScriptDetailDto> GetComplianceDetail(string id, Microsoft.Graph.Beta.GraphServiceClient client)
@@ -245,8 +247,8 @@ public class ScriptsHubBridgeService
         var assignments = await _healthService.GetAssignmentsAsync(id);
 
         // Resolve group names for health script assignments
-        var targets = assignments.Select(a => a.Target as DeviceAndAppManagementAssignmentTarget).ToList();
-        var groupNames = await ResolveGroupNames(targets!, client);
+        var targets = assignments.Select(a => a.Target).OfType<DeviceAndAppManagementAssignmentTarget>().Cast<DeviceAndAppManagementAssignmentTarget?>().ToList();
+        var groupNames = await GroupResolutionHelper.ResolveGroupNamesAsync(targets, client);
 
         return new ScriptDetailDto(
             Id: script.Id ?? "",
@@ -262,24 +264,7 @@ public class ScriptsHubBridgeService
             ScriptContent: DecodeScript(script.DetectionScriptContent),
             RemediationScriptContent: DecodeScript(script.RemediationScriptContent),
             Language: "powershell",
-            Assignments: MapAssignments(targets!, groupNames));
-    }
-
-    private async Task<List<T>> GetCachedOrFetch<T>(string? tenantId, string cacheKey, Func<Task<List<T>>> fetcher) where T : class
-    {
-        if (tenantId is not null)
-        {
-            var cached = _cache.Get<T>(tenantId, cacheKey);
-            if (cached is { Count: > 0 })
-                return cached;
-        }
-
-        var data = await fetcher();
-
-        if (tenantId is not null)
-            _cache.Set(tenantId, cacheKey, data);
-
-        return data;
+            Assignments: MapAssignments(targets, groupNames));
     }
 
     private static string DecodeScript(byte[]? content)
@@ -289,39 +274,8 @@ public class ScriptsHubBridgeService
         catch { return "[Unable to decode script content]"; }
     }
 
-    private static async Task<Dictionary<string, string>> ResolveGroupNames(
-        List<DeviceAndAppManagementAssignmentTarget> targets,
-        Microsoft.Graph.Beta.GraphServiceClient client)
-    {
-        var groupIds = targets
-            .OfType<GroupAssignmentTarget>().Select(g => g.GroupId)
-            .Concat(targets.OfType<ExclusionGroupAssignmentTarget>().Select(g => g.GroupId))
-            .Where(id => id is not null)
-            .Distinct()
-            .ToList();
-
-        var names = new Dictionary<string, string>();
-        var sem = new SemaphoreSlim(5);
-
-        var tasks = groupIds.Select(async gid =>
-        {
-            await sem.WaitAsync();
-            try
-            {
-                var g = await client.Groups[gid].GetAsync(r => r.QueryParameters.Select = ["displayName"]);
-                if (g?.DisplayName is not null)
-                    lock (names) names[gid!] = g.DisplayName;
-            }
-            catch { /* fallback to GUID */ }
-            finally { sem.Release(); }
-        });
-
-        await Task.WhenAll(tasks);
-        return names;
-    }
-
     private static ScriptAssignmentDto[] MapAssignments(
-        List<DeviceAndAppManagementAssignmentTarget> targets,
+        List<DeviceAndAppManagementAssignmentTarget?> targets,
         Dictionary<string, string> groupNames)
     {
         return targets.Select(t => t switch

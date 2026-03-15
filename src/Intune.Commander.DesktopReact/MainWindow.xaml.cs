@@ -18,7 +18,21 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await webView.EnsureCoreWebView2Async();
+        var userDataFolder = GetWebViewUserDataFolder();
+        CoreWebView2Environment environment;
+
+        try
+        {
+            environment = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            var fallbackFolder = Path.Combine(Path.GetTempPath(), "IntuneCommander", "WebView2");
+            Directory.CreateDirectory(fallbackFolder);
+            environment = await CoreWebView2Environment.CreateAsync(userDataFolder: fallbackFolder);
+        }
+
+        await webView.EnsureCoreWebView2Async(environment);
 
         var coreWebView = webView.CoreWebView2;
 
@@ -44,6 +58,14 @@ public partial class MainWindow : Window
         var indexPath = Path.Combine(appDir, "wwwroot", "index.html");
         coreWebView.Navigate(new Uri(indexPath).AbsoluteUri);
 #endif
+    }
+
+    private static string GetWebViewUserDataFolder()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var folder = Path.Combine(localAppData, "IntuneCommander", "DesktopReact", "WebView2");
+        Directory.CreateDirectory(folder);
+        return folder;
     }
 
     private static void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs args)

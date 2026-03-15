@@ -99,6 +99,7 @@ export const primaryNavTabs: PrimaryNavTab[] = [
     id: 'security',
     label: 'Security',
     secondaryTabs: [
+      { id: 'security-posture', label: 'Security Posture' },
       { id: 'conditional-access', label: 'Conditional Access' },
     ],
   },
