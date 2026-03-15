@@ -31,7 +31,7 @@ on:
 
 jobs:
   integration:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     environment: integration-test
     # Only run if not a fork PR (forks won't have access to the environment) and not a [skip ci] commit
     if: "!contains(github.event.head_commit.message || '', '[skip ci]') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)"
@@ -49,15 +49,18 @@ jobs:
 
       - name: Validate secrets
         id: check-secrets
-        shell: bash
+        shell: pwsh
         run: |
-          if [ -z "$AZURE_TENANT_ID" ] || [ -z "$AZURE_CLIENT_ID" ] || [ -z "$AZURE_CLIENT_SECRET" ]; then
-            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
-            echo "WARNING: Azure credentials not configured in the 'integration-test' environment -- skipping"
-          else
-            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
-            echo "Azure credentials found in 'integration-test' environment"
-          fi
+          if ([string]::IsNullOrWhiteSpace($env:AZURE_TENANT_ID) -or
+              [string]::IsNullOrWhiteSpace($env:AZURE_CLIENT_ID) -or
+              [string]::IsNullOrWhiteSpace($env:AZURE_CLIENT_SECRET)) {
+            "has_secrets=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "WARNING: Azure credentials not configured in the 'integration-test' environment -- skipping"
+          }
+          else {
+            "has_secrets=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "Azure credentials found in 'integration-test' environment"
+          }
 
       - name: Setup .NET 10
         if: steps.check-secrets.outputs.has_secrets == 'true'
@@ -75,12 +78,13 @@ jobs:
 
       - name: Run integration tests
         if: steps.check-secrets.outputs.has_secrets == 'true'
+        shell: pwsh
         run: |
-          dotnet test Intune.Commander.sln \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --filter "Category=Integration" \
+          dotnet test Intune.Commander.sln `
+            --configuration Release `
+            --no-build `
+            --verbosity normal `
+            --filter "Category=Integration" `
             --logger "trx;LogFileName=integration-results.trx"
         timeout-minutes: 15
 
@@ -94,6 +98,6 @@ jobs:
 
       - name: Cleanup stale test resources
         if: failure() && steps.check-secrets.outputs.has_secrets == 'true'
-        shell: bash
+        shell: pwsh
         run: |
-          echo "WARNING: Integration tests failed -- check for orphaned resources with prefix 'IntTest_AutoCleanup_' in your Intune tenant"
+          Write-Host "WARNING: Integration tests failed -- check for orphaned resources with prefix 'IntTest_AutoCleanup_' in your Intune tenant"

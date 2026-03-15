@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     if: ${{ !contains(github.event.head_commit.message || '', '[skip ci]') }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: read
 
@@ -29,19 +29,20 @@ jobs:
         run: dotnet build Intune.Commander.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
+        shell: pwsh
         run: |
-          dotnet test Intune.Commander.sln \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --filter "Category!=Integration" \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=./coverage/ \
-            /p:Include="[Intune.Commander.Core]*" \
-            /p:Exclude="[Intune.Commander.Core.Tests]*" \
-            /p:Threshold=40 \
-            /p:ThresholdType=line \
+          dotnet test Intune.Commander.sln `
+            --configuration Release `
+            --no-build `
+            --verbosity normal `
+            --filter "Category!=Integration" `
+            /p:CollectCoverage=true `
+            /p:CoverletOutputFormat=cobertura `
+            /p:CoverletOutput=./coverage/ `
+            /p:Include="[Intune.Commander.Core]*" `
+            /p:Exclude="[Intune.Commander.Core.Tests]*" `
+            /p:Threshold=40 `
+            /p:ThresholdType=line `
             /p:ThresholdStat=total
 
       - name: Upload coverage report
