@@ -13,56 +13,56 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Check if .NET solution exists
-      id: check-solution
-      shell: pwsh
-      run: |
-        $solutionExists = Test-Path "Intune.Commander.sln"
-        echo "exists=$($solutionExists.ToString().ToLower())" >> $env:GITHUB_OUTPUT
-        if ($solutionExists) {
-          Write-Host "Solution file found - will build"
-        } else {
-          Write-Host "No solution file - skipping build steps"
-        }
+      - name: Check if .NET solution exists
+        id: check-solution
+        shell: pwsh
+        run: |
+          $solutionExists = Test-Path "Intune.Commander.sln"
+          echo "exists=$($solutionExists.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          if ($solutionExists) {
+            Write-Host "Solution file found - will build"
+          } else {
+            Write-Host "No solution file - skipping build steps"
+          }
 
-    - name: Setup .NET 10
-      if: steps.check-solution.outputs.exists == 'true'
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'
+      - name: Setup .NET 10
+        if: steps.check-solution.outputs.exists == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
 
-    - name: Restore dependencies
-      if: steps.check-solution.outputs.exists == 'true'
-      run: dotnet restore Intune.Commander.sln
+      - name: Restore dependencies
+        if: steps.check-solution.outputs.exists == 'true'
+        run: dotnet restore Intune.Commander.sln
 
-    - name: Build solution
-      if: steps.check-solution.outputs.exists == 'true'
-      run: dotnet build Intune.Commander.sln --configuration Release --no-restore
+      - name: Build solution
+        if: steps.check-solution.outputs.exists == 'true'
+        run: dotnet build Intune.Commander.sln --configuration Release --no-restore
 
-    - name: Publish Windows x64 executable
-      if: steps.check-solution.outputs.exists == 'true'
-      env:
-        SYNCFUSION_LICENSE_KEY: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
-      run: |
-        dotnet publish src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj `
-          --configuration Release `
-          --runtime win-x64 `
-          --self-contained true `
-          --output ./publish `
-          -p:PublishSingleFile=true `
-          -p:IncludeNativeLibrariesForSelfExtract=true `
-          -p:SyncfusionLicenseKey="$env:SYNCFUSION_LICENSE_KEY"
+      - name: Publish Windows x64 executable
+        if: steps.check-solution.outputs.exists == 'true'
+        env:
+          SYNCFUSION_LICENSE_KEY: ${{ secrets.SYNCFUSION_LICENSE_KEY }}
+        run: |
+          dotnet publish src/Intune.Commander.Desktop/Intune.Commander.Desktop.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ./publish `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:SyncfusionLicenseKey="$env:SYNCFUSION_LICENSE_KEY"
 
-    - name: Upload artifact
-      if: steps.check-solution.outputs.exists == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: Intune.Commander-win-x64
-        path: ./publish/Intune.Commander.Desktop.exe
-        retention-days: 30
+      - name: Upload artifact
+        if: steps.check-solution.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Intune.Commander-win-x64
+          path: ./publish/Intune.Commander.Desktop.exe
+          retention-days: 30
 
   publish-cli:
     if: "!contains(github.event.head_commit.message || '', '[skip ci]')"
@@ -71,47 +71,47 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET 10
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
 
-    - name: Restore dependencies
-      run: dotnet restore Intune.Commander.sln
+      - name: Restore dependencies
+        run: dotnet restore Intune.Commander.sln
 
-    - name: Publish CLI win-x64
-      shell: pwsh
-      run: |
-        dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj `
-          --configuration Release `
-          --runtime win-x64 `
-          --self-contained true `
-          --output ./publish-cli/win-x64 `
-          -p:PublishSingleFile=true
+      - name: Publish CLI win-x64
+        shell: pwsh
+        run: |
+          dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ./publish-cli/win-x64 `
+            -p:PublishSingleFile=true
 
-    - name: Publish CLI linux-x64
-      shell: pwsh
-      run: |
-        dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj `
-          --configuration Release `
-          --runtime linux-x64 `
-          --self-contained true `
-          --output ./publish-cli/linux-x64 `
-          -p:PublishSingleFile=true
+      - name: Publish CLI linux-x64
+        shell: pwsh
+        run: |
+          dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj `
+            --configuration Release `
+            --runtime linux-x64 `
+            --self-contained true `
+            --output ./publish-cli/linux-x64 `
+            -p:PublishSingleFile=true
 
-    - name: Upload CLI win-x64 artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Intune.Commander.CLI-win-x64
-        path: ./publish-cli/win-x64/ic.exe
-        retention-days: 30
+      - name: Upload CLI win-x64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Intune.Commander.CLI-win-x64
+          path: ./publish-cli/win-x64/ic.exe
+          retention-days: 30
 
-    - name: Upload CLI linux-x64 artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Intune.Commander.CLI-linux-x64
-        path: ./publish-cli/linux-x64/ic
-        retention-days: 30
+      - name: Upload CLI linux-x64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Intune.Commander.CLI-linux-x64
+          path: ./publish-cli/linux-x64/ic
+          retention-days: 30
