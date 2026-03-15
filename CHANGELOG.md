@@ -4,8 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [0.4.5] — 2026-03-14
+
 ### Added
 
+- **BaselineService & Settings Catalog CRUD** — new services for managing Settings Catalog definitions and OIB baseline automation
+- **Settings Catalog Editor** — cherry-picked core improvements for settings catalog editing workflows
+- **React UI Port** — new `Intune.Commander.DesktopReact` project with WPF+WebView2 host, featuring:
+  - Settings Catalog workspace with master-detail layout
+  - Overview dashboard with detection & remediation workspace
+  - Global search, cache sync, MUI DataGrid, and dev WebSocket bridge
 - **Directory Object Resolver** — new `IDirectoryObjectResolver` / `DirectoryObjectResolver` in Core
   - Batch-resolves directory object GUIDs to display names via `POST /directoryObjects/getByIds` (up to 1,000 IDs per call)
   - Handles Users, Groups, Directory Roles, Role Templates, Service Principals, and Applications
