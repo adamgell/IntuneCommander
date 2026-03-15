@@ -24,6 +24,8 @@ public class BridgeRouter : IBridgeService
     private readonly ConditionalAccessBridgeService _conditionalAccessBridge;
     private readonly SecurityPostureBridgeService _securityPostureBridge;
     private readonly AssignmentExplorerBridgeService _assignmentExplorerBridge;
+    private readonly ScriptsHubBridgeService _scriptsHubBridge;
+    private readonly PolicyComparisonBridgeService _policyComparisonBridge;
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -46,7 +48,9 @@ public class BridgeRouter : IBridgeService
         ApplicationBridgeService applicationBridge,
         ConditionalAccessBridgeService conditionalAccessBridge,
         SecurityPostureBridgeService securityPostureBridge,
-        AssignmentExplorerBridgeService assignmentExplorerBridge)
+        AssignmentExplorerBridgeService assignmentExplorerBridge,
+        ScriptsHubBridgeService scriptsHubBridge,
+        PolicyComparisonBridgeService policyComparisonBridge)
     {
         _profileBridge = profileBridge;
         _authBridge = authBridge;
@@ -62,6 +66,8 @@ public class BridgeRouter : IBridgeService
         _conditionalAccessBridge = conditionalAccessBridge;
         _securityPostureBridge = securityPostureBridge;
         _assignmentExplorerBridge = assignmentExplorerBridge;
+        _scriptsHubBridge = scriptsHubBridge;
+        _policyComparisonBridge = policyComparisonBridge;
     }
 
     public void Initialize(CoreWebView2 webView)
@@ -129,6 +135,10 @@ public class BridgeRouter : IBridgeService
             "securityPosture.detail" => await _securityPostureBridge.GetDetailAsync(),
             "assignments.searchGroups" => await _assignmentExplorerBridge.SearchGroupsAsync(command.Payload),
             "assignments.runReport" => await _assignmentExplorerBridge.RunReportAsync(command.Payload),
+            "scripts.listAll" => await _scriptsHubBridge.ListAllAsync(),
+            "scripts.getDetail" => await _scriptsHubBridge.GetDetailAsync(command.Payload),
+            "policyComparison.list" => await _policyComparisonBridge.ListPoliciesAsync(command.Payload),
+            "policyComparison.compare" => await _policyComparisonBridge.CompareAsync(command.Payload),
             _ => throw new NotSupportedException($"Unknown command: {command.Command}")
         };
     }

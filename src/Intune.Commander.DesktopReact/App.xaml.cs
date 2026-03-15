@@ -32,6 +32,8 @@ public partial class App : Application
         services.AddSingleton<ConditionalAccessBridgeService>();
         services.AddSingleton<SecurityPostureBridgeService>();
         services.AddSingleton<AssignmentExplorerBridgeService>();
+        services.AddSingleton<ScriptsHubBridgeService>();
+        services.AddSingleton<PolicyComparisonBridgeService>();
         services.AddSingleton<BridgeRouter>();
 
         Services = services.BuildServiceProvider();

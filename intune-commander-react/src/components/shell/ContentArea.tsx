@@ -9,6 +9,8 @@ import { ApplicationsWorkspace } from '../workspace/ApplicationsWorkspace';
 import { ConditionalAccessWorkspace } from '../workspace/ConditionalAccessWorkspace';
 import { SecurityPostureWorkspace } from '../workspace/SecurityPostureWorkspace';
 import { AssignmentExplorerWorkspace } from '../workspace/AssignmentExplorerWorkspace';
+import { ScriptsHubWorkspace } from '../workspace/ScriptsHubWorkspace';
+import { PolicyComparisonWorkspace } from '../workspace/PolicyComparisonWorkspace';
 
 const workspaceMap: Record<string, ComponentType> = {
   'global-search': GlobalSearchResultsWorkspace,
@@ -20,6 +22,8 @@ const workspaceMap: Record<string, ComponentType> = {
   'conditional-access': ConditionalAccessWorkspace,
   'security-posture': SecurityPostureWorkspace,
   'assignment-explorer': AssignmentExplorerWorkspace,
+  'scripts-hub': ScriptsHubWorkspace,
+  'policy-comparison': PolicyComparisonWorkspace,
 };
 
 export function ContentArea() {

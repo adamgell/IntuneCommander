@@ -151,6 +151,7 @@ export const sidebarByTab: Record<string, SidebarSection[]> = {
       label: 'Workspaces',
       items: [
         { id: 'detection-remediation', label: 'Detection & Remediation' },
+        { id: 'scripts-hub', label: 'Scripts Hub' },
       ],
     },
   ],
@@ -159,6 +160,7 @@ export const sidebarByTab: Record<string, SidebarSection[]> = {
       label: 'Workspaces',
       items: [
         { id: 'assignment-explorer', label: 'Assignment Explorer' },
+        { id: 'policy-comparison', label: 'Policy Diff' },
       ],
     },
   ],
