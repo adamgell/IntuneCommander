@@ -27,21 +27,6 @@ jobs:
       contents: read
 
     steps:
-      - name: Determine version
-        id: version
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION="${{ env.DEFAULT_MSI_VERSION_PREFIX }}.${{ github.run_number }}"
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          # MSI ProductVersion must remain numeric (X.Y.Z), but DisplayVersion can
-          # retain prerelease/build suffixes for artifact naming and manual runs.
-          # Strip any prerelease suffix (e.g. 0.4.5-beta1 -> 0.4.5) for MSI metadata.
-          echo "msi_version=${VERSION%%-*}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -60,6 +45,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ env.DEFAULT_MSI_VERSION_PREFIX }}.${{ github.run_number }}"
+          fi
           # MSI ProductVersion fields must satisfy major < 256, minor < 256, build < 65536.
           YEAR="$((10#$(date -u +%y)))"
           MONTH="$((10#$(date -u +%m)))"
@@ -70,7 +60,8 @@ jobs:
             exit 1
           fi
           PRODUCT_VERSION="${YEAR}.${MONTH}.${BUILD_NUMBER}"
-          DISPLAY_VERSION="${YEAR}.${MONTH}.${DAY}-run${GITHUB_RUN_NUMBER}"
+          DISPLAY_VERSION="$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "product_version=$PRODUCT_VERSION" >> "$GITHUB_OUTPUT"
           echo "display_version=$DISPLAY_VERSION" >> "$GITHUB_OUTPUT"
           echo "ProductVersion: $PRODUCT_VERSION"
@@ -143,8 +134,8 @@ jobs:
 
           dotnet build ${{ env.INSTALLER_PROJECT }} `
             --configuration Release `
-            -p:ProductVersion=${{ steps.version.outputs.msi_version }} `
-            -p:DisplayVersion=${{ steps.version.outputs.version }} `
+            -p:ProductVersion=${{ steps.version.outputs.product_version }} `
+            -p:DisplayVersion=${{ steps.version.outputs.display_version }} `
             -p:DesktopPublishDir="$desktopPublishDir" `
             -p:CliPublishDir="$cliPublishDir" `
             -p:InstallerOutputDir="$installerOutputDir"
@@ -152,7 +143,7 @@ jobs:
       - name: Verify MSI output
         shell: bash
         run: |
-          MSI="${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi"
+          MSI="${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.display_version }}-x64.msi"
           if [ ! -f "$MSI" ]; then
             echo "::error::MSI not found at $MSI"
             ls -la "${{ env.INSTALLER_OUTPUT_DIR }}/" || true
@@ -170,7 +161,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: IntuneCommander-test-msi
-          path: ${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi
+          path: ${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.display_version }}-x64.msi
           retention-days: 30
 
       - name: Upload CLI win-x64 artifact

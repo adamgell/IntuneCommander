@@ -24,24 +24,6 @@
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
     <Property Id="ARPHELPLINK" Value="https://github.com/adamgell/IntuneCommander" />
 
-    <!-- WebView2 launch condition -->
-    <Property Id="WEBVIEW2PERMACHINE">
-      <RegistrySearch Id="WebView2PerMachineSearch"
-                      Root="HKLM"
-                      Key="SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
-                      Name="pv"
-                      Type="raw" />
-    </Property>
-    <Property Id="WEBVIEW2PERUSER">
-      <RegistrySearch Id="WebView2PerUserSearch"
-                      Root="HKCU"
-                      Key="Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
-                      Name="pv"
-                      Type="raw" />
-    </Property>
-    <Launch Condition="(WEBVIEW2PERMACHINE AND WEBVIEW2PERMACHINE &lt;&gt; &quot;&quot; AND WEBVIEW2PERMACHINE &lt;&gt; &quot;0.0.0.0&quot;) OR (WEBVIEW2PERUSER AND WEBVIEW2PERUSER &lt;&gt; &quot;&quot; AND WEBVIEW2PERUSER &lt;&gt; &quot;0.0.0.0&quot;)"
-            Message="Microsoft Edge WebView2 Runtime is required. Please install it from https://developer.microsoft.com/en-us/microsoft-edge/webview2/ and try again." />
-
     <!-- Directories -->
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="Intune Commander" />

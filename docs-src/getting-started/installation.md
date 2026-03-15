@@ -19,7 +19,7 @@ The installer will:
     The MSI and all executables are code-signed via Azure Trusted Signing. If Windows SmartScreen shows a warning on first run, it is because the certificate is building reputation — click **More info > Run anyway** to proceed.
 
 !!! info "WebView2 Requirement"
-    The desktop app requires the Microsoft Edge WebView2 Runtime. It is pre-installed on Windows 10 (April 2018+) and all Windows 11 machines. If missing, the installer will block with a message — install WebView2 from [microsoft.com/edge/webview2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) and re-run the MSI.
+    The desktop app requires the Microsoft Edge WebView2 Runtime. It is pre-installed on Windows 10 (April 2018+) and all Windows 11 machines. The MSI no longer blocks installation if the runtime is missing, so install WebView2 from [microsoft.com/edge/webview2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) if the desktop app does not start on your machine.
 
 ## Standalone CLI
 
