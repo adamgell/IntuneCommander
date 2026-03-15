@@ -103,7 +103,7 @@ Cloud endpoints in `CloudEndpoints.cs`:
 
 `ProfileService` persists `ProfileStore` (list of `TenantProfile`) to `%LocalAppData%\Intune.Commander\profiles.json`. When `IProfileEncryptionService` is injected (always the case in production), the file is prefixed with `INTUNEMANAGER_ENC:` and the payload is DataProtection-encrypted. Plaintext files are migrated to encrypted on next save. On first launch after upgrade from a pre-rename build, `ProfileService.LoadAsync` detects and auto-migrates data from the legacy `%LocalAppData%\IntuneManager\profiles.json` path.
 
-> **Legacy compatibility constants** (do not change without careful consideration): `INTUNEMANAGER_ENC:` marker, `IntuneManager.Profiles.v1` DataProtection purpose (fallback decryptor), and `SetApplicationName("IntuneManager")` in `ServiceCollectionExtensions` (changing this makes all existing encrypted data unreadable).
+> **Legacy compatibility constants** (do not change without careful consideration): `INTUNEMANAGER_ENC:` marker, `IntuneManager.Profiles.v1` DataProtection purpose (fallback decryptor), `SetApplicationName("IntuneManager")` in `ServiceCollectionExtensions` (changing this makes all existing encrypted data unreadable), and MSI `UpgradeCode` GUID `29E042C7-F159-466C-9F23-D2695288319A` in `src/Intune.Commander.Installer/Package.wxs` (changing this breaks upgrade detection for all installed copies).
 
 ### DebugLogService
 

@@ -15,8 +15,12 @@ permissions:
   contents: write
 
 env:
-  PROJECT: src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj
-  PUBLISH_DIR: src/Intune.Commander.DesktopReact/bin/Release/net10.0-windows/win-x64/publish
+  DESKTOP_PROJECT: src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj
+  CLI_PROJECT: src/Intune.Commander.CLI/Intune.Commander.CLI.csproj
+  INSTALLER_PROJECT: src/Intune.Commander.Installer/Intune.Commander.Installer.wixproj
+  DESKTOP_PUBLISH_DIR: ./publish/desktop
+  CLI_PUBLISH_DIR: ./publish/cli
+  INSTALLER_OUTPUT_DIR: ./publish/installer
   REACT_DIR: intune-commander-react
   DOTNET_VERSION: '10.0.x'
   NODE_VERSION: '20'
@@ -70,38 +74,67 @@ jobs:
           git tag -a ${{ steps.version.outputs.tag }} -m "Release ${{ steps.version.outputs.tag }}"
           git push origin ${{ steps.version.outputs.tag }}
 
+      # ── Build React frontend ──
       - name: Build React frontend
         working-directory: ${{ env.REACT_DIR }}
         run: |
           npm ci
           npm run build
 
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.PROJECT }} -r win-x64
+      - name: Verify React dist
+        shell: bash
+        run: |
+          if [ ! -f "${{ env.REACT_DIR }}/dist/index.html" ]; then
+            echo "::error::React dist/index.html not found - frontend build failed"
+            exit 1
+          fi
+          echo "React dist contents:"
+          ls -la "${{ env.REACT_DIR }}/dist/"
 
-      - name: Publish
+      # ── Publish .NET projects ──
+      - name: Publish Desktop
         run: >
-          dotnet publish ${{ env.PROJECT }}
+          dotnet publish ${{ env.DESKTOP_PROJECT }}
           -c Release
           -r win-x64
-          --no-restore
           --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
+          --output ${{ env.DESKTOP_PUBLISH_DIR }}
           -p:Version=${{ steps.version.outputs.version }}
 
+      - name: Publish CLI
+        run: >
+          dotnet publish ${{ env.CLI_PROJECT }}
+          -c Release
+          -r win-x64
+          --self-contained true
+          --output ${{ env.CLI_PUBLISH_DIR }}
+          -p:PublishSingleFile=true
+          -p:Version=${{ steps.version.outputs.version }}
+
+      # ── Verify build output ──
       - name: Verify build output
         shell: bash
         run: |
-          EXE="${{ env.PUBLISH_DIR }}/IntuneCommander.exe"
-          if [ ! -f "$EXE" ]; then
-            echo "::error::Build output not found at $EXE"
-            exit 1
-          fi
-          SIZE=$(stat -c%s "$EXE" 2>/dev/null || stat -f%z "$EXE")
-          echo "Artifact: IntuneCommander.exe ($SIZE bytes)"
+          EXE="${{ env.DESKTOP_PUBLISH_DIR }}/IntuneCommander.exe"
+          WWWROOT="${{ env.DESKTOP_PUBLISH_DIR }}/wwwroot/index.html"
+          CLI="${{ env.CLI_PUBLISH_DIR }}/ic.exe"
 
-      - name: Sign with Trusted Signing
+          FAIL=0
+          for f in "$EXE" "$WWWROOT" "$CLI"; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Required file not found: $f"
+              FAIL=1
+            fi
+          done
+          [ $FAIL -ne 0 ] && exit 1
+
+          SIZE=$(stat -c%s "$EXE" 2>/dev/null || stat -f%z "$EXE")
+          echo "IntuneCommander.exe: $SIZE bytes"
+          CLI_SIZE=$(stat -c%s "$CLI" 2>/dev/null || stat -f%z "$CLI")
+          echo "ic.exe: $CLI_SIZE bytes"
+
+      # ── Sign executables (before MSI so MSI contains signed binaries) ──
+      - name: Sign Desktop exe
         uses: azure/trusted-signing-action@v0
         with:
           azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -110,12 +143,67 @@ jobs:
           endpoint: ${{ secrets.SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ secrets.SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
-          files-folder: ${{ env.PUBLISH_DIR }}
+          files-folder: ${{ env.DESKTOP_PUBLISH_DIR }}
           files-folder-filter: exe
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
 
+      - name: Sign CLI exe
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
+          files-folder: ${{ env.CLI_PUBLISH_DIR }}
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # ── Build MSI installer (packages the already-signed binaries) ──
+      - name: Build MSI installer
+        shell: pwsh
+        run: |
+          dotnet build ${{ env.INSTALLER_PROJECT }} `
+            -c Release `
+            -p:ProductVersion=${{ steps.version.outputs.version }} `
+            -p:DesktopPublishDir="${{ github.workspace }}\publish\desktop" `
+            -p:CliPublishDir="${{ github.workspace }}\publish\cli" `
+            -p:InstallerOutputDir="${{ github.workspace }}\publish\installer"
+
+      - name: Verify MSI output
+        shell: bash
+        run: |
+          MSI="${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi"
+          if [ ! -f "$MSI" ]; then
+            echo "::error::MSI not found at $MSI"
+            ls -la "${{ env.INSTALLER_OUTPUT_DIR }}/" || true
+            exit 1
+          fi
+          SIZE=$(stat -c%s "$MSI" 2>/dev/null || stat -f%z "$MSI")
+          echo "MSI: $SIZE bytes"
+
+      # ── Sign the MSI ──
+      - name: Sign MSI
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
+          files-folder: ${{ env.INSTALLER_OUTPUT_DIR }}
+          files-folder-filter: msi
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # ── Create GitHub Release ──
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -128,7 +216,8 @@ jobs:
 
           gh release create "${{ steps.version.outputs.tag }}" \
             -R "${{ env.GH_REPO }}" \
-            "${{ env.PUBLISH_DIR }}/IntuneCommander.exe" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi" \
+            "${{ env.CLI_PUBLISH_DIR }}/ic.exe" \
             --title "${{ steps.version.outputs.tag }}" \
             --generate-notes \
             $PRERELEASE_FLAG

@@ -16,62 +16,63 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check if .NET solution exists
-        id: check-solution
-        shell: pwsh
-        run: |
-          $solutionExists = Test-Path "Intune.Commander.sln"
-          echo "exists=$($solutionExists.ToString().ToLower())" >> $env:GITHUB_OUTPUT
-          if ($solutionExists) {
-            Write-Host "Solution file found - will build"
-          } else {
-            Write-Host "No solution file - skipping build steps"
-          }
-
       - name: Setup .NET 10
-        if: steps.check-solution.outputs.exists == 'true'
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
 
       - name: Setup Node.js
-        if: steps.check-solution.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Restore dependencies
-        if: steps.check-solution.outputs.exists == 'true'
-        run: dotnet restore Intune.Commander.sln
-
-      - name: Build solution
-        if: steps.check-solution.outputs.exists == 'true'
-        run: dotnet build Intune.Commander.sln --configuration Release --no-restore
-
+      # Build React first so wwwroot is available for dotnet publish
       - name: Build React frontend
-        if: steps.check-solution.outputs.exists == 'true'
         working-directory: intune-commander-react
         run: |
           npm ci
           npm run build
 
+      - name: Verify React dist
+        shell: bash
+        run: |
+          if [ ! -f "intune-commander-react/dist/index.html" ]; then
+            echo "::error::React dist/index.html not found"
+            exit 1
+          fi
+
+      - name: Restore dependencies
+        run: dotnet restore Intune.Commander.sln
+
+      - name: Build solution
+        run: dotnet build Intune.Commander.sln --configuration Release --no-restore
+
       - name: Publish Windows x64 executable
-        if: steps.check-solution.outputs.exists == 'true'
+        shell: pwsh
         run: |
           dotnet publish src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj `
             --configuration Release `
             --runtime win-x64 `
             --self-contained true `
-            --output ./publish `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true
+            --output ./publish/desktop
+
+      - name: Verify publish output
+        shell: bash
+        run: |
+          if [ ! -f "./publish/desktop/IntuneCommander.exe" ]; then
+            echo "::error::IntuneCommander.exe not found"
+            exit 1
+          fi
+          if [ ! -f "./publish/desktop/wwwroot/index.html" ]; then
+            echo "::error::wwwroot/index.html not found - React assets missing from build"
+            exit 1
+          fi
 
       - name: Upload artifact
-        if: steps.check-solution.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Intune.Commander-win-x64
-          path: ./publish/IntuneCommander.exe
+          path: ./publish/desktop/
           retention-days: 30
 
   publish-cli:
