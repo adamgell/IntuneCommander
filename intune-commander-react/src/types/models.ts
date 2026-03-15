@@ -109,6 +109,13 @@ export const primaryNavTabs: PrimaryNavTab[] = [
       { id: 'detection-remediation', label: 'Detection & Remediation' },
     ],
   },
+  {
+    id: 'operations',
+    label: 'Operations',
+    secondaryTabs: [
+      { id: 'assignment-explorer', label: 'Assignment Explorer' },
+    ],
+  },
 ];
 
 // Sidebar items per primary tab
@@ -134,6 +141,7 @@ export const sidebarByTab: Record<string, SidebarSection[]> = {
     {
       label: 'Workspaces',
       items: [
+        { id: 'security-posture', label: 'Security Posture' },
         { id: 'conditional-access', label: 'Conditional Access' },
       ],
     },
@@ -143,6 +151,14 @@ export const sidebarByTab: Record<string, SidebarSection[]> = {
       label: 'Workspaces',
       items: [
         { id: 'detection-remediation', label: 'Detection & Remediation' },
+      ],
+    },
+  ],
+  operations: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'assignment-explorer', label: 'Assignment Explorer' },
       ],
     },
   ],

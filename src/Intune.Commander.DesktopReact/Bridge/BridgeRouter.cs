@@ -22,6 +22,8 @@ public class BridgeRouter : IBridgeService
     private readonly DashboardBridgeService _dashboardBridge;
     private readonly ApplicationBridgeService _applicationBridge;
     private readonly ConditionalAccessBridgeService _conditionalAccessBridge;
+    private readonly SecurityPostureBridgeService _securityPostureBridge;
+    private readonly AssignmentExplorerBridgeService _assignmentExplorerBridge;
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -42,7 +44,9 @@ public class BridgeRouter : IBridgeService
         CacheSyncBridgeService cacheSyncBridge,
         DashboardBridgeService dashboardBridge,
         ApplicationBridgeService applicationBridge,
-        ConditionalAccessBridgeService conditionalAccessBridge)
+        ConditionalAccessBridgeService conditionalAccessBridge,
+        SecurityPostureBridgeService securityPostureBridge,
+        AssignmentExplorerBridgeService assignmentExplorerBridge)
     {
         _profileBridge = profileBridge;
         _authBridge = authBridge;
@@ -56,6 +60,8 @@ public class BridgeRouter : IBridgeService
         _dashboardBridge = dashboardBridge;
         _applicationBridge = applicationBridge;
         _conditionalAccessBridge = conditionalAccessBridge;
+        _securityPostureBridge = securityPostureBridge;
+        _assignmentExplorerBridge = assignmentExplorerBridge;
     }
 
     public void Initialize(CoreWebView2 webView)
@@ -119,6 +125,10 @@ public class BridgeRouter : IBridgeService
             "apps.getDetail" => await _applicationBridge.GetDetailAsync(command.Payload),
             "conditionalAccess.list" => await _conditionalAccessBridge.ListAsync(),
             "conditionalAccess.getDetail" => await _conditionalAccessBridge.GetDetailAsync(command.Payload),
+            "securityPosture.summary" => await _securityPostureBridge.GetSummaryAsync(),
+            "securityPosture.detail" => await _securityPostureBridge.GetDetailAsync(),
+            "assignments.searchGroups" => await _assignmentExplorerBridge.SearchGroupsAsync(command.Payload),
+            "assignments.runReport" => await _assignmentExplorerBridge.RunReportAsync(command.Payload),
             _ => throw new NotSupportedException($"Unknown command: {command.Command}")
         };
     }

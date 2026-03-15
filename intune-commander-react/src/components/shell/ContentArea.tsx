@@ -7,6 +7,8 @@ import { GlobalSearchResultsWorkspace } from '../workspace/GlobalSearchResultsWo
 import { CacheDevWorkspace } from '../workspace/CacheDevWorkspace';
 import { ApplicationsWorkspace } from '../workspace/ApplicationsWorkspace';
 import { ConditionalAccessWorkspace } from '../workspace/ConditionalAccessWorkspace';
+import { SecurityPostureWorkspace } from '../workspace/SecurityPostureWorkspace';
+import { AssignmentExplorerWorkspace } from '../workspace/AssignmentExplorerWorkspace';
 
 const workspaceMap: Record<string, ComponentType> = {
   'global-search': GlobalSearchResultsWorkspace,
@@ -16,6 +18,8 @@ const workspaceMap: Record<string, ComponentType> = {
   'cache-inspector': CacheDevWorkspace,
   'applications': ApplicationsWorkspace,
   'conditional-access': ConditionalAccessWorkspace,
+  'security-posture': SecurityPostureWorkspace,
+  'assignment-explorer': AssignmentExplorerWorkspace,
 };
 
 export function ContentArea() {

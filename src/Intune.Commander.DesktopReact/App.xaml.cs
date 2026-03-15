@@ -30,6 +30,8 @@ public partial class App : Application
         services.AddSingleton<DashboardBridgeService>();
         services.AddSingleton<ApplicationBridgeService>();
         services.AddSingleton<ConditionalAccessBridgeService>();
+        services.AddSingleton<SecurityPostureBridgeService>();
+        services.AddSingleton<AssignmentExplorerBridgeService>();
         services.AddSingleton<BridgeRouter>();
 
         Services = services.BuildServiceProvider();
