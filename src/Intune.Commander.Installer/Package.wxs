@@ -40,7 +40,7 @@
       <Directory Id="INSTALLFOLDER" Name="Intune Commander" />
     </StandardDirectory>
 
-    <StandardDirectory Id="ProgramMenuFolder">
+    <StandardDirectory Id="CommonProgramMenuFolder">
       <Directory Id="AppShortcutDir" Name="Intune Commander" />
     </StandardDirectory>
 
