@@ -1,17 +1,23 @@
-name: Build Release Executable
+name: Build Release Artifacts
 
 on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for manual MSI builds (e.g. 0.4.5 or 0.4.5-beta1)"
+        required: false
 
 env:
+  DEFAULT_MSI_VERSION_PREFIX: 0.0
   DESKTOP_PROJECT: src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj
   CLI_PROJECT: src/Intune.Commander.CLI/Intune.Commander.CLI.csproj
   INSTALLER_PROJECT: src/Intune.Commander.Installer/Intune.Commander.Installer.wixproj
   DESKTOP_PUBLISH_DIR: ./publish/desktop
-  CLI_PUBLISH_DIR: ./publish/cli
+  CLI_PUBLISH_DIR: ./publish-cli/win-x64
   INSTALLER_OUTPUT_DIR: ./publish/installer
+  REACT_DIR: intune-commander-react
 
 jobs:
   build:
@@ -21,6 +27,21 @@ jobs:
       contents: read
 
     steps:
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ env.DEFAULT_MSI_VERSION_PREFIX }}.${{ github.run_number }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # MSI ProductVersion must remain numeric (X.Y.Z), but DisplayVersion can
+          # retain prerelease/build suffixes for artifact naming and manual runs.
+          # Strip any prerelease suffix (e.g. 0.4.5-beta1 -> 0.4.5) for MSI metadata.
+          echo "msi_version=${VERSION%%-*}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -57,7 +78,7 @@ jobs:
 
       # Build React first so wwwroot is available for dotnet publish
       - name: Build React frontend
-        working-directory: intune-commander-react
+        working-directory: ${{ env.REACT_DIR }}
         run: |
           npm ci
           npm run build
@@ -65,7 +86,7 @@ jobs:
       - name: Verify React dist
         shell: bash
         run: |
-          if [ ! -f "intune-commander-react/dist/index.html" ]; then
+          if [ ! -f "${{ env.REACT_DIR }}/dist/index.html" ]; then
             echo "::error::React dist/index.html not found"
             exit 1
           fi
@@ -83,7 +104,19 @@ jobs:
             --configuration Release `
             --runtime win-x64 `
             --self-contained true `
-            --output ${{ env.DESKTOP_PUBLISH_DIR }}
+            --output ${{ env.DESKTOP_PUBLISH_DIR }} `
+            -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish CLI win-x64
+        shell: pwsh
+        run: |
+          dotnet publish ${{ env.CLI_PROJECT }} `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ${{ env.CLI_PUBLISH_DIR }} `
+            -p:PublishSingleFile=true `
+            -p:Version=${{ steps.version.outputs.version }}
 
       - name: Verify publish output
         shell: bash
@@ -96,20 +129,6 @@ jobs:
             echo "::error::wwwroot/index.html not found - React assets missing from build"
             exit 1
           fi
-
-      - name: Publish CLI for MSI packaging
-        shell: pwsh
-        run: |
-          dotnet publish ${{ env.CLI_PROJECT }} `
-            --configuration Release `
-            --runtime win-x64 `
-            --self-contained true `
-            --output ${{ env.CLI_PUBLISH_DIR }} `
-            -p:PublishSingleFile=true
-
-      - name: Verify CLI publish output
-        shell: bash
-        run: |
           if [ ! -f "${{ env.CLI_PUBLISH_DIR }}/ic.exe" ]; then
             echo "::error::ic.exe not found"
             exit 1
@@ -118,25 +137,29 @@ jobs:
       - name: Build MSI installer
         shell: pwsh
         run: |
+          $desktopPublishDir = Join-Path $env:GITHUB_WORKSPACE ($env:DESKTOP_PUBLISH_DIR -replace '^[.][/\\]', '')
+          $cliPublishDir = Join-Path $env:GITHUB_WORKSPACE ($env:CLI_PUBLISH_DIR -replace '^[.][/\\]', '')
+          $installerOutputDir = Join-Path $env:GITHUB_WORKSPACE ($env:INSTALLER_OUTPUT_DIR -replace '^[.][/\\]', '')
+
           dotnet build ${{ env.INSTALLER_PROJECT }} `
-            -c Release `
-            -p:ProductVersion=${{ steps.version.outputs.product_version }} `
-            -p:DisplayVersion=${{ steps.version.outputs.display_version }} `
-            -p:DesktopPublishDir="${{ github.workspace }}\\publish\\desktop" `
-            -p:CliPublishDir="${{ github.workspace }}\\publish\\cli" `
-            -p:InstallerOutputDir="${{ github.workspace }}\\publish\\installer"
+            --configuration Release `
+            -p:ProductVersion=${{ steps.version.outputs.msi_version }} `
+            -p:DisplayVersion=${{ steps.version.outputs.version }} `
+            -p:DesktopPublishDir="$desktopPublishDir" `
+            -p:CliPublishDir="$cliPublishDir" `
+            -p:InstallerOutputDir="$installerOutputDir"
 
       - name: Verify MSI output
         shell: bash
         run: |
-          MSI="${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.display_version }}-x64.msi"
+          MSI="${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi"
           if [ ! -f "$MSI" ]; then
             echo "::error::MSI not found at $MSI"
-            ls -la "${{ env.INSTALLER_OUTPUT_DIR }}/"
+            ls -la "${{ env.INSTALLER_OUTPUT_DIR }}/" || true
             exit 1
           fi
 
-      - name: Upload artifact
+      - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
         with:
           name: Intune.Commander-win-x64
@@ -147,40 +170,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: IntuneCommander-test-msi
-          path: ${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.display_version }}-x64.msi
+          path: ${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi
           retention-days: 30
-
-  publish-cli:
-    if: "!contains(github.event.head_commit.message || '', '[skip ci]')"
-    runs-on: windows-latest
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "10.0.x"
-
-      - name: Restore dependencies
-        run: dotnet restore Intune.Commander.sln
-
-      - name: Publish CLI win-x64
-        shell: pwsh
-        run: |
-          dotnet publish src/Intune.Commander.CLI/Intune.Commander.CLI.csproj `
-            --configuration Release `
-            --runtime win-x64 `
-            --self-contained true `
-            --output ./publish-cli/win-x64 `
-            -p:PublishSingleFile=true
 
       - name: Upload CLI win-x64 artifact
         uses: actions/upload-artifact@v4
         with:
           name: Intune.Commander.CLI-win-x64
-          path: ./publish-cli/win-x64/ic.exe
+          path: ${{ env.CLI_PUBLISH_DIR }}/ic.exe
           retention-days: 30
