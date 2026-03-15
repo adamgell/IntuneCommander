@@ -189,6 +189,11 @@ public class SettingsCatalogService : ISettingsCatalogService
                     .Settings.PostAsync(toPost, cancellationToken: cancellationToken);
             }
         }
+        catch (OperationCanceledException)
+        {
+            // User cancelled — don't attempt rollback, just propagate
+            throw;
+        }
         catch (Exception ex)
         {
             // Best-effort rollback: clear whatever partial state exists, re-POST originals.
