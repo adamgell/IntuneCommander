@@ -63,9 +63,22 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IExportNormalizer, ExportNormalizer>();
         services.AddSingleton<IDriftDetectionService, DriftDetectionService>();
 
-        // Cache — singleton LiteDB-backed cache with encrypted storage
+        // Cache — singleton LiteDB-backed cache with encrypted storage.
+        // Falls back to a no-op NullCacheService if the database file is locked
+        // by another running instance, so the app starts instead of crashing.
         services.AddSingleton<ICacheService>(sp =>
-            new CacheService(sp.GetRequiredService<IDataProtectionProvider>()));
+        {
+            try
+            {
+                return new CacheService(sp.GetRequiredService<IDataProtectionProvider>());
+            }
+            catch (IOException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[CacheService] cache.db locked by another process — falling back to NullCacheService. {ex.Message}");
+                return new NullCacheService();
+            }
+        });
 
         return services;
     }

@@ -64,6 +64,7 @@ Desktop.ini
 profiles.json
 *.pfx
 *.p12
+.env
 
 # Example/test data
 example/
