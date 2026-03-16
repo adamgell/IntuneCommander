@@ -18,7 +18,18 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await webView.EnsureCoreWebView2Async();
+        // Explicit user data folder in %LocalAppData% — required when the exe is in
+        // Program Files (no write access next to exe). Without this, WebView2 silently
+        // fails to initialize and shows a white box.
+        var userDataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Intune.Commander", "WebView2");
+
+        var env = await CoreWebView2Environment.CreateAsync(
+            browserExecutableFolder: null,
+            userDataFolder: userDataFolder);
+
+        await webView.EnsureCoreWebView2Async(env);
 
         var coreWebView = webView.CoreWebView2;
 
@@ -40,9 +51,14 @@ public partial class MainWindow : Window
 #if DEBUG
         coreWebView.Navigate("http://localhost:5173");
 #else
-        var appDir = AppContext.BaseDirectory;
-        var indexPath = Path.Combine(appDir, "wwwroot", "index.html");
-        coreWebView.Navigate(new Uri(indexPath).AbsoluteUri);
+        // Vite ES modules require a real origin — file:// causes null-origin CORS
+        // failures for module imports. Virtual host mapping serves as https://.
+        var wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+        coreWebView.SetVirtualHostNameToFolderMapping(
+            "app.intunecommander.local",
+            wwwroot,
+            CoreWebView2HostResourceAccessKind.Allow);
+        coreWebView.Navigate("https://app.intunecommander.local/index.html");
 #endif
     }
 
@@ -50,10 +66,11 @@ public partial class MainWindow : Window
     {
         var uri = new Uri(args.Uri);
 
-        // Allow local content and dev server
-        if (uri.Scheme == "file")
+        // Allow virtual host serving app content
+        if (uri.Host == "app.intunecommander.local")
             return;
 
+        // Allow dev server
         if (uri.Host == "localhost" && uri.Port == 5173)
             return;
 

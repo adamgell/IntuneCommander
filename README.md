@@ -17,6 +17,10 @@ Intune Commander is a desktop application for managing Microsoft Intune configur
 
 The MSI and all executables are code-signed via Azure Trusted Signing.
 
+### MSIX Package
+
+An **`IntuneCommander-{version}-x64.msix`** is also available on the Releases page. This is the format used for eventual Microsoft Store distribution. For direct sideload installation the signing certificate must be trusted on your machine.
+
 ### Standalone CLI
 
 If you only need the CLI tool, download **`ic.exe`** from the same release page. It's a self-contained single-file executable — no installation required.
@@ -117,7 +121,7 @@ Valid `cloud` values: `Commercial`, `GCC`, `GCCHigh`, `DoD`
 | Authentication | Azure.Identity 1.17.x |
 | Graph API | Microsoft.Graph.Beta 5.130.x-preview |
 | Cache | LiteDB 5.0.x (AES-encrypted) |
-| Installer | WiX v5 |
+| Installer | Master Packager Dev (MSI + MSIX) |
 | Testing | xUnit (200+ tests) |
 
 ## Architecture
@@ -127,7 +131,7 @@ src/
   Intune.Commander.Core/           # Business logic, 30+ Graph API services
   Intune.Commander.DesktopReact/   # WPF + WebView2 host (thin shell)
   Intune.Commander.CLI/            # Command-line interface (ic.exe)
-  Intune.Commander.Installer/      # WiX v5 MSI installer
+  Intune.Commander.Installer/      # Master Packager Dev package (MSI + MSIX)
 intune-commander-react/            # React 19 + TypeScript frontend
 tests/
   Intune.Commander.Core.Tests/     # xUnit tests (200+ cases)
