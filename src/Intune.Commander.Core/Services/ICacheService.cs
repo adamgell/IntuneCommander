@@ -7,6 +7,12 @@ namespace Intune.Commander.Core.Services;
 public interface ICacheService : IDisposable
 {
     /// <summary>
+    /// True when the cache database is open and operational.
+    /// False when the cache is unavailable (e.g. the database file is locked
+    /// by another process) and the service is running in no-op mode.
+    /// </summary>
+    bool IsAvailable { get; }
+    /// <summary>
     /// Retrieves cached data for the given tenant and data type.
     /// Returns null if the cache entry is missing or expired.
     /// </summary>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using Intune.Commander.Core.Services;
 using Intune.Commander.DesktopReact.Bridge;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
@@ -47,6 +48,18 @@ public partial class MainWindow : Window
         // Initialize bridge
         _bridge = App.Services.GetRequiredService<BridgeRouter>();
         _bridge.Initialize(coreWebView);
+
+        // Warn if cache is unavailable — most likely another instance is running
+        var cache = App.Services.GetRequiredService<ICacheService>();
+        if (!cache.IsAvailable)
+        {
+            MessageBox.Show(
+                "The cache database is locked by another running instance of Intune Commander.\n\n" +
+                "The app will continue to work, but caching is disabled for this session.",
+                "Cache Unavailable",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
 
 #if DEBUG
         coreWebView.Navigate("http://localhost:5173");
