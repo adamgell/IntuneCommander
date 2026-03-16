@@ -6,35 +6,32 @@
 #   Invoke-WebRequest https://cdn.masterpackager.com/installer/dev/2.1.1/mpdev_self_contained_x64_2.1.1.msi -OutFile $env:TEMP\mpdev.msi
 #   Start-Process msiexec.exe -ArgumentList "/i $env:TEMP\mpdev.msi /quiet /norestart" -Wait
 #
-# Signed local build (reads .env from repo root):
-#   .\scripts\Build-Installer.ps1 -Sign
-#
-# ARM64 build:
-#   .\scripts\Build-Installer.ps1 -Arm64
-#   .\scripts\Build-Installer.ps1 -Arm64 -Sign
+# Examples:
+#   .\scripts\Build-Installer.ps1                  # x64 unsigned
+#   .\scripts\Build-Installer.ps1 -All             # x64 + arm64 unsigned
+#   .\scripts\Build-Installer.ps1 -All -Sign       # x64 + arm64 signed
+#   .\scripts\Build-Installer.ps1 -Arm64 -Sign     # arm64 signed only
+#   .\scripts\Build-Installer.ps1 -SkipPublish     # repack without rebuilding
 
 [CmdletBinding()]
 param(
     [string]$Version = "1.0.0-local",
     [switch]$Sign,
     [switch]$SkipPublish,
-    [switch]$Arm64
+    [switch]$Arm64,
+    [switch]$All   # Build both x64 and arm64
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$Root          = $PSScriptRoot | Split-Path
-$Arch          = if ($Arm64) { "arm64" } else { "x64" }
-$Runtime       = "win-$Arch"
-$DesktopDir    = Join-Path $Root "publish\desktop$(if ($Arm64) {'-arm64'} else {''})"
-$CliDir        = Join-Path $Root "publish\cli$(if ($Arm64) {'-arm64'} else {''})"
-$InstallerDir  = Join-Path $Root "publish\installer"
-$DesktopProj   = Join-Path $Root "src\Intune.Commander.DesktopReact\Intune.Commander.DesktopReact.csproj"
-$CliProj       = Join-Path $Root "src\Intune.Commander.CLI\Intune.Commander.CLI.csproj"
-$ReactDir      = Join-Path $Root "intune-commander-react"
-$Package       = Join-Path $Root "src\Intune.Commander.Installer\$(if ($Sign) {'package.signed.json'} else {'package.json'})"
-$EnvFile       = Join-Path $Root ".env"
+$Root        = $PSScriptRoot | Split-Path
+$InstallerDir = Join-Path $Root "publish\installer"
+$DesktopProj = Join-Path $Root "src\Intune.Commander.DesktopReact\Intune.Commander.DesktopReact.csproj"
+$CliProj     = Join-Path $Root "src\Intune.Commander.CLI\Intune.Commander.CLI.csproj"
+$ReactDir    = Join-Path $Root "intune-commander-react"
+$Package     = Join-Path $Root "src\Intune.Commander.Installer\$(if ($Sign) {'package.signed.json'} else {'package.json'})"
+$EnvFile     = Join-Path $Root ".env"
 
 function Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function Ok($msg)   { Write-Host "    OK: $msg" -ForegroundColor Green }
@@ -48,7 +45,7 @@ $NumericVersion = $parts -join '.'
 
 # Load .env if -Sign was requested
 if ($Sign) {
-    if (-not (Test-Path $EnvFile)) { Fail ".env not found at $EnvFile — copy .env and fill in your signing values" }
+    if (-not (Test-Path $EnvFile)) { Fail ".env not found at $EnvFile -- fill in your signing values" }
 
     $env_values = @{}
     Get-Content $EnvFile | Where-Object { $_ -match '^\s*[^#]\S+=\S' } | ForEach-Object {
@@ -63,7 +60,6 @@ if ($Sign) {
         }
     }
 
-    # Surface credentials where mpdev/Azure SDK can find them
     $env:AZURE_TENANT_ID       = $env_values['AZURE_TENANT_ID']
     $env:AZURE_CLIENT_ID       = $env_values['AZURE_CLIENT_ID']
     $env:AZURE_CLIENT_SECRET   = $env_values['AZURE_CLIENT_SECRET']
@@ -74,53 +70,63 @@ if ($Sign) {
     Step "Signing enabled -- Azure Trusted Signing ($($env_values['SIGNING_ACCOUNT_NAME']) / $($env_values['SIGNING_PROFILE_NAME']))"
 }
 
+# Determine which architectures to build
+$archs = if ($All) { @('x64', 'arm64') } elseif ($Arm64) { @('arm64') } else { @('x64') }
+
+# ── React build (once, shared across arches) ──────────────────────────────────
 if (-not $SkipPublish) {
-    # Only build React once (shared across arches)
-    if (-not $Arm64) {
-        Step "React build"
-        Push-Location $ReactDir
-        npm ci --silent
-        npm run build
-        Pop-Location
-        if (-not (Test-Path "$ReactDir\dist\index.html")) { Fail "React dist missing" }
-        Ok "dist/index.html present"
-    }
-
-    Step "Publish desktop ($Runtime) -> $DesktopDir"
-    dotnet publish $DesktopProj -c Release -r $Runtime --self-contained true --output $DesktopDir -p:Version=$Version --nologo -v:q
-    if (-not (Test-Path "$DesktopDir\IntuneCommander.exe")) { Fail "IntuneCommander.exe missing" }
-    if (-not $Arm64 -and -not (Test-Path "$DesktopDir\wwwroot\index.html")) { Fail "wwwroot/index.html missing" }
-    Ok "IntuneCommander.exe present"
-
-    Step "Publish CLI ($Runtime) -> $CliDir"
-    dotnet publish $CliProj -c Release -r $Runtime --self-contained true --output $CliDir -p:PublishSingleFile=true -p:Version=$Version --nologo -v:q
-    if (-not (Test-Path "$CliDir\ic.exe")) { Fail "ic.exe missing" }
-    Ok "ic.exe present"
+    Step "React build"
+    Push-Location $ReactDir
+    npm ci --silent
+    npm run build
+    Pop-Location
+    if (-not (Test-Path "$ReactDir\dist\index.html")) { Fail "React dist missing" }
+    Ok "dist/index.html present"
 }
 
-# Set env vars that mpdev's %IC_*% expansion will pick up
-$env:IC_DESKTOP_PUBLISH_DIR = $DesktopDir
-$env:IC_CLI_PUBLISH_DIR     = $CliDir
-
-Step "mpdev build (MSI + MSIX, $Arch)"
 New-Item -ItemType Directory -Force -Path $InstallerDir | Out-Null
-$props = @(
-    "$.version=$NumericVersion",
-    "$.outputFileName=IntuneCommander-$Version-$Arch",
-    "$.platform=$Arch"
-)
 
-mpdev build $Package --working-dir $Root --properties @props
+# ── Per-architecture build ────────────────────────────────────────────────────
+foreach ($arch in $archs) {
+    $runtime    = "win-$arch"
+    $desktopDir = Join-Path $Root "publish\desktop$(if ($arch -eq 'arm64') {'-arm64'} else {''})"
+    $cliDir     = Join-Path $Root "publish\cli$(if ($arch -eq 'arm64') {'-arm64'} else {''})"
 
-Step "Verify output"
-foreach ($ext in 'msi','msix') {
-    $f = Join-Path $InstallerDir "IntuneCommander-$Version-$Arch.$ext"
-    if (Test-Path $f) {
-        $size = [math]::Round((Get-Item $f).Length / 1MB, 1)
-        Ok "$ext -> $f ($size MB)"
-    } else {
-        Fail "$ext not found at $f"
+    if (-not $SkipPublish) {
+        Step "Publish desktop ($runtime) -> $desktopDir"
+        dotnet publish $DesktopProj -c Release -r $runtime --self-contained true --output $desktopDir -p:Version=$Version --nologo -v:q
+        if (-not (Test-Path "$desktopDir\IntuneCommander.exe")) { Fail "IntuneCommander.exe missing ($arch)" }
+        if ($arch -eq 'x64' -and -not (Test-Path "$desktopDir\wwwroot\index.html")) { Fail "wwwroot/index.html missing" }
+        Ok "IntuneCommander.exe present"
+
+        Step "Publish CLI ($runtime) -> $cliDir"
+        dotnet publish $CliProj -c Release -r $runtime --self-contained true --output $cliDir -p:PublishSingleFile=true -p:Version=$Version --nologo -v:q
+        if (-not (Test-Path "$cliDir\ic.exe")) { Fail "ic.exe missing ($arch)" }
+        Ok "ic.exe present"
+    }
+
+    $env:IC_DESKTOP_PUBLISH_DIR = $desktopDir
+    $env:IC_CLI_PUBLISH_DIR     = $cliDir
+
+    Step "mpdev build (MSI + MSIX, $arch)"
+    $props = @(
+        "$.version=$NumericVersion",
+        "$.outputFileName=IntuneCommander-$Version-$arch",
+        "$.platform=$arch"
+    )
+    mpdev build $Package --working-dir $Root --properties @props
+
+    Step "Verify $arch output"
+    foreach ($ext in 'msi', 'msix') {
+        $f = Join-Path $InstallerDir "IntuneCommander-$Version-$arch.$ext"
+        if (Test-Path $f) {
+            $size = [math]::Round((Get-Item $f).Length / 1MB, 1)
+            Ok "$arch $ext -> $f ($size MB)"
+        } else {
+            Fail "$arch $ext not found at $f"
+        }
     }
 }
 
 Write-Host "`nDone. Installers are in: $InstallerDir`n" -ForegroundColor Green
+Get-ChildItem $InstallerDir -Filter "IntuneCommander-$Version-*" | Select-Object Name, @{n='MB';e={[math]::Round($_.Length/1MB,1)}} | Format-Table -AutoSize
