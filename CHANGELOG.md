@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [0.4.6.2] — 2026-03-16
+
+### Fixed
+- **App showed a white box when launched from MSI install.** Two root causes: WebView2 couldn't create its data directory inside `C:\Program Files\` (no write access for standard users), and Vite's ES module script tags fail under a `file://` origin. Both are now resolved — the app navigates via a virtual host (`https://app.intunecommander.local`) and stores its WebView2 data in `%LocalAppData%\Intune.Commander\WebView2`.
+- **Second instance crashed instead of starting.** When a second copy of the app was launched while another was already running, both tried to open the same `cache.db` file exclusively. The app now detects this, falls back to a no-op cache, and shows a clear warning dialog instead of crashing.
+
+### Added
+- **ARM64 installers.** Both MSI and MSIX are now built for ARM64 alongside x64, and are published in every release.
+- **Simplified installer toolchain.** The WiX installer has been replaced with Master Packager Dev (mpdev), which produces both MSI and MSIX from a single JSON package definition.
+
+### Updated
+- OIB (Operating System Intune Baselines) definitions updated to March 2026.
+
+---
+
 ## [0.4.5] — 2026-03-14
 
 ### Added
