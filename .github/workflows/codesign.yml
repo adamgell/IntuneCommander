@@ -310,6 +310,12 @@ jobs:
             exit 1
           fi
 
+      - name: Prepare CLI release assets
+        shell: pwsh
+        run: |
+          Copy-Item "${{ env.CLI_PUBLISH_DIR }}\ic.exe" "${{ env.INSTALLER_OUTPUT_DIR }}\ic-x64.exe" -Force
+          Copy-Item "${{ env.CLI_PUBLISH_DIR_ARM64 }}\ic.exe" "${{ env.INSTALLER_OUTPUT_DIR }}\ic-arm64.exe" -Force
+
       # ── Create GitHub Release ──
       - name: Create GitHub Release
         env:
@@ -328,8 +334,8 @@ jobs:
             "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msix" \
             "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-arm64.msi" \
             "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-arm64.msix" \
-            "${{ env.CLI_PUBLISH_DIR }}/ic.exe#ic-x64.exe" \
-            "${{ env.CLI_PUBLISH_DIR_ARM64 }}/ic.exe#ic-arm64.exe" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/ic-x64.exe" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/ic-arm64.exe" \
             --title "${{ steps.version.outputs.tag }}" \
             --generate-notes \
             $PRERELEASE_FLAG
