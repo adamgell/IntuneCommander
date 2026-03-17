@@ -6,6 +6,9 @@ import { DetectionRemediationWorkspace } from '../workspace/DetectionRemediation
 import { GlobalSearchResultsWorkspace } from '../workspace/GlobalSearchResultsWorkspace';
 import { CacheDevWorkspace } from '../workspace/CacheDevWorkspace';
 import { ApplicationsWorkspace } from '../workspace/ApplicationsWorkspace';
+import { AppAssignmentsWorkspace } from '../workspace/AppAssignmentsWorkspace';
+import { BulkAppAssignmentsWorkspace } from '../workspace/BulkAppAssignmentsWorkspace';
+import { AppProtectionPoliciesWorkspace } from '../workspace/AppProtectionPoliciesWorkspace';
 import { ConditionalAccessWorkspace } from '../workspace/ConditionalAccessWorkspace';
 import { SecurityPostureWorkspace } from '../workspace/SecurityPostureWorkspace';
 import { AssignmentExplorerWorkspace } from '../workspace/AssignmentExplorerWorkspace';
@@ -19,6 +22,9 @@ import { DriftDetectionWorkspace } from '../workspace/DriftDetectionWorkspace';
 import { ExportImportWorkspace } from '../workspace/ExportImportWorkspace';
 import { TenantAdminWorkspace } from '../workspace/TenantAdminWorkspace';
 import { GroupsWorkspace } from '../workspace/GroupsWorkspace';
+import { ManagedDeviceAppConfigurationsWorkspace } from '../workspace/ManagedDeviceAppConfigurationsWorkspace';
+import { TargetedManagedAppConfigurationsWorkspace } from '../workspace/TargetedManagedAppConfigurationsWorkspace';
+import { VppTokensWorkspace } from '../workspace/VppTokensWorkspace';
 
 const workspaceMap: Record<string, ComponentType> = {
   'global-search': GlobalSearchResultsWorkspace,
@@ -27,6 +33,12 @@ const workspaceMap: Record<string, ComponentType> = {
   'detection-remediation': DetectionRemediationWorkspace,
   'cache-inspector': CacheDevWorkspace,
   'applications': ApplicationsWorkspace,
+  'application-assignments': AppAssignmentsWorkspace,
+  'bulk-app-assignments': BulkAppAssignmentsWorkspace,
+  'app-protection-policies': AppProtectionPoliciesWorkspace,
+  'managed-device-app-configurations': ManagedDeviceAppConfigurationsWorkspace,
+  'targeted-managed-app-configurations': TargetedManagedAppConfigurationsWorkspace,
+  'vpp-tokens': VppTokensWorkspace,
   'conditional-access': ConditionalAccessWorkspace,
   'security-posture': SecurityPostureWorkspace,
   'assignment-explorer': AssignmentExplorerWorkspace,

@@ -11,6 +11,7 @@ const eventListeners = new Map<string, Set<(payload: unknown) => void>>();
 
 const DEFAULT_TIMEOUT = 10_000;
 const HEAVY_TIMEOUT = 60_000;   // 60s for detail views with multiple Graph calls
+const LONG_RUNNING_TIMEOUT = 180_000;
 const AUTH_TIMEOUT = 120_000;
 const DIALOG_TIMEOUT = 300_000; // 5 min for file/folder picker dialogs
 
@@ -21,6 +22,11 @@ const HEAVY_COMMANDS = new Set([
   'securityPosture.summary',
   'securityPosture.detail',
   'assignments.runReport',
+  'bulkAppAssignments.bootstrap',
+]);
+
+const LONG_RUNNING_COMMANDS = new Set([
+  'bulkAppAssignments.apply',
 ]);
 const DEV_WS_URL = 'ws://localhost:5100/ws/';
 
@@ -73,8 +79,9 @@ export function sendCommand<T = unknown>(command: string, payload?: unknown): Pr
   const id = crypto.randomUUID();
   const timeout = command.startsWith('auth.') ? AUTH_TIMEOUT
     : command.startsWith('dialog.') ? DIALOG_TIMEOUT
-    : HEAVY_COMMANDS.has(command) ? HEAVY_TIMEOUT
-    : DEFAULT_TIMEOUT;
+      : LONG_RUNNING_COMMANDS.has(command) ? LONG_RUNNING_TIMEOUT
+        : HEAVY_COMMANDS.has(command) ? HEAVY_TIMEOUT
+          : DEFAULT_TIMEOUT;
   const msg: BridgeCommand = { protocol: 'ic/1', id, command, payload };
 
   return new Promise<T>((resolve, reject) => {

@@ -7,6 +7,17 @@ namespace Intune.Commander.Core.Services;
 public class ApplicationService : IApplicationService
 {
     private readonly GraphServiceClient _graphClient;
+    private static readonly string[] ApplicationListSelectFields =
+    [
+        // Base MobileApp properties that are safe to query across the mixed mobileApps collection.
+        "id", "displayName", "description", "publisher",
+        "owner", "developer", "notes",
+        "isFeatured", "isAssigned",
+        "informationUrl", "privacyInformationUrl",
+        "createdDateTime", "lastModifiedDateTime", "publishingState",
+        "roleScopeTagIds", "categories",
+        "supersededAppCount", "supersedingAppCount", "dependentAppCount"
+    ];
 
     public ApplicationService(GraphServiceClient graphClient)
     {
@@ -22,50 +33,7 @@ public class ApplicationService : IApplicationService
             .GetAsync(req =>
             {
                 req.QueryParameters.Top = 999;
-                req.QueryParameters.Select = [
-                    // Base MobileApp properties used in the detail panel and column grid
-                    "id", "displayName", "description", "publisher",
-                    "owner", "developer", "notes",
-                    "isFeatured", "isAssigned",
-                    "informationUrl", "privacyInformationUrl",
-                    "createdDateTime", "lastModifiedDateTime", "publishingState",
-                    "roleScopeTagIds", "categories",
-                    // Superseded/dependent counts surfaced in the Application Details section
-                    "supersededAppCount", "supersedingAppCount", "dependentAppCount",
-                    // Subtype: Win32LobApp
-                    "microsoft.graph.win32LobApp/installCommandLine",
-                    "microsoft.graph.win32LobApp/uninstallCommandLine",
-                    "microsoft.graph.win32LobApp/installExperience",
-                    "microsoft.graph.win32LobApp/msiInformation",
-                    "microsoft.graph.win32LobApp/size",
-                    "microsoft.graph.win32LobApp/minimumSupportedWindowsRelease",
-                    // Subtype: IosLobApp
-                    "microsoft.graph.iosLobApp/bundleId",
-                    "microsoft.graph.iosLobApp/versionNumber",
-                    "microsoft.graph.iosLobApp/minimumSupportedOperatingSystem",
-                    "microsoft.graph.iosLobApp/size",
-                    // Subtype: IosStoreApp
-                    "microsoft.graph.iosStoreApp/bundleId",
-                    "microsoft.graph.iosStoreApp/appStoreUrl",
-                    "microsoft.graph.iosStoreApp/minimumSupportedOperatingSystem",
-                    // Subtype: IosVppApp
-                    "microsoft.graph.iosVppApp/bundleId",
-                    // Subtype: MacOSLobApp
-                    "microsoft.graph.macOSLobApp/bundleId",
-                    "microsoft.graph.macOSLobApp/versionNumber",
-                    "microsoft.graph.macOSLobApp/minimumSupportedOperatingSystem",
-                    "microsoft.graph.macOSLobApp/size",
-                    // Subtype: MacOSDmgApp
-                    "microsoft.graph.macOSDmgApp/primaryBundleId",
-                    "microsoft.graph.macOSDmgApp/primaryBundleVersion",
-                    "microsoft.graph.macOSDmgApp/minimumSupportedOperatingSystem",
-                    // Subtype: AndroidStoreApp
-                    "microsoft.graph.androidStoreApp/packageId",
-                    "microsoft.graph.androidStoreApp/appStoreUrl",
-                    "microsoft.graph.androidStoreApp/minimumSupportedOperatingSystem",
-                    // Subtype: WebApp
-                    "microsoft.graph.webApp/appUrl",
-                ];
+                req.QueryParameters.Select = ApplicationListSelectFields;
             }, cancellationToken);
 
         while (response != null)
@@ -133,5 +101,16 @@ public class ApplicationService : IApplicationService
             .Assignments.GetAsync(cancellationToken: cancellationToken);
 
         return response?.Value ?? [];
+    }
+
+    public async Task AssignApplicationAsync(string appId, List<MobileAppAssignment> assignments, CancellationToken cancellationToken = default)
+    {
+        await _graphClient.DeviceAppManagement.MobileApps[appId]
+            .Assign.PostAsync(
+                new Microsoft.Graph.Beta.DeviceAppManagement.MobileApps.Item.Assign.AssignPostRequestBody
+                {
+                    MobileAppAssignments = assignments
+                },
+                cancellationToken: cancellationToken);
     }
 }

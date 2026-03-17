@@ -50,6 +50,17 @@ public class ApplicationServiceTests
     }
 
     [Fact]
+    public void Interface_DefinesAssignMethod()
+    {
+        var method = typeof(IApplicationService).GetMethod("AssignApplicationAsync");
+        Assert.NotNull(method);
+        Assert.Equal(typeof(Task), method.ReturnType);
+        var parameters = method.GetParameters();
+        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.Equal(typeof(List<MobileAppAssignment>), parameters[1].ParameterType);
+    }
+
+    [Fact]
     public void Interface_AllMethodsAcceptCancellationToken()
     {
         var methods = typeof(IApplicationService).GetMethods();
@@ -63,10 +74,10 @@ public class ApplicationServiceTests
     }
 
     [Fact]
-    public void Interface_HasThreeMethods()
+    public void Interface_HasFourMethods()
     {
         var methods = typeof(IApplicationService).GetMethods();
-        Assert.Equal(3, methods.Length);
+        Assert.Equal(4, methods.Length);
     }
 
     [Fact]

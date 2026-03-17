@@ -421,6 +421,8 @@ public class GroupServiceTests
             => Task.FromResult<MobileApp?>(null);
         public Task<List<MobileAppAssignment>> GetAssignmentsAsync(string appId, CancellationToken cancellationToken = default)
             => Task.FromResult(new List<MobileAppAssignment>());
+        public Task AssignApplicationAsync(string appId, List<MobileAppAssignment> assignments, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 
     private sealed class GroupTestConfigService : IConfigurationProfileService
@@ -505,5 +507,8 @@ public class GroupServiceTests
 
         public Task<List<MobileAppAssignment>> GetAssignmentsAsync(string appId, CancellationToken cancellationToken = default)
             => Task.FromResult(_assignments.TryGetValue(appId, out var value) ? value : []);
+
+        public Task AssignApplicationAsync(string appId, List<MobileAppAssignment> assignments, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 }

@@ -92,7 +92,13 @@ export const primaryNavTabs: PrimaryNavTab[] = [
     id: 'applications',
     label: 'Applications',
     secondaryTabs: [
-      { id: 'applications', label: 'App Gallery' },
+      { id: 'applications', label: 'Applications' },
+      { id: 'application-assignments', label: 'Application Assignments' },
+      { id: 'bulk-app-assignments', label: 'Bulk Assignment' },
+      { id: 'app-protection-policies', label: 'App Protection Policies' },
+      { id: 'managed-device-app-configurations', label: 'Managed Device App Configurations' },
+      { id: 'targeted-managed-app-configurations', label: 'Targeted Managed App Configurations' },
+      { id: 'vpp-tokens', label: 'VPP Tokens' },
     ],
   },
   {
@@ -143,7 +149,13 @@ export const sidebarByTab: Record<string, SidebarSection[]> = {
     {
       label: 'Workspaces',
       items: [
-        { id: 'applications', label: 'App Gallery' },
+        { id: 'applications', label: 'Applications' },
+        { id: 'application-assignments', label: 'Application Assignments' },
+        { id: 'bulk-app-assignments', label: 'Bulk Assignment' },
+        { id: 'app-protection-policies', label: 'App Protection Policies' },
+        { id: 'managed-device-app-configurations', label: 'Managed Device App Configurations' },
+        { id: 'targeted-managed-app-configurations', label: 'Targeted Managed App Configurations' },
+        { id: 'vpp-tokens', label: 'VPP Tokens' },
       ],
     },
   ],

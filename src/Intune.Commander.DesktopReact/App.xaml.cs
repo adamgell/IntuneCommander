@@ -29,6 +29,12 @@ public partial class App : Application
         services.AddSingleton<CacheSyncBridgeService>();
         services.AddSingleton<DashboardBridgeService>();
         services.AddSingleton<ApplicationBridgeService>();
+        services.AddSingleton<ApplicationAssignmentsBridgeService>();
+        services.AddSingleton<BulkAppAssignmentBridgeService>();
+        services.AddSingleton<AppProtectionPolicyBridgeService>();
+        services.AddSingleton<ManagedDeviceAppConfigurationBridgeService>();
+        services.AddSingleton<TargetedManagedAppConfigurationBridgeService>();
+        services.AddSingleton<VppTokenBridgeService>();
         services.AddSingleton<ConditionalAccessBridgeService>();
         services.AddSingleton<SecurityPostureBridgeService>();
         services.AddSingleton<AssignmentExplorerBridgeService>();

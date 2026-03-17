@@ -1,5 +1,9 @@
 import { useApplicationsStore } from '../../store/applicationsStore';
 
+function formatDateTime(value?: string) {
+  return value ? new Date(value).toLocaleString() : '—';
+}
+
 export function AppDetailPanel() {
   const appDetail = useApplicationsStore((s) => s.appDetail);
   const isLoadingDetail = useApplicationsStore((s) => s.isLoadingDetail);
@@ -64,13 +68,17 @@ export function AppDetailPanel() {
               <span className="fluent-status-number">{appDetail.publishingState}</span>
               <span className="fluent-status-label">State</span>
             </div>
-            {appDetail.sizeMB !== undefined && appDetail.sizeMB > 0 && (
-              <div className="fluent-status-card">
-                <span className="fluent-status-number">{appDetail.sizeMB} MB</span>
-                <span className="fluent-status-label">Size</span>
+                {appDetail.sizeMB !== undefined && appDetail.sizeMB > 0 && (
+                  <div className="fluent-status-card">
+                    <span className="fluent-status-number">{appDetail.sizeMB} MB</span>
+                    <span className="fluent-status-label">Size</span>
+                  </div>
+                )}
+                <div className="fluent-status-card">
+                  <span className="fluent-status-number">{appDetail.isFeatured ? 'Yes' : 'No'}</span>
+                  <span className="fluent-status-label">Featured</span>
+                </div>
               </div>
-            )}
-          </div>
 
           <div className="detail-divider" />
 
@@ -106,6 +114,16 @@ export function AppDetailPanel() {
                     <div className="fluent-property-value">{appDetail.developer}</div>
                   </div>
                 )}
+                {appDetail.owner && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">Owner</div>
+                    <div className="fluent-property-value">{appDetail.owner}</div>
+                  </div>
+                )}
+                <div className="fluent-property-row">
+                  <div className="fluent-property-label">Featured</div>
+                  <div className="fluent-property-value">{appDetail.isFeatured ? 'Yes' : 'No'}</div>
+                </div>
                 {appDetail.version && (
                   <div className="fluent-property-row">
                     <div className="fluent-property-label">Version</div>
@@ -140,20 +158,94 @@ export function AppDetailPanel() {
                     </div>
                   </div>
                 )}
+                {appDetail.installContext && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">Install context</div>
+                    <div className="fluent-property-value">{appDetail.installContext}</div>
+                  </div>
+                )}
+                {appDetail.sizeMB !== undefined && appDetail.sizeMB > 0 && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">Size</div>
+                    <div className="fluent-property-value">{appDetail.sizeMB} MB</div>
+                  </div>
+                )}
+                {appDetail.supersededAppCount > 0 && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">Superseded apps</div>
+                    <div className="fluent-property-value">{appDetail.supersededAppCount}</div>
+                  </div>
+                )}
                 <div className="fluent-property-row">
                   <div className="fluent-property-label">Last modified</div>
-                  <div className="fluent-property-value">
-                    {appDetail.lastModifiedDateTime
-                      ? new Date(appDetail.lastModifiedDateTime).toLocaleString()
-                      : ''}
-                  </div>
+                  <div className="fluent-property-value">{formatDateTime(appDetail.lastModifiedDateTime)}</div>
                 </div>
                 <div className="fluent-property-row">
                   <div className="fluent-property-label">Created</div>
+                  <div className="fluent-property-value">{formatDateTime(appDetail.createdDateTime)}</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="detail-divider" />
+
+          <section className="fluent-section">
+            <div className="fluent-section-header">
+              <strong>Links & metadata</strong>
+            </div>
+            <div className="fluent-subsection">
+              <div className="fluent-properties">
+                {appDetail.informationUrl && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">Information URL</div>
+                    <div className="fluent-property-value" style={{ wordBreak: 'break-all' }}>{appDetail.informationUrl}</div>
+                  </div>
+                )}
+                {appDetail.privacyInformationUrl && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">Privacy URL</div>
+                    <div className="fluent-property-value" style={{ wordBreak: 'break-all' }}>{appDetail.privacyInformationUrl}</div>
+                  </div>
+                )}
+                {appDetail.appStoreUrl && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">App Store URL</div>
+                    <div className="fluent-property-value" style={{ wordBreak: 'break-all' }}>{appDetail.appStoreUrl}</div>
+                  </div>
+                )}
+                {appDetail.notes && (
+                  <div className="fluent-property-row">
+                    <div className="fluent-property-label">Notes</div>
+                    <div className="fluent-property-value">{appDetail.notes}</div>
+                  </div>
+                )}
+                <div className="fluent-property-row">
+                  <div className="fluent-property-label">Categories</div>
                   <div className="fluent-property-value">
-                    {appDetail.createdDateTime
-                      ? new Date(appDetail.createdDateTime).toLocaleString()
-                      : ''}
+                    {appDetail.categories.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {appDetail.categories.map((category) => (
+                          <span
+                            key={category}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              borderRadius: 999,
+                              padding: '4px 10px',
+                              fontSize: 11,
+                              background: 'rgba(59,130,246,0.12)',
+                              color: '#93c5fd',
+                              border: '1px solid rgba(59,130,246,0.24)',
+                            }}
+                          >
+                            {category}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      'None'
+                    )}
                   </div>
                 </div>
               </div>
@@ -175,7 +267,8 @@ export function AppDetailPanel() {
                   <table className="fluent-assignment-table">
                     <thead>
                       <tr>
-                        <th>Group</th>
+                       <th>Group</th>
+                        <th>Intent</th>
                         <th>Filter</th>
                       </tr>
                     </thead>
@@ -183,6 +276,7 @@ export function AppDetailPanel() {
                       {appDetail.assignments.required.map((a, i) => (
                         <tr key={i}>
                           <td>{a.groupName}</td>
+                          <td>{a.intent}</td>
                           <td className="muted">{a.filter ?? 'None'}</td>
                         </tr>
                       ))}
@@ -199,7 +293,8 @@ export function AppDetailPanel() {
                   <table className="fluent-assignment-table">
                     <thead>
                       <tr>
-                        <th>Group</th>
+                       <th>Group</th>
+                        <th>Intent</th>
                         <th>Filter</th>
                       </tr>
                     </thead>
@@ -207,6 +302,7 @@ export function AppDetailPanel() {
                       {appDetail.assignments.available.map((a, i) => (
                         <tr key={i}>
                           <td>{a.groupName}</td>
+                          <td>{a.intent}</td>
                           <td className="muted">{a.filter ?? 'None'}</td>
                         </tr>
                       ))}
@@ -223,7 +319,8 @@ export function AppDetailPanel() {
                   <table className="fluent-assignment-table">
                     <thead>
                       <tr>
-                        <th>Group</th>
+                       <th>Group</th>
+                        <th>Intent</th>
                         <th>Filter</th>
                       </tr>
                     </thead>
@@ -231,6 +328,7 @@ export function AppDetailPanel() {
                       {appDetail.assignments.uninstall.map((a, i) => (
                         <tr key={i}>
                           <td>{a.groupName}</td>
+                          <td>{a.intent}</td>
                           <td className="muted">{a.filter ?? 'None'}</td>
                         </tr>
                       ))}

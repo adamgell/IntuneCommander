@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
-import { sidebarByTab } from '../../types/models';
+import { primaryNavTabs, sidebarByTab } from '../../types/models';
 import type { SidebarSection } from '../../types/models';
 import '../../styles/sidebar.css';
 
@@ -15,10 +15,14 @@ export function Sidebar() {
   const activePrimaryTab = useAppStore((s) => s.activePrimaryTab);
   const activeSidebarItem = useAppStore((s) => s.activeSidebarItem);
   const setSidebarItem = useAppStore((s) => s.setSidebarItem);
+  const setSecondaryTab = useAppStore((s) => s.setSecondaryTab);
   const [searchQuery, setSearchQuery] = useState('');
 
   const tabSections = sidebarByTab[activePrimaryTab] ?? [];
   const sections = [...tabSections, devSection];
+  const secondaryTabIds = new Set(
+    primaryNavTabs.find((tab) => tab.id === activePrimaryTab)?.secondaryTabs.map((tab) => tab.id) ?? [],
+  );
 
   const filteredSections = searchQuery
     ? sections
@@ -56,7 +60,14 @@ export function Sidebar() {
               <button
                 key={item.id}
                 className={`nav-item${item.id === activeSidebarItem ? ' active' : ''}`}
-                onClick={() => setSidebarItem(item.id)}
+                onClick={() => {
+                  if (secondaryTabIds.has(item.id)) {
+                    setSecondaryTab(item.id);
+                    return;
+                  }
+
+                  setSidebarItem(item.id);
+                }}
               >
                 <span className="nav-item-label">{item.label}</span>
                 {item.count !== undefined && (

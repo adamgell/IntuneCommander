@@ -21,6 +21,12 @@ public class BridgeRouter : IBridgeService
     private readonly CacheSyncBridgeService _cacheSyncBridge;
     private readonly DashboardBridgeService _dashboardBridge;
     private readonly ApplicationBridgeService _applicationBridge;
+    private readonly ApplicationAssignmentsBridgeService _applicationAssignmentsBridge;
+    private readonly BulkAppAssignmentBridgeService _bulkAppAssignmentBridge;
+    private readonly AppProtectionPolicyBridgeService _appProtectionPolicyBridge;
+    private readonly ManagedDeviceAppConfigurationBridgeService _managedDeviceAppConfigurationBridge;
+    private readonly TargetedManagedAppConfigurationBridgeService _targetedManagedAppConfigurationBridge;
+    private readonly VppTokenBridgeService _vppTokenBridge;
     private readonly ConditionalAccessBridgeService _conditionalAccessBridge;
     private readonly SecurityPostureBridgeService _securityPostureBridge;
     private readonly AssignmentExplorerBridgeService _assignmentExplorerBridge;
@@ -52,6 +58,12 @@ public class BridgeRouter : IBridgeService
         CacheSyncBridgeService cacheSyncBridge,
         DashboardBridgeService dashboardBridge,
         ApplicationBridgeService applicationBridge,
+        ApplicationAssignmentsBridgeService applicationAssignmentsBridge,
+        BulkAppAssignmentBridgeService bulkAppAssignmentBridge,
+        AppProtectionPolicyBridgeService appProtectionPolicyBridge,
+        ManagedDeviceAppConfigurationBridgeService managedDeviceAppConfigurationBridge,
+        TargetedManagedAppConfigurationBridgeService targetedManagedAppConfigurationBridge,
+        VppTokenBridgeService vppTokenBridge,
         ConditionalAccessBridgeService conditionalAccessBridge,
         SecurityPostureBridgeService securityPostureBridge,
         AssignmentExplorerBridgeService assignmentExplorerBridge,
@@ -75,6 +87,12 @@ public class BridgeRouter : IBridgeService
         _cacheSyncBridge = cacheSyncBridge;
         _dashboardBridge = dashboardBridge;
         _applicationBridge = applicationBridge;
+        _applicationAssignmentsBridge = applicationAssignmentsBridge;
+        _bulkAppAssignmentBridge = bulkAppAssignmentBridge;
+        _appProtectionPolicyBridge = appProtectionPolicyBridge;
+        _managedDeviceAppConfigurationBridge = managedDeviceAppConfigurationBridge;
+        _targetedManagedAppConfigurationBridge = targetedManagedAppConfigurationBridge;
+        _vppTokenBridge = vppTokenBridge;
         _conditionalAccessBridge = conditionalAccessBridge;
         _securityPostureBridge = securityPostureBridge;
         _assignmentExplorerBridge = assignmentExplorerBridge;
@@ -147,6 +165,18 @@ public class BridgeRouter : IBridgeService
             "dashboard.complianceSummary" => await _dashboardBridge.GetComplianceSummaryAsync(command.Payload),
             "apps.list" => await _applicationBridge.ListAsync(),
             "apps.getDetail" => await _applicationBridge.GetDetailAsync(command.Payload),
+            "appAssignments.list" => await _applicationAssignmentsBridge.ListAsync(),
+            "appAssignments.getDetail" => await _applicationAssignmentsBridge.GetDetailAsync(command.Payload),
+            "bulkAppAssignments.bootstrap" => await _bulkAppAssignmentBridge.GetBootstrapAsync(),
+            "bulkAppAssignments.apply" => await _bulkAppAssignmentBridge.ApplyAsync(command.Payload),
+            "appProtectionPolicies.list" => await _appProtectionPolicyBridge.ListAsync(),
+            "appProtectionPolicies.getDetail" => await _appProtectionPolicyBridge.GetDetailAsync(command.Payload),
+            "managedDeviceAppConfigurations.list" => await _managedDeviceAppConfigurationBridge.ListAsync(),
+            "managedDeviceAppConfigurations.getDetail" => await _managedDeviceAppConfigurationBridge.GetDetailAsync(command.Payload),
+            "targetedManagedAppConfigurations.list" => await _targetedManagedAppConfigurationBridge.ListAsync(),
+            "targetedManagedAppConfigurations.getDetail" => await _targetedManagedAppConfigurationBridge.GetDetailAsync(command.Payload),
+            "vppTokens.list" => await _vppTokenBridge.ListAsync(),
+            "vppTokens.getDetail" => await _vppTokenBridge.GetDetailAsync(command.Payload),
             "conditionalAccess.list" => await _conditionalAccessBridge.ListAsync(),
             "conditionalAccess.getDetail" => await _conditionalAccessBridge.GetDetailAsync(command.Payload),
             "securityPosture.summary" => await _securityPostureBridge.GetSummaryAsync(),

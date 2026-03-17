@@ -13,7 +13,8 @@ public class ApplicationBridgeService
     private readonly ShellStateBridgeService _shellState;
     private readonly ConcurrentDictionary<string, string> _groupNameCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private const string CacheKeyApplications = "Applications";
+    internal const string CacheKeyApplications = "Applications";
+    internal const string CacheKeyApplicationDetail = "ApplicationDetail";
 
     private IApplicationService? _service;
 
@@ -70,7 +71,15 @@ public class ApplicationBridgeService
             throw new ArgumentException("App ID is required");
 
         var id = idProp.GetString() ?? throw new ArgumentException("App ID is required");
+        var tenantId = GetTenantId();
         var service = GetService();
+
+        if (tenantId is not null)
+        {
+            var cached = _cache.GetSingle<AppDetail>(tenantId, $"{CacheKeyApplicationDetail}_{id}");
+            if (cached is not null)
+                return cached;
+        }
 
         var app = await service.GetApplicationAsync(id)
             ?? throw new InvalidOperationException($"Application {id} not found");
@@ -78,13 +87,13 @@ public class ApplicationBridgeService
         var assignments = await service.GetAssignmentsAsync(id);
         var assignmentData = await MapAssignmentsAsync(assignments);
 
-        return new AppDetail(
+        var detail = new AppDetail(
             Id: app.Id ?? "",
             DisplayName: app.DisplayName ?? "",
             Description: app.Description,
             Publisher: app.Publisher,
-            AppType: FormatAppType(app),
-            Platform: DetectPlatform(app),
+            AppType: ApplicationDataMapper.FormatAppType(app),
+            Platform: ApplicationDataMapper.DetectPlatform(app),
             CreatedDateTime: app.CreatedDateTime?.ToString("o") ?? "",
             LastModifiedDateTime: app.LastModifiedDateTime?.ToString("o") ?? "",
             IsAssigned: app.IsAssigned ?? false,
@@ -93,26 +102,35 @@ public class ApplicationBridgeService
             Developer: app.Developer,
             Owner: app.Owner,
             Notes: app.Notes,
-            Version: ExtractVersion(app),
-            BundleId: ExtractBundleId(app),
-            MinimumOsVersion: ExtractMinimumOs(app),
-            InstallCommand: ExtractInstallCommand(app),
-            UninstallCommand: ExtractUninstallCommand(app),
-            InstallContext: ExtractInstallContext(app),
-            SizeMB: ExtractSize(app),
-            AppStoreUrl: ExtractStoreUrl(app),
+            InformationUrl: app.InformationUrl,
+            PrivacyInformationUrl: app.PrivacyInformationUrl,
+            Version: ApplicationDataMapper.ExtractVersion(app),
+            BundleId: ApplicationDataMapper.ExtractBundleId(app),
+            MinimumOsVersion: ApplicationDataMapper.ExtractMinimumOS(app),
+            InstallCommand: ApplicationDataMapper.ExtractInstallCommand(app),
+            UninstallCommand: ApplicationDataMapper.ExtractUninstallCommand(app),
+            InstallContext: ApplicationDataMapper.ExtractInstallContext(app),
+            SizeMB: ApplicationDataMapper.ExtractSizeInMB(app),
+            AppStoreUrl: ApplicationDataMapper.ExtractAppStoreUrl(app),
+            Categories: ApplicationDataMapper.ExtractCategories(app),
+            SupersededAppCount: ApplicationDataMapper.ExtractSupersededCount(app),
             Assignments: assignmentData);
+
+        if (tenantId is not null)
+            _cache.SetSingle(tenantId, $"{CacheKeyApplicationDetail}_{id}", detail);
+
+        return detail;
     }
 
-    private static AppListItemDto[] MapApps(List<MobileApp> apps)
+    internal static AppListItemDto[] MapApps(List<MobileApp> apps)
     {
         return apps.Select(a => new AppListItemDto(
             Id: a.Id ?? "",
             DisplayName: a.DisplayName ?? "",
             Description: a.Description,
             Publisher: a.Publisher,
-            AppType: FormatAppType(a),
-            Platform: DetectPlatform(a),
+            AppType: ApplicationDataMapper.FormatAppType(a),
+            Platform: ApplicationDataMapper.DetectPlatform(a),
             CreatedDateTime: a.CreatedDateTime?.ToString("o") ?? "",
             LastModifiedDateTime: a.LastModifiedDateTime?.ToString("o") ?? "",
             IsAssigned: a.IsAssigned ?? false,
@@ -135,8 +153,10 @@ public class ApplicationBridgeService
             var intent = a.Intent?.ToString() ?? "Unknown";
             var isExclusion = a.Target is ExclusionGroupAssignmentTarget;
             var groupName = ResolveAssignmentTargetName(a.Target);
+            var filter = a.Target?.DeviceAndAppManagementAssignmentFilterId;
+            var filterMode = a.Target?.DeviceAndAppManagementAssignmentFilterType?.ToString();
 
-            var entry = new AppAssignmentEntry(groupName, intent, isExclusion, null, null);
+            var entry = new AppAssignmentEntry(groupName, intent, isExclusion, filter, filterMode);
 
             switch (a.Intent)
             {
@@ -201,100 +221,4 @@ public class ApplicationBridgeService
             _ => "Unknown Target"
         };
     }
-
-    private static string FormatAppType(MobileApp app)
-    {
-        return app switch
-        {
-            Win32LobApp => "Win32",
-            WindowsMobileMSI => "MSI",
-            WebApp => "Web Link",
-            MicrosoftStoreForBusinessApp => "Store (Business)",
-            WindowsAppX => "AppX",
-            WindowsUniversalAppX => "UWP",
-            IosVppApp => "iOS VPP",
-            IosStoreApp => "iOS Store",
-            IosLobApp => "iOS LOB",
-            AndroidStoreApp => "Android Store",
-            AndroidLobApp => "Android LOB",
-            AndroidManagedStoreApp => "Android Managed",
-            ManagedIOSStoreApp => "Managed iOS",
-            ManagedAndroidStoreApp => "Managed Android",
-            ManagedIOSLobApp => "Managed iOS LOB",
-            ManagedAndroidLobApp => "Managed Android LOB",
-            MacOSLobApp => "macOS LOB",
-            MacOSDmgApp => "macOS DMG",
-            MacOSMicrosoftDefenderApp => "macOS Defender",
-            MacOSMicrosoftEdgeApp => "macOS Edge",
-            MacOSOfficeSuiteApp => "macOS Office",
-            _ => app.OdataType?.Split('.').LastOrDefault()?.Replace("App", " App") ?? "Unknown"
-        };
-    }
-
-    private static string DetectPlatform(MobileApp app)
-    {
-        return app switch
-        {
-            Win32LobApp or WindowsMobileMSI or WindowsAppX or WindowsUniversalAppX
-                or MicrosoftStoreForBusinessApp => "Windows",
-            IosVppApp or IosStoreApp or IosLobApp or ManagedIOSStoreApp or ManagedIOSLobApp => "iOS",
-            AndroidStoreApp or AndroidLobApp or AndroidManagedStoreApp
-                or ManagedAndroidStoreApp or ManagedAndroidLobApp => "Android",
-            MacOSLobApp or MacOSDmgApp or MacOSMicrosoftDefenderApp
-                or MacOSMicrosoftEdgeApp or MacOSOfficeSuiteApp => "macOS",
-            WebApp => "Web",
-            _ => "Other"
-        };
-    }
-
-    private static string? ExtractVersion(MobileApp app) => app switch
-    {
-        Win32LobApp w => w.DisplayVersion,
-        _ => null
-    };
-
-    private static string? ExtractBundleId(MobileApp app) => app switch
-    {
-        IosVppApp v => v.BundleId,
-        IosStoreApp s => s.BundleId,
-        ManagedIOSStoreApp m => m.BundleId,
-        _ => null
-    };
-
-    private static string? ExtractMinimumOs(MobileApp app) => app switch
-    {
-        IosVppApp v => v.ApplicableDeviceType?.ToString(),
-        _ => null
-    };
-
-    private static string? ExtractInstallCommand(MobileApp app) => app switch
-    {
-        Win32LobApp w => w.InstallCommandLine,
-        _ => null
-    };
-
-    private static string? ExtractUninstallCommand(MobileApp app) => app switch
-    {
-        Win32LobApp w => w.UninstallCommandLine,
-        _ => null
-    };
-
-    private static string? ExtractInstallContext(MobileApp app) => app switch
-    {
-        Win32LobApp w => w.InstallExperience?.RunAsAccount?.ToString(),
-        _ => null
-    };
-
-    private static double? ExtractSize(MobileApp app) => app switch
-    {
-        Win32LobApp w when w.Size is not null => Math.Round((double)w.Size / (1024 * 1024), 1),
-        _ => null
-    };
-
-    private static string? ExtractStoreUrl(MobileApp app) => app switch
-    {
-        IosStoreApp s => s.AppStoreUrl,
-        AndroidStoreApp a => a.AppStoreUrl,
-        _ => null
-    };
 }
