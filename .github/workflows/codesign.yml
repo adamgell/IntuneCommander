@@ -148,6 +148,18 @@ jobs:
           -p:PublishSingleFile=true
           -p:Version=${{ steps.version.outputs.version }}
 
+      # Explicit copy so wwwroot is guaranteed in both publish dirs regardless
+      # of whether dotnet publish picked up the csproj CopyToPublishDirectory items.
+      - name: Copy React assets to wwwroot
+        shell: pwsh
+        run: |
+          foreach ($dir in @("${{ env.DESKTOP_PUBLISH_DIR }}", "${{ env.DESKTOP_PUBLISH_DIR_ARM64 }}")) {
+            $wwwroot = Join-Path $dir "wwwroot"
+            New-Item -ItemType Directory -Force -Path $wwwroot | Out-Null
+            Copy-Item -Recurse -Force "${{ env.REACT_DIR }}/dist/*" $wwwroot
+            Write-Host "Copied React assets to $wwwroot"
+          }
+
       # ── Verify build output ──
       - name: Verify build output
         shell: bash

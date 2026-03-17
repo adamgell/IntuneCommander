@@ -27,7 +27,12 @@
 
   <!-- Include pre-built React assets for release builds -->
   <ItemGroup Condition="Exists('..\..\intune-commander-react\dist\')">
-    <None Include="..\..\intune-commander-react\dist\**" Link="wwwroot\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\intune-commander-react\dist\**"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest">
+      <Link>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <TargetPath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+    </None>
   </ItemGroup>
 
 </Project>
