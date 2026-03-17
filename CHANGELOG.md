@@ -6,22 +6,74 @@ All notable changes to this project are documented in this file.
 
 ## [0.4.7.0] — 2026-03-17
 
-### Added
-- **Groups workspace** — full list + detail workspace under the new Admin tab with DataGrid, type filter chips (Dynamic Device/User/Assigned), membership rule viewer, members table with type icons, and Intune assignments table. Backend uses parallel `Task.WhenAll` for counts + members + assignments with 1-hour detail cache.
+Biggest UI expansion to date — **16 new React workspaces**, a new top-level Admin tab, and full Application management coverage. Over 13,000 lines of new code across 100+ files.
+
+### Added — Workspaces
+
+- **Groups workspace** (`Admin > Groups`) — full list + detail view of Entra ID groups used by your Intune tenant.
+  - DataGrid with display name, group type, membership rule, mail, and creation date columns
+  - Type filter chips with counts: All, Dynamic Device, Dynamic User, Assigned
+  - Detail panel with group properties, dynamic membership rule viewer, members table (user/device/group type icons), and Intune assignments table showing all policies and apps targeting the group
+  - Backend fetches member counts, members list, and assignments in parallel via `Task.WhenAll`; detail cached with 1-hour TTL using the new `GetSingle`/`SetSingle` cache API
+- **Security Posture workspace** (`Security > Security Posture`) — tenant-wide security overview dashboard.
+  - Animated circular score ring (0–100) with color gradient
+  - Score breakdown by category with progress bars
+  - Stat cards for CA Policies, Compliance, Endpoint Security, App Protection, Auth Strengths, and Named Locations
+  - Security gaps section with severity-colored cards (high/medium/low)
+  - Conditional Access and Compliance policy summary tables
+- **Assignment Explorer workspace** (`Operations > Assignment Explorer`) — cross-tenant assignment analysis.
+  - Six report modes: All Policies, Group Lookup, All Users, All Devices, Unassigned Policies, Empty Groups
+  - Group search with autocomplete dropdown for Group Lookup mode
+  - Policy type filter chips (dynamically generated from results)
+  - DataGrid with mode-dependent columns (assignment summary, reason, group name)
+  - Paginated results (25/50/100 rows per page)
+- **Policy Comparison workspace** (`Operations > Policy Diff`) — side-by-side JSON diff of any two policies within the same category (Settings Catalog, Compliance, Device Configuration, Conditional Access, App Protection, Endpoint Security) using the Monaco diff editor with syntax highlighting, line numbers, and word wrap.
+- **Applications workspace** (`Applications > Applications`) — app gallery with master-detail layout showing all registered Intune mobile apps, enhanced detail panel with categories, superseded app count, information/privacy URLs, install context, and filter/filterMode on assignment entries.
+- **Conditional Access workspace** (`Security > Conditional Access`) — policy list with detail panel showing conditions, grant controls, session controls, and assignments.
+- **Compliance Policy workspace** (`Configuration > Compliance Policies`) — list + detail view for device compliance policies.
+- **Device Configuration workspace** (`Configuration > Device Configurations`) — list + detail view for device configuration profiles.
+- **Endpoint Security workspace** (`Security > Endpoint Security`) — list + detail view for endpoint security policies.
+- **Enrollment workspace** (`Devices > Enrollment & Autopilot`) — list + detail view for enrollment configuration profiles.
+- **Scripts Hub workspace** (`Devices > Scripts Hub`) — list + detail view for device management scripts (PowerShell, shell, platform scripts).
+
+### Added — Application sub-workspaces
+
+- **App Assignments workspace** (`Applications > Application Assignments`) — flat, denormalized view of every app-to-group assignment across the tenant. Each row shows app name, publisher, type, platform, target group, install intent, exclusion status, filter settings, and more. Pre-resolves group names in parallel (5 concurrent requests). Uses the 180-second long-running command timeout for large tenants.
+- **Bulk App Assignments workspace** (`Applications > Bulk Assignment`) — apply assignment changes to multiple apps at once. Bootstraps by loading all apps and assignment filters, validates targets and intents, merges new assignments with existing ones (by assignment identity), calls `AssignApplicationAsync()` per app, and returns per-app success/failure counts with cache invalidation on success.
+- **App Protection Policies workspace** (`Applications > App Protection Policies`) — list + detail view for iOS/Android MAM policies showing policy type, platform, version, role scope tags, minimum required app/OS versions, and assignments.
+- **Managed Device App Configurations workspace** (`Applications > Managed Device App Configurations`) — list + detail view for managed device app configuration policies showing targeted mobile apps, settings, and assignments.
+- **Targeted Managed App Configurations workspace** (`Applications > Targeted Managed App Configurations`) — list + detail view for MAM app configuration policies showing app group type, deployed app count, and assignments.
+- **VPP Tokens workspace** (`Applications > VPP Tokens`) — list + detail view for Apple Volume Purchase Program tokens showing organization, Apple ID, sync status, expiration, account type, country/region, and auto-update settings.
+
+### Added — Navigation
+
 - **Admin primary tab** — new top-level navigation tab with Tenant Admin and Groups sidebar items.
-- **10+ new React workspace components** — Applications, Compliance Policy, Conditional Access, Device Config, Endpoint Security, Enrollment, Scripts Hub, Security Posture, Assignment Explorer, Policy Comparison workspaces with corresponding Zustand stores, TypeScript types, and .NET bridge services.
-- **6 new Application sub-workspaces** — App Assignments (flat denormalized view), Bulk App Assignments, App Protection Policies, Managed Device App Configurations, Targeted Managed App Configurations, VPP Tokens.
-- **ApplicationDataMapper** — extracted app type/platform/version/bundle helpers from ApplicationBridgeService into a shared static class for reuse across application workspaces.
-- **DialogBridgeService** — native folder/file/save picker bridge commands (`dialog.pickFolder`, `dialog.pickFile`, `dialog.saveFile`) with UI thread marshaling and 5-minute React timeout.
-- **ICacheService.GetSingle/SetSingle** — new single-object cache overloads eliminating the `List<T>` wrapper hack for detail caching.
-- **MonacoDiffViewer** — extracted reusable diff component from PolicyComparisonWorkspace for use by Drift Detection and future workspaces.
-- **Operations tab additions** — Drift Detection and Export/Import sidebar items with placeholder workspaces ready for buildout.
-- **React UI workspaces expansion plan** — comprehensive planning documentation (`PLAN-react-workspaces.md`, `REMAINING-WORK.md`) outlining phased workspace buildout.
-- **Application assignment search integration** — global search now includes application assignment matches in results.
-- **Dynamic bridge command timeouts** — `HEAVY_COMMANDS` (60s) for multi-Graph-call commands and `LONG_RUNNING_COMMANDS` (180s) for bulk operations.
+- **Operations tab additions** — Drift Detection and Export/Import sidebar items with placeholder workspaces.
+- **Two-tier secondary tab navigation** — sidebar items that match secondary tabs now trigger tab switches (via `primaryNavTabs` lookup) rather than just sidebar item selection.
+
+### Added — Infrastructure
+
+- **ApplicationDataMapper** (`Services/ApplicationDataMapper.cs`) — extracted static helper class for app type formatting, platform detection, version/bundleId/minimumOS extraction, category extraction, superseded app count, install command and context extraction, and size calculation. Handles 20+ Graph Beta `MobileApp` subtypes across Windows, iOS, Android, macOS, and Web platforms.
+- **DialogBridgeService** — native OS file/folder/save picker dialogs bridged to React via `dialog.pickFolder`, `dialog.pickFile`, and `dialog.saveFile` commands. Uses `Application.Current.Dispatcher.InvokeAsync()` for UI thread marshaling with a 5-minute React-side timeout.
+- **ICacheService.GetSingle/SetSingle** — new single-object cache overloads on `ICacheService` and `CacheService`. Internally wraps the item in a `List<T>` for LiteDB storage but exposes a clean single-object API. Includes async variants (`GetSingleAsync`/`SetSingleAsync`). `NullCacheService` updated with no-op implementations.
+- **MonacoDiffViewer** (`components/shared/MonacoDiffViewer.tsx`) — extracted reusable Monaco diff editor component with vs-dark theme, read-only mode, side-by-side rendering, split view resizing, and word wrap. Used by Policy Comparison and available for Drift Detection.
+- **GroupResolutionHelper** — shared helper for resolving Entra ID group GUIDs to display names with in-memory caching, used by multiple bridge services.
+- **Bridge client dialogs module** (`bridge/dialogs.ts`) — typed TypeScript wrappers (`pickFolder()`, `pickFile()`, `saveFile()`) returning `{ path: string | null, cancelled: boolean }`.
+- **Dynamic bridge command timeouts** — three timeout tiers in the bridge client: `HEAVY_COMMANDS` (60s) for multi-Graph-call commands like `groups.getDetail` and `securityPosture.summary`, `LONG_RUNNING_COMMANDS` (180s) for bulk operations like `appAssignments.list` and `bulkAppAssignments.apply`, and `DIALOG_TIMEOUT` (300s) for native file pickers.
+- **Application assignment search integration** — `SearchBridgeService` now includes application assignment matches in global search results, searching across app name, publisher, target group name, and assignment type.
+- **New unit tests** — `ApplicationServiceTests` and `GroupServiceTests` added for the new `IApplicationService.ListAssignmentsAsync()` method and group service contract.
+
+### Added — Documentation
+
+- Workspace expansion planning docs: `PLAN-react-workspaces.md` (phased buildout of 16 workspaces with navigation architecture) and `REMAINING-WORK.md` (completed/upcoming workspace tracker with known tech gaps).
+- New user guide pages: Groups Workspace, Application Workspaces, Policy Comparison.
+- `mkdocs.yml` updated with new navigation entries.
 
 ### Changed
-- **Installer packaging** — added packaging details for Intune Commander MSI/MSIX builds.
+
+- **Installer packaging** — added packaging details for Intune Commander MSI/MSIX builds in README.
+- **ApplicationBridgeService refactored** — app type/platform mapping logic extracted to `ApplicationDataMapper`; detail view now caches via `GetSingle`/`SetSingle`; assignment entries now include `filter` and `filterMode` fields; `MapApps` and cache key constants changed to `internal` visibility for reuse by `ApplicationAssignmentsBridgeService`.
+- **IApplicationService extended** — added `ListAssignmentsAsync()` for fetching all assignments for an app, used by the new Application Assignments workspace.
 
 ## [0.4.6.2] — 2026-03-16
 
