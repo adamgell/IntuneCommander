@@ -10,7 +10,18 @@ const pendingRequests = new Map<string, PendingRequest>();
 const eventListeners = new Map<string, Set<(payload: unknown) => void>>();
 
 const DEFAULT_TIMEOUT = 10_000;
+const HEAVY_TIMEOUT = 60_000;   // 60s for detail views with multiple Graph calls
 const AUTH_TIMEOUT = 120_000;
+const DIALOG_TIMEOUT = 300_000; // 5 min for file/folder picker dialogs
+
+/** Commands that involve multiple Graph API calls and need a longer timeout */
+const HEAVY_COMMANDS = new Set([
+  'groups.getDetail',
+  'groups.list',
+  'securityPosture.summary',
+  'securityPosture.detail',
+  'assignments.runReport',
+]);
 const DEV_WS_URL = 'ws://localhost:5100/ws/';
 
 function isWebView2Available(): boolean {
@@ -60,7 +71,10 @@ function getDevSocket(): Promise<WebSocket> {
 
 export function sendCommand<T = unknown>(command: string, payload?: unknown): Promise<T> {
   const id = crypto.randomUUID();
-  const timeout = command.startsWith('auth.') ? AUTH_TIMEOUT : DEFAULT_TIMEOUT;
+  const timeout = command.startsWith('auth.') ? AUTH_TIMEOUT
+    : command.startsWith('dialog.') ? DIALOG_TIMEOUT
+    : HEAVY_COMMANDS.has(command) ? HEAVY_TIMEOUT
+    : DEFAULT_TIMEOUT;
   const msg: BridgeCommand = { protocol: 'ic/1', id, command, payload };
 
   return new Promise<T>((resolve, reject) => {

@@ -139,6 +139,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       'security': 'security-posture',
       'devices': 'detection-remediation',
       'operations': 'assignment-explorer',
+      'admin': 'tenant-admin',
     };
     const defaultSecondary = tabs[tabId] ?? '';
     set({

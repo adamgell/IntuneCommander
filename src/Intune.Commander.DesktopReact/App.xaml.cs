@@ -38,6 +38,8 @@ public partial class App : Application
         services.AddSingleton<CompliancePolicyBridgeService>();
         services.AddSingleton<EndpointSecurityBridgeService>();
         services.AddSingleton<EnrollmentBridgeService>();
+        services.AddSingleton<DialogBridgeService>();
+        services.AddSingleton<GroupBridgeService>();
         services.AddSingleton<BridgeRouter>();
 
         Services = services.BuildServiceProvider();

@@ -117,6 +117,13 @@ export const primaryNavTabs: PrimaryNavTab[] = [
       { id: 'assignment-explorer', label: 'Assignment Explorer' },
     ],
   },
+  {
+    id: 'admin',
+    label: 'Admin',
+    secondaryTabs: [
+      { id: 'tenant-admin', label: 'Tenant Admin' },
+    ],
+  },
 ];
 
 // Sidebar items per primary tab
@@ -166,6 +173,17 @@ export const sidebarByTab: Record<string, SidebarSection[]> = {
       items: [
         { id: 'assignment-explorer', label: 'Assignment Explorer' },
         { id: 'policy-comparison', label: 'Policy Diff' },
+        { id: 'drift-detection', label: 'Drift Detection' },
+        { id: 'export-import', label: 'Export / Import' },
+      ],
+    },
+  ],
+  admin: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'tenant-admin', label: 'Tenant Admin' },
+        { id: 'groups', label: 'Groups' },
       ],
     },
   ],

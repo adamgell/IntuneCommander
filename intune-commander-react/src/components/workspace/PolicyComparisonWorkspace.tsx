@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { DiffEditor } from '@monaco-editor/react';
 import { usePolicyComparisonStore } from '../../store/policyComparisonStore';
+import { MonacoDiffViewer } from '../shared/MonacoDiffViewer';
 import type { PolicyCategory } from '../../types/policyComparison';
 import '../../styles/workspace.css';
 
@@ -140,26 +140,10 @@ export function PolicyComparisonWorkspace() {
 
       {/* Monaco diff editor */}
       {comparisonResult && (
-        <div style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', minHeight: 400 }}>
-          <DiffEditor
-            original={comparisonResult.normalizedJsonA}
-            modified={comparisonResult.normalizedJsonB}
-            language="json"
-            theme="vs-dark"
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              fontSize: 12,
-              lineNumbers: 'on',
-              renderSideBySide: true,
-              enableSplitViewResizing: true,
-              wordWrap: 'on',
-              scrollbar: { verticalScrollbarSize: 8 },
-              padding: { top: 8, bottom: 8 },
-            }}
-          />
-        </div>
+        <MonacoDiffViewer
+          original={comparisonResult.normalizedJsonA}
+          modified={comparisonResult.normalizedJsonB}
+        />
       )}
 
       {/* Empty state */}

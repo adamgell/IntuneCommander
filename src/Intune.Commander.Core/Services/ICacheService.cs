@@ -24,6 +24,17 @@ public interface ICacheService : IDisposable
     void Set<T>(string tenantId, string dataType, List<T> items, TimeSpan? ttl = null);
 
     /// <summary>
+    /// Retrieves a single cached object for the given tenant and data type.
+    /// Returns default if the cache entry is missing or expired.
+    /// </summary>
+    T? GetSingle<T>(string tenantId, string dataType) where T : class;
+
+    /// <summary>
+    /// Stores a single object in the cache for the given tenant and data type.
+    /// </summary>
+    void SetSingle<T>(string tenantId, string dataType, T item, TimeSpan? ttl = null) where T : class;
+
+    /// <summary>
     /// Removes cached data for a specific tenant and optionally a specific data type.
     /// If dataType is null, removes all cached data for the tenant.
     /// </summary>
@@ -51,6 +62,16 @@ public interface ICacheService : IDisposable
     /// Asynchronously stores data in the cache, offloading LiteDB disk I/O to the thread pool.
     /// </summary>
     Task SetAsync<T>(string tenantId, string dataType, List<T> items, TimeSpan? ttl = null);
+
+    /// <summary>
+    /// Asynchronously retrieves a single cached object, offloading LiteDB disk I/O to the thread pool.
+    /// </summary>
+    Task<T?> GetSingleAsync<T>(string tenantId, string dataType) where T : class;
+
+    /// <summary>
+    /// Asynchronously stores a single object in the cache, offloading LiteDB disk I/O to the thread pool.
+    /// </summary>
+    Task SetSingleAsync<T>(string tenantId, string dataType, T item, TimeSpan? ttl = null) where T : class;
 
     /// <summary>
     /// Asynchronously removes cached data, offloading LiteDB disk I/O to the thread pool.
