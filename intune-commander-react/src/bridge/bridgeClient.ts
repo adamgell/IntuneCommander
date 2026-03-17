@@ -26,6 +26,7 @@ const HEAVY_COMMANDS = new Set([
 ]);
 
 const LONG_RUNNING_COMMANDS = new Set([
+  'appAssignments.list',
   'bulkAppAssignments.apply',
 ]);
 const DEV_WS_URL = 'ws://localhost:5100/ws/';
