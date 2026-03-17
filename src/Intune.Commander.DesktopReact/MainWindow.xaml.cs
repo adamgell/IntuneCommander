@@ -19,18 +19,21 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Explicit user data folder in %LocalAppData% — required when the exe is in
-        // Program Files (no write access next to exe). Without this, WebView2 silently
-        // fails to initialize and shows a white box.
-        var userDataFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Intune.Commander", "WebView2");
+        var userDataFolder = GetWebViewUserDataFolder();
+        CoreWebView2Environment environment;
 
-        var env = await CoreWebView2Environment.CreateAsync(
-            browserExecutableFolder: null,
-            userDataFolder: userDataFolder);
+        try
+        {
+            environment = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            var fallbackFolder = Path.Combine(Path.GetTempPath(), "IntuneCommander", "WebView2");
+            Directory.CreateDirectory(fallbackFolder);
+            environment = await CoreWebView2Environment.CreateAsync(userDataFolder: fallbackFolder);
+        }
 
-        await webView.EnsureCoreWebView2Async(env);
+        await webView.EnsureCoreWebView2Async(environment);
 
         var coreWebView = webView.CoreWebView2;
 
@@ -73,6 +76,14 @@ public partial class MainWindow : Window
             CoreWebView2HostResourceAccessKind.Allow);
         coreWebView.Navigate("https://app.intunecommander.local/index.html");
 #endif
+    }
+
+    private static string GetWebViewUserDataFolder()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var folder = Path.Combine(localAppData, "IntuneCommander", "DesktopReact", "WebView2");
+        Directory.CreateDirectory(folder);
+        return folder;
     }
 
     private static void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs args)

@@ -95,6 +95,40 @@
   border-radius: 8px;
 }
 
+/* Platform / state filter bar */
+.platform-filter-bar {
+  display: flex;
+  gap: 6px;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.platform-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.platform-chip:hover {
+  background: var(--brand-soft);
+  border-color: var(--brand-border);
+  color: var(--brand);
+}
+
+.platform-chip.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+}
+
 /* Error */
 .workspace-error {
   padding: 12px 16px;

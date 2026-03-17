@@ -28,6 +28,16 @@ public partial class App : Application
         services.AddSingleton<SearchBridgeService>();
         services.AddSingleton<CacheSyncBridgeService>();
         services.AddSingleton<DashboardBridgeService>();
+        services.AddSingleton<ApplicationBridgeService>();
+        services.AddSingleton<ConditionalAccessBridgeService>();
+        services.AddSingleton<SecurityPostureBridgeService>();
+        services.AddSingleton<AssignmentExplorerBridgeService>();
+        services.AddSingleton<ScriptsHubBridgeService>();
+        services.AddSingleton<PolicyComparisonBridgeService>();
+        services.AddSingleton<DeviceConfigBridgeService>();
+        services.AddSingleton<CompliancePolicyBridgeService>();
+        services.AddSingleton<EndpointSecurityBridgeService>();
+        services.AddSingleton<EnrollmentBridgeService>();
         services.AddSingleton<BridgeRouter>();
 
         Services = services.BuildServiceProvider();

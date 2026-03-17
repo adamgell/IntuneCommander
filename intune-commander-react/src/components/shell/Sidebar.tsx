@@ -1,33 +1,24 @@
 import { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
+import { sidebarByTab } from '../../types/models';
+import type { SidebarSection } from '../../types/models';
 import '../../styles/sidebar.css';
 
-interface SidebarSection {
-  label: string;
-  items: { id: string; label: string; count?: number }[];
-}
-
-const sections: SidebarSection[] = [
-  {
-    label: 'Workspaces',
-    items: [
-      { id: 'overview', label: 'Overview' },
-      { id: 'settings-catalog', label: 'Settings Catalog' },
-      { id: 'detection-remediation', label: 'Detection & Remediation' },
-    ],
-  },
-  {
-    label: 'Dev',
-    items: [
-      { id: 'cache-inspector', label: 'Cache Inspector' },
-    ],
-  },
-];
+const devSection: SidebarSection = {
+  label: 'Dev',
+  items: [
+    { id: 'cache-inspector', label: 'Cache Inspector' },
+  ],
+};
 
 export function Sidebar() {
+  const activePrimaryTab = useAppStore((s) => s.activePrimaryTab);
   const activeSidebarItem = useAppStore((s) => s.activeSidebarItem);
   const setSidebarItem = useAppStore((s) => s.setSidebarItem);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const tabSections = sidebarByTab[activePrimaryTab] ?? [];
+  const sections = [...tabSections, devSection];
 
   const filteredSections = searchQuery
     ? sections
@@ -44,8 +35,8 @@ export function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-panel">
         <div className="sidebar-panel-header">
-          <strong>Devices</strong>
-          <span>Configuration and reporting menu</span>
+          <strong>Navigator</strong>
+          <span>Workspaces and tools</span>
         </div>
 
         <div className="sidebar-search">

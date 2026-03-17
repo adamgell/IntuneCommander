@@ -79,7 +79,7 @@ export interface SidebarSection {
   items: SidebarItem[];
 }
 
-// Navigation definitions — only show workspaces that are built
+// Navigation definitions
 export const primaryNavTabs: PrimaryNavTab[] = [
   {
     id: 'configuration',
@@ -89,10 +89,84 @@ export const primaryNavTabs: PrimaryNavTab[] = [
     ],
   },
   {
+    id: 'applications',
+    label: 'Applications',
+    secondaryTabs: [
+      { id: 'applications', label: 'App Gallery' },
+    ],
+  },
+  {
+    id: 'security',
+    label: 'Security',
+    secondaryTabs: [
+      { id: 'security-posture', label: 'Security Posture' },
+      { id: 'conditional-access', label: 'Conditional Access' },
+    ],
+  },
+  {
     id: 'devices',
     label: 'Devices',
     secondaryTabs: [
       { id: 'detection-remediation', label: 'Detection & Remediation' },
     ],
   },
+  {
+    id: 'operations',
+    label: 'Operations',
+    secondaryTabs: [
+      { id: 'assignment-explorer', label: 'Assignment Explorer' },
+    ],
+  },
 ];
+
+// Sidebar items per primary tab
+export const sidebarByTab: Record<string, SidebarSection[]> = {
+  configuration: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'overview', label: 'Overview' },
+        { id: 'settings-catalog', label: 'Settings Catalog' },
+        { id: 'device-config', label: 'Device Configurations' },
+        { id: 'compliance-policy', label: 'Compliance Policies' },
+      ],
+    },
+  ],
+  applications: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'applications', label: 'App Gallery' },
+      ],
+    },
+  ],
+  security: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'security-posture', label: 'Security Posture' },
+        { id: 'conditional-access', label: 'Conditional Access' },
+        { id: 'endpoint-security', label: 'Endpoint Security' },
+      ],
+    },
+  ],
+  devices: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'detection-remediation', label: 'Detection & Remediation' },
+        { id: 'scripts-hub', label: 'Scripts Hub' },
+        { id: 'enrollment', label: 'Enrollment & Autopilot' },
+      ],
+    },
+  ],
+  operations: [
+    {
+      label: 'Workspaces',
+      items: [
+        { id: 'assignment-explorer', label: 'Assignment Explorer' },
+        { id: 'policy-comparison', label: 'Policy Diff' },
+      ],
+    },
+  ],
+};
