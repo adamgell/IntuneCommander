@@ -81,7 +81,7 @@ public partial class MainWindow : Window
     private static string GetWebViewUserDataFolder()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var folder = Path.Combine(localAppData, "Intune.Commander", "WebView2");
+        var folder = Path.Combine(localAppData, "IntuneCommander", "DesktopReact", "WebView2");
         Directory.CreateDirectory(folder);
         return folder;
     }

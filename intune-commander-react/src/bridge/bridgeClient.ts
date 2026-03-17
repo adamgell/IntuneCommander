@@ -80,9 +80,9 @@ export function sendCommand<T = unknown>(command: string, payload?: unknown): Pr
   const id = crypto.randomUUID();
   const timeout = command.startsWith('auth.') ? AUTH_TIMEOUT
     : command.startsWith('dialog.') ? DIALOG_TIMEOUT
-      : LONG_RUNNING_COMMANDS.has(command) ? LONG_RUNNING_TIMEOUT
-        : HEAVY_COMMANDS.has(command) ? HEAVY_TIMEOUT
-          : DEFAULT_TIMEOUT;
+    : LONG_RUNNING_COMMANDS.has(command) ? LONG_RUNNING_TIMEOUT
+    : HEAVY_COMMANDS.has(command) ? HEAVY_TIMEOUT
+    : DEFAULT_TIMEOUT;
   const msg: BridgeCommand = { protocol: 'ic/1', id, command, payload };
 
   return new Promise<T>((resolve, reject) => {

@@ -81,6 +81,7 @@ public class ApplicationBridgeService
                 return cached;
         }
 
+
         var app = await service.GetApplicationAsync(id)
             ?? throw new InvalidOperationException($"Application {id} not found");
 

@@ -146,6 +146,9 @@ See [CLAUDE.md](CLAUDE.md) for full architectural decisions.
 This project is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement).
 Additional thanks to Merill Fernando for [idPowerToys](https://github.com/merill/idPowerToys).
 
+Intune Commander is packaged using [Master Packager Dev \(mpdev\)](https://www.masterpackager.com/developer). It produces both MSI and MSIX installers for x64 and ARM64, with Azure Trusted Signing integrated for signed release builds.
+
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting pull requests, code standards, and development workflow.
