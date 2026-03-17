@@ -1,6 +1,9 @@
 # Supported Object Types
 
-Intune Commander supports 30+ Intune and Entra ID object types. All types can be browsed, exported, and (where the Graph API allows) created, updated, and deleted.
+Intune Commander's Core library and CLI support 30+ Intune and Entra ID object types. All types listed below can be exported via the CLI and (where the Graph API allows) created, updated, and deleted programmatically.
+
+!!! info "Desktop UI coverage"
+    The desktop app currently has dedicated workspaces for **Settings Catalog** and **Detection & Remediation** (Device Health Scripts). All other types are accessible via the CLI or Global Search (cached data). Additional workspaces are being added incrementally.
 
 ## Device Management
 

@@ -1,7 +1,7 @@
 site_name: Intune Commander
 site_url: https://intunecommander.com/docs/
 site_description: >-
-  A cross-platform desktop app for managing Microsoft Intune across
+  A Windows desktop app for managing Microsoft Intune across
   Commercial, GCC, GCC-High, and DoD cloud environments.
 site_author: Intune Commander contributors
 
@@ -41,10 +41,11 @@ nav:
     - App Registration: getting-started/app-registration.md
     - First Login: getting-started/first-login.md
   - User Guide:
+    - CLI: user-guide/cli.md
     - Export & Import: user-guide/export-import.md
+    - Drift Detection: user-guide/drift-detection.md
     - Multi-Cloud: user-guide/multi-cloud.md
     - CA PowerPoint Export: user-guide/ca-powerpoint.md
-    - CLI: user-guide/cli.md
   - Reference:
     - Graph Permissions: reference/graph-permissions.md
     - Supported Object Types: reference/object-types.md

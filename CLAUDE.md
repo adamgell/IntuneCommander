@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Intune Commander is a **.NET 10 / Avalonia UI** desktop application for managing Microsoft Intune configurations across multiple cloud environments (Commercial, GCC, GCC-High, DoD). It is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement) (PowerShell/WPF).
+Intune Commander is a **.NET 10 / React 19 / WPF+WebView2** Windows desktop application for managing Microsoft Intune configurations across multiple cloud environments (Commercial, GCC, GCC-High, DoD). It is a ground-up remake of [Micke-K/IntuneManagement](https://github.com/Micke-K/IntuneManagement) (PowerShell/WPF).
 
 ## Build & Run
 
@@ -24,8 +24,11 @@ dotnet test --filter "Category=Integration"
 # Run a single test class
 dotnet test --filter "FullyQualifiedName~ProfileServiceTests"
 
-# Run the desktop application
-dotnet run --project src/Intune.Commander.Desktop
+# Run the desktop application (WPF + WebView2 host)
+dotnet run --project src/Intune.Commander.DesktopReact
+
+# Run the React frontend dev server (for UI development)
+cd intune-commander-react && npm run dev
 ```
 
 ## Technology Stack
@@ -33,13 +36,13 @@ dotnet run --project src/Intune.Commander.Desktop
 | Component | Technology |
 |-----------|-----------|
 | Runtime | .NET 10, C# 12 |
-| UI Framework | Avalonia 11.3.x (`.axaml` files) |
-| MVVM | CommunityToolkit.Mvvm 8.2.x |
+| Desktop Host | WPF + WebView2 (Windows-only) |
+| Frontend | React 19, TypeScript, Vite |
+| State Management | Zustand |
+| .NET ↔ React Bridge | `ic/1` protocol via `window.chrome.webview.postMessage` |
 | Authentication | Azure.Identity 1.17.x |
 | Graph API | **Microsoft.Graph.Beta** 5.130.x-preview |
 | Cache | LiteDB 5.0.x (encrypted via DataProtection) |
-| Charts | LiveChartsCore.SkiaSharpView.Avalonia 2.0.x |
-| Dialogs | MessageBox.Avalonia 3.2.x |
 | Profile storage | `Microsoft.AspNetCore.DataProtection` |
 | DI | `Microsoft.Extensions.DependencyInjection` 10.0.x |
 | Testing | xUnit, NSubstitute 5.3.x |
@@ -52,32 +55,35 @@ dotnet run --project src/Intune.Commander.Desktop
 
 ```
 src/
-  Intune.Commander.Core/    # Business logic (.NET 10 class library)
-    Auth/                    # IAuthenticationProvider, InteractiveBrowserAuthProvider, IntuneGraphClientFactory
-    Models/                  # Enums (CloudEnvironment, AuthMethod), TenantProfile, ProfileStore,
-                             #   CloudEndpoints, MigrationEntry/Table, export DTOs, CacheEntry, GroupAssignmentResult
-    Services/                # 30+ Graph API services + ProfileService, CacheService, ExportService, ImportService
-    Extensions/              # ServiceCollectionExtensions (AddIntuneCommanderCore)
-  Intune.Commander.Desktop/  # Avalonia UI
-    Views/                   # MainWindow, LoginView, OverviewView, GroupLookupWindow, DebugLogWindow, RawJsonWindow
-    ViewModels/              # MainWindowViewModel, LoginViewModel, OverviewViewModel, GroupLookupViewModel,
-                             #   DebugLogViewModel, NavCategory, DataGridColumnConfig, row/item types
-    Services/                # DebugLogService (singleton, UI-thread-safe in-memory log)
-    Converters/              # ComputedColumnConverters
+  Intune.Commander.Core/        # Business logic (.NET 10 class library)
+    Auth/                        # IAuthenticationProvider, InteractiveBrowserAuthProvider, IntuneGraphClientFactory
+    Models/                      # Enums (CloudEnvironment, AuthMethod), TenantProfile, ProfileStore,
+                                 #   CloudEndpoints, MigrationEntry/Table, export DTOs, CacheEntry, GroupAssignmentResult
+    Services/                    # 30+ Graph API services + ProfileService, CacheService, ExportService, ImportService
+    Extensions/                  # ServiceCollectionExtensions (AddIntuneCommanderCore)
+  Intune.Commander.DesktopReact/ # WPF + WebView2 host
+    Services/                    # Bridge services (IBridgeService implementations), BridgeRouter
+    MainWindow.xaml              # WPF window hosting WebView2
+  Intune.Commander.Installer/    # Master Packager Dev package (MSI + MSIX)
+intune-commander-react/          # React 19 + TypeScript frontend (Vite)
+  src/
+    components/                  # UI components organized by feature (login/, shell/, workspace/)
+    store/                       # Zustand stores — one per domain
+    bridge/                      # Typed bridge client for .NET interop
 tests/
-  Intune.Commander.Core.Tests/  # xUnit tests mirroring src structure
+  Intune.Commander.Core.Tests/   # xUnit tests mirroring src structure
 ```
 
 ### DI and service lifetimes
 
-`App.axaml.cs` calls `services.AddIntuneCommanderCore()` then registers `MainWindowViewModel` as transient.
+`App.xaml.cs` calls `services.AddIntuneCommanderCore()` and registers bridge services.
 
 `AddIntuneCommanderCore()` registers:
 
 - **Singleton:** `IAuthenticationProvider`, `IntuneGraphClientFactory`, `ProfileService`, `IProfileEncryptionService`, `ICacheService`
 - **Transient:** `IExportService`
 
-**Graph API services are NOT registered in DI.** After a successful login, `MainWindowViewModel` creates them directly using `new XxxService(graphClient)`. This means all the `IConfigurationProfileService`, `ICompliancePolicyService`, etc. fields in the VM are nullable and only populated after `ConnectAsync`.
+**Graph API services are NOT registered in DI.** After authentication, the WPF host creates them using `new XxxService(graphClient)` and passes them to bridge services. Bridge services implement `IBridgeService` and handle messages from the React frontend via the `BridgeRouter`.
 
 ### Authentication and multi-cloud
 
@@ -91,9 +97,9 @@ Cloud endpoints in `CloudEndpoints.cs`:
 
 ### Navigation and data flow
 
-`MainWindowViewModel` holds 30+ `ObservableCollection<T>` properties (one per Intune object type) and corresponding `Selected*` properties. Navigation is driven by `NavCategories` (an `ObservableCollection<NavCategory>`) and `SelectedCategory`. Each category loads its data lazily on first selection via per-type `_*Loaded` boolean flags; many also use `ICacheService` keyed by a `CacheKey*` constant.
+The React frontend manages navigation via its shell component and Zustand stores. Each workspace (e.g., Settings Catalog, Detection & Remediation) has its own Zustand store that communicates with the .NET backend through the typed bridge client. The bridge client sends messages via `window.chrome.webview.postMessage` using the `ic/1` protocol, and the WPF host's `BridgeRouter` dispatches them to the appropriate `IBridgeService` implementation.
 
-`OverviewViewModel` is a nested VM (not in DI) computed purely from already-loaded collections with LiveCharts series.
+Currently 3 workspaces are built in the desktop UI: Overview Dashboard, Settings Catalog, and Detection & Remediation. The Core library has 30+ services ready to be wired into additional workspaces.
 
 ### Caching
 
@@ -103,11 +109,11 @@ Cloud endpoints in `CloudEndpoints.cs`:
 
 `ProfileService` persists `ProfileStore` (list of `TenantProfile`) to `%LocalAppData%\Intune.Commander\profiles.json`. When `IProfileEncryptionService` is injected (always the case in production), the file is prefixed with `INTUNEMANAGER_ENC:` and the payload is DataProtection-encrypted. Plaintext files are migrated to encrypted on next save. On first launch after upgrade from a pre-rename build, `ProfileService.LoadAsync` detects and auto-migrates data from the legacy `%LocalAppData%\IntuneManager\profiles.json` path.
 
-> **Legacy compatibility constants** (do not change without careful consideration): `INTUNEMANAGER_ENC:` marker, `IntuneManager.Profiles.v1` DataProtection purpose (fallback decryptor), and `SetApplicationName("IntuneManager")` in `ServiceCollectionExtensions` (changing this makes all existing encrypted data unreadable).
+> **Legacy compatibility constants** (do not change without careful consideration): `INTUNEMANAGER_ENC:` marker, `IntuneManager.Profiles.v1` DataProtection purpose (fallback decryptor), `SetApplicationName("IntuneManager")` in `ServiceCollectionExtensions` (changing this makes all existing encrypted data unreadable), and MSI `UpgradeCode` GUID `29E042C7-F159-466C-9F23-D2695288319A` in `src/Intune.Commander.Installer/package.json` (`msi.upgradeCode`) (changing this breaks upgrade detection for all installed copies).
 
 ### DebugLogService
 
-`DebugLogService.Instance` is a singleton with an `ObservableCollection<string> Entries` (capped at 2000). All logging dispatches to the UI thread. Use `DebugLog.Log(category, message)` / `DebugLog.LogError(...)` throughout the VM. It is exposed via the `DebugLogWindow`.
+`DebugLogService.Instance` is a singleton with an `ObservableCollection<string> Entries` (capped at 2000). All logging dispatches to the UI thread. Use `DebugLog.Log(category, message)` / `DebugLog.LogError(...)` throughout the WPF host code.
 
 ### Export/Import format
 
@@ -124,9 +130,8 @@ Each object type exports to its own subfolder under the chosen output directory 
 - **C# 12:** primary constructors, collection expressions (`[]`), required members, file-scoped namespaces
 - **Nullable reference types enabled** everywhere
 - **Private fields:** `_camelCase`; public: `PascalCase`
-- **ViewModels** must be `partial class` for CommunityToolkit.Mvvm source generators (`[ObservableProperty]`, `[RelayCommand]`)
-- **XAML:** always set `x:DataType` — `AvaloniaUseCompiledBindingsByDefault` is on
-- **Namespaces:** `Intune.Commander.Core.*`, `Intune.Commander.Desktop.*`
+- **Namespaces:** `Intune.Commander.Core.*`, `Intune.Commander.DesktopReact.*`
+- **React frontend:** TypeScript strict mode, Zustand for state, bridge client for .NET interop
 - **Graph client factory class name:** `IntuneGraphClientFactory` (not `GraphClientFactory`) to avoid collision with `Microsoft.Graph.GraphClientFactory`
 
 ## Key Architecture Decisions
@@ -134,7 +139,7 @@ Each object type exports to its own subfolder under the chosen output directory 
 - **Azure.Identity over raw MSAL** — `TokenCredential` abstraction, one code path for all clouds
 - **Microsoft.Graph.Beta SDK models directly** — no custom model layer; custom DTOs (`*Export` models) only where the Graph model needs augmenting for export
 - **Separate app registration per cloud** — GCC-High/DoD require isolated app registrations
-- **Graph services created post-auth, not in DI** — services that require a `GraphServiceClient` are instantiated in `MainWindowViewModel` after the user authenticates, not at startup
+- **Graph services created post-auth, not in DI** — services that require a `GraphServiceClient` are instantiated in the WPF host after the user authenticates, not at startup
 - **LiteDB cache keyed by tenant ID** — multiple tenant profiles can share the same cache database; TTL is 24 hours
 - **Hobby project** — keep solutions pragmatic; avoid over-engineering
 
@@ -144,7 +149,7 @@ Each object type exports to its own subfolder under the chosen output directory 
 |----------|------|---------|---------|
 | CI — Test & Coverage | `.github/workflows/ci-test.yml` | All pushes + PRs to main | Unit tests with 40% line coverage threshold (coverlet.msbuild) |
 | CI — Integration Tests | `.github/workflows/ci-integration.yml` | Push/PR to main + manual | Graph API integration tests against live tenant |
-| Build Release | `.github/workflows/build-release.yml` | All pushes + PRs | Builds self-contained Windows x64 executable |
+| Build Release Artifacts | `.github/workflows/build-release.yml` | Push, PR, and manual dispatch | Builds unsigned desktop/CLI artifacts and a test MSI |
 
 - Unit test CI uses `--filter "Category!=Integration"` to skip integration tests
 - Integration CI requires repository secrets: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`

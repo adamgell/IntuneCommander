@@ -95,12 +95,12 @@ If any breaking changes exist:
 
 ### C# Conventions
 
-- **Namespace**: `Intune.Commander.Core.*` or `Intune.Commander.Desktop.*`
+- **Namespace**: `Intune.Commander.Core.*` or `Intune.Commander.DesktopReact.*`
 - **Nullable reference types**: Enabled everywhere
 - **Private fields**: `_camelCase`
 - **Public members**: `PascalCase`
-- **ViewModels**: Must be `partial class` for CommunityToolkit.Mvvm
 - **Async methods**: Always end with `Async`, always accept `CancellationToken`
+- **React frontend**: TypeScript strict mode, Zustand for state, bridge client for .NET interop
 
 ### Graph API Patterns
 
@@ -131,20 +131,24 @@ while (response != null)
 
 **Never use `PageIterator`** - it silently truncates results on some tenants.
 
-### UI Thread Rules
+### Async Rules (.NET)
 
-**Critical**: Never block the UI thread with `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`
+**Critical**: Never block with `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` — always `await`.
 
 ```csharp
-// ❌ BAD - blocks UI thread
+// ❌ BAD
 var result = SomeAsyncMethod().Result;
 
-// ✅ GOOD - async all the way
+// ✅ GOOD
 var result = await SomeAsyncMethod();
-
-// ✅ GOOD - fire and forget for non-blocking loads
-_ = LoadDataAsync();
 ```
+
+### React Frontend Conventions
+
+- Components live in `intune-commander-react/src/components/` organized by feature (`login/`, `shell/`, `workspace/`)
+- State management: Zustand stores in `src/store/` — one store per domain (e.g. `settingsCatalogStore`, `searchStore`)
+- .NET interop: Use the typed bridge client in `src/bridge/` — never call `window.chrome.webview.postMessage` directly
+- New workspaces: Add a workspace component, a Zustand store, and a bridge service class in the WPF host
 
 ### Service Implementation Pattern
 
@@ -256,17 +260,15 @@ See [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for curr
 - **Questions about code patterns**: See `.github/copilot-instructions.md`
 - **Stuck on something?**: Open a draft PR and ask for guidance
 
-## Wave Implementation
+## Adding a New Workspace
 
-The project uses a Wave system for implementing new Intune object types. See `docs/issues/` for detailed tracking and current status:
+The Core library already has 30+ Graph API services built. The main contribution opportunity is wiring them into the React desktop UI as new workspaces. To add a workspace:
 
-- **Wave 1**: Endpoint Security, Admin Templates, Enrollment
-- **Wave 2**: App Protection, Managed App Configs
-- **Wave 3**: Tenant Administration
-- **Wave 4**: Autopilot, Device Management
-- **Wave 5**: Conditional Access, Identity
+1. **React side**: Create a component in `intune-commander-react/src/components/workspace/`, a Zustand store, and TypeScript types
+2. **Bridge side**: Add a bridge service in `src/Intune.Commander.DesktopReact/Services/` implementing `IBridgeService`
+3. **Register**: Wire the bridge service into `BridgeRouter` and add navigation in the React shell
 
-If contributing a new service, refer to [SERVICE-IMPLEMENTATION-PLAN.md](../docs/SERVICE-IMPLEMENTATION-PLAN.md) and the corresponding [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for detailed requirements and up-to-date progress.
+See existing workspaces (Settings Catalog, Detection & Remediation) for the full pattern. Check [GitHub Issues](https://github.com/adamgell/IntuneCommander/issues) for which workspaces are prioritized.
 
 ## License
 

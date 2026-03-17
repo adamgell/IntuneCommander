@@ -45,4 +45,4 @@ Valid `authMethod` values: `Interactive` · `ClientSecret` (add `"clientSecret"`
 
 ## After connecting
 
-Once connected, Intune Commander loads your tenant's data asynchronously — the UI is immediately usable while background loading completes. Use the left-hand navigation to browse object types.
+Once connected, Intune Commander loads your tenant's data asynchronously. Use the left-hand navigation to browse available workspaces (Overview, Settings Catalog, Detection & Remediation) and the top-bar search to find objects across all cached types.

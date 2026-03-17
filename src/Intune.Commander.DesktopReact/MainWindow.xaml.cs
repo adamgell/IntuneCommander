@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using Intune.Commander.Core.Services;
 using Intune.Commander.DesktopReact.Bridge;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
@@ -51,12 +52,29 @@ public partial class MainWindow : Window
         _bridge = App.Services.GetRequiredService<BridgeRouter>();
         _bridge.Initialize(coreWebView);
 
+        // Warn if cache is unavailable — most likely another instance is running
+        var cache = App.Services.GetRequiredService<ICacheService>();
+        if (!cache.IsAvailable)
+        {
+            MessageBox.Show(
+                "The cache database is locked by another running instance of Intune Commander.\n\n" +
+                "The app will continue to work, but caching is disabled for this session.",
+                "Cache Unavailable",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+
 #if DEBUG
         coreWebView.Navigate("http://localhost:5173");
 #else
-        var appDir = AppContext.BaseDirectory;
-        var indexPath = Path.Combine(appDir, "wwwroot", "index.html");
-        coreWebView.Navigate(new Uri(indexPath).AbsoluteUri);
+        // Vite ES modules require a real origin — file:// causes null-origin CORS
+        // failures for module imports. Virtual host mapping serves as https://.
+        var wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+        coreWebView.SetVirtualHostNameToFolderMapping(
+            "app.intunecommander.local",
+            wwwroot,
+            CoreWebView2HostResourceAccessKind.Allow);
+        coreWebView.Navigate("https://app.intunecommander.local/index.html");
 #endif
     }
 
@@ -72,10 +90,11 @@ public partial class MainWindow : Window
     {
         var uri = new Uri(args.Uri);
 
-        // Allow local content and dev server
-        if (uri.Scheme == "file")
+        // Allow virtual host serving app content
+        if (uri.Host == "app.intunecommander.local")
             return;
 
+        // Allow dev server
         if (uri.Host == "localhost" && uri.Port == 5173)
             return;
 

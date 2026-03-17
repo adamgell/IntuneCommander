@@ -2,11 +2,16 @@
 
 One of Intune Commander's core features is bulk-exporting all your configurations to JSON and importing them into any tenant. The export format is compatible with the original [IntuneManagement PowerShell tool](https://github.com/Micke-K/IntuneManagement).
 
+!!! info "CLI only"
+    Export and import are currently available through the **CLI** (`ic.exe`) only. A desktop UI for export/import is on the roadmap.
+
 ## How export works
 
-1. Connect to the source tenant.
-2. Use the **Export** toolbar button (or **File → Export**).
-3. Choose an output folder. Intune Commander creates a subfolder per object type:
+```bash
+ic export --profile Contoso-Prod --output ./export --types all
+```
+
+Intune Commander creates a subfolder per object type:
 
 ```
 IntuneExport/
@@ -28,12 +33,15 @@ The `migration-table.json` at the root maps original object IDs to new IDs creat
 
 ## How import works
 
-1. Connect to the **destination** tenant.
-2. Use **File → Import** and select the export folder.
-3. Intune Commander reads each subfolder, creates the objects via Graph API, and updates the migration table with the new IDs.
+```bash
+ic import --folder ./export --profile Contoso-Dev
+ic import --folder ./export --profile Contoso-Dev --dry-run
+```
+
+The CLI reads each subfolder, creates the objects via Graph API, and updates the migration table with the new IDs. Use `--dry-run` to validate the export folder structure and JSON payloads without authenticating to Graph or creating objects.
 
 !!! warning "Assignments during import"
-    Group assignments reference group object IDs, which differ between tenants. After import, review assignments and update group references for the destination tenant. Future releases will include a group-mapping UI.
+    Group assignments reference group object IDs, which differ between tenants. After import, review assignments and update group references for the destination tenant.
 
 ## Compatibility with IntuneManagement (PowerShell)
 
@@ -41,4 +49,4 @@ Exports from the original PowerShell tool can be imported into Intune Commander,
 
 ## Supported export types
 
-All 30+ object types visible in the navigation are exportable. See [Supported Object Types](../reference/object-types.md) for the complete list.
+All 30+ object types supported by the Core library are exportable via CLI. See [Supported Object Types](../reference/object-types.md) for the complete list.

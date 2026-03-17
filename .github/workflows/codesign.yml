@@ -15,8 +15,14 @@ permissions:
   contents: write
 
 env:
-  PROJECT: src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj
-  PUBLISH_DIR: src/Intune.Commander.DesktopReact/bin/Release/net10.0-windows/win-x64/publish
+  DESKTOP_PROJECT: src/Intune.Commander.DesktopReact/Intune.Commander.DesktopReact.csproj
+  CLI_PROJECT: src/Intune.Commander.CLI/Intune.Commander.CLI.csproj
+  INSTALLER_PACKAGE: src/Intune.Commander.Installer/package.signed.json
+  DESKTOP_PUBLISH_DIR: ./publish/desktop
+  DESKTOP_PUBLISH_DIR_ARM64: ./publish/desktop-arm64
+  CLI_PUBLISH_DIR: ./publish/cli
+  CLI_PUBLISH_DIR_ARM64: ./publish/cli-arm64
+  INSTALLER_OUTPUT_DIR: ./publish/installer
   REACT_DIR: intune-commander-react
   DOTNET_VERSION: '10.0.x'
   NODE_VERSION: '20'
@@ -43,6 +49,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Install Master Packager Dev
+        shell: pwsh
+        run: |
+          $installer = "$env:TEMP\mpdev.msi"
+          Invoke-WebRequest -Uri "https://cdn.masterpackager.com/installer/dev/2.1.1/mpdev_self_contained_x64_2.1.1.msi" -OutFile $installer
+          Start-Process msiexec.exe -ArgumentList "/i `"$installer`" /quiet /norestart" -Wait
+          "C:\Program Files\Master Packager Ltd\Master Packager Dev" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
       - name: Determine version
         id: version
         shell: bash
@@ -55,53 +69,131 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
+          # MSI ProductVersion must be numeric (X.Y.Z) — strip prerelease suffix
+          MSI_VERSION=$(echo "$VERSION" | sed 's/-.*//')
+          echo "msi_version=$MSI_VERSION" >> "$GITHUB_OUTPUT"
+
+          # MSIX also requires Major >= 1; map 0.x.y -> 1.x.y
+          PACKAGE_VERSION=$(echo "$MSI_VERSION" | awk -F. '{if ($1+0 == 0) $1=1; printf "%s.%s.%s", $1, $2, $3}')
+          echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
           if [[ "$VERSION" == *-* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Create and push tag when triggered manually
-      - name: Create tag (manual dispatch only)
+      # Create local tag for manual dispatch (gh release create will push it to remote,
+      # avoiding a duplicate workflow run from the push:tags trigger)
+      - name: Create local tag (manual dispatch only)
         if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a ${{ steps.version.outputs.tag }} -m "Release ${{ steps.version.outputs.tag }}"
-          git push origin ${{ steps.version.outputs.tag }}
 
+      # ── Build React frontend ──
       - name: Build React frontend
         working-directory: ${{ env.REACT_DIR }}
         run: |
           npm ci
           npm run build
 
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.PROJECT }} -r win-x64
-
-      - name: Publish
-        run: >
-          dotnet publish ${{ env.PROJECT }}
-          -c Release
-          -r win-x64
-          --no-restore
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:Version=${{ steps.version.outputs.version }}
-
-      - name: Verify build output
+      - name: Verify React dist
         shell: bash
         run: |
-          EXE="${{ env.PUBLISH_DIR }}/IntuneCommander.exe"
-          if [ ! -f "$EXE" ]; then
-            echo "::error::Build output not found at $EXE"
+          if [ ! -f "${{ env.REACT_DIR }}/dist/index.html" ]; then
+            echo "::error::React dist/index.html not found - frontend build failed"
             exit 1
           fi
-          SIZE=$(stat -c%s "$EXE" 2>/dev/null || stat -f%z "$EXE")
-          echo "Artifact: IntuneCommander.exe ($SIZE bytes)"
+          echo "React dist contents:"
+          ls -la "${{ env.REACT_DIR }}/dist/"
 
-      - name: Sign with Trusted Signing
+      # ── Publish .NET projects ──
+      - name: Publish Desktop (x64)
+        run: >
+          dotnet publish ${{ env.DESKTOP_PROJECT }}
+          -c Release
+          -r win-x64
+          --self-contained true
+          --output ${{ env.DESKTOP_PUBLISH_DIR }}
+          -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish Desktop (arm64)
+        run: >
+          dotnet publish ${{ env.DESKTOP_PROJECT }}
+          -c Release
+          -r win-arm64
+          --self-contained true
+          --output ${{ env.DESKTOP_PUBLISH_DIR_ARM64 }}
+          -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish CLI (x64)
+        run: >
+          dotnet publish ${{ env.CLI_PROJECT }}
+          -c Release
+          -r win-x64
+          --self-contained true
+          --output ${{ env.CLI_PUBLISH_DIR }}
+          -p:PublishSingleFile=true
+          -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish CLI (arm64)
+        run: >
+          dotnet publish ${{ env.CLI_PROJECT }}
+          -c Release
+          -r win-arm64
+          --self-contained true
+          --output ${{ env.CLI_PUBLISH_DIR_ARM64 }}
+          -p:PublishSingleFile=true
+          -p:Version=${{ steps.version.outputs.version }}
+
+      # Explicit copy so wwwroot is guaranteed in both publish dirs regardless
+      # of whether dotnet publish picked up the csproj CopyToPublishDirectory items.
+      - name: Copy React assets to wwwroot
+        shell: pwsh
+        run: |
+          foreach ($dir in @("${{ env.DESKTOP_PUBLISH_DIR }}", "${{ env.DESKTOP_PUBLISH_DIR_ARM64 }}")) {
+            $wwwroot = Join-Path $dir "wwwroot"
+            New-Item -ItemType Directory -Force -Path $wwwroot | Out-Null
+            Copy-Item -Recurse -Force "${{ env.REACT_DIR }}/dist/*" $wwwroot
+            Write-Host "Copied React assets to $wwwroot"
+          }
+
+      # ── Verify build output ──
+      - name: Verify build output
+        shell: pwsh
+        run: |
+          Write-Host "=== desktop (x64) ==="
+          Get-ChildItem "${{ env.DESKTOP_PUBLISH_DIR }}" -Name | Select-Object -First 20
+          Write-Host "=== desktop-arm64 ==="
+          Get-ChildItem "${{ env.DESKTOP_PUBLISH_DIR_ARM64 }}" -Name | Select-Object -First 20
+          Write-Host "=== cli (x64) ==="
+          Get-ChildItem "${{ env.CLI_PUBLISH_DIR }}" -Name
+          Write-Host "=== cli-arm64 ==="
+          Get-ChildItem "${{ env.CLI_PUBLISH_DIR_ARM64 }}" -Name
+
+          $missing = @()
+          $required = @(
+            "${{ env.DESKTOP_PUBLISH_DIR }}/IntuneCommander.exe",
+            "${{ env.DESKTOP_PUBLISH_DIR }}/wwwroot/index.html",
+            "${{ env.DESKTOP_PUBLISH_DIR_ARM64 }}/IntuneCommander.exe",
+            "${{ env.DESKTOP_PUBLISH_DIR_ARM64 }}/wwwroot/index.html",
+            "${{ env.CLI_PUBLISH_DIR }}/ic.exe",
+            "${{ env.CLI_PUBLISH_DIR_ARM64 }}/ic.exe"
+          )
+          foreach ($f in $required) {
+            if (Test-Path $f) {
+              Write-Host "OK: $f"
+            } else {
+              Write-Host "::error::MISSING: $f"
+              $missing += $f
+            }
+          }
+          if ($missing.Count -gt 0) { exit 1 }
+
+      # ── Sign executables (before MSI so MSI contains signed binaries) ──
+      - name: Sign Desktop exe (x64)
         uses: azure/trusted-signing-action@v0
         with:
           azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -110,12 +202,121 @@ jobs:
           endpoint: ${{ secrets.SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ secrets.SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
-          files-folder: ${{ env.PUBLISH_DIR }}
+          files-folder: ${{ env.DESKTOP_PUBLISH_DIR }}
           files-folder-filter: exe
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
 
+      - name: Sign Desktop exe (arm64)
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
+          files-folder: ${{ env.DESKTOP_PUBLISH_DIR_ARM64 }}
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Sign CLI exe (x64)
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
+          files-folder: ${{ env.CLI_PUBLISH_DIR }}
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Sign CLI exe (arm64)
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
+          files-folder: ${{ env.CLI_PUBLISH_DIR_ARM64 }}
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # ── Build MSI and MSIX (packages the already-signed binaries) ──
+      - name: Build MSI and MSIX installers (x64)
+        shell: pwsh
+        env:
+          IC_DESKTOP_PUBLISH_DIR: ${{ github.workspace }}\publish\desktop
+          IC_CLI_PUBLISH_DIR: ${{ github.workspace }}\publish\cli
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          SIGNING_ENDPOINT: ${{ secrets.SIGNING_ENDPOINT }}
+          SIGNING_ACCOUNT_NAME: ${{ secrets.SIGNING_ACCOUNT_NAME }}
+          SIGNING_PROFILE_NAME: ${{ secrets.SIGNING_PROFILE_NAME }}
+        run: |
+          New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\publish\installer" | Out-Null
+          mpdev build ${{ env.INSTALLER_PACKAGE }} `
+            --working-dir "${{ github.workspace }}" `
+            --properties `
+              "$.version=${{ steps.version.outputs.package_version }}" `
+              "$.outputFileName=IntuneCommander-${{ steps.version.outputs.version }}-x64"
+
+      - name: Build MSI and MSIX installers (arm64)
+        shell: pwsh
+        env:
+          IC_DESKTOP_PUBLISH_DIR: ${{ github.workspace }}\publish\desktop-arm64
+          IC_CLI_PUBLISH_DIR: ${{ github.workspace }}\publish\cli-arm64
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          SIGNING_ENDPOINT: ${{ secrets.SIGNING_ENDPOINT }}
+          SIGNING_ACCOUNT_NAME: ${{ secrets.SIGNING_ACCOUNT_NAME }}
+          SIGNING_PROFILE_NAME: ${{ secrets.SIGNING_PROFILE_NAME }}
+        run: |
+          mpdev build ${{ env.INSTALLER_PACKAGE }} `
+            --working-dir "${{ github.workspace }}" `
+            --properties `
+              "$.version=${{ steps.version.outputs.package_version }}" `
+              "$.outputFileName=IntuneCommander-${{ steps.version.outputs.version }}-arm64" `
+              "$.platform=arm64"
+
+      - name: Verify installer output
+        shell: bash
+        run: |
+          FAIL=0
+          for ARCH in x64 arm64; do
+            for EXT in msi msix; do
+              f="${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-${ARCH}.${EXT}"
+              if [ ! -f "$f" ]; then
+                echo "::error::Expected installer not found: $f"
+                ls -la "${{ env.INSTALLER_OUTPUT_DIR }}/" || true
+                FAIL=1
+              fi
+            done
+          done
+          if [ "$FAIL" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Prepare CLI release assets
+        shell: pwsh
+        run: |
+          Copy-Item "${{ env.CLI_PUBLISH_DIR }}\ic.exe" "${{ env.INSTALLER_OUTPUT_DIR }}\ic-x64.exe" -Force
+          Copy-Item "${{ env.CLI_PUBLISH_DIR_ARM64 }}\ic.exe" "${{ env.INSTALLER_OUTPUT_DIR }}\ic-arm64.exe" -Force
+
+      # ── Create GitHub Release ──
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -128,7 +329,13 @@ jobs:
 
           gh release create "${{ steps.version.outputs.tag }}" \
             -R "${{ env.GH_REPO }}" \
-            "${{ env.PUBLISH_DIR }}/IntuneCommander.exe" \
+            --target "${{ github.sha }}" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msi" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-x64.msix" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-arm64.msi" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/IntuneCommander-${{ steps.version.outputs.version }}-arm64.msix" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/ic-x64.exe" \
+            "${{ env.INSTALLER_OUTPUT_DIR }}/ic-arm64.exe" \
             --title "${{ steps.version.outputs.tag }}" \
             --generate-notes \
             $PRERELEASE_FLAG

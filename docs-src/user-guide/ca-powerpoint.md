@@ -2,13 +2,8 @@
 
 Intune Commander can export all your Conditional Access policies to a fully-formatted PowerPoint presentation — ideal for audits, compliance reviews, and architecture documentation.
 
-## Usage
-
-1. Navigate to **Conditional Access** in the left-hand menu.
-2. Wait for the policies to load.
-3. Click the **Export PowerPoint** button in the toolbar.
-4. Choose a save location.
-5. Open the generated `.pptx` file in PowerPoint or any compatible application.
+!!! warning "Not yet available in the desktop UI"
+    The CA PowerPoint export service is built and tested in the Core library, but the Conditional Access workspace has not been ported to the React desktop UI yet. This feature will be accessible once the Conditional Access workspace is added.
 
 ## What's in the deck
 

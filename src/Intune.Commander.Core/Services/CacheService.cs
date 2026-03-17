@@ -38,6 +38,8 @@ public class CacheService : ICacheService
     /// </summary>
     private static readonly ConcurrentDictionary<string, Type?> OdataTypeMap = new();
 
+    public bool IsAvailable => true;
+
     private readonly LiteDatabase _db;
     private readonly ILiteCollection<CacheEntry> _collection;
     private readonly object _syncRoot = new();
