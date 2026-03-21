@@ -76,6 +76,15 @@ jobs:
             echo "::error::Version must use three or four numeric components: $VERSION"
             exit 1
           fi
+          num_re='^[0-9]+$'
+          if ! [[ "$MAJOR" =~ $num_re && "$MINOR" =~ $num_re && "$BUILD" =~ $num_re ]]; then
+            echo "::error::Major, minor, and build components must be numeric: $VERSION"
+            exit 1
+          fi
+          if [ -n "${REVISION:-}" ] && ! [[ "$REVISION" =~ $num_re ]]; then
+            echo "::error::Revision component must be numeric when provided: $VERSION"
+            exit 1
+          fi
           if [ -z "${REVISION:-}" ] || [ "$REVISION" = "0" ]; then
             REVISION=1
           fi
