@@ -61,6 +61,7 @@ jobs:
         id: version
         shell: bash
         run: |
+          set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
           else
@@ -69,12 +70,29 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
-          # MSI ProductVersion must be numeric (X.Y.Z) — strip prerelease suffix
-          MSI_VERSION=$(echo "$VERSION" | sed 's/-.*//')
-          echo "msi_version=$MSI_VERSION" >> "$GITHUB_OUTPUT"
-
-          # MSIX also requires Major >= 1; map 0.x.y -> 1.x.y
-          PACKAGE_VERSION=$(echo "$MSI_VERSION" | awk -F. '{if ($1+0 == 0) $1=1; printf "%s.%s.%s", $1, $2, $3}')
+          NUMERIC_VERSION="${VERSION%%-*}"
+          IFS='.' read -r MAJOR MINOR BUILD REVISION EXTRA <<< "$NUMERIC_VERSION"
+          if [ -z "${MAJOR:-}" ] || [ -z "${MINOR:-}" ] || [ -z "${BUILD:-}" ] || [ -n "${EXTRA:-}" ]; then
+            echo "::error::Version must use three or four numeric components: $VERSION"
+            exit 1
+          fi
+          num_re='^[0-9]+$'
+          if ! [[ "$MAJOR" =~ $num_re && "$MINOR" =~ $num_re && "$BUILD" =~ $num_re ]]; then
+            echo "::error::Major, minor, and build components must be numeric: $VERSION"
+            exit 1
+          fi
+          if [ -n "${REVISION:-}" ] && ! [[ "$REVISION" =~ $num_re ]]; then
+            echo "::error::Revision component must be numeric when provided: $VERSION"
+            exit 1
+          fi
+          if [ -z "${REVISION:-}" ] || [ "$REVISION" = "0" ]; then
+            REVISION=1
+          fi
+          PACKAGE_MAJOR="$MAJOR"
+          if [ "$PACKAGE_MAJOR" = "0" ]; then
+            PACKAGE_MAJOR=1
+          fi
+          PACKAGE_VERSION="${PACKAGE_MAJOR}.${MINOR}.${BUILD}.${REVISION}"
           echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
 
           if [[ "$VERSION" == *-* ]]; then
@@ -271,6 +289,7 @@ jobs:
             --working-dir "${{ github.workspace }}" `
             --properties `
               "$.version=${{ steps.version.outputs.package_version }}" `
+              "$.msix.version=${{ steps.version.outputs.package_version }}" `
               "$.outputFileName=IntuneCommander-${{ steps.version.outputs.version }}-x64"
 
       - name: Build MSI and MSIX installers (arm64)
@@ -289,6 +308,7 @@ jobs:
             --working-dir "${{ github.workspace }}" `
             --properties `
               "$.version=${{ steps.version.outputs.package_version }}" `
+              "$.msix.version=${{ steps.version.outputs.package_version }}" `
               "$.outputFileName=IntuneCommander-${{ steps.version.outputs.version }}-arm64" `
               "$.platform=arm64"
 
