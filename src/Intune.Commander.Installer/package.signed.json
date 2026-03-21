@@ -5,7 +5,7 @@
   "outputFileName": "IntuneCommander-$.version-x64",
   "packageName": "Intune Commander",
   "publisher": "Adam Gell",
-  "version": "1.4.7.1",
+  "version": "0.4.7.0",
   "platform": "x64",
   "installDir": "%ProgramFiles%\\Intune Commander",
   "icon": "icon.ico",
