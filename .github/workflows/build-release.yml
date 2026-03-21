@@ -60,12 +60,24 @@ jobs:
             VERSION="$(grep -oPm1 '(?<=<Version>)[^<]+' "${{ env.DESKTOP_PROJECT }}")"
           fi
 
+          # Strip leading/trailing whitespace (e.g. from csproj or manual input)
+          VERSION="${VERSION#"${VERSION%%[![:space:]]*}"}"
+          VERSION="${VERSION%"${VERSION##*[![:space:]]}"}"
+
           NUMERIC_VERSION="${VERSION%%-*}"
           IFS='.' read -r MAJOR MINOR BUILD REVISION EXTRA <<< "$NUMERIC_VERSION"
           if [ -z "${MAJOR:-}" ] || [ -z "${MINOR:-}" ] || [ -z "${BUILD:-}" ] || [ -n "${EXTRA:-}" ]; then
             echo "::error::Version must use three or four numeric components: $VERSION"
             exit 1
           fi
+
+          # Validate each component is purely numeric (reject inputs like "1.a.3" or "1. 2.3")
+          for COMPONENT in "$MAJOR" "$MINOR" "$BUILD" ${REVISION:+"$REVISION"}; do
+            if ! [[ "$COMPONENT" =~ ^[0-9]+$ ]]; then
+              echo "::error::Version components must be numeric (got '$COMPONENT') in version: $VERSION"
+              exit 1
+            fi
+          done
 
           if [ -z "${REVISION:-}" ] || [ "$REVISION" = "0" ]; then
             REVISION=1
