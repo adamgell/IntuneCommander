@@ -67,6 +67,29 @@ jobs:
             exit 1
           fi
 
+          num_re='^[0-9]+$'
+          if ! [[ "$MAJOR" =~ $num_re && "$MINOR" =~ $num_re && "$BUILD" =~ $num_re ]]; then
+            echo "::error::Major, minor, and build components must be numeric: $VERSION"
+            exit 1
+          fi
+          if [ -n "${REVISION:-}" ] && ! [[ "$REVISION" =~ $num_re ]]; then
+            echo "::error::Revision component must be numeric when provided: $VERSION"
+            exit 1
+          fi
+          # MSI/MSIX version bounds: major/minor 0-255, build/revision 0-65535
+          if [ "$MAJOR" -gt 255 ] || [ "$MINOR" -gt 255 ]; then
+            echo "::error::Major and minor version components must be <= 255: $VERSION"
+            exit 1
+          fi
+          if [ "$BUILD" -gt 65535 ]; then
+            echo "::error::Build version component must be <= 65535: $VERSION"
+            exit 1
+          fi
+          if [ -n "${REVISION:-}" ] && [ "$REVISION" -gt 65535 ]; then
+            echo "::error::Revision version component must be <= 65535: $VERSION"
+            exit 1
+          fi
+
           if [ -z "${REVISION:-}" ] || [ "$REVISION" = "0" ]; then
             REVISION=1
           fi
