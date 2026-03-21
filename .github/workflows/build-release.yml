@@ -76,6 +76,26 @@ jobs:
             PACKAGE_MAJOR=1
           fi
 
+          # Validate MSI/MSIX version component bounds.
+          # MSI requires major/minor <= 255 and build/revision <= 65535.
+          for COMPONENT_NAME_VAL in "major:$PACKAGE_MAJOR" "minor:$MINOR" "build:$BUILD" "revision:$REVISION"; do
+            COMPONENT_NAME="${COMPONENT_NAME_VAL%%:*}"
+            COMPONENT_VAL="${COMPONENT_NAME_VAL##*:}"
+            if ! [[ "$COMPONENT_VAL" =~ ^[0-9]+$ ]]; then
+              echo "::error::Version component '$COMPONENT_NAME' is not numeric: $COMPONENT_VAL"
+              exit 1
+            fi
+            if [ "$COMPONENT_NAME" = "major" ] || [ "$COMPONENT_NAME" = "minor" ]; then
+              MAX=255
+            else
+              MAX=65535
+            fi
+            if [ "$COMPONENT_VAL" -gt "$MAX" ]; then
+              echo "::error::Version component '$COMPONENT_NAME' ($COMPONENT_VAL) exceeds MSI/MSIX maximum of $MAX. Version: $VERSION"
+              exit 1
+            fi
+          done
+
           PACKAGE_VERSION="${PACKAGE_MAJOR}.${MINOR}.${BUILD}.${REVISION}"
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
