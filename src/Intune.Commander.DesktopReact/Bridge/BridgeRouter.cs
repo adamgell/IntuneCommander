@@ -38,6 +38,9 @@ public class BridgeRouter : IBridgeService
     private readonly EnrollmentBridgeService _enrollmentBridge;
     private readonly DialogBridgeService _dialogBridge;
     private readonly GroupBridgeService _groupBridge;
+    private readonly DriftDetectionBridgeService _driftDetectionBridge;
+    private readonly ExportImportBridgeService _exportImportBridge;
+    private readonly TenantAdminBridgeService _tenantAdminBridge;
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -74,7 +77,10 @@ public class BridgeRouter : IBridgeService
         EndpointSecurityBridgeService endpointSecurityBridge,
         EnrollmentBridgeService enrollmentBridge,
         DialogBridgeService dialogBridge,
-        GroupBridgeService groupBridge)
+        GroupBridgeService groupBridge,
+        DriftDetectionBridgeService driftDetectionBridge,
+        ExportImportBridgeService exportImportBridge,
+        TenantAdminBridgeService tenantAdminBridge)
     {
         _profileBridge = profileBridge;
         _authBridge = authBridge;
@@ -104,6 +110,9 @@ public class BridgeRouter : IBridgeService
         _enrollmentBridge = enrollmentBridge;
         _dialogBridge = dialogBridge;
         _groupBridge = groupBridge;
+        _driftDetectionBridge = driftDetectionBridge;
+        _exportImportBridge = exportImportBridge;
+        _tenantAdminBridge = tenantAdminBridge;
     }
 
     public void Initialize(CoreWebView2 webView)
@@ -198,6 +207,34 @@ public class BridgeRouter : IBridgeService
             "groups.list" => await _groupBridge.ListAsync(),
             "groups.search" => await _groupBridge.SearchAsync(command.Payload),
             "groups.getDetail" => await _groupBridge.GetDetailAsync(command.Payload),
+            // Drift Detection
+            "drift.compare" => await _driftDetectionBridge.CompareAsync(command.Payload),
+            // Export / Import
+            "export.run" => await _exportImportBridge.RunExportAsync(command.Payload),
+            "import.preview" => await _exportImportBridge.PreviewImportAsync(command.Payload),
+            "import.run" => await _exportImportBridge.RunImportAsync(command.Payload),
+            // Tenant Admin
+            "tenantAdmin.scopeTags.list" => await _tenantAdminBridge.ListScopeTagsAsync(),
+            "tenantAdmin.scopeTags.getDetail" => await _tenantAdminBridge.GetScopeTagDetailAsync(command.Payload),
+            "tenantAdmin.roles.list" => await _tenantAdminBridge.ListRolesAsync(),
+            "tenantAdmin.roles.getDetail" => await _tenantAdminBridge.GetRoleDetailAsync(command.Payload),
+            "tenantAdmin.intuneBranding.list" => await _tenantAdminBridge.ListIntuneBrandingAsync(),
+            "tenantAdmin.intuneBranding.getDetail" => await _tenantAdminBridge.GetIntuneBrandingDetailAsync(command.Payload),
+            "tenantAdmin.azureBranding.list" => await _tenantAdminBridge.ListAzureBrandingAsync(),
+            "tenantAdmin.azureBranding.getDetail" => await _tenantAdminBridge.GetAzureBrandingDetailAsync(command.Payload),
+            "tenantAdmin.termsAndConditions.list" => await _tenantAdminBridge.ListTermsAndConditionsAsync(),
+            "tenantAdmin.termsAndConditions.getDetail" => await _tenantAdminBridge.GetTermsAndConditionsDetailAsync(command.Payload),
+            "tenantAdmin.termsOfUse.list" => await _tenantAdminBridge.ListTermsOfUseAsync(),
+            "tenantAdmin.termsOfUse.getDetail" => await _tenantAdminBridge.GetTermsOfUseDetailAsync(command.Payload),
+            "tenantAdmin.admxFiles.list" => await _tenantAdminBridge.ListAdmxFilesAsync(),
+            "tenantAdmin.admxFiles.getDetail" => await _tenantAdminBridge.GetAdmxFileDetailAsync(command.Payload),
+            "tenantAdmin.reusableSettings.list" => await _tenantAdminBridge.ListReusableSettingsAsync(),
+            "tenantAdmin.reusableSettings.getDetail" => await _tenantAdminBridge.GetReusableSettingDetailAsync(command.Payload),
+            "tenantAdmin.notifications.list" => await _tenantAdminBridge.ListNotificationsAsync(),
+            "tenantAdmin.notifications.getDetail" => await _tenantAdminBridge.GetNotificationDetailAsync(command.Payload),
+            "tenantAdmin.policySets.list" => await _tenantAdminBridge.ListPolicySetsAsync(),
+            "tenantAdmin.policySets.getDetail" => await _tenantAdminBridge.GetPolicySetDetailAsync(command.Payload),
+            // Dialogs
             "dialog.pickFolder" => await _dialogBridge.PickFolderAsync(),
             "dialog.pickFile" => await _dialogBridge.PickFileAsync(
                 GetStringProp(command.Payload, "filter"),

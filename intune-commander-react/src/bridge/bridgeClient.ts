@@ -23,11 +23,15 @@ const HEAVY_COMMANDS = new Set([
   'securityPosture.detail',
   'assignments.runReport',
   'bulkAppAssignments.bootstrap',
+  'drift.compare',
+  'import.preview',
 ]);
 
 const LONG_RUNNING_COMMANDS = new Set([
   'appAssignments.list',
   'bulkAppAssignments.apply',
+  'export.run',
+  'import.run',
 ]);
 const DEV_WS_URL = 'ws://localhost:5100/ws/';
 
