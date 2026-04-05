@@ -36,8 +36,7 @@
     "installDialog": {
       "packageDescription": "Intune configuration manager for Commercial, GCC, GCC-High, and DoD clouds.",
       "publisherUrl": "https://github.com/adamgell/IntuneCommander",
-      "eulaUrl": "https://github.com/adamgell/IntuneCommander/blob/main/LICENSE",
-      "promptAppsAfterInstall": true
+      "eulaUrl": "https://github.com/adamgell/IntuneCommander/blob/main/LICENSE"
     }
   },
   "msix": {
