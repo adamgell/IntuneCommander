@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Intune.Commander.Core.Services;
 using Intune.Commander.DesktopReact.Models;
 using Microsoft.Graph.Beta.Models;
@@ -99,8 +100,12 @@ public class PolicyComparisonBridgeService
         var (nameA, jsonA) = await GetPolicyJson(category, idA, client);
         var (nameB, jsonB) = await GetPolicyJson(category, idB, client);
 
-        var normalizedA = _normalizer.NormalizeJson(jsonA);
-        var normalizedB = _normalizer.NormalizeJson(jsonB);
+        // Strip metadata/envelope fields — keep only settings differences
+        var settingsOnlyA = StripMetadataFields(jsonA);
+        var settingsOnlyB = StripMetadataFields(jsonB);
+
+        var normalizedA = _normalizer.NormalizeJson(settingsOnlyA);
+        var normalizedB = _normalizer.NormalizeJson(settingsOnlyB);
 
         // Count differing properties
         var (total, differing) = CountDifferences(normalizedA, normalizedB);
@@ -164,6 +169,65 @@ public class PolicyComparisonBridgeService
 
             default:
                 throw new ArgumentException($"Unknown category: {category}");
+        }
+    }
+
+    /// <summary>
+    /// Fields that describe identity/metadata rather than actual policy settings.
+    /// Stripped before comparison so only functional differences remain.
+    /// </summary>
+    private static readonly HashSet<string> MetadataFields = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity & timestamps (also stripped by ExportNormalizer)
+        "id", "createdDateTime", "lastModifiedDateTime", "version",
+        // Display metadata
+        "displayName", "description", "name",
+        // Type discriminators
+        "@odata.type", "@odata.context",
+        // Template & category metadata
+        "templateReference", "templateId",
+        "platforms", "technologies", "settingCount",
+        // Assignment & scoping (not settings)
+        "assignments", "roleScopeTagIds", "roleScopeTags",
+        // Graph internals
+        "isAssigned", "supportsScopeTags",
+    };
+
+    private static string StripMetadataFields(string json)
+    {
+        var root = JsonNode.Parse(json);
+        if (root is JsonObject obj)
+            StripFieldsRecursive(obj);
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        return root?.ToJsonString(options) ?? json;
+    }
+
+    private static void StripFieldsRecursive(JsonObject obj)
+    {
+        var keysToRemove = obj
+            .Where(p => MetadataFields.Contains(p.Key))
+            .Select(p => p.Key)
+            .ToList();
+        foreach (var key in keysToRemove)
+            obj.Remove(key);
+
+        foreach (var kvp in obj.ToList())
+        {
+            if (kvp.Value is JsonObject childObj)
+                StripFieldsRecursive(childObj);
+            else if (kvp.Value is JsonArray arr)
+                StripFieldsFromArray(arr);
+        }
+    }
+
+    private static void StripFieldsFromArray(JsonArray arr)
+    {
+        foreach (var item in arr)
+        {
+            if (item is JsonObject obj)
+                StripFieldsRecursive(obj);
+            else if (item is JsonArray nested)
+                StripFieldsFromArray(nested);
         }
     }
 

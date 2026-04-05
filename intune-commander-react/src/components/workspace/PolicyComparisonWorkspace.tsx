@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { usePolicyComparisonStore } from '../../store/policyComparisonStore';
-import { MonacoDiffViewer } from '../shared/MonacoDiffViewer';
+import { DiffEditor, type DiffOnMount } from '@monaco-editor/react';
 import type { PolicyCategory } from '../../types/policyComparison';
+import type * as Monaco from 'monaco-editor';
 import '../../styles/workspace.css';
 
 const categories: { label: string; value: PolicyCategory }[] = [
@@ -60,10 +61,56 @@ export function PolicyComparisonWorkspace() {
   const compare = usePolicyComparisonStore((s) => s.compare);
   const loadPolicies = usePolicyComparisonStore((s) => s.loadPolicies);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const diffNavRef = useRef<any>(null);
+  const diffEditorRef = useRef<Monaco.editor.IStandaloneDiffEditor | null>(null);
+  const [diffCount, setDiffCount] = useState(0);
+
   // Load policies on mount
   useEffect(() => {
     void loadPolicies();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update diff count when comparison result changes
+  useEffect(() => {
+    setDiffCount(0);
+    diffNavRef.current = null;
+  }, [comparisonResult]);
+
+  const handleDiffMount: DiffOnMount = useCallback((editor, monaco) => {
+    diffEditorRef.current = editor;
+
+    // Wait for diff computation to complete, then count changes
+    const modifiedEditor = editor.getModifiedEditor();
+    const checkDiffs = () => {
+      const changes = editor.getLineChanges();
+      if (changes) {
+        setDiffCount(changes.length);
+        // Create diff navigator for back/forward
+        diffNavRef.current = monaco.editor.createDiffNavigator(editor, {
+          followsCaret: true,
+          ignoreCharChanges: false,
+        });
+      }
+    };
+
+    // Check initially and on model content changes
+    modifiedEditor.onDidChangeModelContent(checkDiffs);
+    // Also check after a short delay to catch initial diff computation
+    setTimeout(checkDiffs, 500);
+  }, []);
+
+  const goToNextDiff = useCallback(() => {
+    if (diffNavRef.current) {
+      diffNavRef.current.next();
+    }
+  }, []);
+
+  const goToPrevDiff = useCallback(() => {
+    if (diffNavRef.current) {
+      diffNavRef.current.previous();
+    }
+  }, []);
 
   return (
     <div className="workspace">
@@ -72,7 +119,7 @@ export function PolicyComparisonWorkspace() {
           <strong className="workspace-title">Policy Comparison</strong>
           <div className="workspace-stats">
             <span className="inline-stat" style={{ color: 'var(--text-secondary)' }}>
-              Side-by-side policy diff with Monaco editor
+              Settings-only diff (metadata stripped)
             </span>
           </div>
         </div>
@@ -112,7 +159,7 @@ export function PolicyComparisonWorkspace() {
         <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>Loading policies...</div>
       )}
 
-      {/* Comparison summary */}
+      {/* Comparison summary + diff navigation */}
       {comparisonResult && (
         <div style={{
           display: 'flex', gap: 16, padding: '8px 4px', alignItems: 'center',
@@ -135,15 +182,65 @@ export function PolicyComparisonWorkspace() {
               </span>
             </div>
           </div>
+
+          {/* Diff navigation controls */}
+          {diffCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button
+                className="btn btn-ghost"
+                onClick={goToPrevDiff}
+                disabled={diffCount === 0}
+                style={{ padding: '4px 8px', fontSize: 12, minWidth: 0 }}
+                title="Previous difference"
+              >
+                &larr; Prev
+              </button>
+              <span style={{ fontSize: 11, color: 'var(--text-tertiary)', minWidth: 50, textAlign: 'center' }}>
+                {diffCount} {diffCount === 1 ? 'change' : 'changes'}
+              </span>
+              <button
+                className="btn btn-ghost"
+                onClick={goToNextDiff}
+                disabled={diffCount === 0}
+                style={{ padding: '4px 8px', fontSize: 12, minWidth: 0 }}
+                title="Next difference"
+              >
+                Next &rarr;
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       {/* Monaco diff editor */}
       {comparisonResult && (
-        <MonacoDiffViewer
-          original={comparisonResult.normalizedJsonA}
-          modified={comparisonResult.normalizedJsonB}
-        />
+        <div style={{
+          flex: 1,
+          border: '1px solid var(--border)',
+          borderRadius: 8,
+          overflow: 'hidden',
+          minHeight: 400,
+        }}>
+          <DiffEditor
+            original={comparisonResult.normalizedJsonA}
+            modified={comparisonResult.normalizedJsonB}
+            language="json"
+            theme="vs-dark"
+            onMount={handleDiffMount}
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              fontSize: 12,
+              lineNumbers: 'on',
+              renderSideBySide: true,
+              enableSplitViewResizing: true,
+              wordWrap: 'on',
+              scrollbar: { verticalScrollbarSize: 8 },
+              padding: { top: 8, bottom: 8 },
+            }}
+          />
+        </div>
       )}
 
       {/* Empty state */}
@@ -157,7 +254,7 @@ export function PolicyComparisonWorkspace() {
       )}
 
       <div className="workspace-footer">
-        {comparisonResult && <span>{comparisonResult.differingProperties} differences found</span>}
+        {comparisonResult && <span>{comparisonResult.differingProperties} settings differences found</span>}
         {isComparing && <span>Comparing policies...</span>}
       </div>
     </div>
