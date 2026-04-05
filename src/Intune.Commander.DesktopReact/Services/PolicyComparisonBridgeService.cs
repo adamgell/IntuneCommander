@@ -135,7 +135,10 @@ public class PolicyComparisonBridgeService
                 _settingsCatalogService ??= new SettingsCatalogService(client);
                 var sc = await _settingsCatalogService.GetSettingsCatalogPolicyAsync(id)
                     ?? throw new InvalidOperationException($"Policy {id} not found");
-                return (sc.Name ?? sc.Id ?? id, JsonSerializer.Serialize(sc, options));
+                var scSettings = await _settingsCatalogService.GetPolicySettingsAsync(id);
+                // Build a composite object with the actual settings included
+                var scComposite = new { policy = sc, settings = scSettings };
+                return (sc.Name ?? sc.Id ?? id, JsonSerializer.Serialize(scComposite, options));
 
             case "compliance":
                 _complianceService ??= new CompliancePolicyService(client);
@@ -183,14 +186,17 @@ public class PolicyComparisonBridgeService
         // Display metadata
         "displayName", "description", "name",
         // Type discriminators
-        "@odata.type", "@odata.context",
+        "@odata.type", "@odata.context", "odataType",
         // Template & category metadata
         "templateReference", "templateId",
         "platforms", "technologies", "settingCount",
         // Assignment & scoping (not settings)
         "assignments", "roleScopeTagIds", "roleScopeTags",
-        // Graph internals
+        // Graph SDK internals
         "isAssigned", "supportsScopeTags",
+        "additionalData", "backingStore",
+        "creationSource", "priorityMetaData",
+        "disableEntraGroupPolicyAssignment",
     };
 
     private static string StripMetadataFields(string json)
