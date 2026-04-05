@@ -70,7 +70,7 @@ export function DriftDetectionWorkspace() {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {report && (
-            <button className="btn btn-ghost" onClick={clearReport}>Clear</button>
+            <button className="ws-btn" onClick={clearReport}>Clear</button>
           )}
         </div>
       </div>
@@ -81,7 +81,7 @@ export function DriftDetectionWorkspace() {
           <div style={{ flex: 1 }}>
             <label style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Baseline Folder</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-ghost" onClick={pickBaselineFolder}>Browse...</button>
+              <button className="ws-btn" onClick={pickBaselineFolder}>Browse...</button>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, lineHeight: '32px' }}>
                 {baselinePath ?? 'No folder selected'}
               </span>
@@ -90,7 +90,7 @@ export function DriftDetectionWorkspace() {
           <div style={{ flex: 1 }}>
             <label style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Current Folder</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-ghost" onClick={pickCurrentFolder}>Browse...</button>
+              <button className="ws-btn" onClick={pickCurrentFolder}>Browse...</button>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, lineHeight: '32px' }}>
                 {currentPath ?? 'No folder selected'}
               </span>
@@ -98,7 +98,7 @@ export function DriftDetectionWorkspace() {
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button
-              className="btn btn-primary"
+              className="ws-btn primary"
               disabled={!canCompare}
               onClick={runComparison}
             >
@@ -117,26 +117,26 @@ export function DriftDetectionWorkspace() {
         {report && report.changes.length > 0 && (
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
             <button
-              className={`chip ${!severityFilter ? 'chip-active' : ''}`}
+              className={`platform-chip${!severityFilter ? ' active' : ''}`}
               onClick={() => setSeverityFilter(null)}
             >All</button>
             {(['Critical', 'High', 'Medium', 'Low'] as DriftSeverity[]).map(sev => (
               <button
                 key={sev}
-                className={`chip ${severityFilter === sev ? 'chip-active' : ''}`}
+                className={`platform-chip${severityFilter === sev ? ' active' : ''}`}
                 style={{ color: severityColor[sev] }}
                 onClick={() => setSeverityFilter(severityFilter === sev ? null : sev)}
               >{sev}</button>
             ))}
             <span style={{ width: 1, background: 'var(--border)', margin: '0 4px' }} />
             <button
-              className={`chip ${!objectTypeFilter ? 'chip-active' : ''}`}
+              className={`platform-chip${!objectTypeFilter ? ' active' : ''}`}
               onClick={() => setObjectTypeFilter(null)}
             >All Types</button>
             {objectTypes.map(type => (
               <button
                 key={type}
-                className={`chip ${objectTypeFilter === type ? 'chip-active' : ''}`}
+                className={`platform-chip${objectTypeFilter === type ? ' active' : ''}`}
                 onClick={() => setObjectTypeFilter(objectTypeFilter === type ? null : type)}
               >{type}</button>
             ))}

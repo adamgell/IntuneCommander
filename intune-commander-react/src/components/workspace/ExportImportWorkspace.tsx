@@ -19,11 +19,11 @@ export function ExportImportWorkspace() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
-            className={`btn ${store.mode === 'export' ? 'btn-primary' : 'btn-ghost'}`}
+            className={`ws-btn${store.mode === 'export' ? ' primary' : ''}`}
             onClick={() => store.setMode('export')}
           >Export</button>
           <button
-            className={`btn ${store.mode === 'import' ? 'btn-primary' : 'btn-ghost'}`}
+            className={`ws-btn${store.mode === 'import' ? ' primary' : ''}`}
             onClick={() => store.setMode('import')}
           >Import</button>
         </div>
@@ -60,7 +60,7 @@ function ExportPanel() {
       <div>
         <label style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Output Folder</label>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={pickExportFolder}>Browse...</button>
+          <button className="ws-btn" onClick={pickExportFolder}>Browse...</button>
           <span style={{ fontSize: 12, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, lineHeight: '32px' }}>
             {exportPath ?? 'No folder selected'}
           </span>
@@ -71,7 +71,7 @@ function ExportPanel() {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <label style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Object Types to Export</label>
-          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={selectAllExportTypes}>Select All</button>
+          <button className="ws-btn" style={{ fontSize: 11, padding: '2px 8px' }} onClick={selectAllExportTypes}>Select All</button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {EXPORT_OBJECT_TYPES.map(type => (
@@ -91,7 +91,7 @@ function ExportPanel() {
       {/* Export Button */}
       <div>
         <button
-          className="btn btn-primary"
+          className="ws-btn primary"
           disabled={!exportPath || exportObjectTypes.length === 0 || isExporting}
           onClick={runExport}
         >
@@ -121,7 +121,7 @@ function ImportPanel() {
       <div>
         <label style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Import Folder</label>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={pickImportFolder}>
+          <button className="ws-btn" onClick={pickImportFolder}>
             {isPreviewLoading ? 'Scanning...' : 'Browse...'}
           </button>
           <span style={{ fontSize: 12, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, lineHeight: '32px' }}>
@@ -138,7 +138,7 @@ function ImportPanel() {
               <label style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
                 {importPreview.totalCount} objects found in {importPreview.objectTypes.length} categories
               </label>
-              <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={selectAllImportTypes}>Select All</button>
+              <button className="ws-btn" style={{ fontSize: 11, padding: '2px 8px' }} onClick={selectAllImportTypes}>Select All</button>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {importPreview.objectTypes.map(type => {
@@ -185,7 +185,7 @@ function ImportPanel() {
           {/* Import Button */}
           <div>
             <button
-              className="btn btn-primary"
+              className="ws-btn primary"
               disabled={selectedImportTypes.length === 0 || isImporting}
               onClick={runImport}
               style={{ background: 'var(--warning, #f59e0b)' }}

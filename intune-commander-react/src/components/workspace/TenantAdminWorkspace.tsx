@@ -147,7 +147,7 @@ export function TenantAdminWorkspace() {
             <div className="panel detail-panel" style={{ minWidth: 320, maxWidth: 480 }}>
               <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <strong style={{ fontSize: 13 }}>Details</strong>
-                <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={clearSelection}>Close</button>
+                <button className="ws-btn small" style={{ fontSize: 11, padding: '2px 8px' }} onClick={clearSelection}>Close</button>
               </div>
               <div className="panel-body" style={{ overflow: 'auto', padding: 12 }}>
                 {isLoadingDetail ? (
