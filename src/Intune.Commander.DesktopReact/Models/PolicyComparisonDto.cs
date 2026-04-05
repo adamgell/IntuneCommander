@@ -12,4 +12,12 @@ public record PolicyComparisonResultDto(
     int TotalProperties,
     int DifferingProperties,
     string NormalizedJsonA,
-    string NormalizedJsonB);
+    string NormalizedJsonB,
+    SettingDiffItem[]? SettingsDiff);
+
+public record SettingDiffItem(
+    string Label,
+    string Category,
+    string? ValueA,
+    string? ValueB,
+    string Status);

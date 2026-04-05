@@ -110,6 +110,16 @@ public class PolicyComparisonBridgeService
         // Count differing properties
         var (total, differing) = CountDifferences(normalizedA, normalizedB);
 
+        // Build structured settings diff for Settings Catalog
+        SettingDiffItem[]? settingsDiff = null;
+        if (category == "settingsCatalog")
+        {
+            _settingsCatalogService ??= new SettingsCatalogService(client);
+            var settingsA = await _settingsCatalogService.GetPolicySettingsAsync(idA);
+            var settingsB = await _settingsCatalogService.GetPolicySettingsAsync(idB);
+            settingsDiff = BuildSettingsDiff(settingsA, settingsB);
+        }
+
         return new PolicyComparisonResultDto(
             PolicyAName: nameA,
             PolicyBName: nameB,
@@ -117,7 +127,53 @@ public class PolicyComparisonBridgeService
             TotalProperties: total,
             DifferingProperties: differing,
             NormalizedJsonA: normalizedA,
-            NormalizedJsonB: normalizedB);
+            NormalizedJsonB: normalizedB,
+            SettingsDiff: settingsDiff);
+    }
+
+    private static SettingDiffItem[] BuildSettingsDiff(
+        List<DeviceManagementConfigurationSetting> settingsA,
+        List<DeviceManagementConfigurationSetting> settingsB)
+    {
+        var flatA = SettingsCatalogHelper.FlattenSettings(settingsA);
+        var flatB = SettingsCatalogHelper.FlattenSettings(settingsB);
+
+        // Index by label (label is the resolved friendly name)
+        var mapA = new Dictionary<string, (string Category, string Value)>();
+        foreach (var (cat, label, value) in flatA)
+            mapA[label] = (cat, value);
+
+        var mapB = new Dictionary<string, (string Category, string Value)>();
+        foreach (var (cat, label, value) in flatB)
+            mapB[label] = (cat, value);
+
+        var allLabels = new HashSet<string>(mapA.Keys);
+        allLabels.UnionWith(mapB.Keys);
+
+        var items = new List<SettingDiffItem>();
+        foreach (var label in allLabels.OrderBy(l => l))
+        {
+            var inA = mapA.TryGetValue(label, out var a);
+            var inB = mapB.TryGetValue(label, out var b);
+
+            var category = inA ? a.Category : b.Category;
+
+            if (inA && inB)
+            {
+                var status = string.Equals(a.Value, b.Value, StringComparison.Ordinal) ? "same" : "changed";
+                items.Add(new SettingDiffItem(label, category, a.Value, b.Value, status));
+            }
+            else if (inA)
+            {
+                items.Add(new SettingDiffItem(label, category, a.Value, null, "onlyA"));
+            }
+            else
+            {
+                items.Add(new SettingDiffItem(label, category, null, b.Value, "onlyB"));
+            }
+        }
+
+        return items.ToArray();
     }
 
     private async Task<(string Name, string Json)> GetPolicyJson(
