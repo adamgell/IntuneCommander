@@ -187,7 +187,7 @@ export function PolicyComparisonWorkspace() {
           {diffCount > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <button
-                className="btn btn-ghost"
+                className="ws-btn small"
                 onClick={goToPrevDiff}
                 disabled={diffCount === 0}
                 style={{ padding: '4px 8px', fontSize: 12, minWidth: 0 }}
@@ -199,7 +199,7 @@ export function PolicyComparisonWorkspace() {
                 {diffCount} {diffCount === 1 ? 'change' : 'changes'}
               </span>
               <button
-                className="btn btn-ghost"
+                className="ws-btn small"
                 onClick={goToNextDiff}
                 disabled={diffCount === 0}
                 style={{ padding: '4px 8px', fontSize: 12, minWidth: 0 }}
