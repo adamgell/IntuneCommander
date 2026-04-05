@@ -5,8 +5,9 @@
         Title="Intune Commander"
         Width="1400" Height="900"
         WindowStartupLocation="CenterScreen"
+        Background="#0b1020"
         Loaded="OnLoaded">
     <Grid>
-        <wv2:WebView2 x:Name="webView" />
+        <wv2:WebView2 x:Name="webView" DefaultBackgroundColor="#0b1020" />
     </Grid>
 </Window>
