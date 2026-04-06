@@ -75,13 +75,12 @@ public class ConditionalAccessBridgeService
         return MapPolicyDetail(policy);
     }
 
-    private static string FormatState(ConditionalAccessPolicyState? state) => state switch
+    private static string FormatState(ConditionalAccessPolicyState? state)
     {
-        ConditionalAccessPolicyState.Enabled => "enabled",
-        ConditionalAccessPolicyState.Disabled => "disabled",
-        ConditionalAccessPolicyState.EnabledForReportingButNotEnforced => "enabledForReportingButNotEnforced",
-        _ => "disabled",
-    };
+        if (state is null) return "disabled";
+        var text = state.Value.ToString();
+        return string.IsNullOrEmpty(text) ? "disabled" : char.ToLowerInvariant(text[0]) + text[1..];
+    }
 
     private static CaPolicyListItem[] MapPolicies(List<ConditionalAccessPolicy> policies)
     {
