@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterAll } from 'vitest';
 
 const mockSendCommand = vi.fn();
 vi.mock('../../bridge/bridgeClient', () => ({
@@ -7,9 +7,11 @@ vi.mock('../../bridge/bridgeClient', () => ({
 }));
 
 // Mock crypto.randomUUID for addTarget
-vi.stubGlobal('crypto', { randomUUID: () => 'mock-uuid' });
+vi.stubGlobal('crypto', { ...globalThis.crypto, randomUUID: () => 'mock-uuid' });
 
 const { useBulkAppAssignmentsStore } = await import('../bulkAppAssignmentsStore');
+
+afterAll(() => { vi.unstubAllGlobals(); });
 const initialState = useBulkAppAssignmentsStore.getState();
 
 beforeEach(() => {

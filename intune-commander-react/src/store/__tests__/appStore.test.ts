@@ -32,12 +32,15 @@ describe('appStore', () => {
     expect(state.activeSidebarItem).toBe('settings-catalog');
   });
 
-  it('subscribes to bridge events at module level', () => {
-    // onEvent is called during module initialization (before beforeEach clears mocks)
-    // so we re-import to verify subscriptions exist. The subscription calls are verified
-    // by the fact that the store module loaded without errors — the calls happen in
-    // initBridgeEvents() which is called at module scope.
-    expect(mockOnEvent).toBeDefined();
+  it('subscribes to bridge events at module level', async () => {
+    vi.resetModules();
+    mockOnEvent.mockClear();
+    await import('../appStore');
+    const eventNames = mockOnEvent.mock.calls.map(c => c[0]);
+    expect(eventNames).toContain('state.updated');
+    expect(eventNames).toContain('deviceCode.received');
+    expect(eventNames).toContain('deviceCode.cleared');
+    expect(eventNames).toContain('profiles.changed');
   });
 
   describe('setShellState', () => {

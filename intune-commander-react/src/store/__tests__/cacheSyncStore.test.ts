@@ -24,10 +24,11 @@ describe('cacheSyncStore', () => {
     expect(state.cacheStatus).toEqual([]);
   });
 
-  it('subscribes to cache.syncProgress event', () => {
-    // onEvent is called during module initialization before beforeEach clears mocks.
-    // The subscription is verified by the store loading successfully.
-    expect(mockOnEvent).toBeDefined();
+  it('subscribes to cache.syncProgress event', async () => {
+    vi.resetModules();
+    mockOnEvent.mockClear();
+    await import('../cacheSyncStore');
+    expect(mockOnEvent).toHaveBeenCalledWith('cache.syncProgress', expect.any(Function));
   });
 
   describe('syncAll', () => {

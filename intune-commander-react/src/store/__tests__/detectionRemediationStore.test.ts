@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 
 // Stub window for node environment (store uses window.setInterval/setTimeout)
 vi.stubGlobal('window', {
@@ -7,6 +7,8 @@ vi.stubGlobal('window', {
   clearInterval: globalThis.clearInterval.bind(globalThis),
   clearTimeout: globalThis.clearTimeout.bind(globalThis),
 });
+
+afterAll(() => { vi.unstubAllGlobals(); });
 
 const mockSendCommand = vi.fn();
 vi.mock('../../bridge/bridgeClient', () => ({
