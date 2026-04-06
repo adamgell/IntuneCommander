@@ -75,12 +75,20 @@ public class ConditionalAccessBridgeService
         return MapPolicyDetail(policy);
     }
 
+    private static string FormatState(ConditionalAccessPolicyState? state) => state switch
+    {
+        ConditionalAccessPolicyState.Enabled => "enabled",
+        ConditionalAccessPolicyState.Disabled => "disabled",
+        ConditionalAccessPolicyState.EnabledForReportingButNotEnforced => "enabledForReportingButNotEnforced",
+        _ => "disabled",
+    };
+
     private static CaPolicyListItem[] MapPolicies(List<ConditionalAccessPolicy> policies)
     {
         return policies.Select(p => new CaPolicyListItem(
             Id: p.Id ?? "",
             DisplayName: p.DisplayName ?? "",
-            State: p.State?.ToString() ?? "disabled",
+            State: FormatState(p.State),
             CreatedDateTime: p.CreatedDateTime?.ToString("o") ?? "",
             ModifiedDateTime: p.ModifiedDateTime?.ToString("o") ?? "",
             Description: p.Description,
@@ -174,7 +182,7 @@ public class ConditionalAccessBridgeService
         return new CaPolicyDetail(
             Id: policy.Id ?? "",
             DisplayName: policy.DisplayName ?? "",
-            State: policy.State?.ToString() ?? "disabled",
+            State: FormatState(policy.State),
             CreatedDateTime: policy.CreatedDateTime?.ToString("o") ?? "",
             ModifiedDateTime: policy.ModifiedDateTime?.ToString("o") ?? "",
             Description: policy.Description,

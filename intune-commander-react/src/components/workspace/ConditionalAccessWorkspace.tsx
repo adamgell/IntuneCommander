@@ -203,9 +203,6 @@ export function ConditionalAccessWorkspace() {
             </span>
           </div>
         </div>
-        <div className="workspace-actions">
-          <button className="ws-btn primary" disabled>Export selected</button>
-        </div>
       </div>
 
       <div className="platform-filter-bar">

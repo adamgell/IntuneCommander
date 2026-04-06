@@ -70,9 +70,6 @@ export function CaPolicyDetailPanel() {
           <button className="back-btn" onClick={clearSelection}>
             Back to list
           </button>
-          <div className="detail-header-actions">
-            <button className="ws-btn secondary" disabled>Export JSON</button>
-          </div>
         </div>
       </div>
       <div className="panel-body">
