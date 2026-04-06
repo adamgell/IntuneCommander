@@ -126,98 +126,118 @@ public class ExportImportBridgeService
         var migrationTable = new MigrationTable();
         int exportedCount = 0;
 
-        // Export each requested type
+        // Export each requested type using per-item APIs with shared migration table
         if (ShouldExport("DeviceConfigurations"))
         {
             _configService ??= new ConfigurationProfileService(client);
             var items = await _configService.ListDeviceConfigurationsAsync();
-            await _exportService.ExportDeviceConfigurationsAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportDeviceConfigurationAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         if (ShouldExport("CompliancePolicies"))
         {
             _complianceService ??= new CompliancePolicyService(client);
             var policies = await _complianceService.ListCompliancePoliciesAsync();
-            var withAssignments = new List<(Microsoft.Graph.Beta.Models.DeviceCompliancePolicy, IReadOnlyList<Microsoft.Graph.Beta.Models.DeviceCompliancePolicyAssignment>)>();
             foreach (var policy in policies)
             {
                 var assignments = await _complianceService.GetAssignmentsAsync(policy.Id!);
-                withAssignments.Add((policy, assignments));
+                await _exportService.ExportCompliancePolicyAsync(policy, assignments, outputPath, migrationTable);
+                exportedCount++;
             }
-            await _exportService.ExportCompliancePoliciesAsync(withAssignments, outputPath);
-            exportedCount += policies.Count;
         }
 
         if (ShouldExport("SettingsCatalog"))
         {
             _settingsCatalogService ??= new SettingsCatalogService(client);
             var policies = await _settingsCatalogService.ListSettingsCatalogPoliciesAsync();
-            var tuples = new List<(Microsoft.Graph.Beta.Models.DeviceManagementConfigurationPolicy, IReadOnlyList<Microsoft.Graph.Beta.Models.DeviceManagementConfigurationSetting>, IReadOnlyList<Microsoft.Graph.Beta.Models.DeviceManagementConfigurationPolicyAssignment>)>();
             foreach (var policy in policies)
             {
                 var settings = await _settingsCatalogService.GetPolicySettingsAsync(policy.Id!);
                 var assignments = await _settingsCatalogService.GetAssignmentsAsync(policy.Id!);
-                tuples.Add((policy, settings, assignments));
+                await _exportService.ExportSettingsCatalogPolicyAsync(policy, settings, assignments, outputPath, migrationTable);
+                exportedCount++;
             }
-            await _exportService.ExportSettingsCatalogPoliciesAsync(tuples, outputPath);
-            exportedCount += policies.Count;
         }
 
         if (ShouldExport("ScopeTags"))
         {
             _scopeTagService ??= new ScopeTagService(client);
             var items = await _scopeTagService.ListScopeTagsAsync();
-            await _exportService.ExportScopeTagsAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportScopeTagAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         if (ShouldExport("RoleDefinitions"))
         {
             _roleDefinitionService ??= new RoleDefinitionService(client);
             var items = await _roleDefinitionService.ListRoleDefinitionsAsync();
-            await _exportService.ExportRoleDefinitionsAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportRoleDefinitionAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         if (ShouldExport("TermsAndConditions"))
         {
             _termsAndConditionsService ??= new TermsAndConditionsService(client);
             var items = await _termsAndConditionsService.ListTermsAndConditionsAsync();
-            await _exportService.ExportTermsAndConditionsCollectionAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportTermsAndConditionsAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         if (ShouldExport("IntuneBrandingProfiles"))
         {
             _intuneBrandingService ??= new IntuneBrandingService(client);
             var items = await _intuneBrandingService.ListIntuneBrandingProfilesAsync();
-            await _exportService.ExportIntuneBrandingProfilesAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportIntuneBrandingProfileAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         if (ShouldExport("AzureBrandingLocalizations"))
         {
             _azureBrandingService ??= new AzureBrandingService(client);
             var items = await _azureBrandingService.ListBrandingLocalizationsAsync();
-            await _exportService.ExportAzureBrandingLocalizationsAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportAzureBrandingLocalizationAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         if (ShouldExport("DeviceHealthScripts"))
         {
             _deviceHealthScriptService ??= new DeviceHealthScriptService(client);
             var items = await _deviceHealthScriptService.ListDeviceHealthScriptsAsync();
-            await _exportService.ExportDeviceHealthScriptsAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportDeviceHealthScriptAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         if (ShouldExport("ConditionalAccessPolicies"))
         {
             _conditionalAccessService ??= new ConditionalAccessPolicyService(client);
             var items = await _conditionalAccessService.ListPoliciesAsync();
-            await _exportService.ExportConditionalAccessPoliciesAsync(items, outputPath);
-            exportedCount += items.Count;
+            foreach (var item in items)
+            {
+                await _exportService.ExportConditionalAccessPolicyAsync(item, outputPath, migrationTable);
+                exportedCount++;
+            }
         }
 
         await _exportService.SaveMigrationTableAsync(migrationTable, outputPath);
@@ -300,7 +320,8 @@ public class ExportImportBridgeService
             _scopeTagService ??= new ScopeTagService(client),
             _roleDefinitionService ??= new RoleDefinitionService(client),
             _intuneBrandingService ??= new IntuneBrandingService(client),
-            _azureBrandingService ??= new AzureBrandingService(client));
+            _azureBrandingService ??= new AzureBrandingService(client),
+            settingsCatalogService: _settingsCatalogService ??= new SettingsCatalogService(client));
 
         var migrationTable = await importService.ReadMigrationTableAsync(folderPath);
         var results = new List<ImportResultItem>();
@@ -386,7 +407,7 @@ public class ExportImportBridgeService
         {
             var dir = Path.Combine(folderPath, subfolder);
             if (Directory.Exists(dir))
-                await action(dir);
+                await action(folderPath);
         }
     }
 }

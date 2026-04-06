@@ -7,8 +7,6 @@ namespace Intune.Commander.DesktopReact.Services;
 public class TenantAdminBridgeService
 {
     private readonly AuthBridgeService _authBridge;
-    private readonly ICacheService _cache;
-    private readonly ShellStateBridgeService _shellState;
 
     private IScopeTagService? _scopeTagService;
     private IRoleDefinitionService? _roleDefinitionService;
@@ -21,14 +19,9 @@ public class TenantAdminBridgeService
     private INotificationTemplateService? _notificationService;
     private IPolicySetService? _policySetService;
 
-    public TenantAdminBridgeService(
-        AuthBridgeService authBridge,
-        ICacheService cache,
-        ShellStateBridgeService shellState)
+    public TenantAdminBridgeService(AuthBridgeService authBridge)
     {
         _authBridge = authBridge;
-        _cache = cache;
-        _shellState = shellState;
     }
 
     private Microsoft.Graph.Beta.GraphServiceClient GetClient() =>
@@ -58,8 +51,6 @@ public class TenantAdminBridgeService
         _notificationService = null;
         _policySetService = null;
     }
-
-    private string? GetTenantId() => _shellState.ActiveProfile?.TenantId;
 
     // ── Scope Tags ─────────────────────────────────────────────────────
 
