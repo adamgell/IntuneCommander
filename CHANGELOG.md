@@ -4,6 +4,54 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0.0] — 2026-04-06
+
+Major milestone: all planned React workspaces are now wired to the .NET backend, policy comparison shows human-readable setting names, and the frontend has full test coverage.
+
+### Added — Workspaces
+
+- **Drift Detection workspace** (`Operations > Drift Detection`) — compare two export folders to detect configuration drift. Severity-filtered results with field-level change display, folder pickers via native OS dialogs.
+- **Export / Import workspace** (`Operations > Export / Import`) — export tenant configurations to disk (10 object types with per-item migration table tracking) and import with folder preview, selective type filtering, and result summary.
+- **Tenant Admin workspace** (`Admin > Tenant Admin`) — list/detail views for 10 entity types: Scope Tags, Role Definitions, Intune Branding, Azure Branding, Terms & Conditions, Terms of Use, ADMX Files, Reusable Policy Settings, Notification Templates, and Policy Sets. Sidebar navigation with DataGrid and detail panel.
+
+### Added — Policy Comparison Improvements
+
+- **Structured settings diff report** — for Settings Catalog comparisons, displays a table with human-readable setting names (resolved via `SettingsCatalogDefinitionRegistry`), grouped by category, with color-coded status badges: Changed (yellow), Only A (red), Only B (purple), Same (green).
+- **Settings-only comparison** — strips 20+ metadata fields (displayName, description, assignments, templateReference, @odata.type, backingStore, etc.) before normalizing, so only actual settings differences are shown.
+- **Settings Catalog settings fetched** — includes actual policy settings via `GetPolicySettingsAsync()` in the comparison (the policy object alone has no settings data).
+- **Back/forward diff navigation** — Prev/Next buttons step through changes in both report view and raw JSON view using Monaco's DiffNavigator API.
+- **Report/JSON toggle** — switch between structured report view (default for Settings Catalog) and raw JSON Monaco diff editor.
+- **Shared SettingsCatalogHelper** — extracted static helpers (`FormatSettingLabel`, `NormalizeDisplayValue`, `ResolveCategoryForSetting`, `FlattenSettings`) into a shared class for reuse across bridge services.
+
+### Added — Frontend Tests
+
+- **Vitest test infrastructure** — set up Vitest with globals, node environment, auto mock reset, and bridge client mock pattern.
+- **263 store tests across 25 files** covering all Zustand stores:
+  - Complex stores: appStore (profiles, auth, navigation, events), bulkAppAssignmentsStore (target CRUD, validation), detectionRemediationStore (deploy, monitoring), assignmentExplorerStore (report modes), cacheSyncStore (progress events), searchStore (debounce, stale guards), scriptsHubStore, securityPostureStore, tenantAdminStore
+  - Standard list/detail stores: applicationsStore, appAssignmentsStore, appProtectionPoliciesStore, compliancePolicyStore, conditionalAccessStore, deviceConfigStore, endpointSecurityStore, enrollmentStore, managedDeviceAppConfigurationsStore, targetedManagedAppConfigurationsStore, vppTokensStore, settingsCatalogStore, driftDetectionStore, exportImportStore, policyComparisonStore, groupsStore
+- Test scripts: `npm test`, `npm run test:watch`, `npm run test:coverage`
+
+### Fixed
+
+- **Conditional Access state mapping** (#205) — `policy.State?.ToString()` returned PascalCase (`Enabled`) but React expected camelCase (`enabled`), causing detail panel to always show "Disabled" and filters to not work. Now derives camelCase from enum dynamically for forward-compatibility.
+- **Conditional Access placeholder export buttons** — removed greyed-out "Export selected" and "Export JSON" placeholder buttons (export is handled through the dedicated Export/Import workspace).
+- **Dark mode white flash** — set dark background (#0b1020) on `index.html` body (`background-color`), WPF `Window.Background`, and `WebView2.DefaultBackgroundColor` to prevent white flash during initialization.
+- **Groups membership rule column** — hidden when the "Assigned" type filter is active (assigned groups don't have dynamic membership rules).
+- **Button styling** — new workspaces were using non-existent CSS classes (`btn btn-ghost`, `btn btn-primary`). Replaced with correct workspace classes (`ws-btn`, `ws-btn primary`, `platform-chip`).
+- **Installer versioning** — replaced `grep -oP` (Perl regex) with portable `sed` for Windows runner locale compatibility, added numeric validation and MSI/MSIX bounds checks, fixed revision 0-to-1 rewrite, removed invalid `promptAppsAfterInstall` boolean.
+
+### Changed
+
+- **Version bumped to 0.5.0.0** across all projects (Core, DesktopReact, Desktop, Installer).
+- **BridgeRouter** — 26 new dispatch cases for the 3 new workspaces.
+- **Bridge client timeouts** — added `drift.compare` and `import.preview` to heavy commands (60s), `export.run` and `import.run` to long-running commands (180s).
+
+### Dependencies
+
+- `picomatch` 4.0.3 → 4.0.4 (security: CVE-2026-33671, CVE-2026-33672)
+- `yaml` 1.10.2 → 1.10.3 (security fix)
+- Added `vitest` ^4.1.2 and `@vitest/coverage-v8` ^4.1.2 (dev)
+
 ## [0.4.7.0] — 2026-03-17
 
 Biggest UI expansion to date — **16 new React workspaces**, a new top-level Admin tab, and full Application management coverage. Over 13,000 lines of new code across 100+ files.
