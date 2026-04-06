@@ -176,6 +176,13 @@ export function GroupsWorkspace() {
     return counts;
   }, [groups]);
 
+  const visibleColumns = useMemo(() => {
+    if (typeFilter === 'Assigned') {
+      return columns.filter((c) => c.field !== 'membershipRule');
+    }
+    return columns;
+  }, [typeFilter]);
+
   return (
     <div className="workspace">
       <div className="workspace-toolbar">
@@ -218,7 +225,7 @@ export function GroupsWorkspace() {
           <div style={{ width: '100%' }}>
             <DataGrid<GroupListItem>
               rows={filteredGroups}
-              columns={columns}
+              columns={visibleColumns}
               loading={isLoadingList}
               getRowId={(row) => row.id}
               rowSelectionModel={rowSelectionModel}
