@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Intune.Commander.Core.Services;
 using Intune.Commander.DesktopReact.Models;
 using Microsoft.Graph.Beta.Models;
@@ -96,14 +97,35 @@ public class PolicyComparisonBridgeService
         var client = GetClient();
         _normalizer ??= new ExportNormalizer();
 
-        var (nameA, jsonA) = await GetPolicyJson(category, idA, client);
-        var (nameB, jsonB) = await GetPolicyJson(category, idB, client);
+        // For Settings Catalog, fetch settings once and reuse for both JSON and structured diff
+        List<DeviceManagementConfigurationSetting>? scSettingsA = null;
+        List<DeviceManagementConfigurationSetting>? scSettingsB = null;
+        if (category == "settingsCatalog")
+        {
+            _settingsCatalogService ??= new SettingsCatalogService(client);
+            scSettingsA = await _settingsCatalogService.GetPolicySettingsAsync(idA);
+            scSettingsB = await _settingsCatalogService.GetPolicySettingsAsync(idB);
+        }
 
-        var normalizedA = _normalizer.NormalizeJson(jsonA);
-        var normalizedB = _normalizer.NormalizeJson(jsonB);
+        var (nameA, jsonA) = await GetPolicyJson(category, idA, client, scSettingsA);
+        var (nameB, jsonB) = await GetPolicyJson(category, idB, client, scSettingsB);
+
+        // Strip metadata/envelope fields — keep only settings differences
+        var settingsOnlyA = StripMetadataFields(jsonA);
+        var settingsOnlyB = StripMetadataFields(jsonB);
+
+        var normalizedA = _normalizer.NormalizeJson(settingsOnlyA);
+        var normalizedB = _normalizer.NormalizeJson(settingsOnlyB);
 
         // Count differing properties
         var (total, differing) = CountDifferences(normalizedA, normalizedB);
+
+        // Build structured settings diff for Settings Catalog
+        SettingDiffItem[]? settingsDiff = null;
+        if (scSettingsA is not null && scSettingsB is not null)
+        {
+            settingsDiff = BuildSettingsDiff(scSettingsA, scSettingsB);
+        }
 
         return new PolicyComparisonResultDto(
             PolicyAName: nameA,
@@ -112,11 +134,61 @@ public class PolicyComparisonBridgeService
             TotalProperties: total,
             DifferingProperties: differing,
             NormalizedJsonA: normalizedA,
-            NormalizedJsonB: normalizedB);
+            NormalizedJsonB: normalizedB,
+            SettingsDiff: settingsDiff);
+    }
+
+    private static SettingDiffItem[] BuildSettingsDiff(
+        List<DeviceManagementConfigurationSetting> settingsA,
+        List<DeviceManagementConfigurationSetting> settingsB)
+    {
+        var flatA = SettingsCatalogHelper.FlattenSettings(settingsA);
+        var flatB = SettingsCatalogHelper.FlattenSettings(settingsB);
+
+        // Use composite key (category + label) to avoid collisions from duplicate labels
+        static string BuildKey(string cat, string label) => $"{cat}\x1f{label}";
+
+        var mapA = new Dictionary<string, (string Category, string Label, string Value)>();
+        foreach (var (cat, label, value) in flatA)
+            mapA[BuildKey(cat, label)] = (cat, label, value);
+
+        var mapB = new Dictionary<string, (string Category, string Label, string Value)>();
+        foreach (var (cat, label, value) in flatB)
+            mapB[BuildKey(cat, label)] = (cat, label, value);
+
+        var allKeys = new HashSet<string>(mapA.Keys);
+        allKeys.UnionWith(mapB.Keys);
+
+        var items = new List<SettingDiffItem>();
+        foreach (var key in allKeys.OrderBy(k => k))
+        {
+            var inA = mapA.TryGetValue(key, out var a);
+            var inB = mapB.TryGetValue(key, out var b);
+
+            var category = inA ? a.Category : b.Category;
+            var label = inA ? a.Label : b.Label;
+
+            if (inA && inB)
+            {
+                var status = string.Equals(a.Value, b.Value, StringComparison.Ordinal) ? "same" : "changed";
+                items.Add(new SettingDiffItem(label, category, a.Value, b.Value, status));
+            }
+            else if (inA)
+            {
+                items.Add(new SettingDiffItem(label, category, a.Value, null, "onlyA"));
+            }
+            else
+            {
+                items.Add(new SettingDiffItem(label, category, null, b.Value, "onlyB"));
+            }
+        }
+
+        return items.ToArray();
     }
 
     private async Task<(string Name, string Json)> GetPolicyJson(
-        string category, string id, Microsoft.Graph.Beta.GraphServiceClient client)
+        string category, string id, Microsoft.Graph.Beta.GraphServiceClient client,
+        List<DeviceManagementConfigurationSetting>? preloadedSettings = null)
     {
         var options = new JsonSerializerOptions
         {
@@ -130,7 +202,9 @@ public class PolicyComparisonBridgeService
                 _settingsCatalogService ??= new SettingsCatalogService(client);
                 var sc = await _settingsCatalogService.GetSettingsCatalogPolicyAsync(id)
                     ?? throw new InvalidOperationException($"Policy {id} not found");
-                return (sc.Name ?? sc.Id ?? id, JsonSerializer.Serialize(sc, options));
+                var scSettings = preloadedSettings ?? await _settingsCatalogService.GetPolicySettingsAsync(id);
+                var scComposite = new { policy = sc, settings = scSettings };
+                return (sc.Name ?? sc.Id ?? id, JsonSerializer.Serialize(scComposite, options));
 
             case "compliance":
                 _complianceService ??= new CompliancePolicyService(client);
@@ -164,6 +238,75 @@ public class PolicyComparisonBridgeService
 
             default:
                 throw new ArgumentException($"Unknown category: {category}");
+        }
+    }
+
+    /// <summary>
+    /// Fields that describe identity/metadata rather than actual policy settings.
+    /// Stripped before comparison so only functional differences remain.
+    /// </summary>
+    private static readonly HashSet<string> MetadataFields = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Identity & timestamps (also stripped by ExportNormalizer)
+        "id", "createdDateTime", "lastModifiedDateTime", "version",
+        // Display metadata
+        "displayName", "description", "name",
+        // Type discriminators
+        "@odata.type", "@odata.context", "odataType",
+        // Template & category metadata
+        "templateReference", "templateId",
+        "platforms", "technologies", "settingCount",
+        // Assignment & scoping (not settings)
+        "assignments", "roleScopeTagIds", "roleScopeTags",
+        // Graph SDK internals
+        "isAssigned", "supportsScopeTags",
+        "additionalData", "backingStore",
+        "creationSource", "priorityMetaData",
+        "disableEntraGroupPolicyAssignment",
+    };
+
+    private static string StripMetadataFields(string json)
+    {
+        try
+        {
+            var root = JsonNode.Parse(json);
+            if (root is JsonObject obj)
+                StripFieldsRecursive(obj);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            return root?.ToJsonString(options) ?? json;
+        }
+        catch (JsonException)
+        {
+            return json;
+        }
+    }
+
+    private static void StripFieldsRecursive(JsonObject obj)
+    {
+        var keysToRemove = obj
+            .Where(p => MetadataFields.Contains(p.Key))
+            .Select(p => p.Key)
+            .ToList();
+        foreach (var key in keysToRemove)
+            obj.Remove(key);
+
+        foreach (var kvp in obj.ToList())
+        {
+            if (kvp.Value is JsonObject childObj)
+                StripFieldsRecursive(childObj);
+            else if (kvp.Value is JsonArray arr)
+                StripFieldsFromArray(arr);
+        }
+    }
+
+    private static void StripFieldsFromArray(JsonArray arr)
+    {
+        foreach (var item in arr)
+        {
+            if (item is JsonObject obj)
+                StripFieldsRecursive(obj);
+            else if (item is JsonArray nested)
+                StripFieldsFromArray(nested);
         }
     }
 

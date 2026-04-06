@@ -22,4 +22,15 @@ export interface PolicyComparisonResult {
   differingProperties: number;
   normalizedJsonA: string;
   normalizedJsonB: string;
+  settingsDiff?: SettingDiffItem[];
+}
+
+export type DiffStatus = 'same' | 'changed' | 'onlyA' | 'onlyB';
+
+export interface SettingDiffItem {
+  label: string;
+  category: string;
+  valueA?: string;
+  valueB?: string;
+  status: DiffStatus;
 }
